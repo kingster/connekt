@@ -1,4 +1,4 @@
-package com.flipkart.connekt.commons.services
+package com.flipkart.connekt.commons.helpers
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.factories.HTableFactoryWrapper

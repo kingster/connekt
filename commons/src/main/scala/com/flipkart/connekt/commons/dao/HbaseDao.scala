@@ -4,6 +4,7 @@ import java.io.IOException
 
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.client.{Get, HTableInterface, Put}
+import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.mutable.ListBuffer
 
@@ -57,3 +58,31 @@ trait HbaseDao {
     resultMap
   }
 }
+object HbaseDao {
+  implicit class stringHandyFunctions(val s: String) {
+    def getUtf8Bytes = Bytes.toBytes(s)
+  }
+
+  implicit class longHandyFunctions(val l: Long) {
+    def getBytes = Bytes.toBytes(l)
+  }
+
+  implicit class booleanHandyFunctions(val b: Boolean) {
+    def getBytes = Bytes.toBytes(b)
+  }
+
+
+  implicit class byteArrayHandyFunctions(val b: Array[Byte]) {
+    def getString = Bytes.toString(b)
+    def getLong = Bytes.toLong(b)
+    def getBoolean = Bytes.toBoolean(b)
+    def getInt = Bytes.toInt(b)
+  }
+
+  implicit class mapKVHandyFunctions(val m: Map[String, Array[Byte]]) {
+    def getS(key: String) = m.get(key).map(_.getString).orNull
+    def getB(key: String) = m.get(key).exists(_.getBoolean)
+    def getL(key: String) = m.get(key).map(Bytes.toLong).getOrElse(null)
+  }
+}
+

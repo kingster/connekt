@@ -1,10 +1,12 @@
-package com.flipkart.connekt.commons.services
+package com.flipkart.connekt.commons.helpers
 
 import java.util.Properties
 
+import com.flipkart.connekt.commons.factories.{KafkaConsumerFactory, KafkaProducerFactory}
 import com.typesafe.config.Config
 import org.apache.commons.pool.impl.GenericObjectPool
-import com.flipkart.connekt.commons.factories.{KafkaConsumerFactory,KafkaProducerFactory}
+
+import scala.util.Try
 
 /**
  *
@@ -52,6 +54,7 @@ trait KafkaConnectionHelper {
     factoryProps.setProperty("metadata.broker.list", factoryConf.getString("metadata.broker.list"))
     factoryProps.setProperty("serializer.class", factoryConf.getString("serializer.class"))
     factoryProps.setProperty("request.required.acks", factoryConf.getString("request.required.acks"))
+    factoryProps.setProperty("producer.type", Try(factoryConf.getString("producer.type")).getOrElse("sync"))
 
     val kafkaProducerFactory = new KafkaProducerFactory[String, String](factoryProps)
 

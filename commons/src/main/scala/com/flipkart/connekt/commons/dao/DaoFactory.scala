@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
-import com.flipkart.connekt.commons.services.HConnectionHelper
+import com.flipkart.connekt.commons.helpers.HConnectionHelper
 import com.typesafe.config.Config
 
 /**
@@ -27,9 +27,11 @@ object DaoFactory {
   def initMysqlTableDaoFactory(mysqlConnectionConfig: Config) = ???
 
   def getDeviceDetailsDao: DeviceDetailsDao = daoMap(DaoType.DEVICE_DETAILS).asInstanceOf[DeviceDetailsDao]
+
+  def getRequestInfoDao: RequestDao = daoMap(DaoType.PN_REQUEST_INFO).asInstanceOf[PNRequestDao]
 }
 
 object DaoType extends Enumeration {
-  val DEVICE_DETAILS, REQUEST_META = Value
+  val DEVICE_DETAILS, REQUEST_META, PN_REQUEST_INFO = Value
 }
 

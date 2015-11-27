@@ -3,7 +3,7 @@ package com.flipkart.connekt.commons.tests.dao
 import java.util.{Properties, UUID}
 
 import com.flipkart.connekt.commons.dao.HbaseDao
-import com.flipkart.connekt.commons.services.HConnectionHelper
+import com.flipkart.connekt.commons.helpers.HConnectionHelper
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.CharEncoding
