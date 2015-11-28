@@ -22,8 +22,8 @@ class Unicast(implicit _am: ActorMaterializer) extends BaseHandler {
   val unicast =
     sniffHeaders { headers =>
       isAuthenticated(Some(headers)) {
-        path("v1" / "push" / "unicast" / Segment / Segment) {
-          (appPlatform: String, deviceId: String) =>
+        path("v1" / "push" / "unicast" / Segment / Segment / Segment) {
+          (appPlatform: String, appName:String, deviceId: String) =>
             post {
               entity(as[ConnektRequest]) { r =>
                 ConnektLogger(LogFile.SERVICE).info("Received unicast PN request with payload: %s".format(r.toString))

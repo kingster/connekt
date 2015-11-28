@@ -13,7 +13,7 @@ object BuildCommons extends Build {
 
   lazy val root =
     Project("root", file("."), settings = _commonSettings)
-      .aggregate(receptors, commons)
+      .aggregate(receptors, busybees, commons)
 
   lazy val commons = Project("commons", file("commons"), settings=_commonSettings)
 
@@ -21,5 +21,11 @@ object BuildCommons extends Build {
     .dependsOn(commons % "test->test;compile->compile")
     .settings(
       mainClass in (Compile, run) := Some("com.flipkart.connekt.receptors.ReceptorsBoot")
+    )
+
+  lazy val busybees = Project("busybees", file("busybees"), settings=_commonSettings)
+    .dependsOn(commons % "test->test;compile->compile")
+    .settings(
+      mainClass in (Compile, run) := Some("com.flipkart.connekt.busybees.BootBusyBees")
     )
 }

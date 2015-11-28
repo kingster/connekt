@@ -16,5 +16,9 @@ libraryDependencies ++= Seq(
 //  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "ch.qos.logback" % "logback-core" % "1.1.3",
   "ch.qos.logback" % "logback-classic" % "1.1.3",
-  "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3"
+  "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
+  "com.typesafe.akka" % "akka-actor_2.11" % "2.4.0",
+  "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1",
+  "com.typesafe.akka" % "akka-http-core-experimental_2.11" % "2.0-M1",
+  "com.typesafe.akka" % "akka-http-experimental_2.11" % "2.0-M1"
 )

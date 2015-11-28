@@ -26,7 +26,7 @@ class ReceptorsServer {
 
   val unicastHandler = new Unicast().unicast
 
-  val allRoutes = receptorReqHandler ~ unicastHandler
+  val allRoutes =  unicastHandler ~ receptorReqHandler
 
   lazy val init =
     Http().bindAndHandle(allRoutes, bindHost, bindPort)
