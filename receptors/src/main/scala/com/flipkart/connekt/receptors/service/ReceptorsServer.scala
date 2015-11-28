@@ -5,6 +5,7 @@ import _root_.akka.http.scaladsl.Http
 import _root_.akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.receptors.routes.pn.{Unicast, Registration}
+import akka.http.scaladsl.server.Directives._
 
 /**
  *
@@ -18,15 +19,17 @@ class ReceptorsServer {
 
   implicit val ec = system.dispatcher
 
-  private val bindHost = ConnektConfig.getString("receptors.bindHost").getOrElse("127.0.0.1")
+  private val bindHost = ConnektConfig.getString("receptors.bindHost").getOrElse("0.0.0.0")
   private val bindPort = ConnektConfig.getInt("receptors.bindPort").getOrElse(25000)
 
   val receptorReqHandler = new Registration().register
 
   val unicastHandler = new Unicast().unicast
 
+  val allRoutes = receptorReqHandler ~ unicastHandler
+
   lazy val init =
-    Http().bindAndHandle(unicastHandler, bindHost, bindPort)
+    Http().bindAndHandle(allRoutes, bindHost, bindPort)
 
   def stop() = {
 
