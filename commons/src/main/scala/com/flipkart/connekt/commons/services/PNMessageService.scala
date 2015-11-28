@@ -46,7 +46,6 @@ object PNMessageService extends MessageService {
 
   //FIXME: cleanup, revamp with progressive(not discrete) sla
   protected def enqueueRequest(pnRequest: ConnektRequest) = {
-    val topicName = contextConf.getValueOrElse[String]("pn.requestQueue", "fk-connekt-pn")
     enqueueHelper.writeMessages(topicName, pnRequest.getJson)
   }
 

@@ -4,8 +4,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.receptors.service.ReceptorsServer
+import com.typesafe.config.ConfigFactory
 
 /**
  *
@@ -26,6 +28,10 @@ object ReceptorsBoot extends App {
 
     val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
     DaoFactory.initHTableDaoFactory(hConfig.get)
+
+    val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
+    val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
+    KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
     receptors = new ReceptorsServer
     receptors.init

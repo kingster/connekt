@@ -39,6 +39,6 @@ class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends Requ
 }
 
 object PNRequestDao {
-  def apply(tableName: String = "connekt-pn-request-info", hTableFactory: HTableFactory) =
+  def apply(tableName: String = "fk-connekt-pn-info", hTableFactory: HTableFactory) =
     new PNRequestDao(tableName, hTableFactory)
 }

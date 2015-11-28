@@ -31,7 +31,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
         "expiryTs" -> request.expiryTs.getBytes
       )
 
-      val channelRequestDataProps = channelRequestDataMap(request.data)
+      val channelRequestDataProps = channelRequestDataMap(request.channelData)
 
       val rawData = Map[String, Map[String, Array[Byte]]]("r" -> deviceRegInfoCfProps, "c" -> channelRequestDataProps)
       addRow(hTableName, requestId, rawData)
@@ -66,7 +66,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
           templateId = fields.getS("templateId"),
           scheduleTs = fields.getL("scheduleTs").asInstanceOf[Long],
           expiryTs = fields.getL("expiryTs").asInstanceOf[Long],
-          data = channelRequestData,
+          channelData = channelRequestData,
           meta = Map[String, String]()
         )
       })

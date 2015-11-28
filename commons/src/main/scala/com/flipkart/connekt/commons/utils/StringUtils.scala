@@ -1,6 +1,8 @@
 package com.flipkart.connekt.commons.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.commons.codec.CharEncoding
 
 import scala.reflect.ClassTag
@@ -17,7 +19,9 @@ object StringUtils {
     def getUtf8Bytes = s.getBytes(CharEncoding.UTF_8)
   }
 
-  private val objMapper = new ObjectMapper()
+  private val objMapper = new ObjectMapper() with ScalaObjectMapper
+  objMapper.registerModules(Seq(DefaultScalaModule):_*)
+
   implicit class JSONMarshallFunctions(val o: AnyRef) {
     def getJson = objMapper.writeValueAsString(o)
   }

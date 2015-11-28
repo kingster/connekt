@@ -17,7 +17,9 @@ object DaoFactory {
 
   def initHTableDaoFactory(hConnectionConfig: Config) = {
     hTableFactory = HConnectionHelper.createHbaseConnection(hConnectionConfig)
+
     daoMap += DaoType.DEVICE_DETAILS -> DeviceDetailsDao("fk-connekt-proto", hTableFactory)
+    daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao("fk-connekt-pn-info", hTableFactory)
   }
 
   def shutdownHTableDaoFactory() = {

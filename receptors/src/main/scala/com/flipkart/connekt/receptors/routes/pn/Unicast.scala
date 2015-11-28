@@ -2,6 +2,7 @@ package com.flipkart.connekt.receptors.routes.pn
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GenericResponse, Response}
 import com.flipkart.connekt.commons.services.PNMessageService
 import com.flipkart.connekt.receptors.routes.BaseHandler
@@ -25,6 +26,7 @@ class Unicast(implicit _am: ActorMaterializer) extends BaseHandler {
           (appPlatform: String, deviceId: String) =>
             post {
               entity(as[ConnektRequest]) { r =>
+                ConnektLogger(LogFile.SERVICE).info("Received unicast PN request with payload: %s".format(r.toString))
                 def enqueue = PNMessageService.persistRequest(r, isCrucial = true)
                 async(enqueue) {
                   case Success(Some(t)) =>

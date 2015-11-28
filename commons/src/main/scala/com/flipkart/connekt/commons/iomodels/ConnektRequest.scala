@@ -7,4 +7,4 @@ package com.flipkart.connekt.commons.iomodels
  * @version 11/26/15
  */
 case class ConnektRequest(channel: String, sla: String, templateId: String, scheduleTs: Long, expiryTs: Long,
-                          data: ChannelRequestData, meta: Map[String, String])
+                          channelData: ChannelRequestData, meta: Map[String, String])
