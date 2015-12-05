@@ -30,6 +30,9 @@ class MessageDecoder[T: ClassTag](implicit tag: ClassTag[T]) extends Decoder[T] 
 
 /**
  *
+ * KafkaMessageProcessFlow models a generic processing pipe for a specific kafka topic
+ * messages, using any custom actor class.
+ *
  * @param kafkaHelper kafka broker connection pool helper
  * @param topic kafka topic to establish stream with
  * @param numStreams #numStreams of topic
