@@ -1,11 +1,13 @@
 package com.flipkart.connekt.commons.helpers
 
+import java.util.NoSuchElementException
+
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.typesafe.config.Config
 import kafka.consumer.{ConsumerConnector, KafkaStream}
 import org.apache.commons.pool.impl.GenericObjectPool
 
-import scala.util.Try
+import scala.util.{Success, Failure, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -33,15 +35,43 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
         throw e
     }
   }
+
+  def getConnector = Try[ConsumerConnector](kafkaConsumerPool.borrowObject()) match {
+    case Failure(e) => e match {
+      case q: NullPointerException => throw new RuntimeException("kafka consumer helper un-initialized." + q.getMessage, q)
+      case a: NoSuchElementException => throw new Exception("kafka pool exhausted." + a.getMessage, a)
+      case z: Exception => throw z
+    }
+    case Success(cC) => cC
+  }
+
+  def returnConnector(cC: ConsumerConnector) = try {
+    kafkaConsumerPool.returnObject(cC)
+  } catch {
+    case e: Exception => ConnektLogger(LogFile.FACTORY).error("Failed returning kafkaConnector." + e.getMessage, e)
+  }
 }
 
 object KafkaConsumerHelper {
 
-  private var instance: KafkaConsumerHelper = null
+  var instance: KafkaConsumerHelper = null
 
   def init(consumerConfig: Config, globalContextConf: Config) = {
-    instance = new KafkaConsumerHelper(consumerConfig, globalContextConf)
+    if (null != instance)
+      this.synchronized {
+        instance = KafkaConsumerHelper(consumerConfig, globalContextConf)
+      }
+    instance
   }
+
+  def shutdown() = try {
+    instance.kafkaConsumerPool.close()
+  } catch {
+    case e: Exception => ConnektLogger(LogFile.FACTORY).error("Error in KafkaConsumerHelper companion shutdown. " + e.getMessage, e)
+  }
+
+  def apply(consumerConfig: Config, globalContextConf: Config) =
+    new KafkaConsumerHelper(consumerConfig, globalContextConf)
 
   def readMessage(topic: String): Option[String] = {
     lazy val streamsMap = scala.collection.mutable.Map[String, KafkaStream[Array[Byte], Array[Byte]]]()

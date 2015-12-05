@@ -3,7 +3,7 @@ package com.flipkart.connekt.busybees.controllers
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
-import com.flipkart.connekt.busybees.providers.GCMClient
+import com.flipkart.connekt.busybees.clients.GCMClient
 import com.flipkart.connekt.commons.entities.Credentials
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConnectionHelper

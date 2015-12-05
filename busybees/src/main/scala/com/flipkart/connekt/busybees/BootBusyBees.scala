@@ -2,10 +2,13 @@ package com.flipkart.connekt.busybees
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.flipkart.connekt.busybees.controllers.DummyWorker
+import akka.actor.ActorSystem
+import com.flipkart.connekt.busybees.flows.KafkaMessageProcessFlow
+import com.flipkart.connekt.busybees.processors.PNProcessor
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
+import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.typesafe.config.ConfigFactory
 
@@ -17,6 +20,8 @@ import com.typesafe.config.ConfigFactory
  */
 object BootBusyBees extends App {
   val initialized = new AtomicBoolean(false)
+  var pnDispatchFlow: Option[KafkaMessageProcessFlow[ConnektRequest, PNProcessor]] = None
+  val system = ActorSystem("busyBees-system")
 
   if(!initialized.get()) {
     ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
@@ -31,12 +36,14 @@ object BootBusyBees extends App {
     val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
 
     ConnektLogger(LogFile.SERVICE).info("Kafka Conf: %s".format(kafkaConnConf.toString))
-    KafkaConsumerHelper.init(kafkaConnConf, kafkaConsumerPoolConf)
+    val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
-    DummyWorker.init()
+    pnDispatchFlow = Some(new KafkaMessageProcessFlow[ConnektRequest, PNProcessor](kafkaHelper, "fk-connekt-pn", 1, 5)(system))
+    pnDispatchFlow.map(_.run())
   }
 
   def terminate = {
     DaoFactory.shutdownHTableDaoFactory()
+    pnDispatchFlow.map(_.shutdown())
   }
 }

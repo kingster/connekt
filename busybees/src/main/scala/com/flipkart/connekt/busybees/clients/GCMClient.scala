@@ -1,18 +1,18 @@
-package com.flipkart.connekt.busybees.providers
+package com.flipkart.connekt.busybees.clients
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.stream.ActorMaterializer
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.busybees.utils.ResponseUtils._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GCMPayload, PNRequestData}
 import com.flipkart.connekt.commons.transmission.HostConnectionHelper._
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.connekt.busybees.utils.ResponseUtils._
-import scala.util.{Failure, Success}
 
+import scala.util.{Failure, Success}
 /**
  *
  *

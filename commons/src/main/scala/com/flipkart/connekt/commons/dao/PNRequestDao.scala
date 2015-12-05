@@ -22,13 +22,15 @@ class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends Requ
       "deviceId" -> pnRequestData.deviceId.getUtf8Bytes,
       "ackRequired" -> pnRequestData.ackRequired.getBytes,
       "delayWhileIdle" -> pnRequestData.delayWhileIdle.getBytes,
-      "data" -> pnRequestData.data.toString.getUtf8Bytes
+      "data" -> pnRequestData.data.toString.getUtf8Bytes,
+      "platform" -> pnRequestData.data.toString.getUtf8Bytes
     )
   }
 
   override protected def getChannelRequestData(dataMap: Map[String, Array[Byte]]): ChannelRequestData = {
     PNRequestData(
       requestId = dataMap.getS("requestId"),
+      platform = dataMap.getS("platform"),
       appName = dataMap.getS("appName"),
       deviceId = dataMap.getS("deviceId"),
       ackRequired = dataMap.getB("ackRequired"),

@@ -19,7 +19,11 @@ object StringUtils {
     def getUtf8Bytes = s.getBytes(CharEncoding.UTF_8)
   }
 
-  private val objMapper = new ObjectMapper() with ScalaObjectMapper
+  implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
+    def getString = new String(b, CharEncoding.UTF_8)
+  }
+
+  val objMapper = new ObjectMapper() with ScalaObjectMapper
   objMapper.registerModules(Seq(DefaultScalaModule):_*)
 
   implicit class JSONMarshallFunctions(val o: AnyRef) {
@@ -28,5 +32,6 @@ object StringUtils {
   
   implicit class JSONUnMarshallFunctions(val s: String) {
     def getObj[T: ClassTag] = objMapper.readValue(s, classTag[T].runtimeClass).asInstanceOf[T]
+    def getObj(implicit cType: Class[_]) = objMapper.readValue(s, cType)
   }
 }

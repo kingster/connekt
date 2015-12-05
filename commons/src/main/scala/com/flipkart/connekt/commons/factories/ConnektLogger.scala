@@ -2,6 +2,7 @@ package com.flipkart.connekt.commons.factories
 
 import ch.qos.logback.classic.LoggerContext
 import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.Logger
 
 /**
  *
@@ -14,7 +15,7 @@ object ConnektLogger {
 
   def stop() = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext].stop()
 
-  def apply(logFile: LogFile.Value) = LoggerFactory.getLogger(logFile.toString)
+  def apply(logFile: LogFile.Value) = Logger(LoggerFactory.getLogger(logFile.toString))
 }
 
 object LogFile extends Enumeration {
@@ -23,4 +24,7 @@ object LogFile extends Enumeration {
   val FACTORY = Value("FACTORY")
   val SERVICE = Value("SERVICE")
   val DAO = Value("DAO")
+  val WORKERS = Value("WORKERS")
+  val CLIENTS = Value("CLIENTS")
+  val PROCESSORS = Value("PROCESSORS")
 }

@@ -1,4 +1,4 @@
-package com.flipkart.connekt.busybees.providers
+package com.flipkart.connekt.busybees.clients
 
 /**
  *
