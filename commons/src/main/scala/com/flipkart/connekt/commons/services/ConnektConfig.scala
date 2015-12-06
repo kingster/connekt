@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.services
 
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.kloud.config.{Bucket, BucketUpdateListener, ConfigClient}
 import com.typesafe.config.{ConfigException, Config, ConfigFactory}
 import com.flipkart.connekt.commons.behaviors.ConfigAccumulator
@@ -39,7 +40,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
 
       bucket.addListener(new BucketUpdateListener() {
         override def updated(oldBucket: Bucket, newBucket: Bucket): Unit = {
-          println("dynamic bucket %s updated".format(bucketName))
+          ConnektLogger(LogFile.SERVICE).info(s"dynamic bucket $bucketName updated")
           bucketConfigs.put(bucketName, ConfigFactory.parseMap(newBucket.getKeys))
 
           this.synchronized {
@@ -47,11 +48,11 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
           }
         }
 
-        override def connected(s: String): Unit = println("dynamic bucket %s connected.".format(bucketName))
+        override def connected(s: String): Unit = ConnektLogger(LogFile.SERVICE).info(s"dynamic bucket $bucketName connected.")
 
-        override def disconnected(s: String, e: Exception): Unit = println("dynamic bucket %s dis-connected.".format(bucketName))
+        override def disconnected(s: String, e: Exception): Unit = ConnektLogger(LogFile.SERVICE).info(s"dynamic bucket $bucketName dis-connected.")
 
-        override def deleted(s: String): Unit = println("dynamic bucket %s deleted.".format(bucketName))
+        override def deleted(s: String): Unit = ConnektLogger(LogFile.SERVICE).info(s"dynamic bucket $bucketName deleted.")
       })
     }
 
@@ -59,7 +60,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
   }
 
   def init() = {
-    println("connekt config init.")
+    ConnektLogger(LogFile.SERVICE).info("Connekt config init.")
     val configs = readConfigs
     this.synchronized {
       appConfig = overlayConfigs(configs: _*)
@@ -67,7 +68,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
   }
 
   def terminate() = {
-    println("connekt config terminating.")
+    ConnektLogger(LogFile.SERVICE).info("Connekt config client terminating")
     cfgClient.shutdown()
   }
 }

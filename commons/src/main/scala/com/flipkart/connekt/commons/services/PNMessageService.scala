@@ -39,7 +39,7 @@ object PNMessageService extends MessageService {
       Some(connektId)
     } catch {
       case NonFatal(e) =>
-        ConnektLogger(LogFile.DAO).error("ConnektRequest persistence failed for: %s".format(e.getMessage))
+        ConnektLogger(LogFile.DAO).error(s"ConnektRequest persistence failed: ${e.getMessage}", e)
         None
     }
   }
@@ -58,7 +58,7 @@ object PNMessageService extends MessageService {
       pnRequestInfoDao.fetchRequestInfo(connektId)
     } catch {
       case NonFatal(e) =>
-        ConnektLogger(LogFile.DAO).error("Fetching ConnektRequestInfo failed for: %s".format(connektId))
+        ConnektLogger(LogFile.DAO).error(s"Fetching ConnektRequestInfo failed for: $connektId", e)
         None
     }
   }

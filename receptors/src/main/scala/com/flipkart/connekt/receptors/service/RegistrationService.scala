@@ -17,7 +17,7 @@ object RegistrationService {
 
   def saveDeviceDetails(deviceDetails: DeviceDetails) = Try {
     deviceDetailsDao.saveDeviceDetails(deviceDetails)
-    ConnektLogger(LogFile.SERVICE).debug("Save DeviceDetails: %s".format(deviceDetails.toString))
+    ConnektLogger(LogFile.SERVICE).debug(s"Save DeviceDetails: ${deviceDetails.toString}")
     true
   }
 

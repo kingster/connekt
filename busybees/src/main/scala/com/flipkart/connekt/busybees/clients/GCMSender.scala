@@ -39,18 +39,15 @@ class GCMSender(host: String, port: Int, api: String, authKey: String) extends A
         case Success(t) =>
           t._1 match {
             case Success(r) =>
-              println("GCM httpRequest %s for %s".format(r.status.isSuccess(), t._2))
-              println("GCM response: %s".format(r.getResponseMessage))
-              ConnektLogger(LogFile.SERVICE).info("GCM httpRequest %s %s".format(r.status.isSuccess(), t._2))
+              ConnektLogger(LogFile.CLIENTS).info(s"GCM HttpRequest ${r.status.isSuccess()} ${t._2}")
+              ConnektLogger(LogFile.CLIENTS).debug(s"GCM Response: ${r.getResponseMessage}")
             case Failure(e) =>
-              println("GCM httpRequest failed for %s, e: %s".format(t._2, e.getMessage))
-              ConnektLogger(LogFile.SERVICE).error("GCM httpRequest failed for %s, e: %s".format(t._2, e.getMessage))
+              ConnektLogger(LogFile.CLIENTS).error(s"GCM httpRequest failed for ${t._2}, e: ${e.getMessage}", e)
           }
         case Failure(e) =>
-          println("GCM httpRequest future failed for %s, e: %s".format(p._2, e.getMessage))
-          ConnektLogger(LogFile.SERVICE).error("GCM httpRequest future failed for %s, e: %s".format(p._2, e.getMessage))
+          ConnektLogger(LogFile.CLIENTS).error(s"GCM httpRequest future failed for ${p._2}, e: ${e.getMessage}", e)
       }
     case u: Any =>
-      ConnektLogger(LogFile.CLIENTS).error("UnHandled message: %s".concat(u.toString))
+      ConnektLogger(LogFile.CLIENTS).error(s"UnHandled message: ${u.toString}")
   }
 }

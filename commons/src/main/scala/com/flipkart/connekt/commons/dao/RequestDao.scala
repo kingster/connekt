@@ -36,10 +36,10 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
       val rawData = Map[String, Map[String, Array[Byte]]]("r" -> deviceRegInfoCfProps, "c" -> channelRequestDataProps)
       addRow(hTableName, requestId, rawData)
 
-      ConnektLogger(LogFile.DAO).info("Request info persisted for %s".format(requestId))
+      ConnektLogger(LogFile.DAO).info(s"Request info persisted for $requestId")
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).info("Request info persistence failed for %s %s".format(requestId, e.getMessage))
+        ConnektLogger(LogFile.DAO).info(s"Request info persistence failed for $requestId ${e.getMessage}")
         throw new IOException("DeviceDetails registration failed for %s".format(requestId), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
@@ -73,7 +73,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
 
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).error("Fetching Request info failed for %s %s".format(connektId, e.getMessage))
+        ConnektLogger(LogFile.DAO).error(s"Fetching Request info failed for $connektId, ${e.getMessage}", e)
         throw new IOException("Fetching RequestInfo failed for %s".format(connektId), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)

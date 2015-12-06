@@ -24,10 +24,10 @@ class AndroidPNProcessor extends Actor {
       val gcmPayload = GCMPayload(List[String](registrationId), pnData.delayWhileIdle, pnData.data.getObj[ObjectNode])
 
       gcmSender ! (gcmPayload, pnData.requestId)
-      ConnektLogger(LogFile.WORKERS).debug("GCM Request sent for %s".format(pnData.requestId))
+      ConnektLogger(LogFile.WORKERS).debug(s"GCM Request sent for ${pnData.requestId}")
 
     case u: Any =>
-      ConnektLogger(LogFile.WORKERS).error("Received unknown message type, unable to process.")
-      ConnektLogger(LogFile.WORKERS).debug("m: [%s]".format(u.toString))
+      ConnektLogger(LogFile.WORKERS).error(s"Received unknown message type, unable to process.")
+      ConnektLogger(LogFile.WORKERS).debug(s"m: [${u.toString}]")
   }
 }

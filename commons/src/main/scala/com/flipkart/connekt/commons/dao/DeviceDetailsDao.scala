@@ -43,10 +43,10 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
       val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps, "a" -> deviceMetaCfProps)
       addRow(hTableName, getRowKey(deviceDetails.appName, deviceDetails.deviceId), rawData)
 
-      ConnektLogger(LogFile.DAO).info("DeviceDetails registered for %s".format(deviceDetails.deviceId))
+      ConnektLogger(LogFile.DAO).info(s"DeviceDetails registered for ${deviceDetails.deviceId}")
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).info("DeviceDetails registration failed for %s %s".format(deviceDetails.deviceId, e.getMessage))
+        ConnektLogger(LogFile.DAO).info(s"DeviceDetails registration failed for ${deviceDetails.deviceId}, ${e.getMessage}")
         throw new IOException("DeviceDetails registration failed for %s".format(deviceDetails.deviceId), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
@@ -85,7 +85,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).error("Fetching DeviceDetails failed for %s %s".format(deviceId, e.getMessage))
+        ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceId, ${e.getMessage}")
         throw new IOException("Fetching DeviceDetails failed for %s".format(deviceId), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)

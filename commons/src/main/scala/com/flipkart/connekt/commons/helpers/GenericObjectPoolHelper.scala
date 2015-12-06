@@ -21,15 +21,15 @@ trait GenericObjectPoolHelper {
       "enableLifo" -> GenericObjectPool.DEFAULT_LIFO
     )
     
-    ConnektLogger(LogFile.FACTORY).info("Verifying requisite configs for %s pool.".format(poolName))
+    ConnektLogger(LogFile.FACTORY).info(s"Verifying requisite configs for $poolName pool.")
     reqdPoolConf.foreach(kv => {
       try {
         poolProps.getAnyRef(kv._1)
       } catch {
         case e: ConfigException.Missing =>
-          ConnektLogger(LogFile.FACTORY).warn("Missing %s default %s shall be applied.".format(kv._1, kv._2.toString))
+          ConnektLogger(LogFile.FACTORY).warn(s"Missing ${kv._1} default ${kv._2.toString} shall be applied.")
       }
     })
-    ConnektLogger(LogFile.FACTORY).info("%s pool config verification complete.".format(poolName))
+    ConnektLogger(LogFile.FACTORY).info(s"$poolName pool config verification complete.")
   }
 }

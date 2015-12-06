@@ -32,11 +32,10 @@ class GCMClient {
   import system.dispatcher
 
   def wirePN(pnRequest: PNRequestData, authKey: String) = {
-    ConnektLogger(LogFile.SERVICE).info("Fetching deviceDetails: %s %s [%s]".format(pnRequest.appName, pnRequest.deviceId, pnRequest.getJson))
+    ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequest.appName} ${pnRequest.deviceId} [${pnRequest.getJson}]")
     val deviceDetails = deviceDetailsDao.fetchDeviceDetails(pnRequest.appName, pnRequest.deviceId)
-    println("Sending PN to: " + deviceDetails.get.token)
     val gcmRequestPayload = GCMPayload(List[String](deviceDetails.get.token), pnRequest.delayWhileIdle, pnRequest.data.getObj[ObjectNode])
-    ConnektLogger(LogFile.SERVICE).info("GCM Request payload %s".format(gcmRequestPayload.getJson))
+    ConnektLogger(LogFile.SERVICE).info(s"GCM Request payload ${gcmRequestPayload.getJson}")
 
     val requestEntity = HttpEntity(ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`), gcmRequestPayload.getJson)
     val httpRequest = new HttpRequest(
@@ -51,16 +50,13 @@ class GCMClient {
       case Success(t) =>
         t._1 match {
           case Success(r) =>
-            println("GCM httpRequest %s for %s".format(r.status.isSuccess(), t._2))
-            println("GCM response: %s".format(r.getResponseMessage))
-            ConnektLogger(LogFile.SERVICE).info("GCM httpRequest %s %s".format(r.status.isSuccess(), t._2))
+            ConnektLogger(LogFile.SERVICE).info(s"GCM httpRequest ${r.status.isSuccess()} ${t._2}")
+            ConnektLogger(LogFile.SERVICE).debug(s"GCM Response :${r.getResponseMessage}")
           case Failure(e) =>
-            println("GCM httpRequest failed for %s, e: %s".format(t._2, e.getMessage))
-            ConnektLogger(LogFile.SERVICE).error("GCM httpRequest failed for %s, e: %s".format(t._2, e.getMessage))
+            ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest failed for ${t._2}, e: ${e.getMessage}")
         }
       case Failure(e) =>
-        println("GCM httpRequest future failed for %s, e: %s".format(pnRequest.deviceId, e.getMessage))
-        ConnektLogger(LogFile.SERVICE).error("GCM httpRequest future failed for %s, e: %s".format(pnRequest.deviceId, e.getMessage))
+        ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest future failed for ${pnRequest.deviceId}, e: ${e.getMessage}")
     }
   }
 }

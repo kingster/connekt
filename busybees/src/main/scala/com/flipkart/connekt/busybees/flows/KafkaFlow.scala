@@ -25,12 +25,12 @@ trait KafkaFlow {
 
       val streams = kafkaConnector.createMessageStreams(Map[String, Int](topic -> numStreams))
       streams.keys.foreach(topic => {
-        ConnektLogger(LogFile.SERVICE).debug("KafkaFlow: For topic: %s".format(topic))
+        ConnektLogger(LogFile.SERVICE).debug(s"KafkaFlow: For topic: ${topic}")
         streams.get(topic).map(_.zipWithIndex).foreach(l => {
           l.foreach(x => {
             val messageAndMetaIterator: Iterator[MessageAndMetadata[Array[Byte], Array[Byte]]] = x._1.iterator()
             Source(() => messageAndMetaIterator) ~> merge
-            ConnektLogger(LogFile.SERVICE).debug("merging stream %d".format(x._2))
+            ConnektLogger(LogFile.SERVICE).debug(s"Merging stream ${x._2}")
           })
         })
       })

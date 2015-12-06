@@ -29,7 +29,7 @@ class Unicast(implicit _am: ActorMaterializer) extends BaseHandler {
                 val pnData = r.channelData.asInstanceOf[PNRequestData].copy(appName = appName, platform = appPlatform, deviceId = deviceId)
                 val unicastRequest = r.copy(channelData = pnData)
 
-                ConnektLogger(LogFile.SERVICE).debug("Received unicast PN request with payload: ${r.toString}")
+                ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
                 def enqueue = PNMessageService.persistRequest(unicastRequest, isCrucial = true)
                 async(enqueue) {
                   case Success(Some(t)) =>

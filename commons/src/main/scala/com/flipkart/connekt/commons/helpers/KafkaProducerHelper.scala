@@ -29,7 +29,7 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
       )
     } catch {
       case NonFatal(e) =>
-        ConnektLogger(LogFile.FACTORY).error("Failed creating kafka producer pool. %s".format(e.getMessage), e)
+        ConnektLogger(LogFile.FACTORY).error(s"Failed creating kafka producer pool. ${e.getMessage}", e)
         throw e
     }
   }

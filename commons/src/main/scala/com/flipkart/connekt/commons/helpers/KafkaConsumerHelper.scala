@@ -31,7 +31,7 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
       )
     } catch {
       case NonFatal(e) =>
-        ConnektLogger(LogFile.FACTORY).error("Failed creating kafka consumer pool. %s".format(e.getMessage), e)
+        ConnektLogger(LogFile.FACTORY).error(s"Failed creating kafka consumer pool. ${e.getMessage}", e)
         throw e
     }
   }
@@ -48,7 +48,7 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
   def returnConnector(cC: ConsumerConnector) = try {
     kafkaConsumerPool.returnObject(cC)
   } catch {
-    case e: Exception => ConnektLogger(LogFile.FACTORY).error("Failed returning kafkaConnector." + e.getMessage, e)
+    case e: Exception => ConnektLogger(LogFile.FACTORY).error(s"Failed returning kafkaConnector. ${e.getMessage}", e)
   }
 }
 
@@ -67,7 +67,7 @@ object KafkaConsumerHelper {
   def shutdown() = try {
     instance.kafkaConsumerPool.close()
   } catch {
-    case e: Exception => ConnektLogger(LogFile.FACTORY).error("Error in KafkaConsumerHelper companion shutdown. " + e.getMessage, e)
+    case e: Exception => ConnektLogger(LogFile.FACTORY).error(s"Error in KafkaConsumerHelper companion shutdown. ${e.getMessage}", e)
   }
 
   def apply(consumerConfig: Config, globalContextConf: Config) =

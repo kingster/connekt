@@ -19,17 +19,6 @@ import com.typesafe.config.ConfigFactory
  */
 class DummyWorker extends Runnable with KafkaConnectionHelper {
 
-/*
-  override def run(): Unit = {
-    KafkaConsumerHelper.readMessage("fk-connekt-pn").foreach(m => {
-      ConnektLogger(LogFile.SERVICE).info("Read Request" + m)
-      val pnData = m.getObj[PNRequestData]
-      ConnektLogger(LogFile.SERVICE).info("pn req: %s".format(pnData.getJson))
-      GCMClient.instance.wirePN(pnData, Credentials.sampleAppCred)
-    })
-  }
-*/
-
   lazy val kafkaConsumerPool = createKafkaConsumerFactory
   override def run() = {
     println("run invoke at" +System.currentTimeMillis)
@@ -38,15 +27,15 @@ class DummyWorker extends Runnable with KafkaConnectionHelper {
       val streams = consumer.createMessageStreams(Map[String, Int]("fk-connekt-pn" -> 1))
       streams.keys.foreach(topic => {
         streams.get(topic).map(_.zipWithIndex).foreach(l => {
-          println("Reading streams for topic %s".format(topic))
+          ConnektLogger(LogFile.WORKERS).info(s"Reading streams for topic: $topic")
           l.foreach(x => {
             val streamIterator = x._1.iterator()
             while (streamIterator.hasNext()) {
               val msg = streamIterator.next()
-              println("stream: %s message: %s".format(x._2, new String(msg.message)))
+              ConnektLogger(LogFile.WORKERS).debug(s"stream: ${x._2} message: ${msg.message}")
+
               val pnData = new String(msg.message).getObj[ConnektRequest].channelData.asInstanceOf[PNRequestData]
-              println("pn req: %s".format(pnData.getJson))
-              ConnektLogger(LogFile.SERVICE).info("pn req: %s".format(pnData.getJson))
+              ConnektLogger(LogFile.WORKERS).info(s"PN Request: ${pnData.getJson}")
               GCMClient.instance.wirePN(pnData, Credentials.sampleAppCred)
             }
           })
@@ -75,11 +64,11 @@ object DummyWorker {
   lazy val workable = new DummyWorker
 
   def init() = try {
-    println("DummyWorkers init")
+    ConnektLogger(LogFile.WORKERS).info("DummyWorkers Init.")
     tPE.scheduleAtFixedRate(workable, 0, 100, TimeUnit.MILLISECONDS)
   } catch {
     case e: Exception =>
-      ConnektLogger(LogFile.SERVICE).error("worker exec failed"+e.getMessage, e)
+      ConnektLogger(LogFile.SERVICE).error(s"worker exec failed ${e.getMessage}", e)
   }
 
 }
