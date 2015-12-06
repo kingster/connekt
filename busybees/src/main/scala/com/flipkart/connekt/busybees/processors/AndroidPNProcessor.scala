@@ -19,15 +19,15 @@ class AndroidPNProcessor extends Actor {
   lazy val gcmSender = context.actorOf(Props[GCMSender])
 
   override def receive: Receive = {
-    case pnData: PNRequestData =>
+    case pnRequest: (String, PNRequestData) =>
+      val pnData = pnRequest._2
       val registrationId = deviceDetailsDao.fetchDeviceDetails(pnData.appName, pnData.deviceId).get.token
       val gcmPayload = GCMPayload(List[String](registrationId), pnData.delayWhileIdle, pnData.data.getObj[ObjectNode])
 
-      gcmSender ! (gcmPayload, pnData.requestId)
-      ConnektLogger(LogFile.WORKERS).debug(s"GCM Request sent for ${pnData.requestId}")
+      gcmSender ! (gcmPayload, pnRequest._1)
+      ConnektLogger(LogFile.WORKERS).debug(s"GCM Request sent for ${pnRequest._1}")
 
-    case u: Any =>
+    case _ =>
       ConnektLogger(LogFile.WORKERS).error(s"Received unknown message type, unable to process.")
-      ConnektLogger(LogFile.WORKERS).debug(s"m: [${u.toString}]")
   }
 }

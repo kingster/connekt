@@ -47,7 +47,7 @@ class GCMSender(host: String, port: Int, api: String, authKey: String) extends A
         case Failure(e) =>
           ConnektLogger(LogFile.CLIENTS).error(s"GCM httpRequest future failed for ${p._2}, e: ${e.getMessage}", e)
       }
-    case u: Any =>
-      ConnektLogger(LogFile.CLIENTS).error(s"UnHandled message: ${u.toString}")
+    case _ =>
+      ConnektLogger(LogFile.CLIENTS).error("UnHandled message.")
   }
 }

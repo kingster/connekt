@@ -24,6 +24,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val deviceRegInfoCfProps = Map[String, Array[Byte]](
+        "id" -> requestId.getUtf8Bytes,
         "channel" -> request.channel.getUtf8Bytes,
         "sla" -> request.sla.getUtf8Bytes,
         "templateId" -> request.templateId.getUtf8Bytes,
@@ -61,6 +62,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
         val channelRequestData = devMetaProps.map(getChannelRequestData).orNull
 
         ConnektRequest(
+          id = connektId,
           channel = fields.getS("channel"),
           sla = fields.getS("sla"),
           templateId = fields.getS("templateId"),

@@ -31,7 +31,7 @@ class GCMClient {
 
   import system.dispatcher
 
-  def wirePN(pnRequest: PNRequestData, authKey: String) = {
+  def wirePN(requestId: String, pnRequest: PNRequestData, authKey: String) = {
     ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequest.appName} ${pnRequest.deviceId} [${pnRequest.getJson}]")
     val deviceDetails = deviceDetailsDao.fetchDeviceDetails(pnRequest.appName, pnRequest.deviceId)
     val gcmRequestPayload = GCMPayload(List[String](deviceDetails.get.token), pnRequest.delayWhileIdle, pnRequest.data.getObj[ObjectNode])
@@ -45,7 +45,7 @@ class GCMClient {
       requestEntity
     )
 
-    val fExec = request[String](httpRequest, pnRequest.requestId)
+    val fExec = request[String](httpRequest, requestId)
     fExec.onComplete {
       case Success(t) =>
         t._1 match {

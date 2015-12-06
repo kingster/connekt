@@ -34,9 +34,10 @@ class DummyWorker extends Runnable with KafkaConnectionHelper {
               val msg = streamIterator.next()
               ConnektLogger(LogFile.WORKERS).debug(s"stream: ${x._2} message: ${msg.message}")
 
-              val pnData = new String(msg.message).getObj[ConnektRequest].channelData.asInstanceOf[PNRequestData]
+              val request = new String(msg.message).getObj[ConnektRequest]
+              val pnData = request.channelData.asInstanceOf[PNRequestData]
               ConnektLogger(LogFile.WORKERS).info(s"PN Request: ${pnData.getJson}")
-              GCMClient.instance.wirePN(pnData, Credentials.sampleAppCred)
+              GCMClient.instance.wirePN(request.id, pnData, Credentials.sampleAppCred)
             }
           })
         })

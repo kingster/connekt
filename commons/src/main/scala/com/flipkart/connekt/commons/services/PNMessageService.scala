@@ -33,8 +33,7 @@ object PNMessageService extends MessageService {
   override def persistRequest(pnRequest: ConnektRequest, isCrucial: Boolean): Option[String] = {
     val connektId = generateId
     try {
-      enqueueRequest(pnRequest)
-
+      enqueueRequest(pnRequest.copy(id = connektId))
       pnRequestInfoDao.saveRequestInfo(connektId, pnRequest)
       Some(connektId)
     } catch {
