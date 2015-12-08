@@ -22,7 +22,7 @@ class PNCallbackDao(tableName: String, hTableFactory: HTableFactory) extends Cal
       "platform" -> pnCallbackEvent.platform.getUtf8Bytes,
       "appName" -> pnCallbackEvent.appName.getUtf8Bytes,
       "contextId" -> pnCallbackEvent.contextId.getUtf8Bytes,
-      "cargo" -> pnCallbackEvent.cargo.getUtf8Bytes,
+      "cargo" -> Option(pnCallbackEvent.cargo).map(_.getUtf8Bytes).orNull,
       "timestamp" -> pnCallbackEvent.timestamp.getBytes
     )
   }
