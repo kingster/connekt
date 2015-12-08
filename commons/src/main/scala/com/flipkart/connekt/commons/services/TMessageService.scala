@@ -12,7 +12,7 @@ import scala.util.Try
  * @author durga.s
  * @version 12/8/15
  */
-trait TMessageService {
+trait TMessageService extends TService {
   protected def generateId: String = UUID.randomUUID().toString
   def persistRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean = true): Try[String]
   protected def enqueueRequest(request: ConnektRequest, requestBucket: String)

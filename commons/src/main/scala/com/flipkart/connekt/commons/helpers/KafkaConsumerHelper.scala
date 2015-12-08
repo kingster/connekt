@@ -79,7 +79,7 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
   }
 }
 
-object KafkaConsumerHelper {
+object KafkaConsumerHelper extends KafkaConsumer {
 
   var instance: KafkaConsumerHelper = null
 

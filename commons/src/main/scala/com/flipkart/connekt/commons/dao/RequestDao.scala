@@ -46,7 +46,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Request info persistence failed for $requestId ${e.getMessage}", e)
-        throw new IOException("DeviceDetails registration failed for %s".format(requestId), e)
+        throw new IOException("Request info persistence failed for %s".format(requestId), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }

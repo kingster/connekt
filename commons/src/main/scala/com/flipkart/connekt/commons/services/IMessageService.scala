@@ -16,9 +16,9 @@ import scala.util.{Failure, Success, Try}
  */
 class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProducer, queueConsumerHelper: KafkaConsumer) extends TMessageService {
 
-  private val messageDao = requestDao
-  private val queueProducer = queueProducerHelper
-  private val queueConsumer = queueConsumerHelper
+  private val messageDao: TRequestDao = requestDao
+  private val queueProducer: KafkaProducer = queueProducerHelper
+  private val queueConsumer: KafkaConsumer = queueConsumerHelper
 
   override def persistRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean): Try[String] = {
     try {

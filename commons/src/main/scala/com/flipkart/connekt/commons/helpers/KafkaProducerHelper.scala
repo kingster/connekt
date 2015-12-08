@@ -56,7 +56,7 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
   }
 }
 
-object KafkaProducerHelper {
+object KafkaProducerHelper extends KafkaProducer {
 
   private var instance: KafkaProducerHelper = null
 
