@@ -16,6 +16,10 @@ import scala.util.control.NonFatal
  * @author durga.s
  * @version 11/26/15
  */
+trait KafkaConsumer {
+  def readMessage(topic: String): Option[String]
+}
+
 class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: Config) extends KafkaConnectionHelper with GenericObjectPoolHelper {
 
   validatePoolProps("kafka consumer pool", globalContextConf)
@@ -50,34 +54,19 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
   } catch {
     case e: Exception => ConnektLogger(LogFile.FACTORY).error(s"Failed returning kafkaConnector. ${e.getMessage}", e)
   }
-}
-
-object KafkaConsumerHelper {
-
-  var instance: KafkaConsumerHelper = null
-
-  def init(consumerConfig: Config, globalContextConf: Config) = {
-    if (null != instance)
-      this.synchronized {
-        instance = KafkaConsumerHelper(consumerConfig, globalContextConf)
-      }
-    instance
-  }
 
   def shutdown() = try {
-    instance.kafkaConsumerPool.close()
+    kafkaConsumerPool.close()
+    ConnektLogger(LogFile.FACTORY).info("KafkaProducerHelper shutdown.")
   } catch {
     case e: Exception => ConnektLogger(LogFile.FACTORY).error(s"Error in KafkaConsumerHelper companion shutdown. ${e.getMessage}", e)
   }
-
-  def apply(consumerConfig: Config, globalContextConf: Config) =
-    new KafkaConsumerHelper(consumerConfig, globalContextConf)
 
   def readMessage(topic: String): Option[String] = {
     lazy val streamsMap = scala.collection.mutable.Map[String, KafkaStream[Array[Byte], Array[Byte]]]()
 
     lazy val consumerStream: Option[KafkaStream[Array[Byte], Array[Byte]]] = streamsMap.get(topic).orElse({
-      val s = instance.kafkaConsumerPool.borrowObject().createMessageStreams(Map[String, Int](topic -> 1)).get(topic).get.headOption
+      val s = kafkaConsumerPool.borrowObject().createMessageStreams(Map[String, Int](topic -> 1)).get(topic).get.headOption
       s.foreach(streamsMap += topic -> _)
       s
     })
@@ -88,4 +77,24 @@ object KafkaConsumerHelper {
     }
     None
   }
+}
+
+object KafkaConsumerHelper {
+
+  var instance: KafkaConsumerHelper = null
+
+  def apply(consumerConfig: Config, globalContextConf: Config) =
+    new KafkaConsumerHelper(consumerConfig, globalContextConf)
+
+  def init(consumerConfig: Config, globalContextConf: Config) = {
+    if (null != instance)
+      this.synchronized {
+        instance = KafkaConsumerHelper(consumerConfig, globalContextConf)
+      }
+    instance
+  }
+
+  def shutdown() = instance.shutdown()
+
+  def readMessage(topic: String): Option[String] = instance.readMessage(topic)
 }

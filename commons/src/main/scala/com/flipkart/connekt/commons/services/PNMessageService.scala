@@ -48,7 +48,7 @@ object PNMessageService extends MessageService {
     enqueueHelper.writeMessages(topicName, pnRequest.getJson)
   }
 
-  override def dequeueRequest(): Option[ConnektRequest] = {
+  def dequeueRequest(): Option[ConnektRequest] = {
     dequeueHelper.readMessage(topicName).map(_.getObj[ConnektRequest])
   }
 

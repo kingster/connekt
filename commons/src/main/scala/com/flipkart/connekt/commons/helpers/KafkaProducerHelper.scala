@@ -14,6 +14,10 @@ import scala.util.control.NonFatal
  * @author durga.s
  * @version 11/27/15
  */
+trait KafkaProducer {
+  def writeMessages(topic: String, message: String*)
+}
+
 class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config) extends KafkaConnectionHelper with GenericObjectPoolHelper {
 
   validatePoolProps("kafka producer pool", globalContextConf)
@@ -33,6 +37,23 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
         throw e
     }
   }
+
+  def writeMessages(topic: String, message: String*) = {
+    val producer = kafkaProducerPool.borrowObject()
+    try {
+      val keyedMessages = message.map(new KeyedMessage[String, String](topic, _))
+      producer.send(keyedMessages:_*)
+    } finally {
+      kafkaProducerPool.returnObject(producer)
+    }
+  }
+
+  def shutdown() = try {
+    kafkaProducerPool.close()
+    ConnektLogger(LogFile.FACTORY).info("KafkaProducerHelper shutdown.")
+  } catch {
+    case e: Exception => ConnektLogger(LogFile.FACTORY).error(s"Error in KafkaProducerHelper companion shutdown. ${e.getMessage}", e)
+  }
 }
 
 object KafkaProducerHelper {
@@ -43,13 +64,5 @@ object KafkaProducerHelper {
     instance = new KafkaProducerHelper(consumerConfig, globalContextConf)
   }
   
-  def writeMessages(topic: String, message: String*) = {
-    val producer = instance.kafkaProducerPool.borrowObject()
-    try {
-      val keyedMessages = message.map(new KeyedMessage[String, String](topic, _))
-      producer.send(keyedMessages:_*)
-    } finally {
-      instance.kafkaProducerPool.returnObject(producer)
-    }
-  }
+  def writeMessages(topic: String, message: String*) = instance.writeMessages(topic, message:_*)
 }

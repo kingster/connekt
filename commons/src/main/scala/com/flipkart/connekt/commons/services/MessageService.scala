@@ -12,8 +12,7 @@ import com.flipkart.connekt.commons.iomodels.ConnektRequest
  */
 trait MessageService {
   def generateId: String = UUID.randomUUID().toString
-  def persistRequest(pnRequest: ConnektRequest, isCrucial: Boolean = true): Option[String]
-  protected def enqueueRequest(pnRequest: ConnektRequest)
-  def dequeueRequest(): Option[ConnektRequest]
-  def getRequestInfo(connektId: String): Option[ConnektRequest]
+  def persistRequest(request: ConnektRequest, isCrucial: Boolean = true): Option[String]
+  protected def enqueueRequest(request: ConnektRequest)
+  def getRequestInfo(id: String): Option[ConnektRequest]
 }

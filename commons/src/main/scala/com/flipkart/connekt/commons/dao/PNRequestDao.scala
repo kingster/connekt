@@ -2,7 +2,7 @@ package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
-import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, PNRequestData}
+import com.flipkart.connekt.commons.iomodels.{PNStatus, ChannelStatus, ChannelRequestData, PNRequestData}
 
 
 /**
@@ -34,6 +34,22 @@ class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends Requ
       ackRequired = dataMap.getB("ackRequired"),
       delayWhileIdle = dataMap.getB("delayWhileIdle"),
       data = dataMap.getS("data")
+    )
+  }
+
+  override protected def channelStatusMap(channelStatus: ChannelStatus): Map[String, Array[Byte]] = {
+    val pnStatus = channelStatus.asInstanceOf[PNStatus]
+
+    Map[String, Array[Byte]](
+      "status" -> pnStatus.status.getUtf8Bytes,
+      "reason" -> pnStatus.reason.getUtf8Bytes
+    )
+  }
+
+  override protected def getChannelStatus(statusMap: Map[String, Array[Byte]]): ChannelStatus = {
+    PNStatus(
+      status = statusMap.getS("status"),
+      reason = statusMap.getS("reason")
     )
   }
 }

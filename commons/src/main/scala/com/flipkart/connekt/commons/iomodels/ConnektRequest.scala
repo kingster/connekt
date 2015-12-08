@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @version 11/26/15
  */
 case class ConnektRequest(@JsonProperty(required = false) id: String,
+                          @JsonProperty(required = false) channelStatus: ChannelStatus,
                           channel: String,
                           sla: String,
                           templateId: String,
