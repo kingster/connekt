@@ -20,6 +20,7 @@ object DaoFactory {
 
     daoMap += DaoType.DEVICE_DETAILS -> DeviceDetailsDao("fk-connekt-proto", hTableFactory)
     daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao("fk-connekt-pn-info", hTableFactory)
+    daoMap += DaoType.CALLBACK_PN -> PNCallbackDao("fk-connekt-events", hTableFactory)
   }
 
   def shutdownHTableDaoFactory() = {
@@ -31,9 +32,13 @@ object DaoFactory {
   def getDeviceDetailsDao: DeviceDetailsDao = daoMap(DaoType.DEVICE_DETAILS).asInstanceOf[DeviceDetailsDao]
 
   def getRequestInfoDao: RequestDao = daoMap(DaoType.PN_REQUEST_INFO).asInstanceOf[PNRequestDao]
+
+  def getPNCallbackDao: PNCallbackDao = daoMap(DaoType.CALLBACK_PN).asInstanceOf[PNCallbackDao]
+
+  def getEmailCallbackDao: EmailCallbackDao = daoMap(DaoType.CALLBACK_EMAIL).asInstanceOf[EmailCallbackDao]
 }
 
 object DaoType extends Enumeration {
-  val DEVICE_DETAILS, REQUEST_META, PN_REQUEST_INFO = Value
+  val DEVICE_DETAILS, REQUEST_META, PN_REQUEST_INFO, CALLBACK_EMAIL, CALLBACK_PN = Value
 }
 

@@ -34,6 +34,7 @@ object ReceptorsBoot extends App {
     KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
     ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
+    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao)
 
     receptors = new ReceptorsServer
     receptors.init

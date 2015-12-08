@@ -1,8 +1,8 @@
 package com.flipkart.connekt.commons.factories
 
-import com.flipkart.connekt.commons.dao.TRequestDao
+import com.flipkart.connekt.commons.dao.{PNCallbackDao, EmailCallbackDao, TRequestDao}
 import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducer}
-import com.flipkart.connekt.commons.services.{TMessageService, IMessageService, TService}
+import com.flipkart.connekt.commons.services._
 
 /**
  *
@@ -18,9 +18,18 @@ object ServiceFactory {
     serviceCache += ServiceType.MESSAGE -> new IMessageService(requestDao, queueProducerHelper, queueConsumerHelper)
   }
 
+  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao) = {
+    serviceCache += ServiceType.CALLBACK ->
+      (new CallbackService).
+        withEmailEventsPersistence(emailCallbackDao).
+        withPNEventsPersistence(pnCallbackDao)
+  }
+
   def getMessageService = serviceCache(ServiceType.MESSAGE).asInstanceOf[TMessageService]
+
+  def getCallbackService = serviceCache(ServiceType.CALLBACK).asInstanceOf[TCallbackService]
 }
 
 object ServiceType extends Enumeration {
-  val MESSAGE, TEMPLATE = Value
+  val MESSAGE, TEMPLATE, CALLBACK = Value
 }
