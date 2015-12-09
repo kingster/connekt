@@ -1,5 +1,7 @@
 package com.flipkart.connekt.commons.factories
 
+import java.io.{FileInputStream, File, InputStream}
+
 import ch.qos.logback.classic.LoggerContext
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
@@ -11,7 +13,13 @@ import com.typesafe.scalalogging.Logger
  * @version 11/20/15
  */
 object ConnektLogger {
-  def init(logConfFilePath: String) = LoggerFactoryConfigurator.configure(logConfFilePath)
+
+  def init(logConf: InputStream) = LoggerFactoryConfigurator.configure(logConf)
+
+  def init(logConfFilePath: String) = {
+    val file = new File(logConfFilePath)
+    LoggerFactoryConfigurator.configure(new FileInputStream(file))
+  }
 
   def stop() = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext].stop()
 

@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.factories
 
-import java.io.File
+import java.io.{InputStream, File}
 
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.joran.JoranConfigurator
@@ -16,12 +16,12 @@ import org.slf4j.LoggerFactory
 object LoggerFactoryConfigurator {
 
   @throws[Exception]
-  def configure(loggerConfFilePath: String) = {
+  def configure(stream: InputStream) = {
     val context = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     val configurator = new JoranConfigurator()
     configurator.setContext(context)
 
-    configurator.doConfigure(new File(loggerConfFilePath))
+    configurator.doConfigure(stream)
     StatusPrinter.printInCaseOfErrorsOrWarnings(context)
   }
 }

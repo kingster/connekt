@@ -27,7 +27,7 @@ object ReceptorsBoot {
 
       ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
 
-      val logConfigFile =  getClass.getClassLoader.getResource("logback.xml").getFile
+      val logConfigFile =  getClass.getClassLoader.getResourceAsStream("logback.xml")
       ConnektLogger(LogFile.SERVICE).info(s"ReceptorsBoot Log Config $logConfigFile")
       ConnektLogger.init(logConfigFile)
 
