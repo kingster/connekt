@@ -15,3 +15,9 @@ v2 Communications Platform
 	git remote set-url --add --push all git@github.com:Flipkart/fk-connekt.git
 	```
 
+### Contributing
+
+Create a branch for all feature developement's and create a pull request when you feel that the code is production ready and ready for review and merge.
+
+
+
