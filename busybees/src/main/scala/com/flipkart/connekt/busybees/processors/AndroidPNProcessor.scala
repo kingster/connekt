@@ -22,7 +22,8 @@ class AndroidPNProcessor extends Actor {
     case pnRequest: (String, PNRequestData) =>
       val pnData = pnRequest._2
       val registrationId = deviceDetailsDao.fetchDeviceDetails(pnData.appName, pnData.deviceId).get.token
-      val gcmPayload = GCMPayload(List[String](registrationId), pnData.delayWhileIdle, pnData.data.getObj[ObjectNode])
+      val appDataWithId = pnData.data.getObj[ObjectNode].put("messageId", pnRequest._1)
+      val gcmPayload = GCMPayload(List[String](registrationId), pnData.delayWhileIdle, appDataWithId)
 
       gcmSender ! (gcmPayload, pnRequest._1)
       ConnektLogger(LogFile.WORKERS).debug(s"GCM Request sent for ${pnRequest._1}")

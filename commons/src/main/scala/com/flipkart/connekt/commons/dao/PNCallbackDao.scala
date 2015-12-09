@@ -16,7 +16,7 @@ class PNCallbackDao(tableName: String, hTableFactory: HTableFactory) extends Cal
     val pnCallbackEvent = channelCallbackEvent.asInstanceOf[PNCallbackEvent]
 
     Map[String, Array[Byte]](
-      "requestId" -> pnCallbackEvent.messageId.getUtf8Bytes,
+      "messageId" -> pnCallbackEvent.messageId.getUtf8Bytes,
       "deviceId" -> pnCallbackEvent.deviceId.getUtf8Bytes,
       "eventType" -> pnCallbackEvent.eventType.getUtf8Bytes,
       "platform" -> pnCallbackEvent.platform.getUtf8Bytes,
