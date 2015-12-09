@@ -1,12 +1,18 @@
 package com.flipkart.connekt.receptors.service
 
+import java.util.UUID
+
 import _root_.akka.actor.ActorSystem
 import _root_.akka.http.scaladsl.Http
 import _root_.akka.stream.ActorMaterializer
+import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
+import akka.http.scaladsl.server.{ExceptionHandler, MethodRejection, RejectionHandler}
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.iomodels.{Response, GenericResponse}
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.receptors.routes.callbacks.Callback
-import com.flipkart.connekt.receptors.routes.pn.{Unicast, Registration}
-import akka.http.scaladsl.server.Directives._
+import com.flipkart.connekt.receptors.routes.{BaseHandler, RouteRegistry}
+
+import scala.collection.immutable.Seq
 
 /**
  *
@@ -14,29 +20,40 @@ import akka.http.scaladsl.server.Directives._
  * @author durga.s
  * @version 11/20/15
  */
-class ReceptorsServer {
-  implicit val system = ActorSystem("connekt-receptors-as")
-  implicit val materializer = ActorMaterializer()
+object ReceptorsServer extends BaseHandler{
 
+  implicit val system = ActorSystem("ckt-receptors")
+  implicit val materializer = ActorMaterializer.create(system)
   implicit val ec = system.dispatcher
 
   private val bindHost = ConnektConfig.getString("receptors.bindHost").getOrElse("0.0.0.0")
   private val bindPort = ConnektConfig.getInt("receptors.bindPort").getOrElse(28000)
 
-  val receptorReqHandler = new Registration().register
+  var httpService : scala.concurrent.Future[akka.http.scaladsl.Http.ServerBinding]= null
 
-  val unicastHandler = new Unicast().unicast
+  def apply() = {
 
-  val callbackHandler = new Callback().callback
+    implicit def exceptionHandler =
+      ExceptionHandler {
+        case e: Throwable =>
+          val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
+          ConnektLogger(LogFile.SERVICE).error(s"# -- $errorUID  -- $e.getMessage", e)
+          val response = Map("message" -> ("Server Error # " + errorUID), "reason" -> e.getMessage)
+          complete(respond[GenericResponse](
+            StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+            GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Internal Server Error", response))
+          ))
+      }
 
-  val allRoutes =  unicastHandler ~ receptorReqHandler ~ callbackHandler
+    //TODO : Wrap this route inside CORS
+    val route = new RouteRegistry().allRoutes
 
-  lazy val init =
-    Http().bindAndHandle(allRoutes, bindHost, bindPort)
+    httpService =  Http().bindAndHandle(route, bindHost, bindPort)
+  }
 
-  def stop() = {
 
-    init.flatMap(_.unbind())
+  def shutdown() = {
+    httpService.flatMap(_.unbind())
       .onComplete(_ => {
       println("receptor server unbinding complete")
       system.terminate()

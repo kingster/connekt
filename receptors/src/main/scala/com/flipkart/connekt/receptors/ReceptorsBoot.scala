@@ -2,10 +2,12 @@ package com.flipkart.connekt.receptors
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import akka.http.scaladsl.Http
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ServiceFactory, LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.receptors.routes.RouteRegistry
 import com.flipkart.connekt.receptors.service.ReceptorsServer
 import com.typesafe.config.ConfigFactory
 
@@ -15,20 +17,17 @@ import com.typesafe.config.ConfigFactory
  * @author durga.s
  * @version 11/20/15
  */
-object ReceptorsBoot {
+object ReceptorsBoot  {
 
-  val initialized = new AtomicBoolean(false)
-  var receptors: ReceptorsServer = null
-  var httpBindFuture = null
+  private val initialized = new AtomicBoolean(false)
 
   def start() {
     if (!initialized.get()) {
       ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
 
-      val logConfigFile =  getClass.getClassLoader.getResourceAsStream("logback-receptors.xml")
+      val logConfigFile = getClass.getClassLoader.getResourceAsStream("logback-receptors.xml")
       ConnektLogger.init(logConfigFile)
       ConnektLogger(LogFile.SERVICE).info("Receptors initializing.")
-      ConnektLogger(LogFile.SERVICE).info(s"ReceptorsBoot Log Config: $logConfigFile")
 
       val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
@@ -40,22 +39,19 @@ object ReceptorsBoot {
       ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao)
 
-      receptors = new ReceptorsServer
-      receptors.init
+      //Start up the receptors's
+      ReceptorsServer()
+
       ConnektLogger(LogFile.SERVICE).info("Receptors initialized.")
     }
   }
 
   def terminate() = {
     ConnektLogger(LogFile.DAO).info("Receptors terminating.")
-    if(initialized.get()) {
+    if (initialized.get()) {
+      ReceptorsServer.shutdown()
       DaoFactory.shutdownHTableDaoFactory()
-      receptors.stop()
     }
   }
 
-  def main(args: Array[String]) {
-    val logConfigFile =  getClass.getClassLoader.getResource("logback.xml").getFile
-    println(logConfigFile)
-  }
 }
