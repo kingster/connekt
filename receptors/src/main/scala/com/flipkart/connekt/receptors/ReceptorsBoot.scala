@@ -23,10 +23,13 @@ object ReceptorsBoot {
 
   def start() {
     if (!initialized.get()) {
-      ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
-      val logConfigFile = System.getProperty("user.dir").concat("/receptors/src/main/resources/logback.xml")
-      ConnektLogger.init(logConfigFile)
       ConnektLogger(LogFile.SERVICE).info("ReceptorsBoot initializing.")
+
+      ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
+
+      val logConfigFile =  getClass.getClassLoader.getResource("logback.xml").getFile
+      ConnektLogger(LogFile.SERVICE).info(s"ReceptorsBoot Log Config $logConfigFile")
+      ConnektLogger.init(logConfigFile)
 
       val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
@@ -50,5 +53,10 @@ object ReceptorsBoot {
       DaoFactory.shutdownHTableDaoFactory()
       receptors.stop()
     }
+  }
+
+  def main(args: Array[String]) {
+    val logConfigFile =  getClass.getClassLoader.getResource("logback.xml").getFile
+    println(logConfigFile)
   }
 }
