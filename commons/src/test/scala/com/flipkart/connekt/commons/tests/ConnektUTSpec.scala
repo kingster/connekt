@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.tests
 
+import com.flipkart.connekt.commons.factories.ConnektLogger
 import org.scalatest._
 
 /**
@@ -9,4 +10,9 @@ import org.scalatest._
  * @version 11/15/15
  */
 abstract class ConnektUTSpec extends FlatSpec
-with Matchers with OptionValues with Inside with Inspectors {}
+with Matchers with OptionValues with Inside with Inspectors with BeforeAndAfterAll {
+  override def beforeAll() = {
+    val logConfigFile =  getClass.getClassLoader.getResourceAsStream("logback-test.xml")
+    ConnektLogger.init(logConfigFile)
+  }
+}

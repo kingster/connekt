@@ -7,7 +7,6 @@ import com.typesafe.config.ConfigFactory
 import kafka.consumer.ConsumerConnector
 import kafka.producer.{KeyedMessage, Producer}
 import org.apache.commons.pool.impl.GenericObjectPool
-import org.scalatest.BeforeAndAfterAll
 
 /**
  *
@@ -15,7 +14,7 @@ import org.scalatest.BeforeAndAfterAll
  * @author durga.s
  * @version 11/26/15
  */
-class KafkaConnectionHelperTest extends ConnektUTSpec with KafkaConnectionHelper with BeforeAndAfterAll {
+class KafkaConnectionHelperTest extends ConnektUTSpec with KafkaConnectionHelper {
 
   val topicName = "fk-connekt-proto"
   var kafkaConsumerPool: GenericObjectPool[ConsumerConnector] = null
