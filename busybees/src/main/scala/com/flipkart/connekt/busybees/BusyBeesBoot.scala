@@ -10,7 +10,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.receptors.ReceptorsBoot._
 import com.typesafe.config.ConfigFactory
 
 /**
