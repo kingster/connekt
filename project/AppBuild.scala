@@ -68,9 +68,6 @@ object AppBuild extends Build {
     case PathList("edu", "umd", "cs", "findbugs", xs@_ *) => MergeStrategy.last
     case PathList("net", "jcip", xs@_ *) => MergeStrategy.last
 
-    case PathList("node_modules", xs@_*) => MergeStrategy.discard
-    case PathList("com", "flipkart", "marketing", "bro", xs@_*) if xs.headOption.getOrElse("") startsWith "BuildInfo" => MergeStrategy.first //Only Required for Tushar.
-
     case "mapred-default.xml" | "logback.xml" => MergeStrategy.first
     case "application.conf" | "plugin.properties" => MergeStrategy.concat
 

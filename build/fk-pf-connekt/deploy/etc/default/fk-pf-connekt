@@ -1,0 +1,36 @@
+#!/bin/sh
+
+USER=_USER_
+GROUP=_GROUP_
+FK_UID=_UID_
+FK_GID=_GID_
+
+LOG_DIR=/var/log/flipkart/pf/fk-pf-connekt
+
+#### JAVA_OPTS ####
+
+JAVA_OPTS=""
+
+## SSL Settings
+JAVA_OPTS="$JAVA_OPTS -Djavax.net.ssl.trustStore=/var/lib/fk-pf-connekt/keystore"
+
+##Ip Settings
+JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
+
+## GC settings
+JAVA_OPTS="$JAVA_OPTS -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+DisableExplicitGC"
+
+## GC logging
+JAVA_OPTS="$JAVA_OPTS -XX:+PrintCommandLineFlags -verbose:gc -XX:+PrintGCDetails -XX:+PrintHeapAtGC -XX:+HeapDumpOnOutOfMemoryError -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:$LOG_DIR/gc.log"
+
+## Memory settings
+JAVA_OPTS="$JAVA_OPTS -Xmn512M -Xms1g -Xmx8g -XX:PermSize=256M -XX:MaxPermSize=256M"
+
+#Flight Recording
+JAVA_OPTS="${JAVA_OPTS} -XX:+UnlockCommercialFeatures  -XX:+FlightRecorder"
+
+## Encoding
+JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8"
+
+##Remote JMX
+JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.port=28005 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"

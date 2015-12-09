@@ -1,0 +1,12 @@
+/var/log/flipkart/pf/_PACKAGE_/catalina.log {
+    copytruncate
+    rotate 2
+    size 512M
+    notifempty
+    sharedscripts
+    su _USER_ _GROUP_
+    create 777 _USER_ _GROUP_
+    postrotate
+        echo "_PACKAGE_ Catalina Log Rotated"
+    endscript
+}

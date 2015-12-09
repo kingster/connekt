@@ -1,0 +1,42 @@
+#!/bin/bash
+
+CMD="$1"
+
+echo "POST RM - $CMD";
+
+PAC=_PACKAGE_
+FK_USER=_USER_
+FK_GROUP=_GROUP_
+
+if [ -f "/var/run/$PAC" ]; then
+    rm -rf "/var/run/$PAC";
+fi
+
+if [ -f "/var/run/$PAC.pid" ]; then
+    rm -rf "/var/run/$PAC.pid";
+fi
+
+if [ "$CMD" == "purge" ]; then
+
+    # Remove user and group (if empty)
+    (id "$FK_USER" >/dev/null 2>&1 && deluser $FK_USER) || true
+    (egrep "^$FK_GROUP:" /etc/group >/dev/null 2>&1 && delgroup --only-if-empty $FK_GROUP) || true
+
+
+	if [ -d "/etc/$PAC" ]; then
+		rm -rf /etc/$PAC
+	fi
+
+	if [ -d "/usr/share/$PAC" ]; then
+		rm -rf /usr/share/$PAC
+	fi
+
+	if [ -d "/var/lib/$PAC" ]; then
+		rm -rf /var/lib/$PAC
+	fi
+
+	if [ -d "/var/cache/$PAC" ]; then
+		rm -rf /var/cache/$PAC
+	fi
+
+fi

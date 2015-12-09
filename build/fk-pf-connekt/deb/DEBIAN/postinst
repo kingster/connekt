@@ -1,0 +1,40 @@
+#!/bin/bash -e
+
+PAC=_PACKAGE_
+USER=_USER_
+GROUP=_GROUP_
+USER_UID=_UID_
+USER_GID=_GID_
+
+variant=base
+if [ "$1" == "configure" ] ; then
+
+       #creating user if it doesnt exist
+       if ! getent group $GROUP > /dev/null; then
+            groupadd -g $USER_GID $GROUP
+       fi
+
+       if ! getent passwd $USER_UID > /dev/null; then
+           adduser --system --uid $USER_UID --home /usr/share/$PAC --no-create-home \
+           --ingroup $GROUP --disabled-password --shell /bin/false \
+           $USER
+       fi
+
+     # Create log directory if needed
+     for f in /var/cache/$PAC  /var/log/flipkart/pf/$PAC /var/lib/$PAC ; do
+     [ ! -d "$f" ] && mkdir -p "$f"
+     chown -Rf $USER:$GROUP "$f" || true
+     done
+
+    # Give world read permission on the logs
+    chmod -Rf go+r /var/log/flipkart/pf/$PAC || true
+    #give group write perms on log dir.
+    chmod -Rf g+w /var/log/flipkart/pf/$PAC || true
+
+    chown root:root /etc/logrotate.d/fk-pf-connekt || true
+
+
+fi
+
+exit 0
+

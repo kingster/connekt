@@ -1,0 +1,134 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          Connekt Service
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts the Connekt service
+# Description:       This file is used to start Connekt API
+#                    and should be placed in /etc/init.d
+### END INIT INFO
+
+# Author:  Kinshuk Bairagi <kinshuk.bairagi@flipkart.com>
+
+set -x
+PACKAGE=_PACKAGE_
+PACKAGE_USER=_USER_
+
+CONNEKT_API_BASE_DIR=/var/lib/${PACKAGE}
+CONNEKT_API_JAR=${CONNEKT_API_BASE_DIR}/${PACKAGE}.jar
+CONNEKT_API_PID_PATH=/var/run/${PACKAGE}
+CONNEKT_API_PID_FILE=${CONNEKT_API_PID_PATH}/${PACKAGE}.pid
+
+# Set umask for all files created by this process
+umask 0777
+
+source /etc/default/${PACKAGE}
+
+if [  -f /etc/profile.d/kenv.sh ]; then
+    source /etc/profile.d/kenv.sh
+fi
+
+if [ ! -e ${CONNEKT_API_PID_PATH} ]; then
+    mkdir -m 755 -p ${CONNEKT_API_PID_PATH}
+fi
+
+##Set ulimit's
+ulimit -n 65536
+ulimit -u 16384
+
+#Java Executable
+export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:jre/bin/java::")
+JAVA="${JAVA_HOME}/bin/java"
+HOST=$(hostname -f)
+ACTION="$1"
+
+start()
+{
+
+    #java -jar will not work since we have more than 66k files in jar
+    # https://github.com/sbt/sbt/issues/850
+    # http://stackoverflow.com/questions/18441076/why-java-complains-about-jar-files-with-lots-of-entries
+
+    MODE="$1"
+    echo "Starting Connect App ..."
+    COMMAND="${JAVA} ${JAVA_OPTS} -cp ${CONNEKT_API_JAR} com.flipkart.connekt.boot.Boot ${MODE} >> /var/log/flipkart/pf/fk-pf-connekt/catalina.log 2>&1";
+
+    start-stop-daemon --start --quiet --background --make-pidfile \
+        --pidfile ${CONNEKT_API_PID_FILE} \
+        --chuid ${PACKAGE_USER} \
+        --startas /bin/bash -- -c "exec ${COMMAND}"
+    return $?
+}
+
+stop()
+{
+    echo "Stopping App ..."
+
+    start-stop-daemon --stop --quiet --pidfile ${CONNEKT_API_PID_FILE} --retry=TERM/30/KILL/5
+    if [ -e ${CONNEKT_API_PID_FILE} ]
+        then sudo rm -rf ${CONNEKT_API_PID_FILE}
+    fi
+    return 0
+}
+
+usage()
+{
+    echo "Usage: ${0} {start <which> |stop |restart <which>|status <which>|force-stop } "
+    exit 0
+}
+
+
+status() {
+    if [ ! -z ${CONNEKT_API_PID_FILE} ]; then
+        if [ -f ${CONNEKT_API_PID_FILE} ]; then
+            if [ -s ${CONNEKT_API_PID_FILE} ]; then
+                if [ -r ${CONNEKT_API_PID_FILE} ]; then
+                    PID=`cat ${CONNEKT_API_PID_FILE}`
+                    ps -p ${PID} >/dev/null 2>&1
+                    if [ $? -eq 0 ] ; then
+                        echo "Existing instance of ${PACKAGE} running with pid: " `cat ${CONNEKT_API_PID_FILE}`
+                        return 0
+                    fi
+                fi
+            fi
+        fi
+    fi
+    echo "No valid PID file found"
+    return 1
+}
+
+
+case "${ACTION}" in
+    start)
+        [ -z "$CONNEKT_ENV" ] && echo "Enviroment Not Set!" && exit 0
+
+        [ "$2" = "" ] && echo "No which!" && exit 0
+        start "$2";
+        ;;
+    stop)
+        stop;
+        ;;
+    restart)
+        [ "$2" = "" ] && echo "No which!" && exit 0
+        stop;
+        start "$2";
+        ;;
+    status)
+        status;
+        ;;
+    force-stop)
+        [ "$2" = "" ] && echo "No pid!" && exit 0
+        kill -9 "$2"
+        ;;
+    set-env)
+        [ "$2" = "" ] && echo "No Enviroment Specified!" && exit 0
+        echo "export CONNEKT_ENV=$2" > /etc/profile.d/kenv.sh
+        chmod 0755 /etc/profile.d/kenv.sh
+        ;;
+    *)
+       usage;
+       ;;
+esac

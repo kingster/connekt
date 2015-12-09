@@ -1,0 +1,109 @@
+#!/bin/bash
+
+set -x
+echo "Starting build"
+function die() {
+    echo "ERROR: $1" >&2
+    echo "Aborting." >&2
+    exit 1
+}
+
+[ -n "$LOCAL_DIR" ]	|| die "No base dir specified."
+[ -n "$TARGET" ]	|| die "No target environment (eng, sb, nm etc.) specified."
+[ -n "$PACKAGE" ]	|| die "No package name specified."
+[ -d "$LOCAL_DIR" ]	|| die "Base dir '$LOCAL_DIR' does not exist."
+
+case "$TARGET" in
+        local) ENV=local;;
+        nm) ENV=nm;;
+        ch) ENV=ch;;
+        stage) ENV=local;;
+        stagech) ENV=stagech;;
+        eng) ENV=local;;
+		cidqa) ENV=qa;;
+        release) ENV=release;;
+esac
+[ -z "$ENV" ] && die "Invalid target: $TARGET"
+
+export PAC_UID=3107
+export PAC_GID=3000
+export PAC_GROUP="fk-w3"
+export PAC_USER="fk-pf-connekt"
+
+replacePlaceHolders() {
+    file="$1"
+    sed -i -e "s/_PACKAGE_/$PACKAGE/g" $file
+    sed -i -e "s/_UID_/$PAC_UID/g" $file
+    sed -i -e "s/_GID_/$PAC_GID/g" $file
+    sed -i -e "s/_GROUP_/$PAC_GROUP/g" $file
+    sed -i -e "s/_USER_/$PAC_USER/g" $file
+}
+
+
+# Create base dir for debian packaging
+BASE_DIR="$LOCAL_DIR"
+BUILD_DIR="$LOCAL_DIR/build/$PACKAGE"
+DEPLOY_DIR="$BUILD_DIR/deploy"
+DEB_DIR="$LOCAL_DIR/deb"
+
+TARGET_DIR="${LOCAL_DIR}/target"
+APP_BUILD_DIR="${TARGET_DIR}/${PACKAGE}"
+APP_BUILD_BINARY="${TARGET_DIR}/scala-2.11/${PACKAGE}.jar"
+
+
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+export PATH=${JAVA_HOME}/bin:${PATH}
+
+#Setting path to proper sbt version (0.13.2)
+#export PATH="${LOCAL_DIR}/build/sbt:${PATH}"
+
+echo "Module directory : ${LOCAL_DIR}"
+echo "Running Build on...  `hostname -f`"
+
+CUR_SAVE_PWD=$(pwd)
+
+# build service
+cd "$BASE_DIR"
+
+./sbt about
+
+echo "Assembling...."
+
+./sbt -Denv.key="$ENV" assembly
+[ $? -ne 0 ] && die "Build failure (failed building sbt package)"
+
+echo "SBT Build complete..."
+
+
+echo
+echo "Creating package directory...."
+
+#assemble files
+mkdir -p "${APP_BUILD_DIR}"
+mv "${APP_BUILD_BINARY}" "${APP_BUILD_DIR}"
+
+#Switch back to previous directory after build
+cd "${CUR_SAVE_PWD}"
+
+
+# setup
+mkdir -p "$DEB_DIR"
+cp -r "$BUILD_DIR"/deb/DEBIAN "$DEB_DIR"
+cp -r "$DEPLOY_DIR"/* "$DEB_DIR"
+
+#Copy the entire package content to DEB_DIR
+cp -r "${APP_BUILD_DIR}" "${DEB_DIR}/var/lib/"
+
+#Set executable permission for DEBIAN directory
+chmod -R 755 "$DEB_DIR/DEBIAN"
+
+#replacing constants
+replacePlaceHolders "${DEB_DIR}/DEBIAN/prerm"
+replacePlaceHolders "${DEB_DIR}/DEBIAN/postrm"
+replacePlaceHolders "${DEB_DIR}/DEBIAN/postinst"
+replacePlaceHolders "${DEB_DIR}/DEBIAN/control"
+replacePlaceHolders "${DEB_DIR}/etc/init.d/${PACKAGE}"
+replacePlaceHolders "${DEB_DIR}/etc/logrotate.d/${PACKAGE}"
+replacePlaceHolders "${DEB_DIR}/etc/default/${PACKAGE}"
+
+#echo '{ "repo": "fk-pf-connekt" }' >  "$BASE_DIR/.build.json"
