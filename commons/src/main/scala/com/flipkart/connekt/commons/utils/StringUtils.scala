@@ -34,4 +34,12 @@ object StringUtils {
     def getObj[T: ClassTag] = objMapper.readValue(s, classTag[T].runtimeClass).asInstanceOf[T]
     def getObj(implicit cType: Class[_]) = objMapper.readValue(s, cType)
   }
+
+  def isNullOrEmpty(o: Any): Boolean = o match {
+    case m: Map[_, _] => m.isEmpty
+    case i: Iterable[Any] => i.isEmpty
+    case null | None | "" => true
+    case Some(x) => isNullOrEmpty(x)
+    case _ => false
+  }
 }

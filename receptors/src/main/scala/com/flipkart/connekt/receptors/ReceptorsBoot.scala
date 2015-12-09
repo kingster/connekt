@@ -15,35 +15,40 @@ import com.typesafe.config.ConfigFactory
  * @author durga.s
  * @version 11/20/15
  */
-object ReceptorsBoot extends App {
+object ReceptorsBoot {
+
   val initialized = new AtomicBoolean(false)
   var receptors: ReceptorsServer = null
   var httpBindFuture = null
 
-  if(!initialized.get()) {
-    ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
-    val logConfigFile = System.getProperty("user.dir").concat("/receptors/src/main/resources/logback.xml")
-    ConnektLogger.init(logConfigFile)
-    ConnektLogger(LogFile.SERVICE).info("ReceptorsBoot initializing.")
+  def start() {
+    if (!initialized.get()) {
+      ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
+      val logConfigFile = System.getProperty("user.dir").concat("/receptors/src/main/resources/logback.xml")
+      ConnektLogger.init(logConfigFile)
+      ConnektLogger(LogFile.SERVICE).info("ReceptorsBoot initializing.")
 
-    val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
-    DaoFactory.initHTableDaoFactory(hConfig.get)
+      val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
+      DaoFactory.initHTableDaoFactory(hConfig.get)
 
-    val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
-    val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
-    KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
+      val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
+      val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
+      KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
-    ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
-    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao)
+      ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
+      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao)
 
-    receptors = new ReceptorsServer
-    receptors.init
-    ConnektLogger(LogFile.SERVICE).info("Receptors initialized.")
+      receptors = new ReceptorsServer
+      receptors.init
+      ConnektLogger(LogFile.SERVICE).info("Receptors initialized.")
+    }
   }
 
   def terminate() = {
     ConnektLogger(LogFile.DAO).info("Receptors terminating.")
-    DaoFactory.shutdownHTableDaoFactory()
-    receptors.stop()
+    if(initialized.get()) {
+      DaoFactory.shutdownHTableDaoFactory()
+      receptors.stop()
+    }
   }
 }
