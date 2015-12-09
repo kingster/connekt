@@ -4,39 +4,20 @@
             <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <appender name="WORKERS" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/busybees/Workers.log</file>
-        <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-        </encoder>
-    </appender>
-    <appender name="CLIENTS" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/busybees/Clients.log</file>
-        <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-        </encoder>
-    </appender>
-    <appender name="PROCESSORS" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/busybees/Processors.log</file>
-        <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-        </encoder>
-    </appender>
-
     <appender name="FACTORY" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/busybees/Factory.log</file>
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-factory.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
     <appender name="DAO" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/busybees/Dao.log</file>
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-dao.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
     <appender name="SERVICE" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/busybees/Service.log</file>
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-service.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
@@ -50,17 +31,7 @@
     <logger name="FACTORY" level="DEBUG">
         <appender-ref ref="FACTORY" />
     </logger>
-    <logger name="WORKERS" level="DEBUG">
-        <appender-ref ref="WORKERS" />
-    </logger>
-    <logger name="CLIENTS" level="DEBUG">
-        <appender-ref ref="CLIENTS" />
-    </logger>
-    <logger name="PROCESSORS" level="DEBUG">
-        <appender-ref ref="PROCESSORS" />
-    </logger>
-
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

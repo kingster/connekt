@@ -5,19 +5,19 @@
         </encoder>
     </appender>
     <appender name="FACTORY" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/receptors/Factory.log</file>
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-factory.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
     <appender name="DAO" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/receptors/Dao.log</file>
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-dao.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
     <appender name="SERVICE" class="ch.qos.logback.core.FileAppender">
-        <file>/tmp/connekt/logs/receptors/Service.log</file>
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-service.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
