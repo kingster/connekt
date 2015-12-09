@@ -63,5 +63,5 @@ if [ "$proceed" != "y" ]; then
 fi
 
 (set -x;
-git tag -m "Promoting to $env." release/$pkg$version origin/${branch} && git push origin --tags;
+git tag -m "Promoting to $env." release/$pkg$version origin/${branch} && git push all --tags;
 )
