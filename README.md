@@ -26,7 +26,6 @@ Getting Started
 	```
 
 #### Promoting
-
 	```bash
 	./scripts/fk-git-promote -e <enviroment> -b <branch> -p <package>
 	```
