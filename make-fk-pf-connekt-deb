@@ -65,8 +65,6 @@ CUR_SAVE_PWD=$(pwd)
 # build service
 cd "$BASE_DIR"
 
-./sbt about
-
 echo "Assembling...."
 
 ./sbt -Denv.key="$ENV" assembly
