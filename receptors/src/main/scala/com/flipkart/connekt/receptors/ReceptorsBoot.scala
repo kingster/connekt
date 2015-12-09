@@ -23,13 +23,12 @@ object ReceptorsBoot {
 
   def start() {
     if (!initialized.get()) {
-      ConnektLogger(LogFile.SERVICE).info("ReceptorsBoot initializing.")
-
       ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
 
-      val logConfigFile =  getClass.getClassLoader.getResourceAsStream("logback.xml")
-      ConnektLogger(LogFile.SERVICE).info(s"ReceptorsBoot Log Config $logConfigFile")
+      val logConfigFile =  getClass.getClassLoader.getResourceAsStream("logback-receptors.xml")
       ConnektLogger.init(logConfigFile)
+      ConnektLogger(LogFile.SERVICE).info("Receptors initializing.")
+      ConnektLogger(LogFile.SERVICE).info(s"ReceptorsBoot Log Config: $logConfigFile")
 
       val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)

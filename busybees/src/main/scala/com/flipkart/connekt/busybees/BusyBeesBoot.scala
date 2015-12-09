@@ -10,6 +10,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.receptors.ReceptorsBoot._
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -27,9 +28,11 @@ object BusyBeesBoot {
 
     if (!initialized.get()) {
       ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
-      val logConfigFile = System.getProperty("user.dir").concat("/busybees/src/main/resources/logback.xml")
+
+      val logConfigFile =  getClass.getClassLoader.getResourceAsStream("logback-busybees.xml")
       ConnektLogger.init(logConfigFile)
       ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
+      ConnektLogger(LogFile.SERVICE).info(s"Busybees Log Config: $logConfigFile")
 
       val hConfig = ConnektConfig.getConfig("busybees.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
