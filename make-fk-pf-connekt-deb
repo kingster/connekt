@@ -48,7 +48,7 @@ DEB_DIR="$LOCAL_DIR/deb"
 
 TARGET_DIR="${LOCAL_DIR}/target"
 APP_BUILD_DIR="${TARGET_DIR}/${PACKAGE}"
-APP_BUILD_BINARY="${TARGET_DIR}/scala-2.11/${PACKAGE}.jar"
+APP_BUILD_BINARY="${TARGET_DIR}/${PACKAGE}.jar"
 
 
 export JAVA_HOME=/usr/lib/jvm/java-8-oracle
