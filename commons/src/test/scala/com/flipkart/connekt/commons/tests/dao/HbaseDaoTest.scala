@@ -7,7 +7,6 @@ import com.flipkart.connekt.commons.helpers.HConnectionHelper
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.CharEncoding
-import org.scalatest.BeforeAndAfterAll
 
 /**
  *
@@ -15,7 +14,7 @@ import org.scalatest.BeforeAndAfterAll
  * @author durga.s
  * @version 11/18/15
  */
-class HbaseDaoTest extends ConnektUTSpec with HbaseDao with BeforeAndAfterAll {
+class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
   var hConnectionHelper = getHBaseConnHelper
   val tblName = "fk-connekt-proto"

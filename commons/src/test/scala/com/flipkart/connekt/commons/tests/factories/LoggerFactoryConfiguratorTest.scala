@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.tests.factories
 
+import java.io.{FileInputStream, File}
 import ch.qos.logback.classic.LoggerContext
 import com.flipkart.connekt.commons.factories.LoggerFactoryConfigurator
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
@@ -36,7 +37,8 @@ object ConnektLogger {
 
   def init() = {
     val confFilePath = System.getProperty("user.dir").concat("/commons/src/test/resources/logback-test.xml")
-    LoggerFactoryConfigurator.configure(confFilePath)
+    val file = new File(confFilePath)
+    LoggerFactoryConfigurator.configure(new FileInputStream(file))
   }
 
   def stop() = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext].stop()

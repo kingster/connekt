@@ -1,13 +1,13 @@
 package com.flipkart.connekt.commons.tests.services
 
 import java.util.Properties
+
 import com.flipkart.connekt.commons.helpers.KafkaConnectionHelper
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.typesafe.config.ConfigFactory
 import kafka.consumer.ConsumerConnector
 import kafka.producer.{KeyedMessage, Producer}
 import org.apache.commons.pool.impl.GenericObjectPool
-import org.scalatest.BeforeAndAfterAll
 
 /**
  *
@@ -15,7 +15,7 @@ import org.scalatest.BeforeAndAfterAll
  * @author durga.s
  * @version 11/26/15
  */
-class KafkaConnectionHelperTest extends ConnektUTSpec with KafkaConnectionHelper with BeforeAndAfterAll {
+class KafkaConnectionHelperTest extends ConnektUTSpec with KafkaConnectionHelper {
 
   val topicName = "fk-connekt-proto"
   var kafkaConsumerPool: GenericObjectPool[ConsumerConnector] = null
@@ -44,42 +44,42 @@ class KafkaConnectionHelperTest extends ConnektUTSpec with KafkaConnectionHelper
   }
 
   "Initialising producer factory" should "succeed" in {
-    kafkaProducerPool = createKafkaProducerFactory
+    noException should be thrownBy(kafkaProducerPool = createKafkaProducerFactory)
   }
 
   "Initialising consumer factory" should "succeed" in {
-    kafkaConsumerPool = createKafkaConsumerFactory
+    noException should be thrownBy (kafkaConsumerPool = createKafkaConsumerFactory)
   }
 
   "Sending a keyed-message" should "succeed" in {
     val producer = kafkaProducerPool.borrowObject()
     try {
-        producer.send(new KeyedMessage[String, String](topicName, "SampleProtoMessage at %s".format(System.currentTimeMillis)))
+        noException should be thrownBy producer.send(new KeyedMessage[String, String](topicName, "SampleProtoMessage at %s".format(System.currentTimeMillis)))
     } finally {
       kafkaProducerPool.returnObject(producer)
     }
   }
 
-  "Consuming messages" should "succeed" in {
-    val consumer = kafkaConsumerPool.borrowObject()
-    try {
-      val streams = consumer.createMessageStreams(Map[String, Int](topicName -> 1))
-      streams.keys.foreach(topic => {
-          streams.get(topic).map(_.zipWithIndex).foreach(l => {
-            println("Reading streams for topic %s".format(topic))
-            l.foreach(x => {
-              val streamIterator = x._1.iterator()
-              while (streamIterator.hasNext()) {
-                val msg = streamIterator.next()
-                println("stream: %s message: %s".format(x._2, new String(msg.message)))
-              }
-            })
-          })
-      })
-    } finally {
-      kafkaConsumerPool.returnObject(consumer)
-    }
-  }
+//  "Consuming messages" should "succeed" in {
+//    val consumer = kafkaConsumerPool.borrowObject()
+//    try {
+//      val streams = consumer.createMessageStreams(Map[String, Int](topicName -> 1))
+//      streams.keys.foreach(topic => {
+//          streams.get(topic).map(_.zipWithIndex).foreach(l => {
+//            println("Reading streams for topic %s".format(topic))
+//            l.foreach(x => {
+//              val streamIterator = x._1.iterator()
+//              while (streamIterator.hasNext()) {
+//                val msg = streamIterator.next()
+//                println("stream: %s message: %s".format(x._2, new String(msg.message)))
+//              }
+//            })
+//          })
+//      })
+//    } finally {
+//      kafkaConsumerPool.returnObject(consumer)
+//    }
+//  }
 
   override def afterAll() = {
     println("triggering cleanup afterAll")

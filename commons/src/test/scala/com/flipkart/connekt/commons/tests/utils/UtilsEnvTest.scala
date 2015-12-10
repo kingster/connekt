@@ -13,7 +13,7 @@ class UtilsEnvTest extends ConnektUTSpec {
 
   "getConfEnv" should "return [CONNEKT_ENV] system environment variable value as set" in {
     val currentPropValue = System.getProperty("CONNEKT_ENV")
-    val updatedPropValue = "_whatever_"
+    val updatedPropValue = "local"
 
     System.setProperty("CONNEKT_ENV", updatedPropValue)
     UtilsEnv.getConfEnv should be (updatedPropValue)
