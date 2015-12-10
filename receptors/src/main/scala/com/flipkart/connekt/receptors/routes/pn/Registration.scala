@@ -18,12 +18,13 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/20/15
  */
-class Registration (implicit am: ActorMaterializer) extends BaseHandler {
+class Registration(implicit am: ActorMaterializer) extends BaseHandler {
 
   val register =
-    sniffHeaders { headers =>
-      isAuthenticated(Some(headers)) {
-        pathPrefix("v1" / "push" / "device" / "registration") {
+    pathPrefix("v1") {
+      authenticate {
+        user =>
+        pathPrefix("push" / "device" / "registration") {
           path("save") {
             (post | put) {
               entity(as[DeviceDetails]) { d =>

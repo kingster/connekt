@@ -1,9 +1,11 @@
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.server.Directive0
+import akka.http.scaladsl.server.{Directives, Directive1, RequestContext, Directive0}
 import akka.http.scaladsl.server.directives.{BasicDirectives, RouteDirectives}
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.receptors.service.AuthenticationService
+import Directives._
 
 /**
  *
@@ -13,23 +15,20 @@ import com.flipkart.connekt.receptors.service.AuthenticationService
  */
 trait AuthenticationDirectives {
 
-  def isAuthenticated(h: Option[Seq[HttpHeader]] = None): Directive0 =
-  {
-    val (cy, c, k): (String, String, String) = if(h.isDefined) {
-      def getHeader(key: String) = h.get.find(_.name.equalsIgnoreCase(key))
-        .flatMap(w => Some(w.value)).orNull
+  private def getHeader(key: String, h: Seq[HttpHeader]) = h.find(_.name.equalsIgnoreCase(key)).flatMap(w => Some(w.value)).orNull
 
-      (getHeader("x-company"), getHeader("x-clientId"), getHeader("x-api-key"))
-    } else {
-      (null, null, null)
+  def authenticate: Directive1[AppUser] = {
+
+    BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap  { headers =>
+      val apiKey = getHeader("x-api-key", headers)
+       AuthenticationService.authenticateKey(apiKey) match {
+        case Some(user) =>
+          provide(AppUser(user, apiKey,null))
+        case None =>
+          RouteDirectives.failWith(new Exception(s"authentication failure for apiKey: [$apiKey]"))
+      }
     }
 
-    isAuthenticated(cy, c, k)
   }
 
-  def isAuthenticated(company: String, clientId: String, apiKey: String): Directive0 =
-    AuthenticationService.isUserAuthenticated(company, clientId, apiKey) match {
-      case true => BasicDirectives.pass
-      case false => RouteDirectives.failWith(new Exception("authentication failure for company: [%s], client: [%s]"))
-    }
 }
