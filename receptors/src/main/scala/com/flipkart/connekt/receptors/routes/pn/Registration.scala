@@ -1,5 +1,7 @@
 package com.flipkart.connekt.receptors.routes.pn
 
+import javax.ws.rs.Path
+
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.dao.DaoFactory
@@ -16,9 +18,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/20/15
  */
-class Registration (implicit _am: ActorMaterializer) extends BaseHandler {
-
-  implicit val am: ActorMaterializer = _am
+class Registration (implicit am: ActorMaterializer) extends BaseHandler {
 
   val register =
     sniffHeaders { headers =>

@@ -15,8 +15,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/26/15
  */
-class Unicast(implicit _am: ActorMaterializer) extends BaseHandler {
-  implicit val am = _am
+class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
 
   val unicast =
     sniffHeaders { headers =>
