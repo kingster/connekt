@@ -38,7 +38,7 @@ class Callback(implicit am: ActorMaterializer) extends BaseHandler {
 
                       complete(respond[GenericResponse](
                         StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                        GenericResponse(StatusCodes.OK.intValue, null, Response("Saving PN callback failed: %s".format(t.getMessage), null))
+                        GenericResponse(StatusCodes.OK.intValue, null, Response( s"Saving PN callback failed: ${t.getMessage}", null))
                       ))
                   }
                 }
