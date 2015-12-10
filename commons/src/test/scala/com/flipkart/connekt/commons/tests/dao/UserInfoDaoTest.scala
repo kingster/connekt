@@ -31,8 +31,7 @@ class UserInfoDaoTest extends ConnektUTSpec {
   }
 
   "UserInfoDao test" should "get user info" in {
-    val user = new UserInfo(table, mysqlFactoryWrapper).getUserInfo("dev")
-    println(user)
+    val user = new UserInfo(table, mysqlFactoryWrapper).getUserInfo(id)
     user.isEmpty shouldEqual false
   }
 }
