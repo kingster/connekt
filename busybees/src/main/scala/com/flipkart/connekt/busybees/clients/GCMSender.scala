@@ -41,6 +41,8 @@ class GCMSender(host: String, port: Int, api: String, authKey: String) extends A
             case Success(r) =>
               ConnektLogger(LogFile.CLIENTS).info(s"GCM HttpRequest ${r.status.isSuccess()} ${t._2}")
               ConnektLogger(LogFile.CLIENTS).debug(s"GCM Response: ${r.getResponseMessage}")
+              //TODO : handlers
+
             case Failure(e) =>
               ConnektLogger(LogFile.CLIENTS).error(s"GCM httpRequest failed for ${t._2}, e: ${e.getMessage}", e)
           }
