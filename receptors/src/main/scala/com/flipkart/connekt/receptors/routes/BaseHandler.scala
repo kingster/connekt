@@ -3,7 +3,7 @@ package com.flipkart.connekt.receptors.routes
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.{HttpHeader, _}
 import akka.http.scaladsl.server.Directives
-import com.flipkart.connekt.receptors.directives.{AsyncDirectives, AuthenticationDirectives, HeaderDirectives}
+import com.flipkart.connekt.receptors.directives.{AuthorizationDirectives, AsyncDirectives, AuthenticationDirectives, HeaderDirectives}
 import com.flipkart.connekt.receptors.wire.GenericJsonSupport
 
 import scala.collection.immutable.Seq
@@ -14,7 +14,7 @@ import scala.collection.immutable.Seq
  * @author durga.s
  * @version 11/21/15
  */
-abstract class BaseHandler extends GenericJsonSupport with Directives with HeaderDirectives with AuthenticationDirectives with AsyncDirectives {
+abstract class BaseHandler extends GenericJsonSupport with Directives with HeaderDirectives with AuthenticationDirectives with AuthorizationDirectives with AsyncDirectives {
 
   /**
    *

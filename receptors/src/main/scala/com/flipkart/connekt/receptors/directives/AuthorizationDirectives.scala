@@ -1,7 +1,8 @@
 package com.flipkart.connekt.receptors.directives
 
-import akka.http.scaladsl.server.Directive0
-import akka.http.scaladsl.server.directives.BasicDirectives
+import akka.http.scaladsl.server.{AuthorizationFailedRejection, Directive0}
+import akka.http.scaladsl.server.directives.{RouteDirectives, BasicDirectives}
+import com.flipkart.connekt.commons.entities.AppUser
 
 /**
  *
@@ -11,10 +12,11 @@ import akka.http.scaladsl.server.directives.BasicDirectives
  */
 trait AuthorizationDirectives {
 
-  def authorize(tag:String): Directive0 = {
-
-    BasicDirectives.pass
-
+  def authorize( user: AppUser,tag:String): Directive0 = {
+    if(true) //TODO" Implementation change
+      BasicDirectives.pass
+    else
+      RouteDirectives.reject(AuthorizationFailedRejection)
   }
 
 }

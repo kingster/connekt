@@ -2,6 +2,7 @@ package com.flipkart.connekt.receptors.routes.pn
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils
@@ -25,10 +26,7 @@ class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
         user =>
           path("push" / "unicast" / Segment / Segment / Segment) {
             (appPlatform: String, appName: String, deviceId: String) =>
-              authorize(rc => {
-                ConnektLogger(LogFile.SERVICE).debug(s"rc: ${rc.request.getUri()}")
-                true
-              }) {
+              authorize(user,"UNICAST_" + appName) {
                 post {
                   entity(as[ConnektRequest]) { r =>
                     val pnData = r.channelData.asInstanceOf[PNRequestData].copy(appName = appName, platform = appPlatform, deviceId = deviceId)

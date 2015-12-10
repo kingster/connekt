@@ -2,7 +2,7 @@ package com.flipkart.connekt.receptors.routes.callbacks
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
