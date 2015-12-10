@@ -44,7 +44,8 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding user [${user.getJson}] info: ${e.getMessage}", e)
+        false
     }
-    false
+
   }
 }

@@ -60,7 +60,8 @@ libraryDependencies ++= Seq(
   "commons-pool" % "commons-pool" % "1.6",
   "org.springframework" % "spring-jdbc" % "4.2.3.RELEASE",
   "org.apache.commons" % "commons-dbcp2" % "2.1.1",
-  "javax.persistence" % "persistence-api" % "1.0.2"
+  "javax.persistence" % "persistence-api" % "1.0.2",
+  "mysql" % "mysql-connector-java" % "5.1.37"
 )
 
 

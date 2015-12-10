@@ -66,7 +66,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 
       allProps.map(fields => {
         def get(key: String) = fields.get(key).map(new String(_)).orNull
-        def getB(key: String) = fields.get("aP").exists(b => java.lang.Boolean.parseBoolean(new String(b)))
+        def getB(key: String) = fields.get(key).exists(b => java.lang.Boolean.parseBoolean(new String(b)))
 
         DeviceDetails(
           deviceId = get("deviceId"),
