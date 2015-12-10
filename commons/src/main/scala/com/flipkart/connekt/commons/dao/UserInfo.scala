@@ -20,23 +20,24 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-        |SELECT * FROM $table WHERE userId = ?
+         |SELECT * FROM $table WHERE userId = ?
       """.stripMargin
 
     try {
       Some(query[AppUser](q, userId))
     } catch {
-      case e @ (_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
+      case e@(_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching user [$userId] info: ${e.getMessage}", e)
+        None
     }
-    None
+
   }
 
   override def addUserInfo(user: AppUser, updatedBy: String): Boolean = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-        |INSERT INTO $table(userId, apikey, groups, lastUpdatedTs, updatedBy) VALUES(?, ?, ?, ?, ?)
+         |INSERT INTO $table(userId, apikey, groups, lastUpdatedTs, updatedBy) VALUES(?, ?, ?, ?, ?)
       """.stripMargin
 
     try {

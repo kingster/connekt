@@ -45,7 +45,7 @@ trait MySQLDao extends Dao {
     instance.getClass.getDeclaredFields.foreach(f => {
       f.setAccessible(true)
       val dbColumnName = f.getAnnotation(classOf[Column]).name()
-      f.set(dbColumnName, dbFieldValueMap(dbColumnName))
+      f.set(instance, dbFieldValueMap(dbColumnName))
     })
 
     instance

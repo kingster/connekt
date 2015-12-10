@@ -15,7 +15,7 @@ class UserInfoDaoTest extends ConnektUTSpec {
   val table = "USER_INFO"
   implicit var mysqlFactoryWrapper = new MySQLFactoryWrapper("w3-comm-db01.stage.ch.flipkart.com", "fk-pf-connekt", "root", "", getPoolProps)
   val id = UUID.randomUUID().toString
-  val user = AppUser(id, UUID.randomUUID().toString, "bro,commsvc", 345678875, "aman.s")
+  val user = new AppUser(id, UUID.randomUUID().toString, "bro,commsvc", 345678875, "aman.s")
 
 
   private def getPoolProps: Config = {
@@ -31,6 +31,8 @@ class UserInfoDaoTest extends ConnektUTSpec {
   }
 
   "UserInfoDao test" should "get user info" in {
-    new UserInfo(table, mysqlFactoryWrapper).getUserInfo(id).get shouldEqual user
+    val user = new UserInfo(table, mysqlFactoryWrapper).getUserInfo("dev")
+    println(user)
+    user.isEmpty shouldEqual false
   }
 }
