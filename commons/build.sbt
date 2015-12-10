@@ -57,7 +57,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-http-experimental_2.11" % "2.0-M1",
   "com.lmax" % "disruptor" % "3.3.2",
   "commons-lang" % "commons-lang" % "2.6",
-  "commons-pool" % "commons-pool" % "1.6"
+  "commons-pool" % "commons-pool" % "1.6",
+  "org.springframework" % "spring-jdbc" % "4.2.3.RELEASE",
+  "org.apache.commons" % "commons-dbcp2" % "2.1.1"
 )
 
 
