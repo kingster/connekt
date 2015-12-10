@@ -45,9 +45,18 @@ trait MySQLDao extends Dao {
     instance.getClass.getDeclaredFields.foreach(f => {
       f.setAccessible(true)
       val dbColumnName = f.getAnnotation(classOf[Column]).name()
-      f.set(instance, dbFieldValueMap(dbColumnName))
+      if(f.isInstanceOf[Enumeration#Value]) {
+        getEnum[T](dbFieldValueMap(dbColumnName))
+      } else {
+        f.set(instance, dbFieldValueMap(dbColumnName))
+      }
     })
 
     instance
+  }
+
+  def getEnum[T](enumVal: Object): Enumeration#Value = {
+    val method = classOf[Enumeration].getMethod("withName", classOf[String])
+    method.invoke(null, enumVal.asInstanceOf[String]).asInstanceOf[Enumeration#Value]
   }
 }

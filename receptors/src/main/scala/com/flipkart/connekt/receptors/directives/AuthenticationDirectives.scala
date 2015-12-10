@@ -1,11 +1,11 @@
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.server.{Directives, Directive1, RequestContext, Directive0}
+import akka.http.scaladsl.server.Directive1
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.{BasicDirectives, RouteDirectives}
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.receptors.service.AuthenticationService
-import Directives._
 
 /**
  *
@@ -23,7 +23,8 @@ trait AuthenticationDirectives {
       val apiKey = getHeader("x-api-key", headers)
        AuthenticationService.authenticateKey(apiKey) match {
         case Some(user) =>
-          provide(AppUser(user, apiKey,null))
+          //TODO: Fetch appUser from Authentication Service
+          provide( new AppUser())
         case None =>
           RouteDirectives.failWith(new Exception(s"authentication failure for apiKey: [$apiKey]"))
       }
