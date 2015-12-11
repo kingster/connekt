@@ -41,4 +41,21 @@ class AppUser {
     this.updatedBy = updatedBy
   }
 
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[AppUser]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: AppUser =>
+      (that canEqual this) &&
+        userId == that.userId &&
+        apiKey == that.apiKey &&
+        groups == that.groups &&
+        updatedBy == that.updatedBy
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(userId, apiKey, groups, updatedBy)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }

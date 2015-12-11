@@ -1,11 +1,9 @@
 package com.flipkart.connekt.commons.dao
 
-import java.lang.Long
-
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger, MySQLFactoryWrapper}
-import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, MySQLFactoryWrapper}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
 /**
  *
@@ -33,7 +31,7 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
 
   }
 
-  override def addUserInfo(user: AppUser, updatedBy: String): Boolean = {
+  override def addUserInfo(user: AppUser): Boolean = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
@@ -41,7 +39,7 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
       """.stripMargin
 
     try {
-      update(q, user.userId, user.apiKey, user.groups, new Long(System.currentTimeMillis()), updatedBy).equals(1)
+      update(q, user.userId, user.apiKey, user.groups,  new java.lang.Long(System.currentTimeMillis()), user.updatedBy).equals(1)
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding user [${user.getJson}] info: ${e.getMessage}", e)
