@@ -3,7 +3,7 @@ package com.flipkart.connekt.commons.dao
 import java.sql.ResultSet
 import javax.persistence.Column
 
-import org.springframework.jdbc.core.{RowMapper, JdbcTemplate}
+import org.springframework.jdbc.core.{JdbcTemplate, RowMapper}
 
 import scala.reflect.ClassTag
 
@@ -45,7 +45,7 @@ trait MySQLDao extends Dao {
     instance.getClass.getDeclaredFields.foreach(f => {
       f.setAccessible(true)
       val dbColumnName = f.getAnnotation(classOf[Column]).name()
-      if(f.isInstanceOf[Enumeration#Value]) {
+      if(f.getType == classOf[Enumeration#Value]) {
         getEnum[T](dbFieldValueMap(dbColumnName))
       } else {
         f.set(instance, dbFieldValueMap(dbColumnName))

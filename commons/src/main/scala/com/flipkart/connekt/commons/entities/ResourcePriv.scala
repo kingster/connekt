@@ -25,6 +25,22 @@ class ResourcePriv {
     this.userType = userType
     this.resources = resources
   }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[ResourcePriv]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: ResourcePriv =>
+      (that canEqual this) &&
+        userId == that.userId &&
+        userType == that.userType &&
+        resources == that.resources
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(userId, userType, resources)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }
 
 object UserType extends Enumeration {
