@@ -9,3 +9,9 @@ CREATE TABLE `USER_INFO` (
   PRIMARY KEY (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `RESOURCE_PRIV` (
+  `userId` varchar(100) NOT NULL DEFAULT '',
+  `userType` enum('GLOBAL','GROUP','USER') DEFAULT 'USER',
+  `resources` text,
+  PRIMARY KEY (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
