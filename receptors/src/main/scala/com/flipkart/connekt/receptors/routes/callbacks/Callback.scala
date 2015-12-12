@@ -8,7 +8,7 @@ import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success}
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -42,6 +42,23 @@ class Callback(implicit am: ActorMaterializer) extends BaseHandler {
                       GenericResponse(StatusCodes.OK.intValue, null, Response(s"Saving PN callback failed: ${t.getMessage}", null))
                     ))
                 }
+              }
+            }
+        } ~ path(Segment / "callback" / Segment / Segment) {
+          (channel: String, contactId: String, messageId: String) =>
+            get {
+              ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, channel) match {
+                case Success(events) =>
+                  ConnektLogger(LogFile.SERVICE).info(s"Received callback events for $messageId $contactId: ${events.toString}")
+                  complete(respond[GenericResponse](
+                  StatusCodes.OK, Seq.empty[HttpHeader],
+                  GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId $contactId fetched.", events))
+                  ))
+                case Failure(t) =>
+                  complete(respond[GenericResponse](
+                    StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+                    GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetch failed for $messageId $contactId.", null))
+                  ))
               }
             }
         }
