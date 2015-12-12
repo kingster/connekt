@@ -61,12 +61,14 @@ object AppBuild extends Build {
     case PathList("com", "esotericsoftware", "reflectasm", xs@_ *) => MergeStrategy.last //screw u reflect asm. who & where are you?
     case PathList("javax", "servlet", xs@_*) => MergeStrategy.first // oh god upto you - javax stuff!
     case PathList("org", "apache", "commons", "collections", xs@_x) => MergeStrategy.first
-    case PathList("org", "xmlpull", "v1", xs@_x) => MergeStrategy.first //crazy xpp3 people http://jira.codehaus.org/browse/XSTR-689
     case PathList("org", "apache", "hadoop", xs@_ *) => MergeStrategy.last
     case PathList("org", "eclipse", "jetty", xs@_ *) => MergeStrategy.last
     //for anotations
     case PathList("edu", "umd", "cs", "findbugs", xs@_ *) => MergeStrategy.last
     case PathList("net", "jcip", xs@_ *) => MergeStrategy.last
+
+    case PathList("org", "xmlpull", "v1", xs@_x) => MergeStrategy.first //crazy xpp3 people http://jira.codehaus.org/browse/XSTR-689
+    case PathList("javax", "xml", "namespace" , "QName.class") =>  new IncludeFromJar("xpp3-1.1.4c.jar")  //fuck u xpp3
 
     case "mapred-default.xml" | "logback.xml" => MergeStrategy.first
     case "application.conf" | "plugin.properties" => MergeStrategy.concat
