@@ -10,7 +10,9 @@ import com.flipkart.connekt.commons.iomodels.GCMPayload
 import com.flipkart.connekt.commons.transmission.HostConnectionHelper._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
+import scala.concurrent.Await
 import scala.util.{Failure, Success}
+import scala.concurrent.duration._
 /**
  *
  *
@@ -41,7 +43,8 @@ class GCMSender(host: String, port: Int, api: String, authKey: String) extends A
           t._1 match {
             case Success(r) =>
               ConnektLogger(LogFile.CLIENTS).info(s"GCM HttpRequest ${r.status.isSuccess()} ${t._2}")
-              ConnektLogger(LogFile.CLIENTS).debug(s"GCM Response: ${r.getResponseMessage}")
+              val response = Await.result(r.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")),10.seconds)
+              ConnektLogger(LogFile.CLIENTS).debug(s"GCM Response: ${response}")
               //TODO : handlers
 
             case Failure(e) =>
