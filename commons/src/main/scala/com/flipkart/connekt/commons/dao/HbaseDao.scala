@@ -13,6 +13,7 @@ import org.apache.hadoop.hbase.filter.PrefixFilter
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.mutable.ListBuffer
+
 /**
  *
  *
@@ -25,9 +26,9 @@ trait HbaseDao {
   def addRow(tableName: String, rowKey: String, data: Map[String, Map[String, Array[Byte]]])(implicit hTableInterface: HTableInterface) = {
 
     val put: Put = new Put(rowKey.getBytes(CharEncoding.UTF_8))
-    data.foreach { case(colFamily, v) =>
-      v.foreach { case(colQualifier, data) =>
-        put.add(colFamily.getBytes(CharEncoding.UTF_8), colQualifier.getBytes(CharEncoding.UTF_8), data)
+    data.foreach { case (colFamily, v) =>
+      v.foreach { case (colQualifier, d) =>
+        put.add(colFamily.getBytes(CharEncoding.UTF_8), colQualifier.getBytes(CharEncoding.UTF_8), d)
       }
     }
 
@@ -48,10 +49,9 @@ trait HbaseDao {
 
       Option(optResult).map(cFResult => {
         val i = cFResult.keySet().iterator()
-        val vList = new ListBuffer[(String, Array[Byte])]()
         val vMap = scala.collection.mutable.Map[String, Array[Byte]]()
 
-        while(i.hasNext) {
+        while (i.hasNext) {
           val colQualifier = i.next
           vMap += new String(colQualifier) -> cFResult.get(colQualifier)
         }
@@ -81,10 +81,9 @@ trait HbaseDao {
 
           Option(optResult).map(cFResult => {
             val i = cFResult.keySet().iterator()
-            val vList = new ListBuffer[(String, Array[Byte])]()
             val vMap = scala.collection.mutable.Map[String, Array[Byte]]()
 
-            while(i.hasNext) {
+            while (i.hasNext) {
               val colQualifier = i.next
               vMap += new String(colQualifier) -> cFResult.get(colQualifier)
             }
@@ -101,9 +100,11 @@ trait HbaseDao {
     rList.toList
   }
 }
+
 object HbaseDao {
+
   val objMapper = new ObjectMapper() with ScalaObjectMapper
-  objMapper.registerModules(Seq(DefaultScalaModule):_*)
+  objMapper.registerModules(Seq(DefaultScalaModule): _*)
 
   implicit class stringHandyFunctions(val s: String) {
     def getUtf8Bytes = Bytes.toBytes(s)
@@ -120,16 +121,23 @@ object HbaseDao {
 
   implicit class byteArrayHandyFunctions(val b: Array[Byte]) {
     def getString = Bytes.toString(b)
+
     def getLong = Bytes.toLong(b)
+
     def getBoolean = Bytes.toBoolean(b)
+
     def getInt = Bytes.toInt(b)
   }
 
   implicit class mapKVHandyFunctions(val m: Map[String, Array[Byte]]) {
     def getS(key: String) = m.get(key).map(_.getString).orNull
+
     def getB(key: String) = m.get(key).exists(_.getBoolean)
+
     def getL(key: String) = m.get(key).map(Bytes.toLong).getOrElse(null)
+
     def getKV(key: String) = m.get(key).map(_.getString).map(objMapper.readValue[ObjectNode]).orNull
   }
+
 }
 
