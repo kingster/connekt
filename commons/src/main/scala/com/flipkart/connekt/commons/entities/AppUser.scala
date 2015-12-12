@@ -2,7 +2,6 @@ package com.flipkart.connekt.commons.entities
 
 import java.math.BigInteger
 import javax.persistence.Column
-
 import org.apache.commons.lang.StringUtils
 
 /**
@@ -40,8 +39,7 @@ class AppUser {
     this.lastUpdatedTs = BigInteger.valueOf(lastUpdatedTs)
     this.updatedBy = updatedBy
   }
-
-
+  
   def canEqual(other: Any): Boolean = other.isInstanceOf[AppUser]
 
   override def equals(other: Any): Boolean = other match {
