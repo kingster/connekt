@@ -1,8 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
-import com.flipkart.connekt.commons.iomodels.{PNCallbackEvent, CallbackEvent}
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.iomodels.{CallbackEvent, PNCallbackEvent}
 
 /**
  *

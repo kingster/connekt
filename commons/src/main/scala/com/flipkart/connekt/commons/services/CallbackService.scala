@@ -4,7 +4,7 @@ import com.flipkart.connekt.commons.dao.{EmailCallbackDao, PNCallbackDao}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Random, Failure, Success, Try}
 
 /**
  *
@@ -13,6 +13,7 @@ import scala.util.{Failure, Success, Try}
  * @version 12/9/15
  */
 class CallbackService extends TCallbackService {
+  lazy val eventIdGen = new Random
   var pnEventsDao: PNCallbackDao = null
   var emailEventsDao: EmailCallbackDao = null
 
@@ -31,10 +32,11 @@ class CallbackService extends TCallbackService {
     case "email" => emailEventsDao
   }
 
-  override def persistCallbackEvent(requestId: String, channel: String, callbackEvent: CallbackEvent): Try[String] = {
+  override def persistCallbackEvent(requestId: String, forContact: String,  channel: String, callbackEvent: CallbackEvent): Try[String] = {
     try {
-      channelEventsDao(channel).saveCallbackEvent(requestId, callbackEvent)
-      ConnektLogger(LogFile.SERVICE).info(s"Event saved for $requestId")
+
+      channelEventsDao(channel).saveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
+      ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
       Success(requestId)
     } catch {
       case e: Exception =>
@@ -43,13 +45,15 @@ class CallbackService extends TCallbackService {
     }
   }
 
-  override def fetchCallbackEvent(requestId: String, channel: String): Try[Option[CallbackEvent]] = {
+  override def fetchCallbackEvent(requestId: String, contactId: String, channel: String): Try[List[CallbackEvent]] = {
     try {
-      Success(channelEventsDao(channel).fetchCallbackEvent(requestId))
+      Success(channelEventsDao(channel).fetchCallbackEvents(requestId, contactId))
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).info(s"Failed fetching event for $requestId, ${e.getMessage}", e)
         Failure(e)
     }
   }
+
+  private def nextEventId() = eventIdGen.nextString(10)
 }

@@ -26,7 +26,7 @@ class Callback(implicit am: ActorMaterializer) extends BaseHandler {
             post {
               entity(as[CallbackEvent]) { e =>
                 val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform, appName = app, deviceId = devId)
-                ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, channel, event) match {
+                ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, channel, event) match {
                   case Success(requestId) =>
                     ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
 

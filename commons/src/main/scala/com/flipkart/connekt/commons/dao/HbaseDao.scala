@@ -1,13 +1,15 @@
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
+import java.util.function.Consumer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.commons.codec.CharEncoding
-import org.apache.hadoop.hbase.client.{Get, HTableInterface, Put}
+import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.filter.PrefixFilter
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.mutable.ListBuffer
@@ -59,6 +61,44 @@ trait HbaseDao {
     }
 
     resultMap
+  }
+
+  def fetchRows(tableName: String, rowKeyPrefix: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): List[Map[String, Map[String, Array[Byte]]]] = {
+    val filter = new PrefixFilter(rowKeyPrefix.getBytes(CharEncoding.UTF_8))
+    val scan = new Scan()
+    scan.setFilter(filter)
+
+    val resultScanner = hTableInterface.getScanner(scan)
+    val rList = new ListBuffer[Map[String, Map[String, Array[Byte]]]]()
+
+    resultScanner.forEach(new Consumer[Result] {
+      override def accept(t: Result): Unit = {
+
+        var resultMap = Map[String, Map[String, Array[Byte]]]()
+
+        colFamilies.foreach { cF =>
+          val optResult = t.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
+
+          Option(optResult).map(cFResult => {
+            val i = cFResult.keySet().iterator()
+            val vList = new ListBuffer[(String, Array[Byte])]()
+            val vMap = scala.collection.mutable.Map[String, Array[Byte]]()
+
+            while(i.hasNext) {
+              val colQualifier = i.next
+              vMap += new String(colQualifier) -> cFResult.get(colQualifier)
+            }
+
+            resultMap += cF -> vMap.toMap
+          })
+        }
+
+        rList += resultMap
+      }
+    })
+
+    resultScanner.close()
+    rList.toList
   }
 }
 object HbaseDao {
