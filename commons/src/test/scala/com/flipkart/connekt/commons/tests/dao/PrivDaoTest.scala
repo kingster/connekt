@@ -1,37 +1,38 @@
 package com.flipkart.connekt.commons.tests.dao
 
-import java.util.Properties
-
-import com.flipkart.connekt.commons.dao.PrivDao
+import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.{UserType, ResourcePriv}
-import com.flipkart.connekt.commons.factories.MySQLFactoryWrapper
-import com.flipkart.connekt.commons.tests.ConnektUTSpec
-import com.typesafe.config.{Config, ConfigFactory}
+import com.flipkart.connekt.commons.tests.BaseCommonsTest
 
 /**
  * @author aman.shrivastava on 11/12/15.
  */
-class PrivDaoTest extends ConnektUTSpec {
-  val table = "RESOURCE_PRIV"
-  implicit var mysqlFactoryWrapper = new MySQLFactoryWrapper("w3-comm-db01.stage.ch.flipkart.com", "fk-pf-connekt", "root", "", getPoolProps)
-  val id = "aman.shrivastava"
-  val user = new ResourcePriv(id, UserType.USER, "read, write")
+class PrivDaoTest extends BaseCommonsTest {
+
+  val id = "kinshuk.bairagi"
+  val user = new ResourcePriv(id, UserType.USER, "read,write")
 
 
-  private def getPoolProps: Config = {
-    val props = new Properties()
-    props.setProperty("maxIdle", "3")
-    props.setProperty("initialSize", "3")
-    props.setProperty("maxActive", "20")
-    ConfigFactory.parseProperties(props)
+
+  "PrivDao test" should "add user info" in {
+    val privDao = DaoFactory.getPrivDao
+    noException should be thrownBy privDao.addPrivileges(user.userId, user.userType, user.resources.split(',').toList)
   }
 
-//  "UserInfoDao test" should "add user info" in {
-//    new UserInfo(table, mysqlFactoryWrapper).addUserInfo(user) shouldEqual true
-//  }
-
-  "PrivDaoTest test" should "get priv info" in {
-    new PrivDao(table, mysqlFactoryWrapper).getPrivileges(id, "USER").get shouldEqual user
-//    new UserInfo(table, mysqlFactoryWrapper).getUserInfo(id).get shouldEqual user
+  "PrivDao test" should "get priv info" in {
+    val privDao = DaoFactory.getPrivDao
+    privDao.getPrivileges(id, UserType.USER).get shouldEqual user
   }
+
+  "PrivDao Test " should "remove priv" in {
+    val privDao = DaoFactory.getPrivDao
+    privDao.removePrivileges(user.userId, user.userType, List("write"))
+  }
+
+  "PrivDao Test " should "get priv info" in {
+    val privDao = DaoFactory.getPrivDao
+    val newUser = new ResourcePriv(id, UserType.USER, "read")
+    privDao.getPrivileges(id, UserType.USER).get shouldEqual newUser
+  }
+
 }

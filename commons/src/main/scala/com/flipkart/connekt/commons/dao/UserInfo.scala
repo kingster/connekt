@@ -1,7 +1,9 @@
 package com.flipkart.connekt.commons.dao
 
+import com.flipkart.connekt.commons.behaviors.MySQLFactory
+import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, MySQLFactoryWrapper}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
@@ -11,7 +13,7 @@ import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAcce
  * @author durga.s
  * @version 12/11/15
  */
-class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserInfo with MySQLDao {
+class UserInfo(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with MySQLDao {
   val mysqlHelper = mysqlFactory
 
   override def getUserInfo(userId: String): Option[AppUser] = {
@@ -22,7 +24,7 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
       """.stripMargin
 
     try {
-      Some(query[AppUser](q, userId))
+      query[AppUser](q, userId)
     } catch {
       case e @ (_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching user [$userId] info: ${e.getMessage}", e)
@@ -36,10 +38,11 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
     val q =
       s"""
          |INSERT INTO $table(userId, apikey, groups, lastUpdatedTs, updatedBy) VALUES(?, ?, ?, ?, ?)
+         |ON DUPLICATE KEY UPDATE apikey = ?, groups = ?, lastUpdatedTs = ?, updatedBy = ?
       """.stripMargin
 
     try {
-      update(q, user.userId, user.apiKey, user.groups,  new java.lang.Long(System.currentTimeMillis()), user.updatedBy)
+      update(q, user.userId, user.apiKey, user.groups,  new java.lang.Long(System.currentTimeMillis()), user.updatedBy, user.apiKey, user.groups, new java.lang.Long(System.currentTimeMillis()), user.updatedBy)
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding user [${user.getJson}] info: ${e.getMessage}", e)
@@ -47,4 +50,12 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
     }
 
   }
+}
+
+object UserInfo {
+
+  def apply(tableName: String = "USER_INFO", mysqlFactory: MySQLFactory) =
+    new UserInfo(tableName, mysqlFactory)
+
+
 }

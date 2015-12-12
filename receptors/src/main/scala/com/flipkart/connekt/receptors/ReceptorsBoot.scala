@@ -2,12 +2,10 @@ package com.flipkart.connekt.receptors
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import akka.http.scaladsl.Http
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.factories.{ServiceFactory, LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.receptors.routes.RouteRegistry
 import com.flipkart.connekt.receptors.service.ReceptorsServer
 import com.typesafe.config.ConfigFactory
 
@@ -32,12 +30,17 @@ object ReceptorsBoot  {
       val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
 
+      val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
+      DaoFactory.initMysqlTableDaoFactory(mysqlConf)
+
       val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
       KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
+
       ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao)
+      ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
 
       //Start up the receptors's
       ReceptorsServer()

@@ -22,12 +22,18 @@ abstract class BaseReceptorsTest extends ConnektUTSpec {
     val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
     DaoFactory.initHTableDaoFactory(hConfig.get)
 
+    val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
+    DaoFactory.initMysqlTableDaoFactory(mysqlConf)
+
+
     val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
     val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
     KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
     ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
     ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao)
+    ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
+
 
     ConnektLogger(LogFile.SERVICE).info("BaseReceptorsTest bootstrapped.")
   }

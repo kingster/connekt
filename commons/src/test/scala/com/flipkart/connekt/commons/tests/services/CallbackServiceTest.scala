@@ -25,11 +25,11 @@ class CallbackServiceTest extends BaseCommonsTest {
 
   "Callback Service" should "persist Callback Event" in {
     val callbackService = ServiceFactory.getCallbackService
-    callbackService.persistCallbackEvent(id, channel, callBackEvent).isSuccess shouldEqual true
+    callbackService.persistCallbackEvent(id, callBackEvent.deviceId,channel, callBackEvent).isSuccess shouldEqual true
   }
 
   "Callback Service" should "fetchCallbackEvent" in {
     val callbackService = ServiceFactory.getCallbackService
-    callbackService.fetchCallbackEvent(id, channel).isSuccess shouldEqual true
+    callbackService.fetchCallbackEvent(id, callBackEvent.deviceId, channel).isSuccess shouldEqual true
   }
 }

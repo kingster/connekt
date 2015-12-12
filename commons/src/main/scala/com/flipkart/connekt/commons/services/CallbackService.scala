@@ -13,19 +13,8 @@ import scala.util.{Failure, Success, Try}
  * @author durga.s
  * @version 12/9/15
  */
-class CallbackService extends TCallbackService {
-  var pnEventsDao: PNCallbackDao = null
-  var emailEventsDao: EmailCallbackDao = null
+class CallbackService (pnEventsDao: PNCallbackDao,emailEventsDao: EmailCallbackDao) extends TCallbackService {
 
-  def withPNEventsPersistence(pnCallbackEventsDao: PNCallbackDao) = {
-    pnEventsDao = pnCallbackEventsDao
-    this
-  }
-
-  def withEmailEventsPersistence(emailCallbackEventsDao: EmailCallbackDao) = {
-    emailEventsDao = emailCallbackEventsDao
-    this
-  }
 
   private def channelEventsDao(channel: String) = channel match {
     case "push" => pnEventsDao

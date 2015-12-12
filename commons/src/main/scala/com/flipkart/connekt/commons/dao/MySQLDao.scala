@@ -1,9 +1,12 @@
 package com.flipkart.connekt.commons.dao
 
+import java.lang.reflect.{Modifier, Field}
 import java.sql.ResultSet
 import javax.persistence.Column
 
+import com.flipkart.connekt.commons.entities.EnumTypeHint
 import org.springframework.jdbc.core.{JdbcTemplate, RowMapper}
+import scala.collection.JavaConverters._
 
 import scala.reflect.ClassTag
 
@@ -17,8 +20,8 @@ trait MySQLDao extends Dao {
   def update(statement: String, args: Object*)(implicit jdbcTemplate: JdbcTemplate): Int = {
     jdbcTemplate.update(statement, args: _*)
   }
-  def query[T](statement: String, args: Object*)(implicit cTag: reflect.ClassTag[T], jdbcTemplate: JdbcTemplate): T = {
-    jdbcTemplate.queryForObject(statement, getRowMapper[T], args:_*)
+  def query[T](statement: String, args: Object*)(implicit cTag: reflect.ClassTag[T], jdbcTemplate: JdbcTemplate): Option[T] = {
+    jdbcTemplate.query(statement, getRowMapper[T], args:_*).asScala.headOption
   }
 
   private def getRowMapper[T: ClassTag]: RowMapper[T] = {
@@ -46,7 +49,9 @@ trait MySQLDao extends Dao {
       f.setAccessible(true)
       val dbColumnName = f.getAnnotation(classOf[Column]).name()
       if(f.getType == classOf[Enumeration#Value]) {
-        getEnum[T](dbFieldValueMap(dbColumnName))
+        val clz = getEnumObjectClass(f.getType.asInstanceOf[Class[Enumeration#Value]], f)
+        val v = getEnum(dbFieldValueMap(dbColumnName), clz)
+        f.set(instance, v)
       } else {
         f.set(instance, dbFieldValueMap(dbColumnName))
       }
@@ -55,8 +60,26 @@ trait MySQLDao extends Dao {
     instance
   }
 
-  def getEnum[T](enumVal: Object): Enumeration#Value = {
-    val method = classOf[Enumeration].getMethod("withName", classOf[String])
-    method.invoke(null, enumVal.asInstanceOf[String]).asInstanceOf[Enumeration#Value]
+  /**
+   * Convert the value to an Enumeration.Value instance using class <tt>enumObjectClass</tt>'s
+   * valueOf method. Returns an instance of <tt>Enumeration.Value</tt>.
+   */
+  private def getEnum[T](value: Any, enumObjectClass: Class[T]): Enumeration#Value = {
+    if (Modifier.isAbstract(enumObjectClass.getModifiers)) {
+      throw new IllegalArgumentException("cannot get type information for enum " + value)
+    }
+    val method = enumObjectClass.getMethod("withName", classOf[String])
+    method.invoke(null, value.asInstanceOf[String]).asInstanceOf[Enumeration#Value]
+  }
+
+
+
+  private def getEnumObjectClass[T <: Enumeration#Value](targetClass: Class[T], y: Field): Class[_] = {
+    val enumObjectClass = y.getAnnotation(classOf[EnumTypeHint]) match {
+      case null =>
+        targetClass.getEnclosingClass
+      case an => Class.forName(an.value)
+    }
+    enumObjectClass
   }
 }

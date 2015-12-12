@@ -36,6 +36,9 @@ object BusyBeesBoot {
       val hConfig = ConnektConfig.getConfig("busybees.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
 
+      val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
+      DaoFactory.initMysqlTableDaoFactory(mysqlConf)
+
       val kafkaConnConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
 

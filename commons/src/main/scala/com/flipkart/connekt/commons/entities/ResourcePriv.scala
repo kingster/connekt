@@ -1,6 +1,12 @@
 package com.flipkart.connekt.commons.entities
 
+import java.util.concurrent.TimeUnit
 import javax.persistence.Column
+
+import com.flipkart.connekt.commons.entities.UserType.UserType
+import com.google.common.cache.{CacheBuilder, Cache}
+
+import scala.collection.concurrent
 
 /**
  *
@@ -13,13 +19,14 @@ class ResourcePriv {
   @Column(name = "userId")
   var userId: String = _
 
+  @EnumTypeHint(value = "com.flipkart.connekt.commons.entities.UserType")
   @Column(name = "userType")
-  var userType: UserType.Value = _
+  var userType: UserType = UserType.USER
 
   @Column(name = "resources")
   var resources: String = _
 
-  def this(userId: String, userType: UserType.Value, resources: String) {
+  def this(userId: String, userType: UserType, resources: String) {
     this()
     this.userId = userId
     this.userType = userType
@@ -44,5 +51,24 @@ class ResourcePriv {
 }
 
 object UserType extends Enumeration {
+  type UserType = Value
   val GLOBAL, GROUP, USER = Value
+}
+
+object CacheManager {
+  private val caches: concurrent.TrieMap[String, Any] = concurrent.TrieMap[String, Any]()
+
+  def getCache[V <: Any](): Cache[String, V] =
+    caches.getOrElseUpdate("resource", {
+      CacheBuilder.newBuilder()
+        .maximumSize(200)
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .asInstanceOf[CacheBuilder[String, Any]]
+        .recordStats()
+        .build[String, V]()
+    }).asInstanceOf[Cache[String, V]]
+
+
+
+
 }
