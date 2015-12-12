@@ -1,12 +1,10 @@
 package com.flipkart.connekt.busybees.processors
 
 import akka.actor.{Actor, Props}
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.clients.GCMSender
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{PNRequestData, GCMPayload, PNRequestInfo}
-import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.iomodels.{GCMPayload, PNRequestData, PNRequestInfo}
 
 /**
  *
@@ -21,7 +19,7 @@ class AndroidPNProcessor extends Actor {
   override def receive: Receive = {
     case (messageId: String, pnInfo: PNRequestInfo, pnData: PNRequestData) =>
       val registrationId = deviceDetailsDao.fetchDeviceDetails(pnInfo.appName, pnInfo.deviceId).get.token
-      val appDataWithId = pnData.data.getObj[ObjectNode].put("messageId", messageId)
+      val appDataWithId = pnData.data.put("messageId", messageId)
       val gcmPayload = GCMPayload(List[String](registrationId), pnInfo.delayWhileIdle, appDataWithId)
 
       gcmSender ! (gcmPayload, messageId)

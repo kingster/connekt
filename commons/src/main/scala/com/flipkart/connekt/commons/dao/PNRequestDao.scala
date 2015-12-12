@@ -38,12 +38,12 @@ class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends Requ
     val pnRequestData = channelRequestData.asInstanceOf[PNRequestData]
 
     Map[String, Array[Byte]](
-      "data" -> pnRequestData.data.getUtf8Bytes
+      "data" -> pnRequestData.data.toString.getUtf8Bytes
     )
   }
 
   override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
-    PNRequestData(data = reqDataProps.getS("data"))
+    PNRequestData(data = reqDataProps.getKV("data"))
   }
 }
 

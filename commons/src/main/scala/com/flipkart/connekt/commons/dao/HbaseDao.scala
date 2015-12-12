@@ -2,12 +2,15 @@ package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.client.{Get, HTableInterface, Put}
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.mutable.ListBuffer
-
 /**
  *
  *
@@ -59,6 +62,9 @@ trait HbaseDao {
   }
 }
 object HbaseDao {
+  val objMapper = new ObjectMapper() with ScalaObjectMapper
+  objMapper.registerModules(Seq(DefaultScalaModule):_*)
+
   implicit class stringHandyFunctions(val s: String) {
     def getUtf8Bytes = Bytes.toBytes(s)
   }
@@ -83,6 +89,7 @@ object HbaseDao {
     def getS(key: String) = m.get(key).map(_.getString).orNull
     def getB(key: String) = m.get(key).exists(_.getBoolean)
     def getL(key: String) = m.get(key).map(Bytes.toLong).getOrElse(null)
+    def getKV(key: String) = m.get(key).map(_.getString).map(objMapper.readValue[ObjectNode]).orNull
   }
 }
 
