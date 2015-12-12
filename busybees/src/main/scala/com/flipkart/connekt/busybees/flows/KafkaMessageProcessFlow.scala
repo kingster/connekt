@@ -65,7 +65,7 @@ class KafkaMessageProcessFlow[M: ClassTag, A <: akka.actor.Actor: ClassTag](kafk
       } catch {
         case e: Exception =>
           kafkaConnector.commitOffsets
-          ConnektLogger(LogFile.SERVICE).error("KafkaMessageProcessFlow error: ${e.getMessage}", e)
+          ConnektLogger(LogFile.SERVICE).error(s"KafkaMessageProcessFlow error: ${e.getMessage}", e)
       }
     })
   }
