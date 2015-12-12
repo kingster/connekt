@@ -3,8 +3,9 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.connekt.commons.dao.{EmailCallbackDao, PNCallbackDao}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
+import org.apache.commons.lang.RandomStringUtils
 
-import scala.util.{Random, Failure, Success, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  *
@@ -13,7 +14,6 @@ import scala.util.{Random, Failure, Success, Try}
  * @version 12/9/15
  */
 class CallbackService extends TCallbackService {
-  lazy val eventIdGen = new Random
   var pnEventsDao: PNCallbackDao = null
   var emailEventsDao: EmailCallbackDao = null
 
@@ -55,5 +55,5 @@ class CallbackService extends TCallbackService {
     }
   }
 
-  private def nextEventId() = eventIdGen.nextString(10)
+  private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 }

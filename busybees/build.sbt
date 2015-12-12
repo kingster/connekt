@@ -9,7 +9,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-http-experimental_2.11" % "2.0-M1",
   "org.igniterealtime.smack" % "smack-tcp" % "4.1.5",
   "org.igniterealtime.smack" % "smack-core" % "4.1.5",
-  "org.igniterealtime.smack" % "smack-im" % "4.1.0",
   "org.igniterealtime.smack" % "smack-extensions" % "4.1.5"
 )
 
