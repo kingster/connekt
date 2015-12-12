@@ -5,7 +5,7 @@ import java.io.IOException
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{ChannelStatus, ChannelRequestData, ConnektRequest}
+import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequestInfo, ConnektRequest}
 /**
  *
  *
@@ -16,18 +16,18 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
 
+  protected def channelRequestInfoMap(channelRequestInfo: ChannelRequestInfo): Map[String, Array[Byte]]
+
+  protected def getChannelRequestInfo(reqInfoProps: Map[String, Array[Byte]]): ChannelRequestInfo
+
   protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]]
 
-  protected def getChannelRequestData(dataMap: Map[String, Array[Byte]]): ChannelRequestData
-
-  protected def channelStatusMap(channelStatus: ChannelStatus): Map[String, Array[Byte]]
-
-  protected def getChannelStatus(statusMap: Map[String, Array[Byte]]): ChannelStatus
+  protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData
 
   override def saveRequestInfo(requestId: String, request: ConnektRequest) = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val deviceRegInfoCfProps = Map[String, Array[Byte]](
+      val requestProps = Map[String, Array[Byte]](
         "id" -> requestId.getUtf8Bytes,
         "channel" -> request.channel.getUtf8Bytes,
         "sla" -> request.sla.getUtf8Bytes,
@@ -36,10 +36,10 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
         "expiryTs" -> request.expiryTs.getBytes
       )
 
+      val channelRequestInfoProps = channelRequestInfoMap(request.channelInfo)
       val channelRequestDataProps = channelRequestDataMap(request.channelData)
-      val channelStatusProps = channelStatusMap(request.channelStatus)
 
-      val rawData = Map[String, Map[String, Array[Byte]]]("r" -> deviceRegInfoCfProps, "c" -> channelRequestDataProps, "t" -> channelStatusProps)
+      val rawData = Map[String, Map[String, Array[Byte]]]("r" -> requestProps, "c" -> channelRequestInfoProps, "t" -> channelRequestDataProps)
       addRow(hTableName, requestId, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Request info persisted for $requestId")
@@ -58,25 +58,25 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
       val colFamiliesReqd = List("r", "c", "t")
       val rawData = fetchRow(hTableName, connektId, colFamiliesReqd)
 
-      val devRegProps = rawData.get("r")
-      val devMetaProps = rawData.get("c")
-      val channelStatusProps = rawData.get("t")
+      val reqProps = rawData.get("r")
+      val reqChannelInfoProps = rawData.get("c")
+      val reqChannelDataProps = rawData.get("t")
 
-      val allProps = devRegProps.flatMap[Map[String, Array[Byte]]](r => devMetaProps.map[Map[String, Array[Byte]]](m => m ++ r))
+      val allProps = reqProps.flatMap[Map[String, Array[Byte]]](r => reqChannelInfoProps.map[Map[String, Array[Byte]]](m => m ++ r))
 
       allProps.map(fields => {
-        val channelRequestData = devMetaProps.map(getChannelRequestData).orNull
-        val channelStatusData = channelStatusProps.map(getChannelStatus).orNull
+        val channelReqInfo = reqChannelInfoProps.map(getChannelRequestInfo).orNull
+        val channelReqData = reqChannelDataProps.map(getChannelRequestData).orNull
 
         ConnektRequest(
           id = connektId,
-          channelStatus = channelStatusData,
           channel = fields.getS("channel"),
           sla = fields.getS("sla"),
           templateId = fields.getS("templateId"),
           scheduleTs = fields.getL("scheduleTs").asInstanceOf[Long],
           expiryTs = fields.getL("expiryTs").asInstanceOf[Long],
-          channelData = channelRequestData,
+          channelInfo = channelReqInfo,
+          channelData = channelReqData,
           meta = Map[String, String]()
         )
       })
@@ -90,10 +90,10 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
     }
   }
 
-  override def updateRequestStatus(id: String, status: ChannelStatus) = {
+  override def updateRequestStatus(id: String, status: ChannelRequestData) = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val statusPropsMap = channelStatusMap(status)
+      val statusPropsMap = channelRequestDataMap(status)
       val rawData = Map[String, Map[String, Array[Byte]]]("t" -> statusPropsMap)
       addRow(hTableName, id, rawData)
 

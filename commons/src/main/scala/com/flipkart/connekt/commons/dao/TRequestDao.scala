@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.iomodels.{ChannelStatus, ConnektRequest}
+import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ConnektRequest}
 
 /**
  *
@@ -11,5 +11,5 @@ import com.flipkart.connekt.commons.iomodels.{ChannelStatus, ConnektRequest}
 trait TRequestDao extends Dao {
   def saveRequestInfo(requestId: String, request: ConnektRequest)
   def fetchRequestInfo(connektId: String): Option[ConnektRequest]
-  def updateRequestStatus(id: String, status: ChannelStatus)
+  def updateRequestStatus(id: String, status: ChannelRequestData)
 }

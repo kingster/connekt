@@ -2,15 +2,12 @@ package com.flipkart.connekt.receptors.routes.pn
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success}
-import StringUtils._
 
 /**
  *
@@ -29,8 +26,8 @@ class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
               authorize(user,"UNICAST_" + appName) {
                 post {
                   entity(as[ConnektRequest]) { r =>
-                    val pnData = r.channelData.asInstanceOf[PNRequestData].copy(appName = appName, platform = appPlatform, deviceId = deviceId)
-                    val unicastRequest = r.copy(channelData = pnData, channelStatus = PNStatus("QUEUED", ""))
+                    val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName, platform = appPlatform, deviceId = deviceId)
+                    val unicastRequest = r.copy(channelInfo = pnRequestInfo)
 
                     ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
                     def enqueue = ServiceFactory.getMessageService.persistRequest(unicastRequest, "fk-connekt-pn", isCrucial = true)

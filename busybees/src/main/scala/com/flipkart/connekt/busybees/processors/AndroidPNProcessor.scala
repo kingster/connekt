@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.clients.GCMSender
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{GCMPayload, PNRequestData}
+import com.flipkart.connekt.commons.iomodels.{PNRequestData, GCMPayload, PNRequestInfo}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 /**
@@ -19,14 +19,13 @@ class AndroidPNProcessor extends Actor {
   lazy val gcmSender = context.actorOf(Props[GCMSender])
 
   override def receive: Receive = {
-    case pnRequest: (String, PNRequestData) =>
-      val pnData = pnRequest._2
-      val registrationId = deviceDetailsDao.fetchDeviceDetails(pnData.appName, pnData.deviceId).get.token
-      val appDataWithId = pnData.data.getObj[ObjectNode].put("messageId", pnRequest._1)
-      val gcmPayload = GCMPayload(List[String](registrationId), pnData.delayWhileIdle, appDataWithId)
+    case (messageId: String, pnInfo: PNRequestInfo, pnData: PNRequestData) =>
+      val registrationId = deviceDetailsDao.fetchDeviceDetails(pnInfo.appName, pnInfo.deviceId).get.token
+      val appDataWithId = pnData.data.getObj[ObjectNode].put("messageId", messageId)
+      val gcmPayload = GCMPayload(List[String](registrationId), pnInfo.delayWhileIdle, appDataWithId)
 
-      gcmSender ! (gcmPayload, pnRequest._1)
-      ConnektLogger(LogFile.WORKERS).debug(s"GCM Request sent for ${pnRequest._1}")
+      gcmSender ! (gcmPayload, messageId)
+      ConnektLogger(LogFile.WORKERS).debug(s"GCM Request sent for $messageId")
 
     case _ =>
       ConnektLogger(LogFile.WORKERS).error(s"Received unknown message type, unable to process.")

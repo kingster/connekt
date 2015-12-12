@@ -10,5 +10,5 @@ import com.flipkart.connekt.commons.entities.AppUser
  */
 trait TUserInfo {
   def getUserInfo(userId: String): Option[AppUser]
-  def addUserInfo(user: AppUser): Boolean
+  def addUserInfo(user: AppUser)
 }

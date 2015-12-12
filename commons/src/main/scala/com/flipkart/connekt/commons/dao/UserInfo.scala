@@ -24,14 +24,14 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
     try {
       Some(query[AppUser](q, userId))
     } catch {
-      case e@(_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
+      case e @ (_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching user [$userId] info: ${e.getMessage}", e)
-        None
+        throw e
     }
 
   }
 
-  override def addUserInfo(user: AppUser): Boolean = {
+  override def addUserInfo(user: AppUser) = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
@@ -39,11 +39,11 @@ class UserInfo(table: String, mysqlFactory: MySQLFactoryWrapper) extends TUserIn
       """.stripMargin
 
     try {
-      update(q, user.userId, user.apiKey, user.groups,  new java.lang.Long(System.currentTimeMillis()), user.updatedBy).equals(1)
+      update(q, user.userId, user.apiKey, user.groups,  new java.lang.Long(System.currentTimeMillis()), user.updatedBy)
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding user [${user.getJson}] info: ${e.getMessage}", e)
-        false
+        throw e
     }
 
   }

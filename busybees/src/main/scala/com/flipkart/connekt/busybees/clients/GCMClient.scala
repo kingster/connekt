@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.utils.ResponseUtils._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{GCMPayload, PNRequestData}
+import com.flipkart.connekt.commons.iomodels.{PNRequestData, GCMPayload, PNRequestInfo}
 import com.flipkart.connekt.commons.transmission.HostConnectionHelper._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -31,10 +31,10 @@ class GCMClient {
 
   import system.dispatcher
 
-  def wirePN(requestId: String, pnRequest: PNRequestData, authKey: String) = {
-    ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequest.appName} ${pnRequest.deviceId} [${pnRequest.getJson}]")
-    val deviceDetails = deviceDetailsDao.fetchDeviceDetails(pnRequest.appName, pnRequest.deviceId)
-    val gcmRequestPayload = GCMPayload(List[String](deviceDetails.get.token), pnRequest.delayWhileIdle, pnRequest.data.getObj[ObjectNode])
+  def wirePN(requestId: String, pnRequestInfo: PNRequestInfo, pnRequestData: PNRequestData, authKey: String) = {
+    ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequestInfo.appName} ${pnRequestInfo.deviceId} [${pnRequestInfo.getJson}]")
+    val deviceDetails = deviceDetailsDao.fetchDeviceDetails(pnRequestInfo.appName, pnRequestInfo.deviceId)
+    val gcmRequestPayload = GCMPayload(List[String](deviceDetails.get.token), pnRequestInfo.delayWhileIdle, pnRequestData.data.getObj[ObjectNode])
     ConnektLogger(LogFile.SERVICE).info(s"GCM Request payload ${gcmRequestPayload.getJson}")
 
     val requestEntity = HttpEntity(ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`), gcmRequestPayload.getJson)
@@ -56,7 +56,7 @@ class GCMClient {
             ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest failed for ${t._2}, e: ${e.getMessage}")
         }
       case Failure(e) =>
-        ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest future failed for ${pnRequest.deviceId}, e: ${e.getMessage}")
+        ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest future failed for ${pnRequestInfo.deviceId}, e: ${e.getMessage}")
     }
   }
 }

@@ -1,8 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
+import com.flipkart.connekt.commons.iomodels.{PNRequestData, PNRequestInfo, ChannelRequestData, ChannelRequestInfo}
 import com.flipkart.connekt.commons.dao.HbaseDao._
-import com.flipkart.connekt.commons.iomodels.{PNStatus, ChannelStatus, ChannelRequestData, PNRequestData}
 
 
 /**
@@ -12,45 +12,38 @@ import com.flipkart.connekt.commons.iomodels.{PNStatus, ChannelStatus, ChannelRe
  * @version 11/27/15
  */
 class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends RequestDao(tableName: String, hTableFactory: HTableFactory) {
-
-  override protected def channelRequestDataMap(pnChannelData: ChannelRequestData): Map[String, Array[Byte]] = {
-    val pnRequestData = pnChannelData.asInstanceOf[PNRequestData]
-
-    Map[String, Array[Byte]](
-      "appName" -> pnRequestData.appName.getUtf8Bytes,
-      "deviceId" -> pnRequestData.deviceId.getUtf8Bytes,
-      "ackRequired" -> pnRequestData.ackRequired.getBytes,
-      "delayWhileIdle" -> pnRequestData.delayWhileIdle.getBytes,
-      "data" -> pnRequestData.data.toString.getUtf8Bytes,
-      "platform" -> pnRequestData.platform.toString.getUtf8Bytes
-    )
-  }
-
-  override protected def getChannelRequestData(dataMap: Map[String, Array[Byte]]): ChannelRequestData = {
-    PNRequestData(
-      platform = dataMap.getS("platform"),
-      appName = dataMap.getS("appName"),
-      deviceId = dataMap.getS("deviceId"),
-      ackRequired = dataMap.getB("ackRequired"),
-      delayWhileIdle = dataMap.getB("delayWhileIdle"),
-      data = dataMap.getS("data")
-    )
-  }
-
-  override protected def channelStatusMap(channelStatus: ChannelStatus): Map[String, Array[Byte]] = {
-    val pnStatus = channelStatus.asInstanceOf[PNStatus]
+  override protected def channelRequestInfoMap(channelRequestInfo: ChannelRequestInfo): Map[String, Array[Byte]] = {
+    val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
 
     Map[String, Array[Byte]](
-      "status" -> pnStatus.status.getUtf8Bytes,
-      "reason" -> pnStatus.reason.getUtf8Bytes
+      "platform" -> pnRequestInfo.platform.toString.getUtf8Bytes,
+      "appName" -> pnRequestInfo.appName.getUtf8Bytes,
+      "deviceId" -> pnRequestInfo.deviceId.getUtf8Bytes,
+      "ackRequired" -> pnRequestInfo.ackRequired.getBytes,
+      "delayWhileIdle" -> pnRequestInfo.delayWhileIdle.getBytes
     )
   }
 
-  override protected def getChannelStatus(statusMap: Map[String, Array[Byte]]): ChannelStatus = {
-    PNStatus(
-      status = statusMap.getS("status"),
-      reason = statusMap.getS("reason")
+  override protected def getChannelRequestInfo(reqInfoProps: Map[String, Array[Byte]]): ChannelRequestInfo = {
+    PNRequestInfo(
+      platform = reqInfoProps.getS("platform"),
+      appName = reqInfoProps.getS("appName"),
+      deviceId = reqInfoProps.getS("deviceId"),
+      ackRequired = reqInfoProps.getB("ackRequired"),
+      delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
     )
+  }
+
+  override protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]] = {
+    val pnRequestData = channelRequestData.asInstanceOf[PNRequestData]
+
+    Map[String, Array[Byte]](
+      "data" -> pnRequestData.data.getUtf8Bytes
+    )
+  }
+
+  override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
+    PNRequestData(data = reqDataProps.getS("data"))
   }
 }
 

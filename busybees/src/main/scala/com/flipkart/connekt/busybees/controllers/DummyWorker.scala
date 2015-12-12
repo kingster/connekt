@@ -7,7 +7,7 @@ import com.flipkart.connekt.busybees.clients.GCMClient
 import com.flipkart.connekt.commons.entities.Credentials
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConnectionHelper
-import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNRequestData}
+import com.flipkart.connekt.commons.iomodels.{PNRequestData, ConnektRequest, PNRequestInfo}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.ConfigFactory
 
@@ -35,9 +35,10 @@ class DummyWorker extends Runnable with KafkaConnectionHelper {
               ConnektLogger(LogFile.WORKERS).debug(s"stream: ${x._2} message: ${msg.message}")
 
               val request = new String(msg.message).getObj[ConnektRequest]
-              val pnData = request.channelData.asInstanceOf[PNRequestData]
+              val pnData = request.channelInfo.asInstanceOf[PNRequestData]
+              val pnInfo = request.channelData.asInstanceOf[PNRequestInfo]
               ConnektLogger(LogFile.WORKERS).info(s"PN Request: ${pnData.getJson}")
-              GCMClient.instance.wirePN(request.id, pnData, Credentials.sampleAppCred)
+              GCMClient.instance.wirePN(request.id, pnInfo, pnData, Credentials.sampleAppCred)
             }
           })
         })

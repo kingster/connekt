@@ -3,7 +3,7 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.connekt.commons.dao.TRequestDao
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducer}
-import com.flipkart.connekt.commons.iomodels.{ChannelStatus, ConnektRequest}
+import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ConnektRequest}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.{Failure, Success, Try}
@@ -49,7 +49,7 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
     }
   }
 
-  override def updateRequestStatus(id: String, channelStatus: ChannelStatus): Try[String] = {
+  override def updateRequestStatus(id: String, channelStatus: ChannelRequestData): Try[String] = {
     try {
       requestDao.updateRequestStatus(id, channelStatus)
       ConnektLogger(LogFile.SERVICE).info(s"Request status updated $id")

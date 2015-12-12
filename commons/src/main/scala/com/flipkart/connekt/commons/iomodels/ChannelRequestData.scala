@@ -7,15 +7,15 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
  *
  *
  * @author durga.s
- * @version 11/26/15
+ * @version 12/8/15
  */
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "type"
+use = JsonTypeInfo.Id.NAME,
+include = JsonTypeInfo.As.PROPERTY,
+property = "type"
 )
 @JsonSubTypes(Array(
-  new Type(value = classOf[PNRequestData], name = "PN"),
-  new Type(value = classOf[CardsRequestData], name = "CARD")
+new Type(value = classOf[PNRequestData], name = "PN"),
+new Type(value = classOf[GCardRequestData], name = "GCard")
 ))
 abstract class ChannelRequestData
