@@ -65,7 +65,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
       Success(allowedPrivileges.contains(tag))
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$userId] info: ${e.getMessage}", e)
+        ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$username] info: ${e.getMessage}", e)
         Failure(e)
     }
   }
