@@ -21,19 +21,22 @@ Getting Started
 	```bash
 	git add <files>
 	...
-	git commit -m "What changes does this commit makes?"
+	git commit -m "What changes does this commit make ?"
 	git push
 	```
 
 #### Promoting
-	```bash
-	./scripts/fk-git-promote -e <enviroment> -b <branch> -p <package>
-	```
+Promoting local changes to an environment
+```
+.scripts/fk-git-promote -e <enviroment> -b <branch> -p <package>
+```
 
 Contributing
 -------------------------
 
-Create a branch for all feature developement's and create a pull request when you feel that the code is production ready and ready for review and merge.
+1. Create a branch for all feature developments.
+2. Ensure, your changes have corresponding UTs, so that functional correctness can be readily verified.
+2. Create a pull request when you feel that the code is production ready and ready for review and merge.
 
 
 

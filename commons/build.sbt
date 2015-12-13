@@ -62,7 +62,9 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-dbcp2" % "2.1.1",
   "javax.persistence" % "persistence-api" % "1.0.2",
   "mysql" % "mysql-connector-java" % "5.1.37",
-  "com.google.guava" % "guava" % "19.0"
+  "com.google.guava" % "guava" % "19.0",
+  "org.apache.velocity" % "velocity" % "1.7",
+  "org.codehaus.groovy" % "groovy-all" % "2.4.5"
 )
 
 
