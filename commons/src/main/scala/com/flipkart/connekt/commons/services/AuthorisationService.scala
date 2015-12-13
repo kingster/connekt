@@ -3,6 +3,7 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.connekt.commons.dao.{PrivDao, UserInfo}
 import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.entities.{CacheManager, ResourcePriv, UserType}
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 
 import scala.util.{Failure, Success, Try}
 
@@ -64,6 +65,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
       Success(allowedPrivileges.contains(tag))
     } catch {
       case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$userId] info: ${e.getMessage}", e)
         Failure(e)
     }
   }
