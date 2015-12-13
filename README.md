@@ -28,7 +28,7 @@ Getting Started
 #### Promoting
 Promoting local changes to an environment
 ```
-.scripts/fk-git-promote -e <enviroment> -b <branch> -p <package>
+./scripts/fk-git-promote -e <enviroment> -b <branch> -p <package>
 ```
 
 Contributing
