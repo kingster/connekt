@@ -34,6 +34,7 @@ object DaoFactory {
 
     daoMap += DaoType.USERINFO -> UserInfo("USER_INFO", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEDGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
+    daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", mysqlFactoryWrapper)
   }
 
   def getDeviceDetailsDao: DeviceDetailsDao = daoMap(DaoType.DEVICE_DETAILS).asInstanceOf[DeviceDetailsDao]
@@ -47,9 +48,18 @@ object DaoFactory {
   def getPrivDao: PrivDao = daoMap(DaoType.PRIVILEDGE).asInstanceOf[PrivDao]
 
   def getUserInfoDao: UserInfo = daoMap(DaoType.USERINFO).asInstanceOf[UserInfo]
+
+  def getStencilDao: TStencilDao = daoMap(DaoType.STENCIL).asInstanceOf[StencilDao]
 }
 
 object DaoType extends Enumeration {
-  val DEVICE_DETAILS, REQUEST_META, PN_REQUEST_INFO, CALLBACK_EMAIL, CALLBACK_PN, PRIVILEDGE, USERINFO = Value
+  val DEVICE_DETAILS,
+  REQUEST_META,
+  PN_REQUEST_INFO,
+  CALLBACK_EMAIL,
+  CALLBACK_PN,
+  PRIVILEDGE,
+  USERINFO,
+  STENCIL = Value
 }
 

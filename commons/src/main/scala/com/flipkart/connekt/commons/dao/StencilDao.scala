@@ -10,7 +10,7 @@ import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
  * @author durga.s
  * @version 12/14/15
  */
-class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDao with MySQLDao {
+case class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDao with MySQLDao {
   val mysqlHelper = jdbcHelper
 
   override def getStencil(id: String): Option[Stencil] = {
