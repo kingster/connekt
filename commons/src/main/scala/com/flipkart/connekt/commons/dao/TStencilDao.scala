@@ -10,6 +10,6 @@ import com.flipkart.connekt.commons.entities.Stencil
  */
 trait TStencilDao {
   
-  def getStencil(id: String): Stencil
+  def getStencil(id: String): Option[Stencil]
   def updateStencil(stencil: Stencil): Unit
 }
