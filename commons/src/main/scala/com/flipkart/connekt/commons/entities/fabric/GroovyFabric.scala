@@ -2,7 +2,6 @@ package com.flipkart.connekt.commons.entities.fabric
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-import groovy.lang.GroovyClassLoader
 
 import scala.util.Try
 
@@ -21,23 +20,14 @@ property = "cType"
 new Type(value = classOf[PNGroovyFabric], name = "PN"),
 new Type(value = classOf[EmailGroovyFabric], name = "EMAIL")
 ))
-sealed abstract class GroovyFabric extends EngineFabric {
-  /**
-   *
-   * @param groovyFabric groovy class content
-   * @param groovyClassName className of groovy class to initialise
-   * @param cTag implicit erased class of type T
-   * @tparam T classType of groovy class
-   * @return groovy class instance created
-   */
-  def fabricate[T <: GroovyFabric](groovyFabric: String, groovyClassName: String)(implicit cTag: reflect.ClassTag[T]): T = {
-    val gcl: GroovyClassLoader = new GroovyClassLoader()
-    gcl.parseClass(groovyFabric, groovyClassName).newInstance().asInstanceOf[T]
-  }
-
+sealed trait GroovyFabric extends EngineFabric {
   def validateGroovy(): Try[Boolean]
 }
 
-abstract class PNGroovyFabric(pnGroovy: String) extends GroovyFabric with PNFabric {}
+trait PNGroovyFabric extends GroovyFabric with PNFabric {
+  override def validateGroovy(): Try[Boolean] = Try.apply(true)
+}
 
-abstract class EmailGroovyFabric(emailGroovy: String) extends GroovyFabric with EmailFabric {}
+trait EmailGroovyFabric extends GroovyFabric with EmailFabric {
+  override def validateGroovy(): Try[Boolean] = Try.apply(true)
+}

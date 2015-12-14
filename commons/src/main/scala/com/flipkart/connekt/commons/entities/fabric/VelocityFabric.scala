@@ -53,6 +53,22 @@ sealed abstract class VelocityFabric extends EngineFabric {
   def validateVtl(): Try[Boolean]
 }
 
-abstract class EmailVelocityFabric(subjectVtl: String, bodyHtmlVtl: String) extends VelocityFabric with EmailFabric
+class EmailVelocityFabric(subjectVtl: String, bodyHtmlVtl: String) extends VelocityFabric with EmailFabric {
+  override def validateVtl(): Try[Boolean] = Try.apply(true)
 
-abstract class PNVelocityFabric(dataVtl: String) extends VelocityFabric with PNFabric
+  override def getSubject(id: String, context: ObjectNode): String = {
+    fabricate(id, context, subjectVtl, s"_$id _").get
+  }
+
+  override def getBodyHtml(id: String, context: ObjectNode): String = {
+    fabricate(id, context, bodyHtmlVtl, s"_$id _").get
+  }
+}
+
+class PNVelocityFabric(dataVtl: String) extends VelocityFabric with PNFabric {
+  override def validateVtl(): Try[Boolean] = Try.apply(true)
+
+  override def getData(id: String, context: ObjectNode): String = {
+    fabricate(id, context, dataVtl, s"_$id _").get
+  }
+}

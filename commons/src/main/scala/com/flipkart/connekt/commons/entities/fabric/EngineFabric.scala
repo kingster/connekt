@@ -18,4 +18,4 @@ property = "eType"
 new Type(value = classOf[VelocityFabric], name = "VELOCITY"),
 new Type(value = classOf[GroovyFabric], name = "GROOVY")
 ))
-abstract class EngineFabric
+trait EngineFabric

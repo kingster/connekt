@@ -11,10 +11,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 sealed trait ChannelFabric
 
 trait EmailFabric extends ChannelFabric {
-  def getSubject(context: ObjectNode): String
-  def getBodyHtml(context: ObjectNode): String
+  def getSubject(id: String, context: ObjectNode): String
+  def getBodyHtml(id: String, context: ObjectNode): String
 }
 
 trait PNFabric {
-  def getData(context: ObjectNode): String
+  def getData(id: String, context: ObjectNode): String
 }
