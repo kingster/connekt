@@ -2,6 +2,7 @@ package com.flipkart.connekt.commons.entities.fabric
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+import groovy.lang.{GroovyCodeSource, GroovyClassLoader}
 
 import scala.util.Try
 
@@ -20,7 +21,7 @@ property = "cType"
 new Type(value = classOf[PNGroovyFabric], name = "PN"),
 new Type(value = classOf[EmailGroovyFabric], name = "EMAIL")
 ))
-sealed trait GroovyFabric extends EngineFabric {
+trait GroovyFabric extends EngineFabric {
   def validateGroovy(): Try[Boolean]
 }
 

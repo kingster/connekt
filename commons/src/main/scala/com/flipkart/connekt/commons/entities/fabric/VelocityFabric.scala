@@ -10,7 +10,7 @@ import org.apache.velocity.app.Velocity
 import org.apache.velocity.context.Context
 import com.flipkart.connekt.commons.utils.VelocityUtils._
 import scala.util.{Failure, Success, Try}
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -68,7 +68,7 @@ class EmailVelocityFabric(subjectVtl: String, bodyHtmlVtl: String) extends Veloc
 class PNVelocityFabric(dataVtl: String) extends VelocityFabric with PNFabric {
   override def validateVtl(): Try[Boolean] = Try.apply(true)
 
-  override def getData(id: String, context: ObjectNode): String = {
-    fabricate(id, context, dataVtl, s"_$id _").get
+  override def getData(id: String, context: ObjectNode): ObjectNode = {
+    fabricate(id, context, dataVtl, s"_$id _").get.getObj[ObjectNode]
   }
 }
