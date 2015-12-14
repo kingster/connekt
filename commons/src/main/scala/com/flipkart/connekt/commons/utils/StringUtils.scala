@@ -1,5 +1,7 @@
 package com.flipkart.connekt.commons.utils
 
+import java.security.MessageDigest
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
@@ -41,5 +43,12 @@ object StringUtils {
     case null | None | "" => true
     case Some(x) => isNullOrEmpty(x)
     case _ => false
+  }
+
+  def md5(s: String) : String = {
+    val md5 = MessageDigest.getInstance("MD5")
+    md5.reset()
+    md5.update(s.getBytes)
+    md5.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
   }
 }

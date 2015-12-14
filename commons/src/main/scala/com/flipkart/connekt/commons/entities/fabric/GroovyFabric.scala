@@ -1,8 +1,10 @@
 package com.flipkart.connekt.commons.entities.fabric
 
+import java.security.{PrivilegedAction, AccessController}
+
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-import groovy.lang.GroovyClassLoader
+import groovy.lang.{GroovyCodeSource, GroovyClassLoader}
 
 import scala.util.Try
 
@@ -25,19 +27,24 @@ sealed abstract class GroovyFabric extends EngineFabric {
   /**
    *
    * @param groovyFabric groovy class content
-   * @param groovyClassName className of groovy class to initialise
+   * @param scriptName scriptName
    * @param cTag implicit erased class of type T
    * @tparam T classType of groovy class
    * @return groovy class instance created
    */
-  def fabricate[T <: GroovyFabric](groovyFabric: String, groovyClassName: String)(implicit cTag: reflect.ClassTag[T]): T = {
+  def fabricate[T <: GroovyFabric](groovyFabric: String, scriptName: String)(implicit cTag: reflect.ClassTag[T]): T = {
     val gcl: GroovyClassLoader = new GroovyClassLoader()
-    gcl.parseClass(groovyFabric, groovyClassName).newInstance().asInstanceOf[T]
+    val codeSource: GroovyCodeSource = AccessController.doPrivileged(new PrivilegedAction[GroovyCodeSource] {
+      def run: GroovyCodeSource = {
+        return new GroovyCodeSource(groovyFabric, scriptName, "/groovy/script")
+      }
+    })
+    gcl.parseClass(codeSource).newInstance().asInstanceOf[T]
   }
 
   def validateGroovy(): Try[Boolean]
 }
 
-abstract class PNGroovyFabric(pnGroovy: String) extends GroovyFabric with PNFabric {}
+abstract class PNGroovyFabric(val pnGroovy: String) extends GroovyFabric with PNFabric {}
 
 abstract class EmailGroovyFabric(emailGroovy: String) extends GroovyFabric with EmailFabric {}

@@ -16,5 +16,5 @@ trait EmailFabric extends ChannelFabric {
 }
 
 trait PNFabric {
-  def getData(context: ObjectNode): String
+  def getData(context: ObjectNode): ObjectNode
 }
