@@ -34,7 +34,7 @@ object PNMessageService extends MessageService {
     val connektId = generateId
     try {
       enqueueRequest(pnRequest.copy(id = connektId))
-      pnRequestInfoDao.saveRequestInfo(connektId, pnRequest)
+      pnRequestInfoDao.saveRequest(connektId, pnRequest)
       Some(connektId)
     } catch {
       case NonFatal(e) =>
@@ -54,7 +54,7 @@ object PNMessageService extends MessageService {
 
   override def getRequestInfo(connektId: String): Option[ConnektRequest] = {
     try {
-      pnRequestInfoDao.fetchRequestInfo(connektId)
+      pnRequestInfoDao.fetchRequest(connektId)
     } catch {
       case NonFatal(e) =>
         ConnektLogger(LogFile.DAO).error(s"Fetching ConnektRequestInfo failed for: $connektId", e)

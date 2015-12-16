@@ -18,8 +18,8 @@ object ServiceFactory {
     serviceCache += ServiceType.MESSAGE -> new IMessageService(requestDao, queueProducerHelper, queueConsumerHelper)
   }
 
-  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao) = {
-    serviceCache += ServiceType.CALLBACK ->  new CallbackService(pnCallbackDao,emailCallbackDao)
+  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao) = {
+    serviceCache += ServiceType.CALLBACK ->  new CallbackService(pnCallbackDao,emailCallbackDao, requestInfoDao, emailRequestDao)
   }
 
   def initAuthorisationService(priv: PrivDao, userInfo: UserInfo) = {

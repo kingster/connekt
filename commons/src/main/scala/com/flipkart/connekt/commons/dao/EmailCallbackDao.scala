@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
-import com.flipkart.connekt.commons.iomodels.CallbackEvent
+import com.flipkart.connekt.commons.iomodels.{ChannelRequestInfo, CallbackEvent}
 
 /**
  *
@@ -13,4 +13,8 @@ class EmailCallbackDao(tableName: String, hTableFactory: HTableFactory) extends 
   override def channelEventPropsMap(channelCallbackEvent: CallbackEvent): Map[String, Array[Byte]] = ???
 
   override def mapToChannelEvent(channelEventPropsMap: Map[String, Array[Byte]]): CallbackEvent = ???
+
+  override def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo): List[CallbackEvent] = ???
+
+  override def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]] = ???
 }

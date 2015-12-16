@@ -31,7 +31,7 @@ abstract class BaseReceptorsTest extends ConnektUTSpec {
     KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
     ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
-    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao)
+    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getRequestInfoDao, null)
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
 
 

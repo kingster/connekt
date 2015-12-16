@@ -24,7 +24,7 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
     try {
       val reqWithId = request.copy(id = generateId)
       queueProducer.writeMessages(requestBucket, reqWithId.getJson)
-      messageDao.saveRequestInfo(reqWithId.id, reqWithId)
+      messageDao.saveRequest(reqWithId.id, reqWithId)
       ConnektLogger(LogFile.SERVICE).info(s"Persisted request ${reqWithId.id}, with bucket $requestBucket")
       Success(reqWithId.id)
     } catch {
@@ -41,7 +41,7 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
 
   override def getRequestInfo(id: String): Try[Option[ConnektRequest]] = {
     try {
-      Success(requestDao.fetchRequestInfo(id))
+      Success(requestDao.fetchRequest(id))
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Get request info failed ${e.getMessage}", e)

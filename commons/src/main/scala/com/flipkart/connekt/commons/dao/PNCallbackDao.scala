@@ -2,7 +2,7 @@ package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
-import com.flipkart.connekt.commons.iomodels.{CallbackEvent, PNCallbackEvent}
+import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo, PNCallbackEvent, PNRequestInfo}
 
 /**
  *
@@ -38,6 +38,15 @@ class PNCallbackDao(tableName: String, hTableFactory: HTableFactory) extends Cal
       cargo = channelEventPropsMap.getS("cargo"),
       timestamp = channelEventPropsMap.getL("timestamp").asInstanceOf[Long]
     )
+  }
+
+  override def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo): List[PNCallbackEvent] = {
+    fetchCallbackEvents(requestId, event.asInstanceOf[PNRequestInfo].deviceId).asInstanceOf[List[PNCallbackEvent]]
+  }
+
+  override def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[PNCallbackEvent]] = {
+    val pnEvents = event.map(_.asInstanceOf[PNCallbackEvent])
+    pnEvents.groupBy(p => p.messageId)
   }
 }
 

@@ -1,8 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
-import com.flipkart.connekt.commons.iomodels.{PNRequestData, PNRequestInfo, ChannelRequestData, ChannelRequestInfo}
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.iomodels._
 
 
 /**
@@ -44,6 +44,10 @@ class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends Requ
 
   override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
     PNRequestData(data = reqDataProps.getKV("data"))
+  }
+
+  def fetchPNRequestInfo(id: String): Option[PNRequestInfo] = {
+    fetchRequestInfo(id).map(_.asInstanceOf[PNRequestInfo])
   }
 }
 

@@ -4,7 +4,7 @@ import java.io.IOException
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.CallbackEvent
+import com.flipkart.connekt.commons.iomodels.{ChannelRequestInfo, CallbackEvent}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
@@ -64,4 +64,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }
   }
+
+  def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo): List[CallbackEvent]
+  def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]]
 }

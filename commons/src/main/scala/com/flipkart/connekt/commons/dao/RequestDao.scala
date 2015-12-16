@@ -24,7 +24,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
 
   protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData
 
-  override def saveRequestInfo(requestId: String, request: ConnektRequest) = {
+  override def saveRequest(requestId: String, request: ConnektRequest) = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val requestProps = Map[String, Array[Byte]](
@@ -52,7 +52,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
     }
   }
 
-  override def fetchRequestInfo(connektId: String): Option[ConnektRequest] = {
+  override def fetchRequest(connektId: String): Option[ConnektRequest] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("r", "c", "t")
@@ -106,4 +106,23 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }
   }
+
+  override def fetchRequestInfo(id: String): Option[ChannelRequestInfo] = {
+    implicit val hTableInterface = hTableFactory.getTableInterface(tableName)
+    try {
+      val colFamiliesReqd = List("c")
+      val rawData = fetchRow(hTableName, id, colFamiliesReqd)
+
+      val reqProps = rawData.get("c")
+      reqProps.map(getChannelRequestInfo)
+
+    } catch {
+      case e: IOException =>
+        ConnektLogger(LogFile.DAO).error(s"Fetching Request info failed for $id, ${e.getMessage}", e)
+        throw new IOException(s"Fetching RequestInfo failed for $id", e)
+    } finally {
+      hTableConnFactory.releaseTableInterface(hTableInterface)
+    }
+  }
+
 }
