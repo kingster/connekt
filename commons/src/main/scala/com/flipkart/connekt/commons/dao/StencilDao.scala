@@ -46,3 +46,8 @@ class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDa
     }
   }
 }
+
+object StencilDao {
+  def apply(tableName: String, jdbcHelper: MySQLFactory) =
+    new StencilDao(tableName: String, jdbcHelper: MySQLFactory)
+}

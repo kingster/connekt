@@ -33,10 +33,12 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
 
   def readConfigs: List[Config] = {
     cfgClient = new ConfigClient(cfgHost, cfgfPort, cfgAppVer)
+    ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketNames.values.toString()}}]")
 
     for(bucketName <- bucketNames.values) {
       val bucket = cfgClient.getDynamicBucket(bucketName)
       bucketConfigs.put(bucketName, ConfigFactory.parseMap(bucket.getKeys))
+      ConnektLogger(LogFile.SERVICE).info(s"Fetched config for bucket: $bucketName [$bucket]")
 
       bucket.addListener(new BucketUpdateListener() {
         override def updated(oldBucket: Bucket, newBucket: Bucket): Unit = {
@@ -65,6 +67,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
     this.synchronized {
       appConfig = overlayConfigs(configs: _*)
     }
+    ConnektLogger(LogFile.SERVICE).info(s"Connekt overlayed config: $appConfig")
   }
 
   def terminate() = {
