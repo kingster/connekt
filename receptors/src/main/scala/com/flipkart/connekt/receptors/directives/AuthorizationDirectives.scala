@@ -13,8 +13,8 @@ import com.flipkart.connekt.commons.factories.ServiceFactory
  */
 trait AuthorizationDirectives {
 
-  def authorize( user: AppUser,tag:String): Directive0 = {
-    if(ServiceFactory.getAuthorisationService.isAuthorized(tag, user.userId).getOrElse(false))
+  def authorize( user: AppUser,tags:String*): Directive0 = {
+    if(tags.map(tag => ServiceFactory.getAuthorisationService.isAuthorized(tag.toUpperCase, user.userId).getOrElse(false)).foldLeft(false)( _ || _))
       BasicDirectives.pass
     else
       RouteDirectives.reject(AuthorizationFailedRejection)

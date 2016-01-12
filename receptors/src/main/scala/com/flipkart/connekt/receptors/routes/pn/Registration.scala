@@ -1,12 +1,10 @@
 package com.flipkart.connekt.receptors.routes.pn
 
-import javax.ws.rs.Path
-
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.iomodels.{Response, GenericResponse}
+import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
@@ -48,7 +46,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
             } ~
               path("fetch" / Segment / Segment) {
                 (appName: String, deviceId: String) =>
-                  authorize(user, "PN_READ_"+appName) {
+                  authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_"+appName ) {
                     get {
                       def fetch = DaoFactory.getDeviceDetailsDao.fetchDeviceDetails(appName, deviceId)
                       async(fetch) {

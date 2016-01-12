@@ -1,7 +1,6 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.MySQLFactory
-import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -49,6 +48,22 @@ class UserInfo(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with
         throw e
     }
 
+  }
+
+  override def getUserByKey(key: String): Option[AppUser] = {
+    implicit val j = mysqlHelper.getJDBCInterface
+    val q =
+      s"""
+         |SELECT * FROM $table WHERE apiKey = ?
+      """.stripMargin
+
+    try {
+      query[AppUser](q, key)
+    } catch {
+      case e: DataAccessException =>
+        ConnektLogger(LogFile.DAO).error(s"Error in getting $key", e)
+        throw e
+    }
   }
 }
 

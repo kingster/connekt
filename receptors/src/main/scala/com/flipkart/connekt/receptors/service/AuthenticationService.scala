@@ -1,5 +1,8 @@
 package com.flipkart.connekt.receptors.service
 
+import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.entities.AppUser
+
 /**
  *
  *
@@ -8,13 +11,8 @@ package com.flipkart.connekt.receptors.service
  */
 object AuthenticationService {
 
-  def authenticateKey(apiKey: String): Option[String] = {
-
-    //TODO
-    apiKey.equals("connekt-genesis") match {
-      case true => Some("connekt-genesis")
-      case false => None
-    }
-
+  def authenticateKey(apiKey: String): Option[AppUser] = {
+    //TODO: Use cache
+    DaoFactory.getUserInfoDao.getUserByKey(apiKey)
   }
 }

@@ -19,12 +19,13 @@ trait AuthenticationDirectives {
 
   def authenticate: Directive1[AppUser] = {
 
+    val X_API_KEY_HEADER = "x-api-key"
+
     BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap  { headers =>
-      val apiKey = getHeader("x-api-key", headers)
+      val apiKey = getHeader(X_API_KEY_HEADER, headers)
        AuthenticationService.authenticateKey(apiKey) match {
         case Some(user) =>
-          //TODO: Fetch appUser from Authentication Service
-          provide(new AppUser(user, user, "", 0, ""))
+          provide(user)
         case None =>
           RouteDirectives.failWith(new Exception(s"authentication failure for apiKey: [$apiKey]"))
       }
