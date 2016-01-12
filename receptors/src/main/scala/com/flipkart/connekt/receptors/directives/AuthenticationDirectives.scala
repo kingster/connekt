@@ -24,7 +24,9 @@ trait AuthenticationDirectives {
        AuthenticationService.authenticateKey(apiKey) match {
         case Some(user) =>
           //TODO: Fetch appUser from Authentication Service
-          provide( new AppUser())
+          val appUser = new AppUser()
+          appUser.userId = user
+          provide(appUser)
         case None =>
           RouteDirectives.failWith(new Exception(s"authentication failure for apiKey: [$apiKey]"))
       }
