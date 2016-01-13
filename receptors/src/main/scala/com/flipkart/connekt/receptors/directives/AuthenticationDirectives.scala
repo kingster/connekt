@@ -9,26 +9,30 @@ import com.flipkart.connekt.receptors.service.AuthenticationService
 
 /**
  *
- *
  * @author durga.s
  * @version 11/22/15
  */
 trait AuthenticationDirectives {
 
-  private def getHeader(key: String, h: Seq[HttpHeader]) = h.find(_.name.equalsIgnoreCase(key)).flatMap(w => Some(w.value)).orNull
+  private def getHeader(key: String, h: Seq[HttpHeader]): Option[String] = h.find(_.name.equalsIgnoreCase(key)).flatMap(w => Option(w.value))
 
   def authenticate: Directive1[AppUser] = {
 
     val X_API_KEY_HEADER = "x-api-key"
 
-    BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap  { headers =>
-      val apiKey = getHeader(X_API_KEY_HEADER, headers)
-       AuthenticationService.authenticateKey(apiKey) match {
-        case Some(user) =>
-          provide(user)
+    BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap { headers =>
+      getHeader(X_API_KEY_HEADER, headers) match {
+        case Some(apiKey) =>
+          AuthenticationService.authenticateKey(apiKey) match {
+            case Some(user) =>
+              provide(user)
+            case None =>
+              RouteDirectives.failWith(new Exception(s"authentication failure for apiKey: [$apiKey]"))
+          }
         case None =>
-          RouteDirectives.failWith(new Exception(s"authentication failure for apiKey: [$apiKey]"))
+          RouteDirectives.failWith(new Exception("Authentication Required"))
       }
+
     }
 
   }

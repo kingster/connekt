@@ -1,4 +1,4 @@
-CREATE DATABASE `fk-pf-connekt`;
+CREATE DATABASE `connekt`;
 
 CREATE TABLE `USER_INFO` (
   `userId` varchar(100) NOT NULL DEFAULT '',

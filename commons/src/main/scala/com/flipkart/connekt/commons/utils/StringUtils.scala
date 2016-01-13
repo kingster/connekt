@@ -45,6 +45,10 @@ object StringUtils {
     case _ => false
   }
 
+  def getObjectNode = objMapper.createObjectNode()
+
+  def getArrayNode = objMapper.createArrayNode()
+
   def md5(s: String) : String = {
     val md5 = MessageDigest.getInstance("MD5")
     md5.reset()

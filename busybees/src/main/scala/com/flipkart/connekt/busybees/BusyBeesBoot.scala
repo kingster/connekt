@@ -19,6 +19,7 @@ import com.typesafe.config.ConfigFactory
  * @version 11/28/15
  */
 object BusyBeesBoot {
+
   val initialized = new AtomicBoolean(false)
   var pnDispatchFlow: Option[KafkaMessageProcessFlow[ConnektRequest, PNProcessor]] = None
   lazy val system = ActorSystem("busyBees-system")

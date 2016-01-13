@@ -10,6 +10,7 @@ import com.flipkart.connekt.commons.iomodels.{PNRequestData, PNRequestInfo, Conn
  * @version 12/5/15
  */
 class PNProcessor extends Actor {
+
   lazy val androidPNProcessor = context.actorOf(Props[AndroidPNProcessor])
   lazy val windowsPNProcessor = context.actorOf(Props[WindowsPNProcessor])
   lazy val iosPNProcessor = context.actorOf(Props[IosPNProcessor])

@@ -35,6 +35,10 @@ class StencilServiceTest extends BaseCommonsTest {
     )
 
     val renderedPNRequest = StencilService.render(ckRequest)
+
+
+    println(renderedPNRequest)
+
     assert(renderedPNRequest.isDefined)
   }
 }
