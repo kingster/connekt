@@ -16,9 +16,10 @@ trait AuthenticationDirectives {
 
   private def getHeader(key: String, h: Seq[HttpHeader]): Option[String] = h.find(_.name.equalsIgnoreCase(key)).flatMap(w => Option(w.value))
 
+  val X_API_KEY_HEADER = "x-api-key"
+
   def authenticate: Directive1[AppUser] = {
 
-    val X_API_KEY_HEADER = "x-api-key"
 
     BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap { headers =>
       getHeader(X_API_KEY_HEADER, headers) match {
