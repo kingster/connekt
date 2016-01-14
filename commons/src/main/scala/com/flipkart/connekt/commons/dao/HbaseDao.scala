@@ -88,15 +88,19 @@ trait HbaseDao {
     results.toList
   }
 
-  def fetchRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): List[Map[String, Map[String, Array[Byte]]]] = {
+  def fetchRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String],timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface): List[Map[String, Map[String, Array[Byte]]]] = {
+
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
     scan.setStartRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
 
+    if(timeRange.isDefined )
+      scan.setTimeRange(timeRange.get._1, timeRange.get._2)
+
     val resultScanner = hTableInterface.getScanner(scan)
     val rList = new ListBuffer[Map[String, Map[String, Array[Byte]]]]()
 
-    var ri = resultScanner.iterator()
+    val ri = resultScanner.iterator()
     while (ri.hasNext) {
 
       var resultMap = Map[String, Map[String, Array[Byte]]]()
@@ -118,43 +122,6 @@ trait HbaseDao {
       }
 
       rList += resultMap
-    }
-
-    resultScanner.close()
-    rList.toList
-  }
-
-  def fetchAllRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String], minStamp: Long, maxStamp: Long)(implicit hTableInterface: HTableInterface): List[(String, Map[String, Map[String, Array[Byte]]])] = {
-    val scan = new Scan()
-    scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
-    scan.setStartRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
-    scan.setTimeRange(minStamp, maxStamp)
-
-    val resultScanner = hTableInterface.getScanner(scan)
-    val rList = new ListBuffer[(String, Map[String, Map[String, Array[Byte]]])]()
-
-    val ri = resultScanner.iterator()
-    while (ri.hasNext) {
-      var resultMap = Map[String, Map[String, Array[Byte]]]()
-      val riNext = ri.next()
-
-      colFamilies.foreach { cF =>
-        val optResult = riNext.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
-
-        Option(optResult).map(cFResult => {
-          val i = cFResult.keySet().iterator()
-          val vMap = scala.collection.mutable.Map[String, Array[Byte]]()
-
-          while (i.hasNext) {
-            val colQualifier = i.next
-            vMap += new String(colQualifier) -> cFResult.get(colQualifier)
-          }
-
-          resultMap += cF -> vMap.toMap
-        })
-      }
-
-      rList += ((riNext.getRow.toString, resultMap))
     }
 
     resultScanner.close()
