@@ -15,5 +15,5 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
   implicit val routeTestTimeout = RouteTestTimeout(FiniteDuration.apply(30, TimeUnit.SECONDS))
 
   implicit val am = system
-  val header = RawHeader("X-API-KEY", "connekt-genesis")
+  val header = RawHeader("x-api-key", "connekt-genesis")
 }

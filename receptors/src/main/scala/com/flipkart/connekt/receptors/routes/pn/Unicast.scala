@@ -20,7 +20,7 @@ class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
   val unicast =
     pathPrefix("v1") {
       authenticate { user =>
-        path("push" / "unicast" / Segment / Segment / Segment) {
+        path("send" / "push" / "unicast" / Segment / Segment / Segment) {
           (appPlatform: String, appName: String, deviceId: String) =>
             authorize(user, "UNICAST_" + appName) {
               post {
@@ -52,7 +52,7 @@ class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
                 }
               }
             }
-        } ~ path("push" / "openwebpn" / Segment / Segment) {
+        } ~ path("send" / "push" / "openwebpn" / Segment / Segment) {
           (appName: String, deviceId: String) =>
             authorize(user, "OPENWEBPN_" + appName) {
               post {
