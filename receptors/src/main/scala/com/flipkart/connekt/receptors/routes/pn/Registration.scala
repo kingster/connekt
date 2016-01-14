@@ -22,12 +22,36 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
     pathPrefix("v1") {
       authenticate {
         user =>
-          pathPrefix("push" / "device" / "registration") {
-            path("save") {
+          pathPrefix("registration" / "push"  ) {
+            path(Segment / Segment) {
+              (platform: String, appName: String) =>
+                authorize(user, "REGISTRATION") {
+                  post {
+                    entity(as[DeviceDetails]) { d =>
+                      val deviceDetails = d.copy(appName = appName, osName = platform)
+                      def save = DaoFactory.getDeviceDetailsDao.add(deviceDetails)
+                      async(save) {
+                        case Success(t) =>
+                          complete(respond[GenericResponse](
+                          StatusCodes.Created, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.Created.intValue, null, Response("DeviceDetails registered for %s".format(d.deviceId), null))
+                        ))
+                        case Failure(e) =>
+                          complete(respond[GenericResponse](
+                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("DeviceDetails registration failed for %s".format(d.deviceId), null))
+                        ))
+                      }
+                    }
+                  }
+                }
+            } ~ path(Segment / Segment / Segment) {
+              (platform: String, appName: String, deviceId: String) =>
               authorize(user, "REGISTRATION") {
-                (post | put) {
+                put {
                   entity(as[DeviceDetails]) { d =>
-                    def save = DaoFactory.getDeviceDetailsDao.add(d)
+                    val deviceDetails = d.copy(appName = appName, osName = platform, deviceId = deviceId)
+                    def save = DaoFactory.getDeviceDetailsDao.add(deviceDetails)
                     async(save) {
                       case Success(t) =>
                         complete(respond[GenericResponse](
@@ -43,8 +67,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                   }
                 }
               }
-            } ~
-              path("fetch" / Segment / Segment) {
+            } ~ path(Segment / Segment) {
                 (appName: String, deviceId: String) =>
                   authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_"+appName ) {
                     get {
@@ -72,6 +95,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                     }
                   }
               }
+
           }
       }
     }
