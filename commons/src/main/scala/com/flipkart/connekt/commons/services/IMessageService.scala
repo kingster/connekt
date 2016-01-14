@@ -34,19 +34,6 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
     }
   }
 
-  override def saveFetchRequest(request: ConnektRequest, isCrucial: Boolean): Try[String] = {
-    try {
-      val requestWithId = request.copy(id = generateId)
-      messageDao.savePullRequest(requestWithId.id, requestWithId)
-      ConnektLogger(LogFile.SERVICE).info(s"Persisted fetch request ${requestWithId.id}")
-      Success(requestWithId.id)
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error(s"FetchRequest persistence failed ${e.getMessage}", e)
-        Failure(e)
-    }
-  }
-
   override protected def enqueueRequest(request: ConnektRequest, requestBucket: String): Unit = {
     queueProducer.writeMessages(requestBucket, request.getJson)
     ConnektLogger(LogFile.SERVICE).info(s"EnQueued request ${request.id} in bucket $requestBucket")
@@ -70,16 +57,6 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Update request $id, ${e.getMessage}", e)
-        Failure(e)
-    }
-  }
-
-  override def getFetchRequest(subscriberId: String, minTimestamp: Long, maxTimestamp: Long): Try[List[ConnektRequest]] = {
-    try {
-      Success(requestDao.fetchPullRequest(subscriberId, minTimestamp, maxTimestamp))
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error(s"Fetch request failed $subscriberId, ${e.getMessage}", e)
         Failure(e)
     }
   }
