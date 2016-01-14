@@ -50,6 +50,10 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
   override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
     PNRequestData(data = reqDataProps.getKV("data"))
   }
+
+  def fetchPNRequestInfo(id: String): Option[PNRequestInfo] = {
+    fetchRequestInfo(id).map(_.asInstanceOf[PNRequestInfo])
+  }
 }
 
 object PNRequestDao {
