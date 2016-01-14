@@ -23,8 +23,6 @@ import HbaseDao._
  */
 trait HbaseDao {
 
-  type ColumnData = scala.collection.immutable.Map[String, Array[Byte]] // ColumnQualifer -> Data
-  type RowData = scala.collection.immutable.Map[String, ColumnData] // ColumnFamily -> ColumnData
 
   val emptyRowData = Map[String, Map[String, Array[Byte]]]("d" -> Map("empty" -> Bytes.toBytes(1)))
 
@@ -40,9 +38,6 @@ trait HbaseDao {
 
     hTableInterface.put(put)
   }
-
-
-
 
   @throws[IOException]
   def fetchRow(tableName: String, rowKey: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): RowData = {
@@ -149,6 +144,10 @@ trait HbaseDao {
 }
 
 object HbaseDao {
+
+  type ColumnData = scala.collection.immutable.Map[String, Array[Byte]] // ColumnQualifer -> Data
+  type RowData = scala.collection.immutable.Map[String, ColumnData] // ColumnFamily -> ColumnData
+
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper
   objMapper.registerModules(Seq(DefaultScalaModule): _*)
