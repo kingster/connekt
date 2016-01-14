@@ -46,7 +46,7 @@ trait HbaseDao {
     colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
 
     val rowResult = hTableInterface.get(get)
-    var resultMap = Map[String, Map[String, Array[Byte]]]()
+    var resultMap = Map[String, ColumnData]()
 
     colFamilies.foreach { cF =>
       val optResult = rowResult.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
@@ -110,11 +110,11 @@ trait HbaseDao {
       scan.setTimeRange(timeRange.get._1, timeRange.get._2)
 
     val resultScanner = hTableInterface.getScanner(scan)
-    var resultMap = Map[String,RowData]()
+    var rowMap = Map[String,RowData]()
 
     val ri = resultScanner.iterator()
     while (ri.hasNext) {
-      var resultMap = Map[String, Map[String, Array[Byte]]]()
+      var resultMap = Map[String, ColumnData]()
       val riNext = ri.next()
 
       colFamilies.foreach { cF =>
@@ -133,11 +133,11 @@ trait HbaseDao {
         })
       }
 
-      resultMap += riNext.getRow.getString -> resultMap
+      rowMap += riNext.getRow.getString -> resultMap
     }
 
     resultScanner.close()
-    resultMap
+    rowMap
   }
 
 
@@ -180,7 +180,7 @@ object HbaseDao {
 
     def getB(key: String) = m.get(key).exists(_.getBoolean)
 
-    def getL(key: String) = m.get(key).map(Bytes.toLong).getOrElse(null)
+    def getL(key: String) = m.get(key).map(Bytes.toLong).orNull
 
     def getKV(key: String) = m.get(key).map(_.getString).map(objMapper.readValue[ObjectNode]).orNull
   }
