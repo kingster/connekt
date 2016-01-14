@@ -48,15 +48,11 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
       val colFamiliesReqd = List("e")
       val rawDataList = fetchRows(hTableName, s"$contactId:$requestId", s"$contactId:$requestId{", colFamiliesReqd)
 
-      //TODO: Durga what the hell did you do?
-      val eventsList = ListBuffer[CallbackEvent]()
-      rawDataList.values.foldLeft(eventsList)((list, rawData) => {
-        val eventProps = rawData.get("e")
-        eventProps.map(mapToChannelEvent).foreach(list += _)
-        list
-      })
+      rawDataList.values.flatMap(rowData => {
+        val eventProps = rowData.get("e")
+        eventProps.map(mapToChannelEvent)
+      }).toList
 
-      eventsList.toList
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching events trail failed for $requestId _ $contactId, ${e.getMessage}", e)
