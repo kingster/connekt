@@ -3,6 +3,7 @@ package com.flipkart.connekt.commons.dao
 import java.io.IOException
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
+import com.flipkart.connekt.commons.dao.HbaseDao.ColumnData
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestInfo, CallbackEvent}
 
@@ -19,7 +20,9 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
 
-  def channelEventPropsMap(channelCallbackEvent: CallbackEvent): Map[String, Array[Byte]]
+  val columnFamily:String = "e"
+
+  def channelEventPropsMap(channelCallbackEvent: CallbackEvent): ColumnData
 
   def mapToChannelEvent(channelEventPropsMap: Map[String, Array[Byte]]): CallbackEvent
 
@@ -27,7 +30,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val channelEventProps = channelEventPropsMap(callbackEvent)
-      val rawData = Map[String, Map[String, Array[Byte]]]("e" -> channelEventProps)
+      val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
       val rowKey = s"$forContact:$requestId:$eventId"
       addRow(hTableName, rowKey, rawData)
 
@@ -43,20 +46,16 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
   }
 
   def fetchCallbackEvents(requestId: String, contactId: String): List[CallbackEvent] = {
+    val colFamiliesReqd = List(columnFamily)
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val colFamiliesReqd = List("e")
+
       val rawDataList = fetchRows(hTableName, s"$contactId:$requestId", s"$contactId:$requestId{", colFamiliesReqd)
+      rawDataList.values.flatMap(rowData => {
+        val eventProps = rowData.get(columnFamily)
+        eventProps.map(mapToChannelEvent)
+      }).toList
 
-      //TODO: Durga what the hell did you do?
-      val eventsList = ListBuffer[CallbackEvent]()
-      rawDataList.values.foldLeft(eventsList)((list, rawData) => {
-        val eventProps = rawData.get("e")
-        eventProps.map(mapToChannelEvent).foreach(list += _)
-        list
-      })
-
-      eventsList.toList
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching events trail failed for $requestId _ $contactId, ${e.getMessage}", e)
