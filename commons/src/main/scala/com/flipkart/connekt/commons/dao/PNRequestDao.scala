@@ -50,60 +50,6 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
   override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
     PNRequestData(data = reqDataProps.getKV("data"))
   }
-
-  override def pullRequestMetaMap(requestId: String, channelRequestInfo: ChannelRequestInfo): (String, Map[String, Array[Byte]]) = {
-    val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
-
-    (pullRequestRowKey(pnRequestInfo.deviceId, requestId), Map[String, Array[Byte]]("isRead" -> false.getBytes))
-  }
-
-  override protected def getPullRequestIds(subscriberId: String, minTimestamp: Long, maxTimestamp: Long): List[String] = {
-    implicit val hTableInterface = hTableFactory.getTableInterface(pullRequestTableName)
-    try {
-      val colFamiliesReqd = List("m")
-      val rawData = fetchAllRows(pullRequestTableName, subscriberId, s"${subscriberId}{", colFamiliesReqd, minTimestamp, maxTimestamp)
-      val requestIds = ListBuffer[String]()
-
-      rawData.foreach(tuple => {
-        val requestId = tuple._1.split("-").last
-        tuple._2.get("m").foreach(_.get("isRead").foreach(w => if(!w.getBoolean) requestIds += requestId))
-      })
-
-      requestIds.toList
-    } catch {
-      case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Fetching pull request ids failed for $subscriberId, ${e.getMessage}", e)
-        throw new IOException(s"Fetching pull request ids failed for $subscriberId", e)
-    } finally {
-      hTableFactory.releaseTableInterface(hTableInterface)
-    }
-  }
-
-  override def pullRequestMetaTable: String = pullRequestTableName
-
-  private def pullRequestRowKey(subscriptionId: String, requestId: String) = s"${com.flipkart.connekt.commons.utils.StringUtils.md5(subscriptionId)}-$requestId"
-
-  def fetchPNRequestInfo(id: String): Option[PNRequestInfo] = {
-    fetchRequestInfo(id).map(_.asInstanceOf[PNRequestInfo])
-  }
-
-  override protected def savePullRequestIds(requestId: String, channelRequestInfo: ChannelRequestInfo): Unit = {
-    implicit val hTableInterface = hTableFactory.getTableInterface(pullRequestTableName)
-    try {
-      val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
-
-      val rawRequestData = Map[String, Map[String, Array[Byte]]]("m" -> Map[String, Array[Byte]]("isRead" -> false.getBytes))
-      addRow(pullRequestTableName, pullRequestRowKey(pnRequestInfo.deviceId, requestId), rawRequestData)
-
-      ConnektLogger(LogFile.DAO).info(s"Pull requestId mapping persisted for $requestId")
-    } catch {
-      case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Pull requestId mapping persistence failed for $requestId ${e.getMessage}", e)
-        throw new IOException(s"Pull requestId mapping persistence failed for $requestId", e)
-    } finally {
-      hTableFactory.releaseTableInterface(hTableInterface)
-    }
-  }
 }
 
 object PNRequestDao {

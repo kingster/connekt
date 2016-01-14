@@ -13,6 +13,4 @@ trait TRequestDao extends Dao {
   def fetchRequest(connektId: String): Option[ConnektRequest]
   def updateRequestStatus(id: String, status: ChannelRequestData)
   def fetchRequestInfo(id: String): Option[ChannelRequestInfo]
-  def savePullRequest(requestId: String, request: ConnektRequest)
-  def fetchPullRequest(id: String, minTimestamp: Long, maxTimestamp: Long): List[ConnektRequest]
 }

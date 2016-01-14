@@ -14,12 +14,4 @@ class EmailRequestDao(tableName: String, hTableFactory: HTableFactory) extends R
   override protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]] = ???
 
   override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = ???
-
-  override protected def pullRequestMetaMap(requestId: String, channelRequestInfo: ChannelRequestInfo): (String, Map[String, Array[Byte]]) = ???
-
-  override protected def getPullRequestIds(subscriberId: String, minTimestamp: Long, maxTimestamp: Long): List[String] = ???
-
-  override protected def savePullRequestIds(requestId: String, channelRequestInfo: ChannelRequestInfo): Unit = ???
-
-  override protected def pullRequestMetaTable: String = ???
 }

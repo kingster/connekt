@@ -1,12 +1,10 @@
 package com.flipkart.connekt.receptors.routes.pn
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
-import com.flipkart.connekt.commons.factories.ServiceFactory
-import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
+import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
-import scala.util.{Failure, Success}
 
 /**
  *
@@ -26,27 +24,11 @@ class Fetch extends BaseHandler {
             authorize(user, "OPENWEBPN_" + appName) {
               get {
                 parameters('startTs ?, 'endTs ?){ (startTs, endTs) =>
-                  def fetchingPendingOpenWebPNs = ServiceFactory.getMessageService.getFetchRequest(subscriptionId, startTs.getOrElse(System.currentTimeMillis() - maxFetchDuration).asInstanceOf[Long], endTs.getOrElse(System.currentTimeMillis()).asInstanceOf[Long])
-
-                  async(fetchingPendingOpenWebPNs) {
-                    case Success(t) => t match {
-                      case Success(openWebPNs) =>
-                        complete(respond[GenericResponse](
-                          StatusCodes.Created, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.OK.intValue, null, Response(s"Pending open-web PNs for $subscriptionId", openWebPNs))
-                        ))
-                      case Failure(e) =>
-                        complete(respond[GenericResponse](
-                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching pending open-web PNs for: $subscriptionId failed: ${e.getMessage}", null))
-                        ))
-                    }
-                    case Failure(e) =>
-                      complete(respond[GenericResponse](
-                        StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                        GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching pending open-web PNs for: $subscriptionId failed: ${e.getMessage}", null))
-                      ))
-                  }
+                  def fetchingPendingOpenWebPNs = /* FIX_ME */ List[ConnektRequest]()
+                  complete(respond[GenericResponse](
+                    StatusCodes.Created, Seq.empty[HttpHeader],
+                    GenericResponse(StatusCodes.OK.intValue, null, Response(s"Pending open-web PNs for $subscriptionId", List[ConnektRequest]()))
+                  ))
                 }
               }
             }
