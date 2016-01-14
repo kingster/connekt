@@ -14,7 +14,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import scala.collection.mutable.ListBuffer
 import scala.util.control.Breaks._
 import HbaseDao._
-
+import scala.collection.JavaConverters._
 /**
  *
  *
@@ -44,25 +44,15 @@ trait HbaseDao {
     colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
 
     val rowResult = hTableInterface.get(get)
-    var resultMap = Map[String, ColumnData]()
-
-    colFamilies.foreach { cF =>
+    colFamilies.flatMap { cF =>
       val optResult = rowResult.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
-
       Option(optResult).map(cFResult => {
-        val i = cFResult.keySet().iterator()
-        val vMap = scala.collection.mutable.Map[String, Array[Byte]]()
-
-        while (i.hasNext) {
-          val colQualifier = i.next
-          vMap += new String(colQualifier) -> cFResult.get(colQualifier)
-        }
-
-        resultMap += cF -> vMap.toMap
+        val cQIterator = cFResult.keySet().iterator()
+        val cFData: ColumnData = cQIterator.asScala.map(colQualifier =>  colQualifier.getString -> cFResult.get(colQualifier)).toMap
+        cF -> cFData
       })
-    }
+    }.toMap
 
-    resultMap
   }
 
   def fetchRowKeys(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface):List[String] = {
@@ -112,32 +102,20 @@ trait HbaseDao {
 
     val ri = resultScanner.iterator()
     while (ri.hasNext) {
-      var resultMap = Map[String, ColumnData]()
       val riNext = ri.next()
-
-      colFamilies.foreach { cF =>
+      val resultMap:RowData = colFamilies.flatMap { cF =>
         val optResult = riNext.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
-
         Option(optResult).map(cFResult => {
-          val i = cFResult.keySet().iterator()
-          val vMap = scala.collection.mutable.Map[String, Array[Byte]]()
-
-          while (i.hasNext) {
-            val colQualifier = i.next
-            vMap += colQualifier.getString -> cFResult.get(colQualifier)
-          }
-
-          resultMap += cF -> vMap.toMap
+          val cQIterator = cFResult.keySet().iterator()
+          val cFData:ColumnData = cQIterator.asScala.map(colQualifier =>  colQualifier.getString -> cFResult.get(colQualifier)).toMap
+          cF -> cFData
         })
-      }
-
+      }.toMap
       rowMap += riNext.getRow.getString -> resultMap
     }
-
     resultScanner.close()
     rowMap
   }
-
 
 }
 
