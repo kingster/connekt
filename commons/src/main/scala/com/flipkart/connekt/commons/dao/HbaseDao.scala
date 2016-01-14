@@ -24,8 +24,6 @@ import HbaseDao._
 trait HbaseDao {
 
 
-  val emptyRowData = Map[String, Map[String, Array[Byte]]]("d" -> Map("empty" -> Bytes.toBytes(1)))
-
   @throws[IOException]
   def addRow(tableName: String, rowKey: String, data: Map[String, Map[String, Array[Byte]]])(implicit hTableInterface: HTableInterface) = {
 
@@ -104,7 +102,7 @@ trait HbaseDao {
 
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
-    scan.setStartRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
+    scan.setStopRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
 
     if(timeRange.isDefined )
       scan.setTimeRange(timeRange.get._1, timeRange.get._2)
@@ -126,7 +124,7 @@ trait HbaseDao {
 
           while (i.hasNext) {
             val colQualifier = i.next
-            vMap += new String(colQualifier) -> cFResult.get(colQualifier)
+            vMap += colQualifier.getString -> cFResult.get(colQualifier)
           }
 
           resultMap += cF -> vMap.toMap
@@ -148,6 +146,7 @@ object HbaseDao {
   type ColumnData = scala.collection.immutable.Map[String, Array[Byte]] // ColumnQualifer -> Data
   type RowData = scala.collection.immutable.Map[String, ColumnData] // ColumnFamily -> ColumnData
 
+  val emptyRowData = Map[String, ColumnData]("d" -> Map("empty" -> Bytes.toBytes(1)))
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper
   objMapper.registerModules(Seq(DefaultScalaModule): _*)
