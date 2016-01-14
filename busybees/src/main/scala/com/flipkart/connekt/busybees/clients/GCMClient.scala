@@ -7,7 +7,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.busybees.utils.ResponseUtils._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{GCMPayload, PNRequestData, PNRequestInfo}
+import com.flipkart.connekt.commons.iomodels.{GCMPNPayload, PNRequestData, PNRequestInfo}
 import com.flipkart.connekt.commons.transmission.HostConnectionHelper._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -33,7 +33,7 @@ class GCMClient {
   def wirePN(requestId: String, pnRequestInfo: PNRequestInfo, pnRequestData: PNRequestData, authKey: String) = {
     ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequestInfo.appName} ${pnRequestInfo.deviceId} [${pnRequestInfo.getJson}]")
     val deviceDetails = deviceDetailsDao.get(pnRequestInfo.appName, pnRequestInfo.deviceId)
-    val gcmRequestPayload = GCMPayload(List[String](deviceDetails.get.token), pnRequestInfo.delayWhileIdle, pnRequestData.data)
+    val gcmRequestPayload = GCMPNPayload(List[String](deviceDetails.get.token), pnRequestInfo.delayWhileIdle, pnRequestData.data)
     ConnektLogger(LogFile.SERVICE).info(s"GCM Request payload ${gcmRequestPayload.getJson}")
 
     val requestEntity = HttpEntity(ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`), gcmRequestPayload.getJson)

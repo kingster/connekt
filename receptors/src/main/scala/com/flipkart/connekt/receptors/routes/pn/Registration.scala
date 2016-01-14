@@ -69,7 +69,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
               }
             } ~ path(Segment / Segment) {
                 (appName: String, deviceId: String) =>
-                  authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_"+appName ) {
+                  authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_" + appName ) {
                     get {
                       def fetch = DaoFactory.getDeviceDetailsDao.get(appName, deviceId)
                       async(fetch) {

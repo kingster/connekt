@@ -21,7 +21,7 @@ class PNProcessor extends Actor {
       val pNRequestData = request.channelData.asInstanceOf[PNRequestData]
 
       pnRequestInfo.platform.toLowerCase match {
-        case "android" => androidPNProcessor ! (request.id, pnRequestInfo, pNRequestData)
+        case "android" | "openweb" => androidPNProcessor ! (request.id, pnRequestInfo, pNRequestData)
         case "windows" => windowsPNProcessor ! (request.id, pnRequestInfo, pNRequestData)
         case "ios" => iosPNProcessor ! (request.id, pnRequestInfo, pNRequestData)
       }

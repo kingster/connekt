@@ -28,7 +28,6 @@ object DaoFactory {
     Option(hTableFactory).foreach(_.shutdown())
   }
 
-
   def initMysqlTableDaoFactory(mysqlConnectionConfig: Config) = {
     mysqlFactoryWrapper = MySqlConnectionHelper.createMySqlConnection(mysqlConnectionConfig)
 
