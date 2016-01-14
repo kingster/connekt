@@ -22,7 +22,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
     pathPrefix("v1") {
       authenticate {
         user =>
-          pathPrefix("registration" / "push"  ) {
+          pathPrefix("registration" / "push") {
             path(Segment / Segment) {
               (platform: String, appName: String) =>
                 authorize(user, "REGISTRATION") {
@@ -55,8 +55,8 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                     async(save) {
                       case Success(t) =>
                         complete(respond[GenericResponse](
-                          StatusCodes.Created, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.Created.intValue, null, Response("DeviceDetails registered for %s".format(d.deviceId), null))
+                          StatusCodes.OK, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails registered for %s".format(d.deviceId), null))
                         ))
                       case Failure(e) =>
                         complete(respond[GenericResponse](
@@ -94,7 +94,26 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                       }
                     }
                   }
-              }
+              } ~ path(Segment / "users" / Segment) {
+              (appName: String, userId: String) =>
+                authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_" + appName ) {
+                  get {
+                    def fetch = DaoFactory.getDeviceDetailsDao.getByUserId(appName, userId)
+                    async(fetch) {
+                      case Success(deviceDetails) =>
+                        complete(respond[GenericResponse](
+                                StatusCodes.OK, Seq.empty[HttpHeader],
+                                GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails fetched for app: %s user: %s".format(appName, userId), Map[String, Any]("deviceDetails" -> deviceDetails)))
+                              ))
+                      case Failure(error) =>
+                        complete(respond[GenericResponse](
+                            StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+                            GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Fetching DeviceDetails failed for app:%s %s".format(appName, userId), null))
+                          ))
+                    }
+                  }
+                }
+            }
 
           }
       }
