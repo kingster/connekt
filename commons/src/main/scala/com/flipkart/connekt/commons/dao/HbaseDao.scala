@@ -98,7 +98,44 @@ trait HbaseDao {
     rList.toList
   }
 
+  def fetchAllRows(tableName: String, rowKeyPrefix: String, colFamilies: List[String], minStamp: Long, maxStamp: Long)(implicit hTableInterface: HTableInterface): List[(String, Map[String, Map[String, Array[Byte]]])] = {
+    val filter = new PrefixFilter(rowKeyPrefix.getBytes(CharEncoding.UTF_8))
+    val scan = new Scan()
+    scan.setFilter(filter)
+    scan.setTimeRange(minStamp, maxStamp)
+
+    val resultScanner = hTableInterface.getScanner(scan)
+    val rList = new ListBuffer[(String, Map[String, Map[String, Array[Byte]]])]()
+
+    val ri = resultScanner.iterator()
+    while (ri.hasNext) {
+      var resultMap = Map[String, Map[String, Array[Byte]]]()
+      val riNext = ri.next()
+
+      colFamilies.foreach { cF =>
+        val optResult = riNext.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
+
+        Option(optResult).map(cFResult => {
+          val i = cFResult.keySet().iterator()
+          val vMap = scala.collection.mutable.Map[String, Array[Byte]]()
+
+          while (i.hasNext) {
+            val colQualifier = i.next
+            vMap += new String(colQualifier) -> cFResult.get(colQualifier)
+          }
+
+          resultMap += cF -> vMap.toMap
+        })
+      }
+
+      rList += ((riNext.getRow.toString, resultMap))
+    }
+
+    resultScanner.close()
+    rList.toList
   }
+
+}
 
 object HbaseDao {
 

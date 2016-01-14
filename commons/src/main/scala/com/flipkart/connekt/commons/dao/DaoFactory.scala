@@ -20,7 +20,7 @@ object DaoFactory {
     hTableFactory = HConnectionHelper.createHbaseConnection(hConnectionConfig)
 
     daoMap += DaoType.DEVICE_DETAILS -> DeviceDetailsDao("fk-connekt-proto", hTableFactory)
-    daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao("fk-connekt-pn-info", hTableFactory)
+    daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao(tableName = "fk-connekt-pn-info", hTableFactory = hTableFactory)
     daoMap += DaoType.CALLBACK_PN -> PNCallbackDao("fk-connekt-events", hTableFactory)
   }
 

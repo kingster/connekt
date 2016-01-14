@@ -52,6 +52,38 @@ class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
                 }
               }
             }
+        } ~ path("push" / "openwebpn" / Segment / Segment) {
+          (appName: String, deviceId: String) =>
+            authorize(user, "OPENWEBPN_" + appName) {
+              post {
+                entity(as[ConnektRequest]) { r =>
+                  val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName, deviceId = deviceId)
+                  val unicastRequest = r.copy(channelInfo = pnRequestInfo)
+
+                  ConnektLogger(LogFile.SERVICE).debug(s"Received openwebPN request with payload: ${r.toString}")
+                  def enqueue = ServiceFactory.getMessageService.saveFetchRequest(unicastRequest, isCrucial = true)
+                  async(enqueue) {
+                    case Success(t) => t match {
+                      case Success(requestId) =>
+                        complete(respond[GenericResponse](
+                          StatusCodes.Created, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.OK.intValue, null, Response("openwebPN Request en-queued successfully for %s".format(requestId), null))
+                        ))
+                      case Failure(e) =>
+                        complete(respond[GenericResponse](
+                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("openwebPN Request processing failed: %s".format(e.getMessage), null))
+                        ))
+                    }
+                    case Failure(e) =>
+                      complete(respond[GenericResponse](
+                        StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+                        GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("openwebPN Request processing failed: %s".format(e.getMessage), null))
+                      ))
+                  }
+                }
+              }
+            }
         }
       }
     }

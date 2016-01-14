@@ -1,8 +1,13 @@
 package com.flipkart.connekt.commons.dao
 
+import java.io.IOException
+
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
+
+import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -11,7 +16,7 @@ import com.flipkart.connekt.commons.iomodels._
  * @author durga.s
  * @version 11/27/15
  */
-class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends RequestDao(tableName: String, hTableFactory: HTableFactory) {
+class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactory: HTableFactory) extends RequestDao(tableName: String, hTableFactory: HTableFactory) {
   override protected def channelRequestInfoMap(channelRequestInfo: ChannelRequestInfo): Map[String, Array[Byte]] = {
     val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
 
@@ -46,12 +51,62 @@ class PNRequestDao(tableName: String, hTableFactory: HTableFactory) extends Requ
     PNRequestData(data = reqDataProps.getKV("data"))
   }
 
+  override def pullRequestMetaMap(requestId: String, channelRequestInfo: ChannelRequestInfo): (String, Map[String, Array[Byte]]) = {
+    val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
+
+    (pullRequestRowKey(pnRequestInfo.deviceId, requestId), Map[String, Array[Byte]]("isRead" -> false.getBytes))
+  }
+
+  override protected def getPullRequestIds(subscriberId: String, minTimestamp: Long, maxTimestamp: Long): List[String] = {
+    implicit val hTableInterface = hTableFactory.getTableInterface(pullRequestTableName)
+    try {
+      val colFamiliesReqd = List("m")
+      val rawData = fetchAllRows(pullRequestTableName, subscriberId, colFamiliesReqd, minTimestamp, maxTimestamp)
+      val requestIds = ListBuffer[String]()
+
+      rawData.foreach(tuple => {
+        val requestId = tuple._1.split("-").last
+        tuple._2.get("m").foreach(_.get("isRead").foreach(w => if(!w.getBoolean) requestIds += requestId))
+      })
+
+      requestIds.toList
+    } catch {
+      case e: IOException =>
+        ConnektLogger(LogFile.DAO).error(s"Fetching pull request ids failed for $subscriberId, ${e.getMessage}", e)
+        throw new IOException(s"Fetching pull request ids failed for $subscriberId", e)
+    } finally {
+      hTableFactory.releaseTableInterface(hTableInterface)
+    }
+  }
+
+  override def pullRequestMetaTable: String = pullRequestTableName
+
+  private def pullRequestRowKey(subscriptionId: String, requestId: String) = s"${com.flipkart.connekt.commons.utils.StringUtils.md5(subscriptionId)}-$requestId"
+
   def fetchPNRequestInfo(id: String): Option[PNRequestInfo] = {
     fetchRequestInfo(id).map(_.asInstanceOf[PNRequestInfo])
+  }
+
+  override protected def savePullRequestIds(requestId: String, channelRequestInfo: ChannelRequestInfo): Unit = {
+    implicit val hTableInterface = hTableFactory.getTableInterface(pullRequestTableName)
+    try {
+      val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
+
+      val rawRequestData = Map[String, Map[String, Array[Byte]]]("m" -> Map[String, Array[Byte]]("isRead" -> false.getBytes))
+      addRow(pullRequestTableName, pullRequestRowKey(pnRequestInfo.deviceId, requestId), rawRequestData)
+
+      ConnektLogger(LogFile.DAO).info(s"Pull requestId mapping persisted for $requestId")
+    } catch {
+      case e: IOException =>
+        ConnektLogger(LogFile.DAO).error(s"Pull requestId mapping persistence failed for $requestId ${e.getMessage}", e)
+        throw new IOException(s"Pull requestId mapping persistence failed for $requestId", e)
+    } finally {
+      hTableFactory.releaseTableInterface(hTableInterface)
+    }
   }
 }
 
 object PNRequestDao {
-  def apply(tableName: String = "fk-connekt-pn-info", hTableFactory: HTableFactory) =
-    new PNRequestDao(tableName, hTableFactory)
+  def apply(tableName: String = "fk-connekt-pn-info", pullRequestTableName: String = "fk-connekt-pull-info", hTableFactory: HTableFactory) =
+    new PNRequestDao(tableName, pullRequestTableName, hTableFactory)
 }

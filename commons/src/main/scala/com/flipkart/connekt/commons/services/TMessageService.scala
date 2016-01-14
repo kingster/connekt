@@ -18,4 +18,6 @@ trait TMessageService extends TService {
   protected def enqueueRequest(request: ConnektRequest, requestBucket: String)
   def getRequestInfo(id: String): Try[Option[ConnektRequest]]
   def updateRequestStatus(id: String, channelStatus: ChannelRequestData): Try[String]
+  def saveFetchRequest(request: ConnektRequest, isCrucial: Boolean): Try[String]
+  def getFetchRequest(subscriberId: String, minTimestamp: Long, maxTimestamp: Long): Try[List[ConnektRequest]]
 }
