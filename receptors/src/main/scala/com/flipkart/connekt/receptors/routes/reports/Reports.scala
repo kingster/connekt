@@ -30,6 +30,24 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
                     GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId $contactId fetched.", Map(contactId -> events)))
                   ))
                 }
+            } ~ path (Segment / "status" / Segment) {
+              (channel: String,   messageId: String) =>
+                get {
+                  val data = ServiceFactory.getMessageService.getRequestInfo(messageId).get
+                  data match {
+                    case None =>
+                      complete(respond[GenericResponse](
+                        StatusCodes.NotFound, Seq.empty[HttpHeader],
+                        GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No Data found for MessageId $messageId", null))
+                      ))
+                    case Some(x) =>
+                      complete(respond[GenericResponse](
+                        StatusCodes.OK, Seq.empty[HttpHeader],
+                        GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Details for $messageId.", data))
+                      ))
+                  }
+
+                }
             }
           }
       }
