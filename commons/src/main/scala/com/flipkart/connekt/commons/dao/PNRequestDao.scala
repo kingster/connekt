@@ -61,7 +61,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     implicit val hTableInterface = hTableFactory.getTableInterface(pullRequestTableName)
     try {
       val colFamiliesReqd = List("m")
-      val rawData = fetchAllRows(pullRequestTableName, subscriberId, s"${subscriberId}{", colFamiliesReqd, minTimestamp, maxTimestamp)
+      val rawData = fetchRows(pullRequestTableName, subscriberId, s"${subscriberId}{", colFamiliesReqd, Some(minTimestamp, maxTimestamp))
       val requestIds = ListBuffer[String]()
 
       rawData.foreach(tuple => {
