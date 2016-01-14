@@ -8,10 +8,11 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.PrefixFilter
+import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, FilterList, PrefixFilter}
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.mutable.ListBuffer
+import scala.util.control.Breaks._
 
 /**
  *
@@ -20,6 +21,8 @@ import scala.collection.mutable.ListBuffer
  * @version 11/18/15
  */
 trait HbaseDao {
+
+  val emptyRowData = Map[String, Map[String, Array[Byte]]]("d" -> Map("empty" -> Bytes.toBytes(1)))
 
   @throws[IOException]
   def addRow(tableName: String, rowKey: String, data: Map[String, Map[String, Array[Byte]]])(implicit hTableInterface: HTableInterface) = {
@@ -62,10 +65,33 @@ trait HbaseDao {
     resultMap
   }
 
-  def fetchRows(tableName: String, rowKeyPrefix: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): List[Map[String, Map[String, Array[Byte]]]] = {
-    val filter = new PrefixFilter(rowKeyPrefix.getBytes(CharEncoding.UTF_8))
+  def fetchRowKeys(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface):List[String] = {
     val scan = new Scan()
-    scan.setFilter(filter)
+    scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
+    scan.setStopRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
+
+    if(timeRange.isDefined )
+      scan.setTimeRange(timeRange.get._1, timeRange.get._2)
+
+    val filters = new FilterList()
+    filters.addFilter(new KeyOnlyFilter())
+    scan.setFilter(filters)
+
+    val resultScanner = hTableInterface.getScanner(scan)
+    val ri = resultScanner.iterator()
+
+    var results = ListBuffer[String]()
+    while (ri.hasNext) {
+      results += Bytes.toString(ri.next().getRow)
+    }
+
+    results.toList
+  }
+
+  def fetchRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): List[Map[String, Map[String, Array[Byte]]]] = {
+    val scan = new Scan()
+    scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
+    scan.setStartRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
 
     val resultScanner = hTableInterface.getScanner(scan)
     val rList = new ListBuffer[Map[String, Map[String, Array[Byte]]]]()
@@ -98,10 +124,10 @@ trait HbaseDao {
     rList.toList
   }
 
-  def fetchAllRows(tableName: String, rowKeyPrefix: String, colFamilies: List[String], minStamp: Long, maxStamp: Long)(implicit hTableInterface: HTableInterface): List[(String, Map[String, Map[String, Array[Byte]]])] = {
-    val filter = new PrefixFilter(rowKeyPrefix.getBytes(CharEncoding.UTF_8))
+  def fetchAllRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String], minStamp: Long, maxStamp: Long)(implicit hTableInterface: HTableInterface): List[(String, Map[String, Map[String, Array[Byte]]])] = {
     val scan = new Scan()
-    scan.setFilter(filter)
+    scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
+    scan.setStartRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
     scan.setTimeRange(minStamp, maxStamp)
 
     val resultScanner = hTableInterface.getScanner(scan)

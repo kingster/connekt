@@ -46,7 +46,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("e")
-      val rawDataList = fetchRows(hTableName, s"$forContact:$requestId", colFamiliesReqd)
+      val rawDataList = fetchRows(hTableName, s"$forContact:$requestId", s"$forContact:$requestId{", colFamiliesReqd)
 
       val eventsList = ListBuffer[CallbackEvent]()
       rawDataList.foldLeft(eventsList)((list, rawData) => {

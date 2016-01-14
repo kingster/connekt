@@ -6,6 +6,7 @@ import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.roundeights.hasher.Implicits._
 
 
 /**
@@ -16,12 +17,26 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  */
 class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends Dao with HbaseDao {
   val hTableConnFactory = hTableFactory
+
   val hTableName = tableName
+  val hUserIndexTableName = tableName + "-user-index"
+  val hTokenIndexTableName = tableName + "-token-index"
+
 
   private def getRowKey(appName: String, deviceId: String) = appName.toLowerCase + "_" + deviceId
 
-  def saveDeviceDetails(deviceDetails: DeviceDetails)  = {
+  private def getUserIndexRowKey(appName :String, deviceId:String, userId:String) = appName.toLowerCase + "_"  + userId + "_" + deviceId
+  private def getUserIndexRowPrefix(appName :String,  userId:String) = appName.toLowerCase + "_"  + userId + "_"
+
+  private def getTokenIndexRowKey(appName :String, deviceId:String, tokenId:String) = appName.toLowerCase + "_"  + tokenId.sha256.hash.hex + "_" + deviceId
+  private def getTokenIndexRowPrefix(appName :String,  tokenId:String) = appName.toLowerCase + "_"  + tokenId.sha256.hash.hex + "_"
+
+  def add(deviceDetails: DeviceDetails)  = {
+
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
+    val hUserIndexTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
+    val hTokenIndexTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
+
     try {
       val deviceRegInfoCfProps = Map[String, Array[Byte]](
         "deviceId" -> deviceDetails.deviceId.getUtf8Bytes,
@@ -43,6 +58,11 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
       val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps, "a" -> deviceMetaCfProps)
       addRow(hTableName, getRowKey(deviceDetails.appName, deviceDetails.deviceId), rawData)
 
+      // Add secondary indexes.
+      addRow(hUserIndexTableName, getUserIndexRowKey(deviceDetails.appName, deviceDetails.deviceId,deviceDetails.userId), emptyRowData)(hUserIndexTableInterface)
+      addRow(hTokenIndexTableName, getTokenIndexRowKey(deviceDetails.appName, deviceDetails.deviceId, deviceDetails.token), emptyRowData)(hTokenIndexTableInterface)
+
+
       ConnektLogger(LogFile.DAO).info(s"DeviceDetails registered for ${deviceDetails.deviceId}")
     } catch {
       case e: IOException =>
@@ -50,10 +70,12 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
         throw new IOException("DeviceDetails registration failed for %s".format(deviceDetails.deviceId), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
+      hTableConnFactory.releaseTableInterface(hUserIndexTableInterface)
+      hTableConnFactory.releaseTableInterface(hTokenIndexTableInterface)
     }
   }
 
-  def fetchDeviceDetails(appName: String, deviceId: String): Option[DeviceDetails] = {
+  def get(appName: String, deviceId: String): Option[DeviceDetails] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("p", "a")
@@ -91,10 +113,25 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }
   }
+
+  def getByTokenId(appName: String, tokenId: String): Option[DeviceDetails] = {
+
+    implicit val hTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
+    val rowKeyPrefix = getTokenIndexRowPrefix(appName, tokenId)
+    val deviceIndex = fetchRowKeys(hTokenIndexTableName,rowKeyPrefix, rowKeyPrefix+"{",List("d"))
+
+    deviceIndex.headOption.map(_.split("_").last).flatMap(get(appName, _))
+  }
+
+  def getByUserId(appName: String, accId: String): List[DeviceDetails] = {
+
+    implicit val hTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
+    val rowKeyPrefix = getUserIndexRowPrefix(appName, accId)
+    val devices = fetchRowKeys(hUserIndexTableName,rowKeyPrefix, rowKeyPrefix+"{",List("d"))
+    devices.map(_.split("_").last).flatMap(get(appName, _))
+  }
 }
 
 object DeviceDetailsDao {
-
-  def apply(tableName: String = "connekt-device-info", hTableFactory: HTableFactory) =
-    new DeviceDetailsDao(tableName, hTableFactory)
+  def apply(tableName: String, hTableFactory: HTableFactory) = new DeviceDetailsDao(tableName, hTableFactory)
 }

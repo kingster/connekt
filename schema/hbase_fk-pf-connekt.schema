@@ -1,3 +1,5 @@
 create 'fk-connekt-pn-info', {NAME => 'r', VERSIONS => '1', TTL => '31536000'}, {NAME => 'c', VERSIONS => '1', TTL => '31536000'}, {NAME => 't', VERSIONS => '1', TTL => '31536000'}
 create 'fk-connekt-events', {NAME => 'e', VERSIONS => '1', TTL => '31536000'}
-create 'fk-connekt-proto', {NAME => 'p', VERSIONS => '1', TTL => '31536000'}, {NAME => 'a', VERSIONS => '1', TTL => '31536000'}
+create 'connekt-registry', {NAME => 'p', VERSIONS => '1', TTL => '31536000'}, {NAME => 'a', VERSIONS => '1', TTL => '31536000'}
+create 'connekt-registry-user-index', {NAME => 'd', VERSIONS => '1', TTL => '31536000'}
+create 'connekt-registry-token-index', {NAME => 'd', VERSIONS => '1', TTL => '31536000'}

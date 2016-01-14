@@ -20,9 +20,9 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
     pathPrefix("v1") {
       authenticate {
         user =>
-          authorize(user, "REPORTS") {
-            path(Segment / "events" / Segment / Segment) {
-              (channel: String, contactId: String, messageId: String) =>
+          path(Segment / "events" / Segment / Segment) {
+            (channel: String, contactId: String, messageId: String) =>
+              authorize(user, "REPORTS") {
                 get {
                   val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, channel).get
                   complete(respond[GenericResponse](
@@ -30,8 +30,10 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
                     GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId $contactId fetched.", Map(contactId -> events)))
                   ))
                 }
-            } ~ path (Segment / "status" / Segment) {
-              (channel: String,   messageId: String) =>
+              }
+          } ~ path(Segment / "status" / Segment) {
+            (channel: String, messageId: String) =>
+              authorize(user, "REPORTS") {
                 get {
                   val data = ServiceFactory.getMessageService.getRequestInfo(messageId).get
                   data match {
@@ -46,9 +48,8 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
                         GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Details for $messageId.", data))
                       ))
                   }
-
                 }
-            }
+              }
           }
       }
     }

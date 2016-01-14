@@ -18,7 +18,7 @@ class AndroidPNProcessor extends Actor {
 
   override def receive: Receive = {
     case (messageId: String, pnInfo: PNRequestInfo, pnData: PNRequestData) =>
-      val registrationId = deviceDetailsDao.fetchDeviceDetails(pnInfo.appName, pnInfo.deviceId).get.token
+      val registrationId = deviceDetailsDao.get(pnInfo.appName, pnInfo.deviceId).get.token
       val appDataWithId = pnData.data.put("messageId", messageId)
       val gcmPayload = GCMPayload(List[String](registrationId), pnInfo.delayWhileIdle, appDataWithId)
 

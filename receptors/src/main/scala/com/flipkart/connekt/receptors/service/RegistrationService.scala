@@ -16,12 +16,12 @@ object RegistrationService {
   val deviceDetailsDao = DaoFactory.getDeviceDetailsDao
 
   def saveDeviceDetails(deviceDetails: DeviceDetails) = Try {
-    deviceDetailsDao.saveDeviceDetails(deviceDetails)
+    deviceDetailsDao.add(deviceDetails)
     ConnektLogger(LogFile.SERVICE).debug(s"Save DeviceDetails: ${deviceDetails.toString}")
     true
   }
 
   def getDeviceDetails(appName: String, deviceId: String) = Try {
-    deviceDetailsDao.fetchDeviceDetails(appName, deviceId)
+    deviceDetailsDao.get(appName, deviceId)
   }
 }

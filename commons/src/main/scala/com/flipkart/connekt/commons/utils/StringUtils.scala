@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.utils
 
-import java.security.MessageDigest
+import java.math.BigInteger
+import java.security.{SecureRandom, MessageDigest}
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -55,4 +56,28 @@ object StringUtils {
     md5.update(s.getBytes)
     md5.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
   }
+
+  def generateRandomStr(len: Int): String = {
+    val ZERO = Character.valueOf('0')
+    val A = Character.valueOf('A')
+    val sb = new StringBuffer()
+    for (i <- 1 to len) {
+      var n = (36.0 * Math.random).asInstanceOf[Int]
+      if (n < 10) {
+        n = (ZERO + n)
+      }
+      else {
+        n -= 10
+        n = (A + n)
+      }
+      sb.append(new Character(n.asInstanceOf[Char]))
+    }
+    return new String(sb)
+  }
+
+  def generateSecureRandom:String = {
+    val random:SecureRandom = new SecureRandom()
+    new BigInteger(130, random).toString(32)
+  }
+
 }

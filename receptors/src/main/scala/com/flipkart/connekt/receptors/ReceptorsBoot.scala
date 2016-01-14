@@ -57,4 +57,8 @@ object ReceptorsBoot  {
     }
   }
 
+
+  def   main (args: Array[String]) {
+    start()
+  }
 }

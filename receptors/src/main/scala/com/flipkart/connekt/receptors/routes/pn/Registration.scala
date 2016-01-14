@@ -27,7 +27,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
               authorize(user, "REGISTRATION") {
                 (post | put) {
                   entity(as[DeviceDetails]) { d =>
-                    def save = DaoFactory.getDeviceDetailsDao.saveDeviceDetails(d)
+                    def save = DaoFactory.getDeviceDetailsDao.add(d)
                     async(save) {
                       case Success(t) =>
                         complete(respond[GenericResponse](
@@ -48,7 +48,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                 (appName: String, deviceId: String) =>
                   authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_"+appName ) {
                     get {
-                      def fetch = DaoFactory.getDeviceDetailsDao.fetchDeviceDetails(appName, deviceId)
+                      def fetch = DaoFactory.getDeviceDetailsDao.get(appName, deviceId)
                       async(fetch) {
                         case Success(resultOption) =>
                           resultOption match {
