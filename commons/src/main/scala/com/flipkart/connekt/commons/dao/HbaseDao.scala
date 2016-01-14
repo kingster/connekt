@@ -13,6 +13,7 @@ import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.mutable.ListBuffer
 import scala.util.control.Breaks._
+import HbaseDao._
 
 /**
  *
@@ -21,6 +22,9 @@ import scala.util.control.Breaks._
  * @version 11/18/15
  */
 trait HbaseDao {
+
+  type ColumnData = scala.collection.immutable.Map[String, Array[Byte]] // ColumnQualifer -> Data
+  type RowData = scala.collection.immutable.Map[String, ColumnData] // ColumnFamily -> ColumnData
 
   val emptyRowData = Map[String, Map[String, Array[Byte]]]("d" -> Map("empty" -> Bytes.toBytes(1)))
 
@@ -37,8 +41,11 @@ trait HbaseDao {
     hTableInterface.put(put)
   }
 
+
+
+
   @throws[IOException]
-  def fetchRow(tableName: String, rowKey: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): Map[String, Map[String, Array[Byte]]] = {
+  def fetchRow(tableName: String, rowKey: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): RowData = {
 
     val get: Get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
     colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
@@ -82,13 +89,23 @@ trait HbaseDao {
 
     var results = ListBuffer[String]()
     while (ri.hasNext) {
-      results += Bytes.toString(ri.next().getRow)
+      results += ri.next().getRow.getString
     }
 
     results.toList
   }
 
-  def fetchRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String],timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface): List[Map[String, Map[String, Array[Byte]]]] = {
+  /**
+   *
+   * @param tableName
+   * @param rowStartKeyPrefix
+   * @param rowStopKeyPrefix
+   * @param colFamilies
+   * @param timeRange
+   * @param hTableInterface
+   * @return Map [Row ]
+   */
+  def fetchRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String],timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
 
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -98,15 +115,15 @@ trait HbaseDao {
       scan.setTimeRange(timeRange.get._1, timeRange.get._2)
 
     val resultScanner = hTableInterface.getScanner(scan)
-    val rList = new ListBuffer[Map[String, Map[String, Array[Byte]]]]()
+    var resultMap = Map[String,RowData]()
 
     val ri = resultScanner.iterator()
     while (ri.hasNext) {
-
       var resultMap = Map[String, Map[String, Array[Byte]]]()
+      val riNext = ri.next()
 
       colFamilies.foreach { cF =>
-        val optResult = ri.next().getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
+        val optResult = riNext.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
 
         Option(optResult).map(cFResult => {
           val i = cFResult.keySet().iterator()
@@ -121,12 +138,13 @@ trait HbaseDao {
         })
       }
 
-      rList += resultMap
+      resultMap += riNext.getRow.getString -> resultMap
     }
 
     resultScanner.close()
-    rList.toList
+    resultMap
   }
+
 
 }
 
