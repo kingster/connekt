@@ -48,8 +48,9 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
       val colFamiliesReqd = List("e")
       val rawDataList = fetchRows(hTableName, s"$forContact:$requestId", s"$forContact:$requestId{", colFamiliesReqd)
 
+      //TODO: Durga what the hell did you do?
       val eventsList = ListBuffer[CallbackEvent]()
-      rawDataList.foldLeft(eventsList)((list, rawData) => {
+      rawDataList.values.foldLeft(eventsList)((list, rawData) => {
         val eventProps = rawData.get("e")
         eventProps.map(mapToChannelEvent).foreach(list += _)
         list
