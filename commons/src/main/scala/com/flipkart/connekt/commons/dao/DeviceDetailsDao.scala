@@ -59,8 +59,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
       addRow(hTableName, getRowKey(deviceDetails.appName, deviceDetails.deviceId), rawData)
 
       // Add secondary indexes.
-      addRow(hUserIndexTableName, getUserIndexRowKey(deviceDetails.appName, deviceDetails.deviceId,deviceDetails.userId), emptyRowData)(hUserIndexTableInterface)
-      addRow(hTokenIndexTableName, getTokenIndexRowKey(deviceDetails.appName, deviceDetails.deviceId, deviceDetails.token), emptyRowData)(hTokenIndexTableInterface)
+      addRow(hUserIndexTableName, getUserIndexRowKey(deviceDetails.appName, deviceDetails.deviceId,deviceDetails.userId), HbaseDao.emptyRowData)(hUserIndexTableInterface)
+      addRow(hTokenIndexTableName, getTokenIndexRowKey(deviceDetails.appName, deviceDetails.deviceId, deviceDetails.token), HbaseDao.emptyRowData)(hTokenIndexTableInterface)
 
 
       ConnektLogger(LogFile.DAO).info(s"DeviceDetails registered for ${deviceDetails.deviceId}")

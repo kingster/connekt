@@ -42,11 +42,11 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(requestId: String, forContact: String): List[CallbackEvent] = {
+  def fetchCallbackEvents(requestId: String, contactId: String): List[CallbackEvent] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("e")
-      val rawDataList = fetchRows(hTableName, s"$forContact:$requestId", s"$forContact:$requestId{", colFamiliesReqd)
+      val rawDataList = fetchRows(hTableName, s"$contactId:$requestId", s"$contactId:$requestId{", colFamiliesReqd)
 
       //TODO: Durga what the hell did you do?
       val eventsList = ListBuffer[CallbackEvent]()
@@ -59,8 +59,8 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
       eventsList.toList
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Fetching events trail failed for $requestId _ $forContact, ${e.getMessage}", e)
-        throw new IOException(s"Fetching events trail failed for $requestId _ $forContact", e)
+        ConnektLogger(LogFile.DAO).error(s"Fetching events trail failed for $requestId _ $contactId, ${e.getMessage}", e)
+        throw new IOException(s"Fetching events trail failed for $requestId _ $contactId", e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }
