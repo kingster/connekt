@@ -4,6 +4,7 @@ import java.util.{Properties, UUID}
 
 import com.flipkart.connekt.commons.dao.HbaseDao
 import com.flipkart.connekt.commons.helpers.HConnectionHelper
+import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.CharEncoding
@@ -27,7 +28,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
   def getHBaseConnHelper = {
     val hConfProps = new Properties()
-    hConfProps.setProperty("hbase.zookeeper.quorum", "hadoop1.stage.ch.flipkart.com")
+    hConfProps.setProperty("hbase.zookeeper.quorum", ConnektConfig.getString("hbase.zookeeper.quorum").getOrElse("hadoop1.stage.ch.flipkart.com") )
     hConfProps.setProperty("hbase.zookeeper.property.clientPort", "2181")
 
     val hConfig = ConfigFactory.parseProperties(hConfProps)
