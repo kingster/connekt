@@ -1,4 +1,4 @@
-package com.flipkart.connekt.receptors.routes.pn
+package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer

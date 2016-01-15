@@ -2,7 +2,7 @@ package com.flipkart.connekt.receptors.routes
 
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.routes.callbacks.Callback
-import com.flipkart.connekt.receptors.routes.pn.{Fetch, Unicast, Registration}
+import com.flipkart.connekt.receptors.routes.push.{Fetch, Unicast, Registration}
 import akka.http.scaladsl.server.Directives._
 import com.flipkart.connekt.receptors.routes.reports.Reports
 
