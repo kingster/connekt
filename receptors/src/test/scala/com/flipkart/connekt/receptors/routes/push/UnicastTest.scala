@@ -44,8 +44,6 @@ class UnicastTest extends BaseRouteTest {
         check {
           status shouldEqual StatusCodes.Created
       }
-
-
   }
 
 }
