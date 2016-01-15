@@ -14,7 +14,14 @@
     <logger name="FACTORY" level="DEBUG">
         <appender-ref ref="STDOUT" />
     </logger>
-    <root level="DEBUG">
+
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
+
+    <logger name="com.flipkart" level="ALL" />
+
+    <logger name="kafka" level="ERROR" />
+    <logger name="org.apache" level="ERROR" />
+
 </configuration>
