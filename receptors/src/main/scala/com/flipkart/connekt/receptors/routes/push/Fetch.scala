@@ -26,7 +26,7 @@ class Fetch extends BaseHandler {
               get {
                 parameters('startTs ?, 'endTs ?){ (startTs, endTs) =>
                   def fetchMessages = {
-                    val startTime = startTs.map(_.toLong).getOrElse(System.currentTimeMillis() - 7 * 24 * 3600)
+                    val startTime = startTs.map(_.toLong).getOrElse(System.currentTimeMillis() - 7 * 24 * 3600 * 1000)
                     val endTime = endTs.map(_.toLong).getOrElse(System.currentTimeMillis())
 
                     val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(subscriberId, Channel.PN, startTime, endTime)

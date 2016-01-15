@@ -3,6 +3,7 @@ package com.flipkart.connekt.commons.tests.services
 import java.util.UUID
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent, PNRequestData, PNRequestInfo}
 import com.flipkart.connekt.commons.tests.BaseCommonsTest
@@ -49,17 +50,17 @@ class CallbackServiceTest extends BaseCommonsTest {
     pnInfo = pnInfo.copy(id = mid)
 
     val callbackService = ServiceFactory.getCallbackService
-    callbackService.persistCallbackEvent(callBackEvent.messageId, callBackEvent.deviceId,channel, callBackEvent).isSuccess shouldEqual true
+    callbackService.persistCallbackEvent(callBackEvent.messageId, callBackEvent.deviceId, Channel.PN, callBackEvent).isSuccess shouldEqual true
   }
 
   "Callback Service" should "fetchCallbackEvent" in {
     val callbackService = ServiceFactory.getCallbackService
-    callbackService.fetchCallbackEvent(callBackEvent.messageId, callBackEvent.deviceId, channel).isSuccess shouldEqual true
+    callbackService.fetchCallbackEvent(callBackEvent.messageId, callBackEvent.deviceId, Channel.PN).isSuccess shouldEqual true
   }
 
   "Callback Service" should "fetch by contact id" in {
     val callbackService = ServiceFactory.getCallbackService
-    val result = callbackService.fetchCallbackEventByContactId(callBackEvent.deviceId, "push")
+    val result = callbackService.fetchCallbackEventByContactId(callBackEvent.deviceId, Channel.PN, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
     print(result.get.getJson)
     result.isSuccess shouldEqual true
     result.get.size should be > 0
@@ -67,7 +68,7 @@ class CallbackServiceTest extends BaseCommonsTest {
 
   "Callback Service" should "fetch by message id" in {
     val callbackService = ServiceFactory.getCallbackService
-    val result = callbackService.fetchCallbackEventByMId(callBackEvent.messageId, "push")
+    val result = callbackService.fetchCallbackEventByMId(callBackEvent.messageId, Channel.PN)
     println(result.get.getJson)
     result.isSuccess shouldEqual true
     result.get.size should be > 0
@@ -75,7 +76,7 @@ class CallbackServiceTest extends BaseCommonsTest {
 
   "Callback Service" should "fetch map by contact id" in {
     val callbackService = ServiceFactory.getCallbackService
-    val result = callbackService.fetchEventsMapForContactId(callBackEvent.deviceId, "push")
+    val result = callbackService.fetchEventsMapForContactId(callBackEvent.deviceId, Channel.PN, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
     print(result.get.getJson)
     result.isSuccess shouldEqual true
     result.get.size should be > 0

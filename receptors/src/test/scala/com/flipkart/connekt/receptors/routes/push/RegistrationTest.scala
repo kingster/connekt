@@ -80,9 +80,4 @@ class RegistrationTest extends BaseRouteTest {
         status shouldEqual StatusCodes.OK
       }
   }
-
-
-
-
-
 }
