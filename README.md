@@ -1,7 +1,7 @@
 Connekt Platform
 ========================
 
-v2 Communications Platform
+Communications Platform
 
 Getting Started
 ---------------------
