@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.services.ConnektConfig.{ConfigBucketId, BucketName}
 import com.flipkart.kloud.config.{Bucket, BucketUpdateListener, ConfigClient}
 import com.typesafe.config.{ConfigException, Config, ConfigFactory}
 import com.flipkart.connekt.commons.behaviors.ConfigAccumulator
@@ -14,6 +15,7 @@ import scala.collection.mutable
  * @version 11/16/15
  */
 class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
+                   (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId])
   extends ConfigAccumulator {
 
   val cfgHost = configHost
@@ -22,20 +24,15 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
 
   var cfgClient: ConfigClient = null
 
-  val bucketNames = mutable.LinkedHashMap[String, String](
-    "ROOT_CONF" -> "fk-connekt-root",
-    "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(UtilsEnv.getConfEnv)
-  )
-
   val bucketConfigs = mutable.LinkedHashMap[String, Config]()
 
   var appConfig: Config = ConfigFactory.empty()
 
-  def readConfigs: List[Config] = {
+  def readConfigs(): List[Config] = {
     cfgClient = new ConfigClient(cfgHost, cfgfPort, cfgAppVer)
-    ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketNames.values.toString()}}]")
+    ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketIdMap.values.toString()}}]")
 
-    for(bucketName <- bucketNames.values) {
+    for(bucketName <- bucketIdMap.values) {
       val bucket = cfgClient.getDynamicBucket(bucketName)
       bucketConfigs.put(bucketName, ConfigFactory.parseMap(bucket.getKeys))
       ConnektLogger(LogFile.SERVICE).info(s"Fetched config for bucket: $bucketName [$bucket]")
@@ -63,7 +60,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
 
   def init() = {
     ConnektLogger(LogFile.SERVICE).info("Connekt config init.")
-    val configs = readConfigs
+    val configs = readConfigs()
     this.synchronized {
       appConfig = overlayConfigs(configs: _*)
     }
@@ -77,14 +74,16 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
 }
 
 object ConnektConfig {
+  type BucketName = String
+  type ConfigBucketId = String
+
   var instance: ConnektConfig = null
 
-  def apply(configHost: String = "config-service.nm.flipkart.com",
-            configPort: Int = 80,
-            configAppVersion: Int = 1) = {
+  def apply(configHost: String = "config-service.nm.flipkart.com", configPort: Int = 80, configAppVersion: Int = 1)
+           (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(UtilsEnv.getConfEnv))) = {
     this.synchronized {
       if(null == instance) {
-        instance = new ConnektConfig(configHost, configPort, configAppVersion)
+        instance = new ConnektConfig(configHost, configPort, configAppVersion)(bucketIdMap)
         instance.init()
       }
     }

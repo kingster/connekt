@@ -17,6 +17,6 @@ with Matchers with OptionValues with Inside with Inspectors with BeforeAndAfterA
     val logConfigFile =  getClass.getClassLoader.getResourceAsStream("logback-test.xml")
     ConnektLogger.init(logConfigFile)
 
-    ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
+    ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
   }
 }

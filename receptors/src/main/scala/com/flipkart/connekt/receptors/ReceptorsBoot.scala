@@ -21,7 +21,7 @@ object ReceptorsBoot  {
 
   def start() {
     if (!initialized.get()) {
-      ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
+      ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
 
       val logConfigFile = getClass.getClassLoader.getResourceAsStream("logback-receptors.xml")
       ConnektLogger.init(logConfigFile)
