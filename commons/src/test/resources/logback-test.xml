@@ -14,6 +14,19 @@
     <logger name="FACTORY" level="DEBUG">
         <appender-ref ref="STDOUT" />
     </logger>
+    <logger name="WORKERS" level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="CLIENTS" level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="PROCESSORS" level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="kafka" level="ERROR" />
+    <logger name="org.apache" level="ERROR" />
+
     <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
