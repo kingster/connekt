@@ -14,8 +14,8 @@ class DeviceDetailsDaoTest extends BaseCommonsTest {
 
   val deviceId = UUID.randomUUID().toString
   val appName = "connekt"
-  val userId = "ACCIDZA86P"
-  val tokenId = "40XQocR2LOWxmNOMSQ3i&2GwvZc&79zehJ%&3&M%O4Bs#9R3RLzNiB!9TIOBkLDB#rB83q!ntFdqw@OPuqc$A@Y0^xAy&V@57eFajqAcJ2k1ktVa0^KxQzbdG"
+  val userId = "ACCID" + StringUtils.generateRandomStr(6)
+  val tokenId = UUID.randomUUID().toString.replaceAll("-","")
 
   val deviceDetails = DeviceDetails(deviceId, userId, tokenId, UUID.randomUUID().toString, UUID.randomUUID().toString,
     appName, UUID.randomUUID().toString, UUID.randomUUID().toString, UUID.randomUUID().toString, UUID.randomUUID().toString, true)
@@ -29,11 +29,9 @@ class DeviceDetailsDaoTest extends BaseCommonsTest {
   }
 
   "Device Details Dao" should " get by userId" in{
+    println(DaoFactory.getDeviceDetailsDao.getByUserId(appName,userId).head )
     DaoFactory.getDeviceDetailsDao.getByUserId(appName,userId).nonEmpty shouldBe true
     DaoFactory.getDeviceDetailsDao.getByUserId(appName,StringUtils.generateRandomStr(12)).nonEmpty shouldBe false
-    println(DaoFactory.getDeviceDetailsDao.getByUserId(appName,userId).head )
-    DaoFactory.getDeviceDetailsDao.getByUserId(appName,userId).head shouldEqual deviceDetails
-
   }
 
   "Device Details Dao" should " get by token" in{
