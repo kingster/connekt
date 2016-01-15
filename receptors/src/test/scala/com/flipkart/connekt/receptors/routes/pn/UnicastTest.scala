@@ -39,7 +39,7 @@ class UnicastTest extends BaseRouteTest {
           |	"meta": {}
           |}        """.stripMargin
 
-      Post("/v1/push/unicast/android/ConnectSampleApp/bbd505411b210e38b15142bd6a0de0f6", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+      Post("/v1/send/push/unicast/android/ConnectSampleApp/bbd505411b210e38b15142bd6a0de0f6", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
         unicastRoute ~>
         check {
           status shouldEqual StatusCodes.Created

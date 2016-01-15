@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, ClosedShape, SourceShape}
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
+import org.scalatest.Ignore
 
 /**
  *
@@ -11,6 +12,7 @@ import com.flipkart.connekt.commons.tests.ConnektUTSpec
  * @author durga.s
  * @version 12/1/15
  */
+@Ignore
 class FlowSample extends ConnektUTSpec {
 
   lazy implicit val system = ActorSystem("sample-akka-stream")

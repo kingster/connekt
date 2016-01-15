@@ -26,8 +26,9 @@
 
     <logger name="kafka" level="ERROR" />
     <logger name="org.apache" level="ERROR" />
+    <logger name="com.flipkart" level="ALL" />
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
