@@ -5,9 +5,8 @@ import java.io.IOException
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao.ColumnData
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{ChannelRequestInfo, CallbackEvent}
+import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
 
-import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
 
 /**
@@ -45,7 +44,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(requestId: String, contactId: String): List[CallbackEvent] = {
+  def fetchCallbackEvents(requestId: String, contactId: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent] = {
     val colFamiliesReqd = List(columnFamily)
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
@@ -65,6 +64,6 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo): List[CallbackEvent]
+  def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): List[CallbackEvent]
   def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]]
 }

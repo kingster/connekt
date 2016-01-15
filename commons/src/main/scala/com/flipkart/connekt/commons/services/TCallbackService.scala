@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.services
 
+import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 
 import scala.util.Try
@@ -11,9 +12,9 @@ import scala.util.Try
  * @version 12/9/15
  */
 trait TCallbackService extends TService {
-  def persistCallbackEvent(requestId: String, forContact: String, channel: String, callbackEvent: CallbackEvent): Try[String]
-  def fetchCallbackEvent(requestId: String, contactId: String, channel: String): Try[List[CallbackEvent]]
-  def fetchCallbackEventByContactId(contactId: String, channel: String): Try[List[CallbackEvent]]
-  def fetchEventsMapForContactId(contactId: String, channel: String): Try[Map[String, List[CallbackEvent]]]
-  def fetchCallbackEventByMId(messageId: String, channel: String): Try[List[CallbackEvent]]
+  def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String]
+  def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]]
+  def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]]
+  def fetchEventsMapForContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]]
+  def fetchCallbackEventByMId(messageId: String, channel: Channel.Value): Try[List[CallbackEvent]]
 }

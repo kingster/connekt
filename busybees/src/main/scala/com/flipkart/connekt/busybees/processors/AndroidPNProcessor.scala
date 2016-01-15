@@ -3,6 +3,7 @@ package com.flipkart.connekt.busybees.processors
 import akka.actor.{Actor, Props}
 import com.flipkart.connekt.busybees.clients.GCMSender
 import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
 
@@ -34,17 +35,17 @@ class AndroidPNProcessor extends Actor {
     case (messageId: String, deviceId: String, p: GCMProcessed) =>
       val eventType = p.results.head.getOrElse("error", "GCM_RECEIVED").toUpperCase
       val event = PNCallbackEvent(messageId = messageId, deviceId = deviceId, platform = "android", eventType = eventType, appName = "", contextId = "", cargo = "", timestamp = System.currentTimeMillis())
-      ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, "PN", event)
+      ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, Channel.PN, event)
       ConnektLogger(LogFile.PROCESSORS).info(s"GCM Response [$messageId], success: ${p.success}, failure: ${p.failure}")
 
     case (messageId: String, deviceId: String, r: GCMRejected) =>
       val event = PNCallbackEvent(messageId = messageId, deviceId = deviceId, platform = "android", eventType = "GCM_REJECTED", appName = "", contextId = "", cargo = "", timestamp = System.currentTimeMillis())
-      ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, "PN", event)
+      ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, Channel.PN, event)
       ConnektLogger(LogFile.PROCESSORS).info(s"GCM Rejected [$messageId], code: ${r.statusCode}")
 
     case (messageId: String, deviceId: String, f: GCMSendFailure) =>
       val event = PNCallbackEvent(messageId = messageId, deviceId = deviceId, platform = "android", eventType = "GCM_FAILURE", appName = "", contextId = "", cargo = "", timestamp = System.currentTimeMillis())
-      ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, "PN", event)
+      ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, Channel.PN, event)
       ConnektLogger(LogFile.PROCESSORS).info(s"GCM Send Failure [$messageId], e: ${f.error}")
 
     case _ =>

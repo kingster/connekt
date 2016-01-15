@@ -7,7 +7,7 @@ import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
-
+import com.flipkart.connekt.commons.entities.Channel
 /**
  *
  *
@@ -24,7 +24,7 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
             (channel: String, contactId: String, messageId: String) =>
               authorize(user, "REPORTS") {
                 get {
-                  val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, channel).get
+                  val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, Channel.withName(channel.toUpperCase)).get
                   complete(respond[GenericResponse](
                     StatusCodes.OK, Seq.empty[HttpHeader],
                     GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId $contactId fetched.", Map(contactId -> events)))

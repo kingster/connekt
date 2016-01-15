@@ -7,6 +7,7 @@ import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
 import scala.util.Try
+import com.flipkart.connekt.commons.entities.Channel
 
 /**
  *
@@ -25,7 +26,10 @@ class Fetch extends BaseHandler {
               get {
                 parameters('startTs ?, 'endTs ?){ (startTs, endTs) =>
                   def fetchMessages = {
-                    val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(subscriberId, "push")
+                    val startTime = startTs.map(_.toLong).getOrElse(System.currentTimeMillis() - 7 * 24 * 3600)
+                    val endTime = endTs.map(_.toLong).getOrElse(System.currentTimeMillis())
+
+                    val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(subscriberId, Channel.PN, startTime, endTime)
                     val messageService = ServiceFactory.getMessageService
 
                     val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
