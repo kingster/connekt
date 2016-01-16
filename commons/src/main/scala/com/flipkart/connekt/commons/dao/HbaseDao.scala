@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
 trait HbaseDao {
 
   @throws[IOException]
-  def addRow(tableName: String, rowKey: String, data: Map[String, Map[String, Array[Byte]]])(implicit hTableInterface: HTableInterface) = {
+  def addRow( rowKey: String, data: RowData)(implicit hTableInterface: HTableInterface) = {
 
     val put: Put = new Put(rowKey.getBytes(CharEncoding.UTF_8))
     data.foreach { case (colFamily, v) =>
@@ -36,7 +36,13 @@ trait HbaseDao {
   }
 
   @throws[IOException]
-  def fetchRow(tableName: String, rowKey: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): RowData = {
+  def removeRow(rowKey: String)(implicit hTableInterface: HTableInterface):Unit={
+    val del = new Delete(rowKey.getUtf8Bytes)
+    hTableInterface.delete(del)
+  }
+
+  @throws[IOException]
+  def fetchRow( rowKey: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): RowData = {
 
     val get: Get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
     colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
@@ -54,7 +60,7 @@ trait HbaseDao {
   }
 
   @throws[IOException]
-  def fetchRowKeys(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface):List[String] = {
+  def fetchRowKeys(rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface):List[String] = {
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
     scan.setStopRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -79,7 +85,6 @@ trait HbaseDao {
 
   /**
    *
-   * @param tableName
    * @param rowStartKeyPrefix
    * @param rowStopKeyPrefix
    * @param colFamilies
@@ -88,7 +93,7 @@ trait HbaseDao {
    * @return Map [Row ]
    */
   @throws[IOException]
-  def fetchRows(tableName: String, rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String],timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
+  def fetchRows(rowStartKeyPrefix: String,rowStopKeyPrefix: String, colFamilies: List[String],timeRange: Option[(Long,Long)] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
 
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))

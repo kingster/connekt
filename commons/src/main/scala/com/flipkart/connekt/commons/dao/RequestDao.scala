@@ -41,7 +41,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
       val channelRequestDataProps = channelRequestDataMap(request.channelData)
 
       val rawData = Map[String, Map[String, Array[Byte]]]("r" -> requestProps, "c" -> channelRequestInfoProps, "t" -> channelRequestDataProps)
-      addRow(hTableName, requestId, rawData)
+      addRow( requestId, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Request info persisted for $requestId")
     } catch {
@@ -57,7 +57,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("r", "c", "t")
-      val rawData = fetchRow(hTableName, connektId, colFamiliesReqd)
+      val rawData = fetchRow( connektId, colFamiliesReqd)
 
       val reqProps = rawData.get("r")
       val reqChannelInfoProps = rawData.get("c")
@@ -96,7 +96,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
     try {
       val statusPropsMap = channelRequestDataMap(status)
       val rawData = Map[String, Map[String, Array[Byte]]]("t" -> statusPropsMap)
-      addRow(hTableName, id, rawData)
+      addRow( id, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Request status updated for $id")
     } catch {
@@ -112,7 +112,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
     implicit val hTableInterface = hTableFactory.getTableInterface(tableName)
     try {
       val colFamiliesReqd = List("c")
-      val rawData = fetchRow(hTableName, id, colFamiliesReqd)
+      val rawData = fetchRow(  id, colFamiliesReqd)
 
       val reqProps = rawData.get("c")
       reqProps.map(getChannelRequestInfo)

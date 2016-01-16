@@ -5,6 +5,7 @@ import java.io.IOException
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.roundeights.hasher.Implicits._
 
@@ -22,7 +23,6 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
   val hUserIndexTableName = tableName + "-user-index"
   val hTokenIndexTableName = tableName + "-token-index"
 
-
   private def getRowKey(appName: String, deviceId: String) = appName.toLowerCase + "_" + deviceId
 
   private def getUserIndexRowKey(appName :String, deviceId:String, userId:String) = appName.toLowerCase + "_"  + userId + "_" + deviceId
@@ -31,7 +31,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
   private def getTokenIndexRowKey(appName :String, deviceId:String, tokenId:String) = appName.toLowerCase + "_"  + tokenId.sha256.hash.hex + "_" + deviceId
   private def getTokenIndexRowPrefix(appName :String,  tokenId:String) = appName.toLowerCase + "_"  + tokenId.sha256.hash.hex + "_"
 
-  def add(deviceDetails: DeviceDetails)  = {
+  def add(appName:String, deviceDetails: DeviceDetails)  = {
 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     val hUserIndexTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
@@ -51,16 +51,17 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
       val deviceMetaCfProps = Map[String, Array[Byte]](
         "brand" -> deviceDetails.brand.getUtf8Bytes,
         "model" -> deviceDetails.model.getUtf8Bytes,
-        "state" -> deviceDetails.state.getUtf8Bytes,
-        "altPush" -> deviceDetails.altPush.toString.getUtf8Bytes
+        "state" -> deviceDetails.state.getUtf8Bytes
       )
 
       val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps, "a" -> deviceMetaCfProps)
-      addRow(hTableName, getRowKey(deviceDetails.appName, deviceDetails.deviceId), rawData)
+      addRow( getRowKey(deviceDetails.appName, deviceDetails.deviceId), rawData)
 
       // Add secondary indexes.
-      addRow(hUserIndexTableName, getUserIndexRowKey(deviceDetails.appName, deviceDetails.deviceId,deviceDetails.userId), HbaseDao.emptyRowData)(hUserIndexTableInterface)
-      addRow(hTokenIndexTableName, getTokenIndexRowKey(deviceDetails.appName, deviceDetails.deviceId, deviceDetails.token), HbaseDao.emptyRowData)(hTokenIndexTableInterface)
+      addRow( getTokenIndexRowKey(deviceDetails.appName, deviceDetails.deviceId, deviceDetails.token), HbaseDao.emptyRowData)(hTokenIndexTableInterface)
+
+      if(!StringUtils.isNullOrEmpty(deviceDetails.userId))
+        addRow( getUserIndexRowKey(deviceDetails.appName, deviceDetails.deviceId,deviceDetails.userId), HbaseDao.emptyRowData)(hUserIndexTableInterface)
 
 
       ConnektLogger(LogFile.DAO).info(s"DeviceDetails registered for ${deviceDetails.deviceId}")
@@ -79,7 +80,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("p", "a")
-      val rawData = fetchRow(hTableName, getRowKey(appName, deviceId) , colFamiliesReqd)
+      val rawData = fetchRow( getRowKey(appName, deviceId) , colFamiliesReqd)
 
       val devRegProps = rawData.get("p")
       val devMetaProps = rawData.get("a")
@@ -100,8 +101,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
           appVersion = get("appVersion"),
           brand = get("brand"),
           model = get("model"),
-          state = get("state"),
-          altPush = getB("altPush")
+          state = get("state")
         )
       })
 
@@ -118,7 +118,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
     val rowKeyPrefix = getTokenIndexRowPrefix(appName, tokenId)
-    val deviceIndex = fetchRowKeys(hTokenIndexTableName,rowKeyPrefix, rowKeyPrefix+"{",List("d"))
+    val deviceIndex = fetchRowKeys(rowKeyPrefix, rowKeyPrefix+"{",List("d"))
+    hTableConnFactory.releaseTableInterface(hTableInterface)
 
     deviceIndex.headOption.map(_.split("_").last).flatMap(get(appName, _))
   }
@@ -127,9 +128,45 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
     val rowKeyPrefix = getUserIndexRowPrefix(appName, accId)
-    val devices = fetchRowKeys(hUserIndexTableName,rowKeyPrefix, rowKeyPrefix+"{",List("d"))
+    val devices = fetchRowKeys(rowKeyPrefix, rowKeyPrefix+"{",List("d"))
+    hTableConnFactory.releaseTableInterface(hTableInterface)
+
     devices.map(_.split("_").last).flatMap(get(appName, _))
   }
+
+  /**
+    * Update takes care of updateing/removeing older index's and then updating the deviceDetails
+    * @param appName
+    * @param deviceId
+    * @param _deviceDetails
+    */
+  def update(appName:String, deviceId:String, _deviceDetails: DeviceDetails ) = {
+    val current = get(appName, deviceId)
+    val deviceDetails = _deviceDetails.copy(deviceId = deviceId) //overide, to take care of developer mistakes
+    current.foreach( existingDetails => {
+      if(existingDetails.token != deviceDetails.token)
+        deleteTokenIdIndex(appName,deviceId, existingDetails.token)
+      if(!StringUtils.isNullOrEmpty(existingDetails.userId) && existingDetails.userId != deviceDetails.userId )
+        deleteUserIdIndex(appName, deviceId, existingDetails.token)
+      add(appName,deviceDetails)
+    })
+  }
+
+  private  def deleteTokenIdIndex(appName:String, deviceId:String, tokenId:String ) = {
+    implicit val hTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
+    val rowKey = getTokenIndexRowKey(appName, deviceId,tokenId)
+    removeRow(rowKey)
+    hTableConnFactory.releaseTableInterface(hTableInterface)
+  }
+
+  private def deleteUserIdIndex(appName:String, deviceId:String, userId:String ) = {
+    implicit val hTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
+    val rowKey = getUserIndexRowKey(appName, deviceId,userId)
+    removeRow(rowKey)
+    hTableConnFactory.releaseTableInterface(hTableInterface)
+  }
+
+
 }
 
 object DeviceDetailsDao {

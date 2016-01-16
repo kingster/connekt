@@ -49,7 +49,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
         "deviceId" -> "0b6dc5db9fd9f664438f4f9ea03e53d7".getBytes(CharEncoding.UTF_8)
       )
 
-      addRow(tblName, rowKey, Map[String, Map[String, Array[Byte]]]("p" -> data))
+      addRow(rowKey, Map[String, Map[String, Array[Byte]]]("p" -> data))
 
       println("inserted hbase table row: %s".format(data.toString()))
     } finally {
@@ -79,7 +79,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
         ("namespace", "ceryx".getBytes(CharEncoding.UTF_8))
       )
 
-      addRow(tblName, rowKey, Map[String, Map[String, Array[Byte]]]("p" -> dataPrimary, "a" -> dataAuxiliary))
+      addRow( rowKey, Map[String, Map[String, Array[Byte]]]("p" -> dataPrimary, "a" -> dataAuxiliary))
 
       println("inserted hbase table row:\np: %s \na: %s ".format(dataPrimary.toString(), dataAuxiliary.toString()))
     } finally {
@@ -91,7 +91,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
     implicit val h = hConnectionHelper.getTableInterface(tblName)
 
     try {
-      val result = fetchRow(tblName, rowKey, List[String]("p", "a"))
+      val result = fetchRow( rowKey, List[String]("p", "a"))
 
       println("result for [%s] is :\n%s".format(rowKey, result.toString()))
     } finally {

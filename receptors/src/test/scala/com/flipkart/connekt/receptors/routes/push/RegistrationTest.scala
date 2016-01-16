@@ -21,7 +21,6 @@ class RegistrationTest extends BaseRouteTest {
         |{
         |	"deviceId": "b3f979dd66b8226d98007cbf6867712q",
         |	"state": "login",
-        |	"altPush": false,
         |	"model": "SM-G530H",
         |	"token": "APA91bGUpvddvIG4rtlf_XR12M79EclmGyWIDv0Gkwj9DpEQbmei5RvWcmFxNBCF3ZBFBgRcbV_4x1jiHjxU6DkHEWMbBcafTKoARil55xnieL8n-_ymDMWmDjr8k6ZBmqk",
         |	"brand": "samsung",
@@ -45,7 +44,6 @@ class RegistrationTest extends BaseRouteTest {
       s"""
         |{
         |	"state": "login",
-        |	"altPush": false,
         |	"model": "SM-G530H",
         |	"token": "APA91bGUpvddvIG4rtlf_XR12M79EclmGyWIDv0Gkwj9DpEQbmei5RvWcmFxNBCF3ZBFBgRcbV_4x1jiHjxU6DkHEWMbBcafTKoARil55xnieL8n-_ymDMWmDjr8k6ZBmqk",
         |	"brand": "samsung",

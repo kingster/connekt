@@ -5,6 +5,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
@@ -29,7 +30,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                   post {
                     entity(as[DeviceDetails]) { d =>
                       val deviceDetails = d.copy(appName = appName, osName = platform)
-                      def save = DaoFactory.getDeviceDetailsDao.add(deviceDetails)
+                      def save = DeviceDetailsService.add(deviceDetails)
                       async(save) {
                         case Success(t) =>
                           complete(respond[GenericResponse](
@@ -51,17 +52,17 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                 put {
                   entity(as[DeviceDetails]) { d =>
                     val deviceDetails = d.copy(appName = appName, osName = platform, deviceId = deviceId)
-                    def save = DaoFactory.getDeviceDetailsDao.add(deviceDetails)
-                    async(save) {
+                    def update = DeviceDetailsService.update(deviceId,deviceDetails)
+                    async(update) {
                       case Success(t) =>
                         complete(respond[GenericResponse](
                           StatusCodes.OK, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails registered for %s".format(d.deviceId), null))
+                          GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails updated for %s".format(d.deviceId), null))
                         ))
                       case Failure(e) =>
                         complete(respond[GenericResponse](
                           StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("DeviceDetails registration failed for %s".format(d.deviceId), null))
+                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("DeviceDetails updated failed for %s".format(d.deviceId), null))
                         ))
                     }
                   }
@@ -96,7 +97,7 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                   }
               } ~ path(Segment / "users" / Segment) {
               (appName: String, userId: String) =>
-                authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_" + appName ) {
+                authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName" ) {
                   get {
                     def fetch = DaoFactory.getDeviceDetailsDao.getByUserId(appName, userId)
                     async(fetch) {

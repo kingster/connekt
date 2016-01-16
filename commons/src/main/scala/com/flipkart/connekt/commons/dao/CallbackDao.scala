@@ -31,7 +31,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
       val channelEventProps = channelEventPropsMap(callbackEvent)
       val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
       val rowKey = s"$forContact:$requestId:$eventId"
-      addRow(hTableName, rowKey, rawData)
+      addRow(rowKey, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Event details persisted for $requestId")
       Success(requestId)
@@ -49,7 +49,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
 
-      val rawDataList = fetchRows(hTableName, s"$contactId:$requestId", s"$contactId:$requestId{", colFamiliesReqd)
+      val rawDataList = fetchRows( s"$contactId:$requestId", s"$contactId:$requestId{", colFamiliesReqd)
       rawDataList.values.flatMap(rowData => {
         val eventProps = rowData.get(columnFamily)
         eventProps.map(mapToChannelEvent)
