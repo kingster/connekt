@@ -64,6 +64,6 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): List[CallbackEvent]
+  def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]]
   def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]]
 }

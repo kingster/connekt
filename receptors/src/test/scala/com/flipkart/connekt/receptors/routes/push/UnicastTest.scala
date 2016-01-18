@@ -12,6 +12,9 @@ import com.flipkart.connekt.receptors.routes.BaseRouteTest
 class UnicastTest extends BaseRouteTest {
 
   val unicastRoute = new Unicast().unicast
+  val appName = "ConnectSampleApp"
+  val platform = "android"
+  val deviceId = "bbd505411b210e38b15142bd6a0de0f6"
   "Unicast Test" should "return success response" in {
       val payload =
         """
@@ -39,7 +42,7 @@ class UnicastTest extends BaseRouteTest {
           |	"meta": {}
           |}        """.stripMargin
 
-      Post("/v1/send/push/unicast/android/ConnectSampleApp/bbd505411b210e38b15142bd6a0de0f6", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+      Post(s"/v1/send/push/unicast/$platform/$appName/$deviceId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
         unicastRoute ~>
         check {
           status shouldEqual StatusCodes.Created

@@ -62,7 +62,7 @@ class RegistrationTest extends BaseRouteTest {
   }
 
   "Registration test " should "return Ok for fetch for deviceID" in {
-    Get(s"/v1/registration/push/$appName/$deviceId").addHeader(header) ~>
+    Get(s"/v1/registration/push/$platform/$appName/$deviceId").addHeader(header) ~>
       registrationRoute ~>
       check {
         println("response = " + responseAs[String])
