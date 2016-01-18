@@ -60,7 +60,7 @@ class CallbackService (pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallback
     }
   }
 
-  def fetchCallbackEventByMId(messageId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
+  def fetchCallbackEventByMId(messageId: String, channel: Channel.Value): Try[Map[String, List[CallbackEvent]]] = {
     try {
       val events = requestDao(channel).fetchRequestInfo(messageId)
       Success(channelEventsDao(channel).fetchCallbackEvents(messageId, events.get, None))

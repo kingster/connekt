@@ -14,5 +14,9 @@ object DeviceDetailsService {
 
   def update( deviceId:String, deviceDetails: DeviceDetails) = dao.update(deviceDetails.appName, deviceId, deviceDetails)
 
+  def getByUserId(appName: String, userId: String) = dao.getByUserId(appName, userId)
+
+  def get(appName: String, deviceId: String) = dao.get(appName, deviceId)
+
 
 }
