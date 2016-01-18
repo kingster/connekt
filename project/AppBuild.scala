@@ -52,6 +52,8 @@ object AppBuild extends Build {
       .aggregate(receptors, busybees, commons)
       .dependsOn(receptors, busybees, commons)
 
+  lazy val connekt_8087 = Project("connekt-8087", file("8087"), settings = _commonSettings)
+
   lazy val commons = Project("commons", file("commons"), settings = _commonSettings)
 
   lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)

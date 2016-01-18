@@ -15,7 +15,7 @@ import org.scalatest.Ignore
  * @author durga.s
  * @version 1/18/16
  */
-@Ignore
+//@Ignore
 class CouchbaseDaoTest extends ConnektUTSpec {
 
   private var cluster: CouchbaseCluster = null
@@ -27,7 +27,7 @@ class CouchbaseDaoTest extends ConnektUTSpec {
   }
 
   override def afterAll() = {
-    Some(cluster).map(_.disconnect())
+    Option(cluster).map(_.disconnect())
     super.afterAll()
   }
 
@@ -39,6 +39,7 @@ class CouchbaseDaoTest extends ConnektUTSpec {
   "Fetch operation" should "get an existing doc" in {
     val bucket: Bucket = cluster.openBucket("default")
     val document = bucket.get(insertId)
+    println(document)
     assert(null != document)
   }
 
