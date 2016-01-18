@@ -15,7 +15,7 @@ import org.scalatest.Ignore
  * @author durga.s
  * @version 1/18/16
  */
-//@Ignore
+@Ignore
 class CouchbaseDaoTest extends ConnektUTSpec {
 
   private var cluster: CouchbaseCluster = null
