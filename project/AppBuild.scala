@@ -1,4 +1,6 @@
+import com.aol.sbt.sonar.SonarRunnerPlugin
 import sbtassembly.AssemblyPlugin.autoImport._
+import SonarRunnerPlugin.autoImport._
 import sbtbuildinfo.Plugin._
 import sbt._
 import sbt.Keys._
@@ -36,23 +38,30 @@ object AppBuild extends Build {
       "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
       "RoundEights" at "http://maven.spikemark.net/roundeights"
     ),
-    ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
+    ivyScala := ivyScala.value map {
+      _.copy(overrideScalaVersion = true)
+    }
   )
 
   lazy val root =
-    Project("root", file("."), settings = _commonSettings)
+    Project("root", file("."))
+      .enablePlugins(SonarRunnerPlugin)
+      .settings(_commonSettings ++ Seq(
+      sonarRunnerOptions := Seq("-e")
+      ): _*)
       .aggregate(receptors, busybees, commons)
       .dependsOn(receptors, busybees, commons)
 
-  lazy val commons = Project("commons", file("commons"), settings=_commonSettings)
+  lazy val connekt_8087 = Project("connekt-8087", file("8087"), settings = _commonSettings)
 
-  lazy val receptors = Project("receptors", file("receptors"), settings=_commonSettings)
+  lazy val commons = Project("commons", file("commons"), settings = _commonSettings)
+
+  lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")
 
 
-  lazy val busybees = Project("busybees", file("busybees"), settings=_commonSettings)
+  lazy val busybees = Project("busybees", file("busybees"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")
-
 
 
   val mergeStrategy: String => sbtassembly.MergeStrategy = {
@@ -69,7 +78,7 @@ object AppBuild extends Build {
     case PathList("net", "jcip", xs@_ *) => MergeStrategy.last
 
     case PathList("org", "xmlpull", "v1", xs@_x) => MergeStrategy.first //crazy xpp3 people http://jira.codehaus.org/browse/XSTR-689
-    case PathList("javax", "xml", "namespace" , "QName.class") =>  new IncludeFromJar("xpp3-1.1.4c.jar")  //fuck u xpp3
+    case PathList("javax", "xml", "namespace", "QName.class") => new IncludeFromJar("xpp3-1.1.4c.jar") //fuck u xpp3
 
     case "mapred-default.xml" | "logback.xml" => MergeStrategy.first
     case "application.conf" | "plugin.properties" => MergeStrategy.concat
