@@ -29,7 +29,7 @@ class Fetch extends BaseHandler {
                     val startTime = startTs.map(_.toLong).getOrElse(System.currentTimeMillis() - 7 * 24 * 3600 * 1000)
                     val endTime = endTs.map(_.toLong).getOrElse(System.currentTimeMillis())
 
-                    val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(subscriberId, Channel.PN, startTime, endTime)
+                    val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(subscriberId, Channel.PUSH, startTime, endTime)
                     val messageService = ServiceFactory.getMessageService
 
                     val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {

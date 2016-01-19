@@ -2,9 +2,10 @@ package com.flipkart.connekt.receptors.routes.reports
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.Channel
+import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.receptors.directives.ChannelSegment
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
@@ -21,23 +22,23 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
     pathPrefix("v1") {
       authenticate {
         user =>
-            pathPrefix("reports" / "push") {
-              path(Segment / "messages" / Segment / Segment / "events") {
-                (appName: String, contactId: String, messageId: String) =>
+            pathPrefix("reports") {
+              path(ChannelSegment / Segment / "messages" / Segment / Segment / "events") {
+                (channel: Channel, appName: String, contactId: String, messageId: String) =>
                   authorize(user, "REPORTS") {
                     get {
-                      val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, Channel.PN).get
+                      val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, channel).get
                       complete(respond[GenericResponse](
                       StatusCodes.OK, Seq.empty[HttpHeader],
                       GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId $contactId fetched.", Map(contactId -> events)))
                     ))
                     }
                   }
-              } ~ path(Segment / "messages" / Segment / "events") {
-                (appName: String, messageId: String) =>
+              } ~ path(ChannelSegment / Segment / "messages" / Segment / "events") {
+                (channel: Channel, appName: String, messageId: String) =>
                   authorize(user, "REPORTS") {
                     get {
-                      val events = ServiceFactory.getCallbackService.fetchCallbackEventByMId(messageId, Channel.PN).get
+                      val events = ServiceFactory.getCallbackService.fetchCallbackEventByMId(messageId, channel).get
                       complete(respond[GenericResponse](
                       StatusCodes.OK, Seq.empty[HttpHeader],
                       GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId  fetched.", events))
@@ -45,8 +46,8 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
 
                     }
                   }
-              } ~ path(Segment / "messages" / Segment) {
-                (appName: String, messageId: String) =>
+              } ~ path(ChannelSegment / Segment / "messages" / Segment) {
+                (channel: Channel, appName: String, messageId: String) =>
                   authorize(user, "REPORTS") {
                     get {
                       val data = ServiceFactory.getMessageService.getRequestInfo(messageId).get
