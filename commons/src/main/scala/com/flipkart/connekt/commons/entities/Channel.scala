@@ -7,5 +7,10 @@ package com.flipkart.connekt.commons.entities
  * @version 11/28/15
  */
 object Channel extends Enumeration {
-  val PN, EMAIL, SMS, CARDS = Value
+  type Channel = Value
+  val PUSH = Value("push")
+  val EMAIL = Value("email")
+  val SMS = Value("sms")
+  val CARDS = Value("cards")
+  val OPENWEB = Value("openweb")
 }

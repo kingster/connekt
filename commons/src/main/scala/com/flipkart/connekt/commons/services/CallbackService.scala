@@ -17,12 +17,12 @@ import scala.util.{Failure, Success, Try}
 class CallbackService (pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService {
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
-    case Channel.PN => pnEventsDao
+    case Channel.PUSH => pnEventsDao
     case Channel.EMAIL => emailEventsDao
   }
 
   private def requestDao(channel: Channel.Value) = channel match {
-    case Channel.PN => pnRequestDao
+    case Channel.PUSH => pnRequestDao
     case Channel.EMAIL => emailRequestDao
   }
 
