@@ -38,7 +38,7 @@ class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDa
       """.stripMargin
 
     try {
-      update(q, stencil.id, stencil.engine, stencil.engineFabric, stencil.engine, stencil.engineFabric)
+      update(q, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.engine.toString, stencil.engineFabric)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}}] ${e.getMessage}", e)

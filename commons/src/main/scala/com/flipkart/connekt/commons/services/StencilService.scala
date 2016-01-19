@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.entities.StencilEngine
+import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
 import com.flipkart.connekt.commons.entities.fabric.{FabricMaker, GroovyFabric, PNGroovyFabric}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ConnektRequest, PNRequestData}
@@ -11,6 +11,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * Created by kinshuk.bairagi on 14/12/15.
  */
 object StencilService {
+
 
   def render(req:ConnektRequest):Option[ChannelRequestData] = {
     val stencil = DaoFactory.getStencilDao.getStencil(req.templateId)
@@ -29,6 +30,14 @@ object StencilService {
       }
     )
   }
+
+  def add(stencil: Stencil) = DaoFactory.getStencilDao.updateStencil(stencil)
+
+  def update(stencil: Stencil) = DaoFactory.getStencilDao.updateStencil(stencil)
+
+  def get(id: String) = DaoFactory.getStencilDao.getStencil(id)
+
+
 
 }
 
