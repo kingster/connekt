@@ -1,6 +1,7 @@
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{StatusCodes, MediaTypes, HttpEntity}
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
 
 /**
@@ -11,7 +12,7 @@ class RegistrationTest extends BaseRouteTest {
   val registrationRoute = new Registration().register
   val appName = "RetailApp"
   val platform = "android"
-  val deviceId = "b3f979dd66b8226d98007cbf6867712"
+  val deviceId =  "b3f979dd66b8226d98007cbf6867712" + StringUtils.generateRandomStr(4)
   val userId = "ACC608E23783652405FA6A7A67E70F41924"
 
 
@@ -30,7 +31,7 @@ class RegistrationTest extends BaseRouteTest {
         |}
       """.stripMargin
 
-    Post(s"/v1/registration/push/$platform/$appName", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+    Put(s"/v1/registration/push/$platform/$appName/$deviceId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       registrationRoute ~>
       check {
         status shouldEqual StatusCodes.Created
