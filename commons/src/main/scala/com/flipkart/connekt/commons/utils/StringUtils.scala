@@ -10,6 +10,7 @@ import org.apache.commons.codec.CharEncoding
 
 import scala.reflect.ClassTag
 import scala.reflect._
+import NullWrapper._
 /**
  *
  *
@@ -20,10 +21,20 @@ object StringUtils {
 
   implicit class StringHandyFunctions(val s: String) {
     def getUtf8Bytes = s.getBytes(CharEncoding.UTF_8)
+
+    def getUtf8BytesNullWrapped = Option(s).map(_.getUtf8Bytes).orNull.wrap
+
   }
+
 
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
     def getString = new String(b, CharEncoding.UTF_8)
+
+    def getStringNullable = b.unwrap match {
+      case array if array.isEmpty => null
+      case value => new String(value, CharEncoding.UTF_8)
+    }
+
   }
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper

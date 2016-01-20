@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.commons.codec.CharEncoding
+import org.apache.hadoop.hbase.KeyValue
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, FilterList, PrefixFilter}
 import org.apache.hadoop.hbase.util.Bytes
@@ -22,13 +23,14 @@ import scala.collection.JavaConverters._
  */
 trait HbaseDao {
 
+
   @throws[IOException]
   def addRow( rowKey: String, data: RowData)(implicit hTableInterface: HTableInterface) = {
 
     val put: Put = new Put(rowKey.getBytes(CharEncoding.UTF_8))
     data.foreach { case (colFamily, v) =>
       v.foreach { case (colQualifier, d) =>
-        put.add(colFamily.getBytes(CharEncoding.UTF_8), colQualifier.getBytes(CharEncoding.UTF_8), d)
+          put.add(colFamily.getBytes(CharEncoding.UTF_8), colQualifier.getBytes(CharEncoding.UTF_8), d)
       }
     }
 

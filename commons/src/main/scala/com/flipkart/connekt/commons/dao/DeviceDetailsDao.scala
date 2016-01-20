@@ -40,18 +40,18 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     try {
       val deviceRegInfoCfProps = Map[String, Array[Byte]](
         "deviceId" -> deviceDetails.deviceId.getUtf8Bytes,
-        "userId" -> deviceDetails.userId.getUtf8Bytes,
+        "userId" -> deviceDetails.userId.getUtf8BytesNullWrapped,
         "token" -> deviceDetails.token.getUtf8Bytes,
         "osName" -> deviceDetails.osName.getUtf8Bytes,
-        "osVersion" -> deviceDetails.osVersion.getUtf8Bytes,
+        "osVersion" -> deviceDetails.osVersion.getUtf8BytesNullWrapped,
         "appName" -> deviceDetails.appName.getUtf8Bytes,
         "appVersion" -> deviceDetails.appVersion.getUtf8Bytes
       )
 
       val deviceMetaCfProps = Map[String, Array[Byte]](
-        "brand" -> deviceDetails.brand.getUtf8Bytes,
-        "model" -> deviceDetails.model.getUtf8Bytes,
-        "state" -> deviceDetails.state.getUtf8Bytes
+        "brand" -> deviceDetails.brand.getUtf8BytesNullWrapped,
+        "model" -> deviceDetails.model.getUtf8BytesNullWrapped,
+        "state" -> deviceDetails.state.getUtf8BytesNullWrapped
       )
 
       val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps, "a" -> deviceMetaCfProps)
@@ -88,21 +88,23 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
       val allProps = devRegProps.flatMap[Map[String, Array[Byte]]](r => devMetaProps.map[Map[String, Array[Byte]]](m => m ++ r))
 
       allProps.map(fields => {
-        def get(key: String) = fields.get(key).map(new String(_)).orNull
-        def getB(key: String) = fields.get(key).exists(b => java.lang.Boolean.parseBoolean(new String(b)))
+
+        def get(key: String) = fields.get(key).map(v => v.getString).orNull
+        def getNullableString(key: String) = fields.get(key).map(v => v.getStringNullable).orNull
 
         DeviceDetails(
           deviceId = get("deviceId"),
-          userId = get("userId"),
+          userId = getNullableString("userId"),
           token = get("token"),
           osName = get("osName"),
-          osVersion = get("osVersion"),
+          osVersion = getNullableString("osVersion"),
           appName = get("appName"),
           appVersion = get("appVersion"),
-          brand = get("brand"),
-          model = get("model"),
-          state = get("state")
+          brand = getNullableString("brand"),
+          model = getNullableString("model"),
+          state = getNullableString("state")
         )
+
       })
 
     } catch {
