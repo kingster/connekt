@@ -37,7 +37,7 @@ object ReceptorsServer extends BaseHandler{
       ExceptionHandler {
         case e: Throwable =>
           val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
-          ConnektLogger(LogFile.SERVICE).error(s"# -- $errorUID  -- $e.getMessage", e)
+          ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- ${errorUID}  --  Reason [ ${e.getMessage} ]", e)
           val response = Map("message" -> ("Server Error # " + errorUID), "reason" -> e.getMessage)
           complete(respond[GenericResponse](
             StatusCodes.InternalServerError, Seq.empty[HttpHeader],
