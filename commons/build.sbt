@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
   "com.flipkart.kloud.config" % "client-java" % "1.0.8",
+  "com.esotericsoftware" % "kryo-shaded" % "3.0.3",
   "org.apache.hbase" % "hbase" % "0.94.15-cdh4.7.0" excludeAll(
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
     ExclusionRule(organization = "javax.servlet"),
@@ -46,7 +47,7 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "jline", name = "jline"),
     ExclusionRule(organization = "commons-beanutils")
     ),
-  "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
+  "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "ch.qos.logback" % "logback-core" % "1.1.3",
   "ch.qos.logback" % "logback-classic" % "1.1.3",
