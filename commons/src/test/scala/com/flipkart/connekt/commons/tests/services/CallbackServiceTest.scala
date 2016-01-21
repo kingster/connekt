@@ -6,14 +6,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent, PNRequestData, PNRequestInfo}
-import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 
 /**
  * @author aman.shrivastava on 10/12/15.
  */
-class CallbackServiceTest extends BaseCommonsTest {
+class CallbackServiceTest extends CommonsBaseTest {
   val channel: String = "push"
   var mid = ""
   var callBackEvent = PNCallbackEvent(

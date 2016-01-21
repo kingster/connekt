@@ -4,12 +4,12 @@ import java.util.UUID
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 /**
  * @author aman.shrivastava on 11/12/15.
  */
-class UserInfoDaoTest extends BaseCommonsTest {
+class UserInfoDaoTest extends CommonsBaseTest {
   val id = UUID.randomUUID().toString
   val user = new AppUser(id, UUID.randomUUID().toString, "bro,commsvc", 345678875, "aman.s")
 

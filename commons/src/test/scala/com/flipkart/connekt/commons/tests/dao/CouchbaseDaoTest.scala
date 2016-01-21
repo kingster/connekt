@@ -3,9 +3,10 @@ package com.flipkart.connekt.commons.tests.dao
 import java.util.UUID
 
 import com.couchbase.client.deps.io.netty.buffer.Unpooled
-import com.couchbase.client.java.document.{BinaryDocument, StringDocument, JsonDocument}
 import com.couchbase.client.java.document.json.JsonObject
-import com.couchbase.client.java.{Bucket, CouchbaseCluster}
+import com.couchbase.client.java.document.{BinaryDocument, JsonDocument, StringDocument}
+import com.couchbase.client.java.{Bucket, Cluster}
+import com.flipkart.connekt.commons.dal.impl.couchbase.CouchbaseMockCluster
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.flipkart.connekt.commons.utils.StringUtils
 import org.scalatest.Ignore
@@ -16,10 +17,10 @@ import org.scalatest.Ignore
  * @author durga.s
  * @version 1/18/16
  */
-//@Ignore
+@Ignore
 class CouchbaseDaoTest extends ConnektUTSpec {
 
-  private var cluster: CouchbaseCluster = null
+  private var cluster: Cluster = null
   private var insertId1: String = UUID.randomUUID().toString
   private var insertId2: String = UUID.randomUUID().toString
   private var insertId3: String = UUID.randomUUID().toString
@@ -86,6 +87,7 @@ class CouchbaseDaoTest extends ConnektUTSpec {
   }
 
   private def createClusterConn() = {
-    cluster = CouchbaseCluster.create("10.32.113.29", "10.33.125.53")
+    //cluster = CouchbaseCluster.create("10.32.113.29", "10.33.125.53")
+    cluster = new CouchbaseMockCluster
   }
 }
