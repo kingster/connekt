@@ -42,7 +42,10 @@ object StringUtils {
 
   implicit class JSONMarshallFunctions(val o: AnyRef) {
     def getJson = objMapper.writeValueAsString(o)
+
   }
+
+
   
   implicit class JSONUnMarshallFunctions(val s: String) {
     def getObj[T: ClassTag] = objMapper.readValue(s, classTag[T].runtimeClass).asInstanceOf[T]

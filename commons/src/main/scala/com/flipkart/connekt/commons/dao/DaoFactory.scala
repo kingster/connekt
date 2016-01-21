@@ -1,7 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
+import com.couchbase.client.java.{Bucket, CouchbaseCluster}
 import com.flipkart.connekt.commons.behaviors.{HTableFactory, MySQLFactory}
-import com.flipkart.connekt.commons.helpers.{HConnectionHelper, MySqlConnectionHelper}
+import com.flipkart.connekt.commons.helpers.{CouchbaseConnectionHelper, HConnectionHelper, MySqlConnectionHelper}
 import com.typesafe.config.Config
 
 /**
@@ -13,8 +14,12 @@ import com.typesafe.config.Config
 object DaoFactory {
 
   var daoMap = Map[DaoType.Value, Dao]()
-  var hTableFactory: HTableFactory = null
   var mysqlFactoryWrapper: MySQLFactory = null
+
+  var hTableFactory: HTableFactory = null
+
+  var couchBaseCluster:CouchbaseCluster = null
+  var couchbaseBuckets: Map[String,Bucket] = null
 
   def initHTableDaoFactory(hConnectionConfig: Config) = {
     hTableFactory = HConnectionHelper.createHbaseConnection(hConnectionConfig)
@@ -34,6 +39,25 @@ object DaoFactory {
     daoMap += DaoType.USERINFO -> UserInfo("USER_INFO", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEDGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
     daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", mysqlFactoryWrapper)
+  }
+
+  def initCouchbaseCluster(cf:Config) {
+    couchBaseCluster = CouchbaseConnectionHelper.createCouchBaseConnection(cf)
+    couchbaseBuckets = Map()
+  }
+
+  def getCouchbaseBucket(name:String = "default"):Bucket = {
+    couchbaseBuckets.get(name) match {
+      case Some(x) => x
+      case None =>
+        val bucket = couchBaseCluster.openBucket(name)
+        couchbaseBuckets += name -> bucket
+        bucket
+    }
+  }
+
+  def shutdownCouchbaseCluster(){
+    Option(couchBaseCluster).foreach(_.disconnect())
   }
 
   def getDeviceDetailsDao: DeviceDetailsDao = daoMap(DaoType.DEVICE_DETAILS).asInstanceOf[DeviceDetailsDao]
