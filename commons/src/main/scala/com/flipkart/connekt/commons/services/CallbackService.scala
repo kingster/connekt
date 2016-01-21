@@ -27,36 +27,24 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   }
 
   override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
-    try {
+    Try {
       channelEventsDao(channel).saveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
-      Success(requestId)
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed saving event for $requestId, ${e.getMessage}", e)
-        Failure(e)
+      requestId
     }
   }
 
   override def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
-    try {
-      Success(channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None))
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed fetching event for $requestId, ${e.getMessage}", e)
-        Failure(e)
+    Try {
+      channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None)
     }
   }
 
   private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 
   def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
-    try {
-      Success(channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(minTimestamp, maxTimestamp)))
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed fetching event for $contactId, ${e.getMessage}", e)
-        Failure(e)
+    Try {
+      channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(minTimestamp, maxTimestamp)))
     }
   }
 
