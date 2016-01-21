@@ -21,9 +21,12 @@ Getting Started
 	```bash
 	git add <files>
 	...
-	git commit -m "What changes does this commit make ?"
+	git commit -m "CST-<JIRA-NO> What changes does this commit make ?"
 	git push
 	```
+	
+#### Running Locally
+To run the project locally ``sbt run `` and follow the instructions. For running receptors you will need to run ``sbt "run receptors"``.
 
 #### Promoting
 Promoting local changes to an environment
