@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.cache
 
-import com.couchbase.client.java.document.JsonDocument
+import com.couchbase.client.java.document.{StringDocument, JsonDocument}
 import com.couchbase.client.java.document.json.JsonObject
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
@@ -59,8 +59,7 @@ class DistributedCache[T](val cacheName: DistributedCacheType.Value, props: Cach
 
   override def put(key: String, value: T): Boolean = {
     try {
-      val data = Map("d" -> value.asInstanceOf[AnyRef].getJson).asJava
-      cacheStorageBucket.insert(JsonDocument.create(key, JsonObject.from(data)))
+      cacheStorageBucket.insert(StringDocument.create(key, value.asInstanceOf[AnyRef].getJson))
       true
     } catch {
       case e: Exception =>
@@ -70,11 +69,10 @@ class DistributedCache[T](val cacheName: DistributedCacheType.Value, props: Cach
   }
 
   override def get(key: String): Option[T] = {
-    cacheStorageBucket.get(key) match {
+    cacheStorageBucket.get(StringDocument.create(key)) match {
       case null => None
-      case x: JsonDocument =>
-        val actualData = x.content().get("d")
-        Option(actualData.toString.getObj[T])
+      case x: StringDocument =>
+        Option(x.content().getObj[T])
     }
   }
 
