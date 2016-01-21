@@ -77,7 +77,7 @@ class DistributedCache[T](val cacheName: DistributedCacheType.Value, props: Cach
   }
 
   def remove(key: String) {
-    cacheStorageBucket.remove(key)
+    cacheStorageBucket.remove(StringDocument.create(key))
   }
 
   override def exists(key: String): Boolean = ???
