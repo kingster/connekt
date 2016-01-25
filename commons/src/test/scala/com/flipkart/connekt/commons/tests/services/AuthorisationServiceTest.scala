@@ -2,12 +2,12 @@ package com.flipkart.connekt.commons.tests.services
 
 import com.flipkart.connekt.commons.entities.UserType
 import com.flipkart.connekt.commons.factories.ServiceFactory
-import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 /**
  * @author aman.shrivastava on 12/12/15.
  */
-class AuthorisationServiceTest extends BaseCommonsTest {
+class AuthorisationServiceTest extends CommonsBaseTest {
   "AuthorisationService Test " should "return is Authorized " in {
     val auth = ServiceFactory.getAuthorisationService
     val result = auth.isAuthorized("write", "aman.s")

@@ -2,12 +2,12 @@ package com.flipkart.connekt.commons.tests.dao
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.{UserType, ResourcePriv}
-import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 /**
  * @author aman.shrivastava on 11/12/15.
  */
-class PrivDaoTest extends BaseCommonsTest {
+class PrivDaoTest extends CommonsBaseTest {
 
   val id = "kinshuk.bairagi"
   val user = new ResourcePriv(id, UserType.USER, "read,write")

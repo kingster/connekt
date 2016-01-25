@@ -9,7 +9,8 @@ import com.typesafe.config.ConfigFactory
 /**
  * @author aman.shrivastava on 10/12/15.
  */
-class BaseCommonsTest extends ConnektUTSpec {
+class CommonsBaseTest extends ConnektUTSpec {
+
   override def beforeAll() = {
     super.beforeAll()
     bootstrapReceptors()
@@ -24,9 +25,7 @@ class BaseCommonsTest extends ConnektUTSpec {
     val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
     DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
-    val cbConfig = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
-    DaoFactory.initCouchbaseCluster(cbConfig)
-
+    DaoFactory.initCouchbaseCluster(ConfigFactory.empty()) // Mocked
 
     val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
     val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())

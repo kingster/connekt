@@ -1,7 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
-import com.couchbase.client.java.{Bucket, CouchbaseCluster}
+import com.couchbase.client.java.Bucket
 import com.flipkart.connekt.commons.behaviors.{HTableFactory, MySQLFactory}
+import com.flipkart.connekt.commons.entities.RunInfo
 import com.flipkart.connekt.commons.helpers.{CouchbaseConnectionHelper, HConnectionHelper, MySqlConnectionHelper}
 import com.typesafe.config.Config
 
@@ -18,7 +19,7 @@ object DaoFactory {
 
   var hTableFactory: HTableFactory = null
 
-  var couchBaseCluster:CouchbaseCluster = null
+  var couchBaseCluster:com.couchbase.client.java.Cluster = null
   var couchbaseBuckets: Map[String,Bucket] = null
 
   def initHTableDaoFactory(hConnectionConfig: Config) = {
@@ -42,7 +43,10 @@ object DaoFactory {
   }
 
   def initCouchbaseCluster(cf:Config) {
-    couchBaseCluster = CouchbaseConnectionHelper.createCouchBaseConnection(cf)
+    couchBaseCluster = RunInfo.ENV match {
+      //case Environments.TEST => new CouchbaseMockCluster
+      case _ => CouchbaseConnectionHelper.createCouchBaseConnection(cf)
+    }
     couchbaseBuckets = Map()
   }
 

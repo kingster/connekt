@@ -4,13 +4,13 @@ import java.util.UUID
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.{StringUtils, UtilsEnv}
 
 /**
  * @author aman.shrivastava on 11/12/15.
  */
-class DeviceDetailsDaoTest extends BaseCommonsTest {
+class DeviceDetailsDaoTest extends CommonsBaseTest {
 
   val deviceId = UUID.randomUUID().toString
   val appName = "connekt"

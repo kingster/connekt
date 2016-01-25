@@ -3,7 +3,7 @@ package com.flipkart.connekt.commons.tests.services
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.iomodels.{PNRequestData, PNRequestInfo, ConnektRequest}
 import com.flipkart.connekt.commons.services.StencilService
-import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
@@ -11,7 +11,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * @author durga.s
  * @version 12/16/15
  */
-class StencilServiceTest extends BaseCommonsTest {
+class StencilServiceTest extends CommonsBaseTest {
 
   "Stencil Service apply" should "render the stencil for given ConnektRequest" in {
     val pnData: ObjectNode =
