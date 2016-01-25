@@ -41,22 +41,12 @@ object FabricMaker {
     }).asInstanceOf[T]
   }
 
-  def createEmailVtlFabric(stencilId: String, objRep: String): EmailVelocityFabric = {
+  def createVtlFabric(stencilId: String, objRep: String): VelocityFabric = {
     val vtlKey = s"""V${md5(objRep)}"""
-    fabricCache.get(vtlKey, new Callable[EmailVelocityFabric](){
-      override def call(): EmailVelocityFabric = {
-        objRep.getObj[EmailVelocityFabric]
+    fabricCache.get(vtlKey, new Callable[VelocityFabric](){
+      override def call(): VelocityFabric = {
+        objRep.getObj[VelocityFabric]
       }
-    }).asInstanceOf[EmailVelocityFabric]
-  }
-
-
-  def createPNVtlFabric(stencilId: String, objRep: String): PNVelocityFabric = {
-    val vtlKey = s"""V${md5(objRep)}"""
-    fabricCache.get(vtlKey, new Callable[PNVelocityFabric](){
-      override def call(): PNVelocityFabric = {
-        objRep.getObj[PNVelocityFabric]
-      }
-    }).asInstanceOf[PNVelocityFabric]
+    }).asInstanceOf[VelocityFabric]
   }
 }

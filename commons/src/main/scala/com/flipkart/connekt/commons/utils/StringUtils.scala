@@ -1,15 +1,20 @@
 package com.flipkart.connekt.commons.utils
 
 import java.math.BigInteger
-import java.security.{SecureRandom, MessageDigest}
+import java.security.{MessageDigest, SecureRandom}
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
+import com.flipkart.connekt.commons.utils.NullWrapper._
 import org.apache.commons.codec.CharEncoding
 
 import scala.reflect.ClassTag
 import scala.reflect._
+import NullWrapper._
+
+import scala.collection.JavaConversions._
+import scala.reflect.{ClassTag, _}
 /**
  *
  *
@@ -20,10 +25,20 @@ object StringUtils {
 
   implicit class StringHandyFunctions(val s: String) {
     def getUtf8Bytes = s.getBytes(CharEncoding.UTF_8)
+
+    def getUtf8BytesNullWrapped = Option(s).map(_.getUtf8Bytes).orNull.wrap
+
   }
+
 
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
     def getString = new String(b, CharEncoding.UTF_8)
+
+    def getStringNullable = b.unwrap match {
+      case array if array.isEmpty => null
+      case value => new String(value, CharEncoding.UTF_8)
+    }
+
   }
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper
@@ -78,6 +93,63 @@ object StringUtils {
   def generateSecureRandom:String = {
     val random:SecureRandom = new SecureRandom()
     new BigInteger(130, random).toString(32)
+  }
+
+  def getDetail(obj: Any, path: String, splitter: String = "/"): Option[Any] = {
+
+    var myObj = obj
+    val parts = path.split(splitter)
+    var i = 0
+    do {
+      var index = parts(i)
+      var negated = false
+      if (parts(i).toString.startsWith("~")) {
+        index = parts(i).split("~").tail.head
+        negated = true
+      }
+      val value = negated match {
+        case true => myObj match {
+          case _: Map[_, _] => myObj.asInstanceOf[Map[String, Any]].filter(_._1 != index)
+          case _: List[_] =>
+            if (myObj.asInstanceOf[List[Any]].length > 0)
+              myObj.asInstanceOf[List[Any]] diff List[Any](myObj.asInstanceOf[List[Any]].get(index.toInt))
+            else
+              return None
+          case _: java.util.Map[_, _] => myObj.asInstanceOf[java.util.Map[String, AnyRef]].filter(_._1 != index)
+          case _: java.util.List[_] =>
+            if (myObj.asInstanceOf[java.util.List[Any]].length > 0)
+              myObj.asInstanceOf[java.util.List[Any]] diff List[Any](myObj.asInstanceOf[java.util.List[Any]].get(index.toInt))
+            else
+              return None
+          case _ => return None
+        }
+        case false => myObj match {
+          case _: Map[_, _] => myObj.asInstanceOf[Map[String, Any]].get(index)
+          case _: List[_] =>
+            if (myObj.asInstanceOf[List[Any]].length > index.toInt)
+              myObj.asInstanceOf[List[Any]].get(index.toInt)
+            else
+              return None
+          case _: java.util.Map[_, _] => myObj.asInstanceOf[java.util.Map[String, AnyRef]].get(index)
+          case _: java.util.List[_] =>
+            if (myObj.asInstanceOf[java.util.List[Any]].length >= index.toInt)
+              myObj.asInstanceOf[java.util.List[Any]].get(index.toInt)
+            else
+              return None
+          case _ => return None
+        }
+      }
+      myObj = value match {
+        case Some(null) => return None
+        case Some(x) => x
+        case Nil => return None
+        case null => return None
+        case None => return None
+        case _ => value
+      }
+      i = i + 1
+    } while (i < parts.size)
+    Some(myObj)
   }
 
 }

@@ -1,10 +1,11 @@
 package com.flipkart.connekt.commons.entities
 
+import java.util.Date
 import javax.persistence.Column
 
-import com.fasterxml.jackson.core.{JsonParser, JsonGenerator}
+import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
 import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize}
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, SerializerProvider, JsonSerializer}
+import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
 import com.flipkart.connekt.commons.entities.StencilEngine.StencilEngine
 
 /**
@@ -26,12 +27,31 @@ class Stencil() {
   @Column(name = "engineFabric")
   var engineFabric: String = _
 
+  @Column(name = "createdBy")
+  var createdBy: String = _
+
+
+  @Column(name = "updatedBy")
+  var updatedBy: String = _
+
+  @Column(name = "version")
+  var version: Int = 1
+
+  @Column(name = "creationTS")
+  var creationTS: Date = new Date(System.currentTimeMillis())
+
+  @Column(name = "lastUpdatedTS")
+  var lastUpdatedTS: Date = new Date(System.currentTimeMillis())
+
+
   def this(id: String, engine: StencilEngine, engineFabric: String) = {
     this
     this.id = id
     this.engine = engine
     this.engineFabric = engineFabric
   }
+
+  override def toString = s"Stencil($id, $engine, $engineFabric)"
 }
 
 object StencilEngine extends Enumeration {

@@ -23,71 +23,51 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
       authenticate {
         user =>
           pathPrefix("registration" / "push") {
-             path(Segment / Segment) {
-              (platform: String, appName: String) =>
-                post {
+            path(Segment / Segment / Segment) {
+              (platform: String, appName: String, deviceId: String) =>
+                put {
                   authorize(user, "REGISTRATION") {
                     entity(as[DeviceDetails]) { d =>
-                      val deviceDetails = d.copy(appName = appName, osName = platform)
-                      def save = DeviceDetailsService.add(deviceDetails)
-                      async(save) {
-                        case Success(t) =>
-                          complete(respond[GenericResponse](
-                          StatusCodes.Created, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.Created.intValue, null, Response("DeviceDetails registered for %s".format(deviceDetails.deviceId), null))
-                        ))
-                        case Failure(e) =>
-                          complete(respond[GenericResponse](
-                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("DeviceDetails registration failed for %s".format(deviceDetails.deviceId), null))
-                        ))
-                      }
-                    }
-                  }
-                }
-            } ~ path(Segment / Segment / Segment) {
-              (platform: String, appName: String, deviceId: String) =>
-                  put {
-                    authorize(user, "REGISTRATION") {
-                    entity(as[DeviceDetails]) { d =>
                       val deviceDetails = d.copy(appName = appName, osName = platform, deviceId = deviceId)
-                      def save = DeviceDetailsService.update(deviceId, deviceDetails)
-                      async(save) {
-                        case Success(t) =>
+                      DeviceDetailsService.get(appName, deviceId) match {
+                        case None =>
+                          DeviceDetailsService.add(deviceDetails)
                           complete(respond[GenericResponse](
-                          StatusCodes.OK, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails updated for %s".format(deviceDetails.deviceId), null))
-                        ))
-                        case Failure(e) =>
+                            StatusCodes.Created, Seq.empty[HttpHeader],
+                            GenericResponse(StatusCodes.Created.intValue, null, Response("DeviceDetails created for %s".format(deviceDetails.deviceId), null))
+                          ))
+                        case Some(existingDevice) =>
+                          DeviceDetailsService.update(deviceId, deviceDetails)
                           complete(respond[GenericResponse](
-                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("DeviceDetails registration failed for %s".format(d.deviceId), null))
-                        ))
+                            StatusCodes.OK, Seq.empty[HttpHeader],
+                            GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails updated for %s".format(deviceDetails.deviceId), null))
+                          ))
                       }
+                      
                     }
                   }
                 }
             } ~ path(Segment / "users" / Segment) {
               (appName: String, userId: String) =>
-                  get {
-                    authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_" + appName) {
+                get {
+                  authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_" + appName) {
                     def fetch = DeviceDetailsService.getByUserId(appName, userId)
                     async(fetch) {
                       case Success(deviceDetails) =>
                         complete(respond[GenericResponse](
-                                StatusCodes.OK, Seq.empty[HttpHeader],
-                                GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails fetched for app: %s user: %s".format(appName, userId), Map[String, Any]("deviceDetails" -> deviceDetails)))
-                              ))
+                          StatusCodes.OK, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails fetched for app: %s user: %s".format(appName, userId), Map[String, Any]("deviceDetails" -> deviceDetails)))
+                        ))
                       case Failure(error) =>
                         complete(respond[GenericResponse](
-                            StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                            GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Fetching DeviceDetails failed for app:%s %s".format(appName, userId), null))
-                          ))
+                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Fetching DeviceDetails failed for app:%s %s".format(appName, userId), null))
+                        ))
                     }
                   }
                 }
             } ~ path(Segment / Segment / Segment) {
-              (platform:String, appName: String, deviceId: String) =>
+              (platform: String, appName: String, deviceId: String) =>
                 get {
                   authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
                     def fetch = DeviceDetailsService.get(appName, deviceId)
@@ -96,20 +76,20 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
                         resultOption match {
                           case Some(deviceDetails) =>
                             complete(respond[GenericResponse](
-                                StatusCodes.OK, Seq.empty[HttpHeader],
-                                GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails fetched for app: %s %s".format(appName, deviceId), Map[String, Any]("deviceDetails" -> deviceDetails)))
-                              ))
+                              StatusCodes.OK, Seq.empty[HttpHeader],
+                              GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails fetched for app: %s %s".format(appName, deviceId), Map[String, Any]("deviceDetails" -> deviceDetails)))
+                            ))
                           case None =>
                             complete(respond[GenericResponse](
-                                StatusCodes.OK, Seq.empty[HttpHeader],
-                                GenericResponse(StatusCodes.OK.intValue, null, Response("No DeviceDetails found for app:%s %s".format(appName, deviceId), null))
-                              ))
+                              StatusCodes.OK, Seq.empty[HttpHeader],
+                              GenericResponse(StatusCodes.OK.intValue, null, Response("No DeviceDetails found for app:%s %s".format(appName, deviceId), null))
+                            ))
                         }
                       case Failure(error) =>
                         complete(respond[GenericResponse](
-                            StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                            GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Fetching DeviceDetails failed for app:%s %s".format(appName, deviceId), null))
-                          ))
+                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
+                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Fetching DeviceDetails failed for app:%s %s".format(appName, deviceId), null))
+                        ))
                     }
                   }
                 }

@@ -1,4 +1,5 @@
 import com.typesafe.sbt.SbtStartScript
+import JiraIdPlugin.autoImport._
 
 organization  := "com.flipkart.marketing"
 
@@ -23,3 +24,6 @@ seq(Revolver.settings: _*)
 seq(SbtStartScript.startScriptForJarSettings: _*)
 
 
+jira := "CST"
+
+seq(JiraIdPlugin.settings: _*)

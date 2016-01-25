@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
  * @author durga.s
  * @version 12/9/15
  */
-class CallbackService (pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService {
+class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService {
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
@@ -26,60 +26,50 @@ class CallbackService (pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallback
     case Channel.EMAIL => emailRequestDao
   }
 
-  override def persistCallbackEvent(requestId: String, forContact: String,  channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
-    try {
+  override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
+    Try {
       channelEventsDao(channel).saveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
-      Success(requestId)
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed saving event for $requestId, ${e.getMessage}", e)
-        Failure(e)
+      requestId
     }
   }
 
   override def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
-    try {
-      Success(channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None))
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed fetching event for $requestId, ${e.getMessage}", e)
-        Failure(e)
+    Try {
+      channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None)
     }
   }
 
   private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 
   def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
-    try {
-      Success(channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(minTimestamp, maxTimestamp)))
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed fetching event for $contactId, ${e.getMessage}", e)
-        Failure(e)
+    Try {
+      channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(minTimestamp, maxTimestamp)))
     }
   }
 
+  /**
+   *
+   * @param messageId
+   * @param channel
+   * @return Map ( DeviceId -> List[Events] )
+   */
   def fetchCallbackEventByMId(messageId: String, channel: Channel.Value): Try[Map[String, List[CallbackEvent]]] = {
-    try {
+    Try{
       val events = requestDao(channel).fetchRequestInfo(messageId)
-      Success(channelEventsDao(channel).fetchCallbackEvents(messageId, events.get, None))
-
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed fetching event for $messageId, ${e.getMessage}", e)
-        Failure(e)
+      events.isDefined match {
+        case true =>
+          channelEventsDao(channel).fetchCallbackEvents(messageId, events.get, None)
+        case false =>
+          Map()
+      }
     }
   }
 
   override def fetchEventsMapForContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]] = {
-    try {
+    Try {
       val eventList = fetchCallbackEventByContactId(contactId, channel, minTimestamp, maxTimestamp)
-      Success(channelEventsDao(channel).fetchEventMapFromList(eventList.get))
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).info(s"Failed fetching event for $contactId, ${e.getMessage}", e)
-        Failure(e)
+      channelEventsDao(channel).fetchEventMapFromList(eventList.get)
     }
   }
 }

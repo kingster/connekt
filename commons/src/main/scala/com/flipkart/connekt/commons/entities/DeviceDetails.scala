@@ -8,3 +8,4 @@ package com.flipkart.connekt.commons.entities
  */
 case class DeviceDetails(deviceId: String, userId: String, token: String, osName: String, osVersion: String,
                           appName: String, appVersion: String, brand: String, model: String, state: String = "")
+

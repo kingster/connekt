@@ -1,10 +1,13 @@
 package com.flipkart.connekt.commons.tests.services
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.commons.iomodels.{PNRequestData, PNRequestInfo, ConnektRequest}
+import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
+import com.flipkart.connekt.commons.iomodels.EmailRequestData
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
+
 /**
  *
  *
@@ -13,32 +16,44 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  */
 class StencilServiceTest extends BaseCommonsTest {
 
-  "Stencil Service apply" should "render the stencil for given ConnektRequest" in {
-    val pnData: ObjectNode =
-      """
-        |{
-        |	"message": "_phantomastray_",
-        |	"title": "Do not go gentle into that good night.",
-        |	"id": "pqwx2p2x321122228w2t1wxt",
-        |	"triggerSound": true,
-        |	"notificationType": "Text"
-        |}
-      """.stripMargin.getObj[ObjectNode]
+  val stencil = new Stencil
+  stencil.id = StringUtils.generateRandomStr(10)
+  stencil.engine = StencilEngine.VELOCITY
+  stencil.engineFabric = """{
+                           |	"cType": "EMAIL",
+                           |	"subjectVtl": "Order for $product, $booleanValue, $integerValue",
+                           |	"bodyHtmlVtl": "Hello $name, Price for $product is $price"
+                           |}""".stripMargin
+  stencil.createdBy = "unitTest"
+  stencil.updatedBy = "unitTest"
+  stencil.version = 1
 
-    val w = md5("Stencil")
+  val product = StringUtils.generateRandomStr(10)
+  val name = StringUtils.generateRandomStr(10)
+  val price = StringUtils.generateRandomStr(10)
+  val payload =
+    s"""{
+       |"product" : "$product",
+       |"name" : "$name",
+       |"price" : "$price",
+       |"booleanValue" : true,
+       |"integerValue": 1678
+       |}
+    """.stripMargin
 
-    val ckRequest = ConnektRequest(
-      "489f8f1e-d88d-44be-809d-44c3dadb0a9c", "PN", "H", "cktSampleApp-stn0x1", 1231231, 324324,
-      PNRequestInfo("android", "ConnectSampleApp", "d7ae09474408d039ecad4534ed040f4a", ackRequired = false, delayWhileIdle = false),
-      PNRequestData(pnData),
-      Map()
-    )
-
-    val renderedPNRequest = StencilService.render(ckRequest)
+  val subjectResult = s"Order for $product, true, 1678"
+  val bodyHtmlResult = s"Hello $name, Price for $product is $price"
 
 
-    println(renderedPNRequest)
+  "Stencil Service" should "add stencil" in {
+    noException should be thrownBy StencilService.add(stencil)
+  }
 
-    assert(renderedPNRequest.isDefined)
+  "Stencil Service" should "get the stencil" in {
+    StencilService.get(stencil.id).get.toString shouldEqual stencil.toString
+  }
+
+  "Stencil Service" should "render the stencil for given ConnektRequest" in {
+    StencilService.render(Some(stencil), payload.getObj[ObjectNode]).get shouldEqual EmailRequestData(subjectResult, bodyHtmlResult)
   }
 }
