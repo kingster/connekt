@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.EmailRequestData
 import com.flipkart.connekt.commons.services.StencilService
-import com.flipkart.connekt.commons.tests.BaseCommonsTest
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -14,7 +14,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * @author durga.s
  * @version 12/16/15
  */
-class StencilServiceTest extends BaseCommonsTest {
+class StencilServiceTest extends CommonsBaseTest {
 
   val stencil = new Stencil
   stencil.id = StringUtils.generateRandomStr(10)
