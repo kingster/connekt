@@ -4,6 +4,8 @@ import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.Stencil
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 
+import scala.util.{Failure, Success, Try}
+
 /**
  *
  *
@@ -15,11 +17,7 @@ class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDa
 
   override def getStencil(id: String): Option[Stencil] = {
     implicit val j = mysqlHelper.getJDBCInterface
-    val q =
-      s"""
-        |SELECT * FROM $tableName WHERE id = ?
-      """.stripMargin
-
+    val q =  s"SELECT * FROM $tableName WHERE id = ?"
     try {
       query[Stencil](q, id)
     } catch {
@@ -29,7 +27,7 @@ class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDa
     }
   }
 
-  override def updateStencil(stencil: Stencil): Unit = {
+  override def upsertStencil(stencil: Stencil): Try[Unit] = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
@@ -39,15 +37,18 @@ class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDa
 
     try {
       update(q, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.creationTS, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.version.toString)
+      Success(Nil)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}}] ${e.getMessage}", e)
-        throw e
+        Failure(e)
     }
   }
+
 }
 
 object StencilDao {
+
   def apply(tableName: String, jdbcHelper: MySQLFactory) =
     new StencilDao(tableName: String, jdbcHelper: MySQLFactory)
 }

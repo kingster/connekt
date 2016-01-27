@@ -18,7 +18,7 @@ class StencilDaoTest extends CommonsBaseTest {
 
   "Fetch Stencil" should "add a stencil" in {
 
-    noException should be thrownBy DaoFactory.getStencilDao.updateStencil({
+    noException should be thrownBy DaoFactory.getStencilDao.upsertStencil({
       val stencil = new Stencil()
       stencil.engineFabric = "ehello"
       stencil.id = stencilId

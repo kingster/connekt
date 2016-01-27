@@ -2,6 +2,8 @@ package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.entities.Stencil
 
+import scala.util.Try
+
 /**
  *
  *
@@ -11,5 +13,7 @@ import com.flipkart.connekt.commons.entities.Stencil
 trait TStencilDao extends Dao {
 
   def getStencil(id: String): Option[Stencil]
-  def updateStencil(stencil: Stencil): Unit
+
+  def upsertStencil(stencil: Stencil): Try[Unit]
+
 }
