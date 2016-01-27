@@ -59,7 +59,7 @@ class DistributedCache[T](val cacheName: DistributedCacheType.Value, props: Cach
 
   override def put(key: String, value: T): Boolean = {
     try {
-      cacheStorageBucket.upsert(StringDocument.create(key, value.asInstanceOf[AnyRef].getJson))
+      cacheStorageBucket.upsert(StringDocument.create(key, props.ttl.toSeconds.toInt , value.asInstanceOf[AnyRef].getJson))
       true
     } catch {
       case e: Exception =>
@@ -80,5 +80,5 @@ class DistributedCache[T](val cacheName: DistributedCacheType.Value, props: Cach
     cacheStorageBucket.remove(StringDocument.create(key))
   }
 
-  override def exists(key: String): Boolean = ???
+  override def exists(key: String): Boolean = cacheStorageBucket.get(StringDocument.create(key)) != null
 }

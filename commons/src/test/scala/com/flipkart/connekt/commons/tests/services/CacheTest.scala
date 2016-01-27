@@ -17,18 +17,18 @@ class CacheTest extends CommonsBaseTest{
   private val data = "dummy"
 
   "DistributedCache " should "add " in {
-    val cache = new DistributedCache[String](DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCache[String](DistributedCacheType.Default, CacheProperty(100, 30.seconds))
      cache.put(keyName, data) shouldEqual true
   }
 
   "DistributedCache " should "write again " in {
-    val cache = new DistributedCache[String](DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCache[String](DistributedCacheType.Default, CacheProperty(100, 30.seconds))
     cache.put(keyName, data) shouldEqual true
   }
 
 
   "DistributedCache " should "get " in {
-    val cache = new DistributedCache[String](DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCache[String](DistributedCacheType.Default, CacheProperty(100, 30.seconds))
     cache.get(keyName).isDefined shouldEqual true
     cache.get(keyName).get shouldEqual data
   }
