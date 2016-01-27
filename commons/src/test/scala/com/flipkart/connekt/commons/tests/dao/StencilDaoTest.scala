@@ -1,6 +1,9 @@
 package com.flipkart.connekt.commons.tests.dao
 
+import java.util.UUID
+
 import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.entities.Stencil
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 /**
@@ -11,8 +14,22 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
  */
 class StencilDaoTest extends CommonsBaseTest {
 
+  val stencilId = UUID.randomUUID().toString
+
+  "Fetch Stencil" should "add a stencil" in {
+
+    noException should be thrownBy DaoFactory.getStencilDao.updateStencil({
+      val stencil = new Stencil()
+      stencil.engineFabric = "ehello"
+      stencil.id = stencilId
+      stencil.createdBy = "ut"
+      stencil.updatedBy = "ut"
+      stencil
+    })
+  }
+
   "Fetch Stencil" should "return a stencil" in {
-    val stencil = DaoFactory.getStencilDao.getStencil("cktSampleApp-stn0x1")
+    val stencil = DaoFactory.getStencilDao.getStencil(stencilId)
     
     assert(stencil.isDefined)
   }
