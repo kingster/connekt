@@ -29,6 +29,17 @@ class CommonsBaseTest extends ConnektUTSpec {
     val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
     DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
+    //Setup tables.
+    DaoFactory.mysqlFactoryWrapper.getJDBCInterface.execute(
+      """
+        |CREATE SCHEMA IF NOT EXISTS `connekt`;
+        |CREATE TABLE IF NOT EXISTS `USER_INFO` (`userId` varchar(100) NOT NULL DEFAULT '',`apikey` varchar(100) NOT NULL DEFAULT '',`groups` text,`lastUpdatedTS` bigint(20) UNSIGNED NOT NULL,`updatedBy` varchar(100) NOT NULL DEFAULT '',PRIMARY KEY (`userId`),UNIQUE KEY APIKEY_0 (`apikey`));
+        |CREATE TABLE IF NOT EXISTS `RESOURCE_PRIV` (`userId` varchar(100) NOT NULL DEFAULT '',`userType` varchar(40) DEFAULT 'USER',`resources` text,PRIMARY KEY (`userId`));
+        |CREATE TABLE IF NOT EXISTS `STENCIL_STORE` (`id` varchar(40) NOT NULL DEFAULT '',`engine` varchar(40) NOT NULL DEFAULT 'VELOCITY',`engineFabric` text NOT NULL,`createdBy` varchar(45) NOT NULL DEFAULT '',`updatedBy` varchar(45) NOT NULL DEFAULT '',`version` int(11) NOT NULL,`creationTS` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`lastUpdatedTS` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY (`id`,`version`));
+        |
+      """.stripMargin)
+
+
     val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
     DaoFactory.initCouchbaseCluster(couchbaseCf) // Mocked
 
