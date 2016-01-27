@@ -1,4 +1,4 @@
-package com.flipkart.connekt.commons.dal.impl.couchbase
+package com.flipkart.connekt.commons.tests.connections.couchbase
 
 import java.lang.Boolean
 import java.util

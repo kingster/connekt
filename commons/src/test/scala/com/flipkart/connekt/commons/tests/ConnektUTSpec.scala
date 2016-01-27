@@ -15,12 +15,8 @@ abstract class ConnektUTSpec extends FlatSpec  with Matchers with OptionValues w
 
   override def beforeAll() = {
 
-    //Set enviroment.
-    RunInfo.ENV = Environments.TEST
-
     val logConfigFile = getClass.getClassLoader.getResourceAsStream("logback-test.xml")
     ConnektLogger.init(logConfigFile)
 
-    ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
   }
 }

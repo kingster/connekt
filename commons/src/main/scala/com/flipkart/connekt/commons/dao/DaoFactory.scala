@@ -2,28 +2,36 @@ package com.flipkart.connekt.commons.dao
 
 import com.couchbase.client.java.Bucket
 import com.flipkart.connekt.commons.behaviors.{HTableFactory, MySQLFactory}
+import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.flipkart.connekt.commons.entities.RunInfo
+import com.flipkart.connekt.commons.factories.{MySQLFactoryWrapper, HTableFactoryWrapper}
 import com.flipkart.connekt.commons.helpers.{CouchbaseConnectionHelper, HConnectionHelper, MySqlConnectionHelper}
 import com.typesafe.config.Config
 
 /**
- *
- *
- * @author durga.s
- * @version 11/23/15
- */
+  *
+  *
+  * @author durga.s
+  * @version 11/23/15
+  */
 object DaoFactory {
+
+  var connectionProvider: TConnectionProvider = null
 
   var daoMap = Map[DaoType.Value, Dao]()
   var mysqlFactoryWrapper: MySQLFactory = null
 
   var hTableFactory: HTableFactory = null
 
-  var couchBaseCluster:com.couchbase.client.java.Cluster = null
-  var couchbaseBuckets: Map[String,Bucket] = null
+  var couchBaseCluster: com.couchbase.client.java.Cluster = null
+  var couchbaseBuckets: Map[String, Bucket] = null
+
+  def setUpConnectionProvider(provider: TConnectionProvider): Unit = {
+    this.connectionProvider = provider
+  }
 
   def initHTableDaoFactory(hConnectionConfig: Config) = {
-    hTableFactory = HConnectionHelper.createHbaseConnection(hConnectionConfig)
+    hTableFactory = new HTableFactoryWrapper(hConnectionConfig, connectionProvider)
 
     daoMap += DaoType.DEVICE_DETAILS -> DeviceDetailsDao("connekt-registry", hTableFactory)
     daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao(tableName = "fk-connekt-pn-info", hTableFactory = hTableFactory)
@@ -34,23 +42,28 @@ object DaoFactory {
     Option(hTableFactory).foreach(_.shutdown())
   }
 
-  def initMysqlTableDaoFactory(mysqlConnectionConfig: Config) = {
-    mysqlFactoryWrapper = MySqlConnectionHelper.createMySqlConnection(mysqlConnectionConfig)
+  def initMysqlTableDaoFactory(config: Config) = {
+
+    mysqlFactoryWrapper = new MySQLFactoryWrapper(
+      host = config.getString("host"),
+      database = config.getString("database"),
+      username = config.getString("username"),
+      password = config.getString("password"),
+      poolProps = config.getConfig("poolProps"),
+      connectionProvider
+    )
 
     daoMap += DaoType.USERINFO -> UserInfo("USER_INFO", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEDGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
     daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", mysqlFactoryWrapper)
   }
 
-  def initCouchbaseCluster(cf:Config) {
-    couchBaseCluster = RunInfo.ENV match {
-      //case Environments.TEST => new CouchbaseMockCluster
-      case _ => CouchbaseConnectionHelper.createCouchBaseConnection(cf)
-    }
+  def initCouchbaseCluster(config: Config) {
+    couchBaseCluster = connectionProvider.createCouchBaseConnection(config.getString("clusterIpList").split(",").toList)
     couchbaseBuckets = Map()
   }
 
-  def getCouchbaseBucket(name:String = "Default"):Bucket = {
+  def getCouchbaseBucket(name: String = "Default"): Bucket = {
     couchbaseBuckets.get(name) match {
       case Some(x) => x
       case None =>
@@ -60,7 +73,7 @@ object DaoFactory {
     }
   }
 
-  def shutdownCouchbaseCluster(){
+  def shutdownCouchbaseCluster() {
     Option(couchBaseCluster).foreach(_.disconnect())
   }
 
@@ -77,6 +90,7 @@ object DaoFactory {
   def getUserInfoDao: UserInfo = daoMap(DaoType.USERINFO).asInstanceOf[UserInfo]
 
   def getStencilDao: TStencilDao = daoMap(DaoType.STENCIL).asInstanceOf[StencilDao]
+
 }
 
 object DaoType extends Enumeration {

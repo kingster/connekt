@@ -6,7 +6,7 @@ import com.couchbase.client.deps.io.netty.buffer.Unpooled
 import com.couchbase.client.java.document.json.JsonObject
 import com.couchbase.client.java.document.{BinaryDocument, JsonDocument, StringDocument}
 import com.couchbase.client.java.{Bucket, Cluster}
-import com.flipkart.connekt.commons.dal.impl.couchbase.CouchbaseMockCluster
+import com.flipkart.connekt.commons.tests.connections.couchbase.CouchbaseMockCluster
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.flipkart.connekt.commons.utils.StringUtils
 import org.scalatest.Ignore
