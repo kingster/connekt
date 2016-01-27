@@ -25,7 +25,7 @@ class StencilDaoTest extends CommonsBaseTest {
       stencil.createdBy = "ut"
       stencil.updatedBy = "ut"
       stencil
-    })
+    }).get
   }
 
   "Fetch Stencil" should "return a stencil" in {
