@@ -25,7 +25,8 @@ class CommonsBaseTest extends ConnektUTSpec {
     val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
     DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
-    DaoFactory.initCouchbaseCluster(ConfigFactory.empty()) // Mocked
+    val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
+    DaoFactory.initCouchbaseCluster(couchbaseCf) // Mocked
 
     val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
     val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())

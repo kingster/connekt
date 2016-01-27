@@ -33,12 +33,12 @@ class StencilDao(tableName: String, jdbcHelper: MySQLFactory) extends TStencilDa
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-        |INSERT INTO $tableName (id, engine, engineFabric) VALUES(?, ?, ?)
-        |ON DUPLICATE KEY UPDATE engine = ?, engineFabric = ?
+        |INSERT INTO $tableName (id, engine, engineFabric, createdBy, updatedBy, version, creationTS) VALUES(?, ?, ?, ?, ?, ?, ?)
+        |ON DUPLICATE KEY UPDATE engine = ?, engineFabric = ?, updatedBy = ?, version = ?
       """.stripMargin
 
     try {
-      update(q, stencil.id, stencil.engine, stencil.engineFabric, stencil.engine, stencil.engineFabric)
+      update(q, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.creationTS, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.version.toString)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}}] ${e.getMessage}", e)

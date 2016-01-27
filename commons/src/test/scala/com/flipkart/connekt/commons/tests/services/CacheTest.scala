@@ -2,9 +2,9 @@ package com.flipkart.connekt.commons.tests.services
 
 import java.util.UUID
 
-import com.couchbase.client.java.CouchbaseCluster
-import com.flipkart.connekt.commons.cache.{DistributedCacheManager, CacheProperty, DistributedCacheType, DistributedCache}
-import com.flipkart.connekt.commons.tests.{CommonsBaseTest, ConnektUTSpec}
+import com.flipkart.connekt.commons.cache.{CacheProperty, DistributedCache, DistributedCacheManager, DistributedCacheType}
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
+
 import scala.concurrent.duration.DurationInt
 
 

@@ -6,9 +6,9 @@ import _root_.akka.actor.ActorSystem
 import _root_.akka.http.scaladsl.Http
 import _root_.akka.stream.ActorMaterializer
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
-import akka.http.scaladsl.server.{ExceptionHandler, MethodRejection, RejectionHandler}
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.iomodels.{Response, GenericResponse}
+import akka.http.scaladsl.server.ExceptionHandler
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.receptors.routes.{BaseHandler, RouteRegistry}
 

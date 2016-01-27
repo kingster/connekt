@@ -6,15 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
+import com.flipkart.connekt.commons.dao.HbaseDao._
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.KeyValue
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.filter.{KeyOnlyFilter, FilterList, PrefixFilter}
+import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter}
 import org.apache.hadoop.hbase.util.Bytes
 
-import scala.collection.mutable.ListBuffer
-import HbaseDao._
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 /**
  *
  *

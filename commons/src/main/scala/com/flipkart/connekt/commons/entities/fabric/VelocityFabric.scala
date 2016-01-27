@@ -5,12 +5,13 @@ import java.io.StringWriter
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.utils.VelocityUtils
 import org.apache.velocity.app.Velocity
 import org.apache.velocity.context.Context
-import com.flipkart.connekt.commons.utils.VelocityUtils._
+
 import scala.util.{Failure, Success, Try}
-import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -47,7 +48,7 @@ sealed abstract class VelocityFabric extends EngineFabric {
   }
 
   def fabricate(id: String, context: ObjectNode, vtlFabric: String, errorTag: String): Try[String] = {
-    fabricate(id, convert2VelocityContext(context), vtlFabric, errorTag)
+    fabricate(id, VelocityUtils.convertToVelocityContext(context), vtlFabric, errorTag)
   }
 
   def validateVtl(): Try[Boolean]

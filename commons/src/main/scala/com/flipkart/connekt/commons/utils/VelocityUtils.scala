@@ -1,10 +1,11 @@
 package com.flipkart.connekt.commons.utils
 
-import com.fasterxml.jackson.databind.node.{NullNode, ArrayNode, ObjectNode}
+import com.fasterxml.jackson.databind.node.{ArrayNode, NullNode, ObjectNode, ValueNode}
 import org.apache.velocity.VelocityContext
 import org.apache.velocity.context.Context
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  *
@@ -13,36 +14,34 @@ import scala.collection.mutable.ListBuffer
  * @version 12/14/15
  */
 object VelocityUtils {
-  def convert2VelocityContext(node: ObjectNode): Context = {
+
+  /**
+   * Convert to Velocity Context Helpers
+   * --------- START ------------------
+   */
+  def convertToVelocityContext(node: ObjectNode): Context = {
     val fields = node.fieldNames()
     val vContext = new VelocityContext()
-
-    while(fields.hasNext) {
-      val k = fields.next()
-      Option(getValue(node.get(k))).foreach({vContext.put(k, _)})
-    }
-
+    fields.asScala.foreach(fieldName =>  vContext.put(fieldName, getValue(node.get(fieldName))))
     vContext
   }
 
-  private def convert2VelocityContext(array: ArrayNode): AnyRef = {
-    val values = new ListBuffer[AnyRef]()
-    val i = array.elements()
-    while(i.hasNext)
-      Option(getValue(i.next())).foreach({values += _})
-
-    values.toList
+  private def convertToVelocityContext(array: ArrayNode): Any = {
+    array.map(row =>  getValue(row)).asJava
   }
 
-  private def getValue(x: AnyRef): AnyRef = {
-    x match {
-      case _: ObjectNode =>
-        convert2VelocityContext(x.asInstanceOf[ObjectNode])
-      case _: ArrayNode =>
-        convert2VelocityContext(x.asInstanceOf[ArrayNode])
-      case _: NullNode =>
-        null
+
+  private  def getValue(obj: Any): Any = {
+    obj match {
+      case _: ArrayNode => convertToVelocityContext(obj.asInstanceOf[ArrayNode])
+      case _: ObjectNode => convertToVelocityContext(obj.asInstanceOf[ObjectNode])
+      case  _: NullNode | null => null
+      case _:ValueNode => obj.asInstanceOf[ValueNode].asText()
+      case _ => obj.toString
     }
-    x.toString
   }
+
+  /**
+   * --------- END ------------------
+   */
 }
