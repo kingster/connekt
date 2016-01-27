@@ -35,7 +35,7 @@ object StencilService {
           val fabric = FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
       }
       DaoFactory.getStencilDao.updateStencil(stencil)
-      Success()
+      Success(Nil)
     } catch {
       case e: Exception =>
         Failure(e)

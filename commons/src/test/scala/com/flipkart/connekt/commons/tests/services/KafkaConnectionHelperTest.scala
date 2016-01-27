@@ -4,7 +4,7 @@ import java.util.Properties
 
 import com.flipkart.connekt.commons.helpers.KafkaConnectionHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.commons.tests.ConnektUTSpec
+import com.flipkart.connekt.commons.tests.{CommonsBaseTest, ConnektUTSpec}
 import com.typesafe.config.ConfigFactory
 import kafka.consumer.ConsumerConnector
 import kafka.producer.{KeyedMessage, Producer}
@@ -16,7 +16,7 @@ import org.apache.commons.pool.impl.GenericObjectPool
  * @author durga.s
  * @version 11/26/15
  */
-class KafkaConnectionHelperTest extends ConnektUTSpec with KafkaConnectionHelper {
+class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelper {
 
   val topicName = "fk-connekt-proto"
   var kafkaConsumerPool: GenericObjectPool[ConsumerConnector] = null
@@ -45,11 +45,15 @@ class KafkaConnectionHelperTest extends ConnektUTSpec with KafkaConnectionHelper
   }
 
   "Initialising producer factory" should "succeed" in {
-    noException should be thrownBy(kafkaProducerPool = createKafkaProducerFactory)
+    noException should be thrownBy {
+      kafkaProducerPool = createKafkaProducerFactory
+    }
   }
 
   "Initialising consumer factory" should "succeed" in {
-    noException should be thrownBy (kafkaConsumerPool = createKafkaConsumerFactory)
+    noException should be thrownBy {
+      kafkaConsumerPool = createKafkaConsumerFactory
+    }
   }
 
   "Sending a keyed-message" should "succeed" in {

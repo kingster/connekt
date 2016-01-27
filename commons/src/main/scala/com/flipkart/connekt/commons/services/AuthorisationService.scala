@@ -74,7 +74,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.removePrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success()
+      Success(Nil)
     } catch {
       case e: Exception =>
         Failure(e)
@@ -85,7 +85,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.addPrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success()
+      Success(Nil)
     } catch {
       case e: Exception =>
         Failure(e)
