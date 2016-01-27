@@ -19,13 +19,14 @@ class CommonsBaseTest extends ConnektUTSpec {
   private def bootstrapReceptors() = {
     ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
 
-    val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
-    DaoFactory.initHTableDaoFactory(hConfig.get)
+    val hConfig = ConnektConfig.getConfig("receptors.connections.hbase").getOrElse(ConfigFactory.empty())
+    DaoFactory.initHTableDaoFactory(hConfig)
 
     val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
     DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
-    DaoFactory.initCouchbaseCluster(ConfigFactory.empty()) // Mocked
+    val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
+    DaoFactory.initCouchbaseCluster(couchbaseCf) // Mocked
 
     val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
     val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())

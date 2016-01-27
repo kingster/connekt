@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.helpers
 
-import com.couchbase.client.java.{Bucket, CouchbaseCluster}
+import com.couchbase.client.java.CouchbaseCluster
 import com.typesafe.config.Config
 
 import scala.collection.JavaConverters._

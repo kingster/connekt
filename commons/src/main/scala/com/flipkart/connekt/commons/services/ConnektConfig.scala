@@ -1,13 +1,19 @@
 package com.flipkart.connekt.commons.services
 
+import java.io.IOException
+import java.net.UnknownHostException
+
+import com.flipkart.connekt.commons.entities.{Environments, RunInfo}
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.services.ConnektConfig.{ConfigBucketId, BucketName}
+import com.flipkart.kloud.config.error.ConfigServiceException
 import com.flipkart.kloud.config.{Bucket, BucketUpdateListener, ConfigClient}
 import com.typesafe.config.{ConfigException, Config, ConfigFactory}
 import com.flipkart.connekt.commons.behaviors.ConfigAccumulator
-import com.flipkart.connekt.commons.utils.UtilsEnv
+import com.flipkart.connekt.commons.utils.{NetworkUtils, UtilsEnv}
 
 import scala.collection.mutable
+
 /**
  *
  *
@@ -32,7 +38,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
     cfgClient = new ConfigClient(cfgHost, cfgfPort, cfgAppVer)
     ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketIdMap.values.toString()}}]")
 
-    for(bucketName <- bucketIdMap.values) {
+    for (bucketName <- bucketIdMap.values) {
       val bucket = cfgClient.getDynamicBucket(bucketName)
       bucketConfigs.put(bucketName, ConfigFactory.parseMap(bucket.getKeys))
       ConnektLogger(LogFile.SERVICE).info(s"Fetched config for bucket: $bucketName [$bucket]")
@@ -47,9 +53,9 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
           }
         }
 
-        override def connected(s: String): Unit = ConnektLogger(LogFile.SERVICE).info(s"dynamic bucket $bucketName connected.")
+        override def connected(s: String): Unit = ConnektLogger(LogFile.SERVICE).debug(s"dynamic bucket $bucketName connected.")
 
-        override def disconnected(s: String, e: Exception): Unit = ConnektLogger(LogFile.SERVICE).info(s"dynamic bucket $bucketName dis-connected.")
+        override def disconnected(s: String, e: Exception): Unit = ConnektLogger(LogFile.SERVICE).debug(s"dynamic bucket $bucketName dis-connected.")
 
         override def deleted(s: String): Unit = ConnektLogger(LogFile.SERVICE).info(s"dynamic bucket $bucketName deleted.")
       })
@@ -59,21 +65,33 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
   }
 
   def init() = {
-    ConnektLogger(LogFile.SERVICE).info("Connekt config init.")
-    val configs = readConfigs()
-    this.synchronized {
-      appConfig = overlayConfigs(configs: _*)
+    ConnektLogger(LogFile.SERVICE).info("Config Init")
+    try {
+      val configs = readConfigs()
+      this.synchronized {
+        appConfig = overlayConfigs(configs: _*)
+      }
+    } catch {
+      case uhe @( _: UnknownHostException | _: IOException | _:ConfigServiceException) =>
+        if (RunInfo.ENV == Environments.TEST && NetworkUtils.getHostname.contains("local"))
+          ConnektLogger(LogFile.SERVICE).warn(s"Offline Mode, Unable to reach $cfgHost")
+        else
+          throw uhe;
+      case e: Throwable =>
+        throw e;
+
     }
-    ConnektLogger(LogFile.SERVICE).info(s"Connekt overlayed config: $appConfig")
+    ConnektLogger(LogFile.SERVICE).info(s"Config Overlayed: $appConfig")
   }
 
   def terminate() = {
     ConnektLogger(LogFile.SERVICE).info("Connekt config client terminating")
-    cfgClient.shutdown()
+    Option(cfgClient).foreach(_.shutdown())
   }
 }
 
 object ConnektConfig {
+
   type BucketName = String
   type ConfigBucketId = String
 
@@ -82,7 +100,7 @@ object ConnektConfig {
   def apply(configHost: String = "config-service.nm.flipkart.com", configPort: Int = 80, configAppVersion: Int = 1)
            (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(UtilsEnv.getConfEnv))) = {
     this.synchronized {
-      if(null == instance) {
+      if (null == instance) {
         instance = new ConnektConfig(configHost, configPort, configAppVersion)(bucketIdMap)
         instance.init()
       }

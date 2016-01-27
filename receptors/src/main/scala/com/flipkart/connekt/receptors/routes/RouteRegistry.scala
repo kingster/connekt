@@ -1,6 +1,7 @@
 package com.flipkart.connekt.receptors.routes
 
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.receptors.routes.Stencils.StencilsRoute
 import com.flipkart.connekt.receptors.routes.callbacks.Callback
 import com.flipkart.connekt.receptors.routes.push.{Fetch, Unicast, Registration}
 import akka.http.scaladsl.server.Directives._
@@ -15,6 +16,7 @@ class RouteRegistry(implicit mat:ActorMaterializer) {
  private val callbackHandler = new Callback().callback
  private val reportsRoute = new Reports().route
  private val fetchRoute = new Fetch().fetch
+ private val stencilRoute = new StencilsRoute().stencils
 
- def allRoutes =  unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute
+ def allRoutes =  unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute
 }
