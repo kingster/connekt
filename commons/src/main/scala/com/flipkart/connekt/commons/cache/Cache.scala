@@ -1,16 +1,17 @@
 package com.flipkart.connekt.commons.cache
 
+import scala.concurrent.duration.Duration
+
 /**
  * Created by nidhi.mehla on 19/01/16.
  */
 
-trait CacheType extends Enumeration {
+abstract class Cache[T] {
+  def put(key:String, value:T):Boolean
+  def get(key:String) : Option[T]
+  def exists(key:String):Boolean
 }
 
-object DistributedCacheType extends CacheType {
-  val Default, AccessTokens = Value
-}
+case class CacheProperty(size : Int , ttl:Duration)
 
-object LocalCacheType extends CacheType{
-  val Default = Value
-}
+trait CacheManager
