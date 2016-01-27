@@ -2,6 +2,7 @@ package com.flipkart.connekt.commons.dao
 
 import com.couchbase.client.java.Bucket
 import com.flipkart.connekt.commons.behaviors.{HTableFactory, MySQLFactory}
+import com.flipkart.connekt.commons.cache.DistributedCacheType
 import com.flipkart.connekt.commons.entities.RunInfo
 import com.flipkart.connekt.commons.helpers.{CouchbaseConnectionHelper, HConnectionHelper, MySqlConnectionHelper}
 import com.typesafe.config.Config
@@ -50,7 +51,7 @@ object DaoFactory {
     couchbaseBuckets = Map()
   }
 
-  def getCouchbaseBucket(name:String = "default"):Bucket = {
+  def getCouchbaseBucket(name:String = "Default"):Bucket = {
     couchbaseBuckets.get(name) match {
       case Some(x) => x
       case None =>
