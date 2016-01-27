@@ -55,11 +55,11 @@ object DistributedCacheManager extends CacheManager {
 
 class DistributedCache[T](val cacheName: DistributedCacheType.Value, props: CacheProperty)(implicit cTag: reflect.ClassTag[T]) extends Cache[T] {
 
-  private lazy val cacheStorageBucket = DaoFactory.getCouchbaseBucket()
+  private lazy val cacheStorageBucket = DaoFactory.getCouchbaseBucket(cacheName.toString)
 
   override def put(key: String, value: T): Boolean = {
     try {
-      cacheStorageBucket.insert(StringDocument.create(key, value.asInstanceOf[AnyRef].getJson))
+      cacheStorageBucket.upsert(StringDocument.create(key, value.asInstanceOf[AnyRef].getJson))
       true
     } catch {
       case e: Exception =>

@@ -50,7 +50,7 @@ object DaoFactory {
     couchbaseBuckets = Map()
   }
 
-  def getCouchbaseBucket(name:String = "default"):Bucket = {
+  def getCouchbaseBucket(name:String = "Default"):Bucket = {
     couchbaseBuckets.get(name) match {
       case Some(x) => x
       case None =>
