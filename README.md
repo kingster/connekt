@@ -13,9 +13,14 @@ Getting Started
 	```bash
 	git remote add all git.corp.flipkart.com:/git/mp/fk-connekt
 	git remote set-url --add --push all git.corp.flipkart.com:/git/mp/fk-connekt
-	git remote set-url --add --push all git@github.com:Flipkart/fk-connekt.git
+	git remote set-url --add --push all git@github.com:Flipkart/connekt.git
 	```
 3. Make your changes
+	
+	```bash
+	git checkout <branch-name>
+	```
+
 4. Push your changes
 
 	```bash
@@ -24,6 +29,8 @@ Getting Started
 	git commit -m "CST-<JIRA-NO> What changes does this commit make ?"
 	git push
 	```
+
+	Raise a pull request!
 	
 #### Running Locally
 To run the project locally ``sbt run `` and follow the instructions. For running receptors you will need to run ``sbt "run receptors"``.
