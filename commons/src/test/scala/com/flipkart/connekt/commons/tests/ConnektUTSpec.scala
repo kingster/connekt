@@ -1,6 +1,5 @@
 package com.flipkart.connekt.commons.tests
 
-import com.flipkart.connekt.commons.entities.{Environments, RunInfo}
 import com.flipkart.connekt.commons.factories.ConnektLogger
 import com.flipkart.connekt.commons.services.ConnektConfig
 import org.scalatest._

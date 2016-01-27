@@ -46,6 +46,4 @@ class CacheTest extends CommonsBaseTest{
     DistributedCacheManager.getCache[String](DistributedCacheType.Default).get(keyName).get shouldEqual data
   }
 
-
-
 }

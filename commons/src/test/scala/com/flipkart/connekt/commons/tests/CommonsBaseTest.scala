@@ -19,7 +19,7 @@ class CommonsBaseTest extends ConnektUTSpec {
 
   private def bootstrapReceptors() = {
 
-    ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)
+    ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
 
     DaoFactory.setUpConnectionProvider(new MockConnectionProvider)
 

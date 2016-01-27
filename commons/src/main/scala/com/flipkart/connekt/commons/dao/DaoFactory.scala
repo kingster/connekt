@@ -3,9 +3,7 @@ package com.flipkart.connekt.commons.dao
 import com.couchbase.client.java.Bucket
 import com.flipkart.connekt.commons.behaviors.{HTableFactory, MySQLFactory}
 import com.flipkart.connekt.commons.connections.TConnectionProvider
-import com.flipkart.connekt.commons.entities.RunInfo
 import com.flipkart.connekt.commons.factories.{MySQLFactoryWrapper, HTableFactoryWrapper}
-import com.flipkart.connekt.commons.helpers.{CouchbaseConnectionHelper, HConnectionHelper, MySqlConnectionHelper}
 import com.typesafe.config.Config
 
 /**
