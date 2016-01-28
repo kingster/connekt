@@ -15,6 +15,8 @@ abstract class Caches[T] {
   def get(key: String): Option[T]
 
   def exists(key: String): Boolean
+
+  def flush(): Unit
 }
 
 case class CacheProperty(size: Int, ttl: Duration)

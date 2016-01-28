@@ -9,59 +9,58 @@ import scala.concurrent.duration.DurationInt
 /**
  * Created by nidhi.mehla on 27/01/16.
  */
-object LocalCacheManager extends CacheManager{
+object LocalCacheManager extends CacheManager {
 
-  private var cacheTTLMap: Map[LocalCacheType.Value, CacheProperty] = Map[LocalCacheType.Value, CacheProperty]()
+  var cacheTTLMap: Map[LocalCacheType.Value, CacheProperty] = Map[LocalCacheType.Value, CacheProperty]()
   cacheTTLMap += LocalCacheType.Default -> CacheProperty(100, 1.hour)
 
-  private val caches: concurrent.TrieMap[LocalCacheType.Value, Any] = concurrent.TrieMap[LocalCacheType.Value, Any]()
+  private var cacheStorage = concurrent.TrieMap[LocalCacheType.Value, Caches[AnyRef]]()
 
-  private def getCache[V <: Any](cacheType: LocalCacheType.Value): Cache[String, V] =
-    caches.getOrElseUpdate(cacheType, {
-      CacheBuilder.newBuilder()
-        .maximumSize(cacheTTLMap(cacheType).size)
-        .expireAfterAccess(cacheTTLMap(cacheType).ttl.toMinutes, TimeUnit.MINUTES)
-        .asInstanceOf[CacheBuilder[String, Any]]
-        .recordStats()
-        .build[String, V]()
-    }).asInstanceOf[Cache[String, V]]
-
-
-  /**
-   * Delete all content's for a given local cache
-   * @param cacheType
-   */
-  def clearCache(cacheType: LocalCacheType.Value) {
-    getCache(cacheType).cleanUp()
-    ConnektLogger(LogFile.SERVICE).info("Cleared local cache" + cacheType.toString)
+  def getCache[V <: Any](cacheName: LocalCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Caches[V] = {
+    cacheStorage.get(cacheName) match {
+      case Some(x) => x.asInstanceOf[Caches[V]]
+      case None =>
+        val cache = new LocalCaches[V](cacheName, cacheTTLMap(cacheName))
+        cacheStorage += cacheName -> cache.asInstanceOf[Caches[AnyRef]]
+        cache
+    }
   }
 
-  /**
-   * Delete the given key from the local cache.
-   * @param cacheType
-   * @param key
-   */
-  def delCacheItem(cacheType: LocalCacheType.Value)( key: String) {
-    getCache[Any](cacheType).invalidate(key)
+}
+
+class LocalCaches[T](val cacheName: LocalCacheType.Value, props: CacheProperty) extends Caches[T] {
+
+  val cache = CacheBuilder.newBuilder()
+    .maximumSize(props.size)
+    .expireAfterAccess(LocalCacheManager.cacheTTLMap(cacheName).ttl.toMinutes, TimeUnit.MINUTES)
+    .asInstanceOf[CacheBuilder[String, Any]]
+    .recordStats()
+    .build[String, T]()
+
+  override def put(key: String, value: T): Boolean = {
+    try {
+      cache.put(key, value)
+      true
+    } catch {
+      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Local cache write failure")
+        false
+    }
   }
 
-  /*
-   * Insert the given (key,Value) in the local cache.
-   * @param cacheType
-   * @param key
-   * @param value
-   */
-  def insertCacheItem(cacheType: LocalCacheType.Value)(key: String, value: Any) = {
-    getCache(cacheType).put(key, value)
+  override def get(key: String): Option[T] = {
+    cache.getIfPresent(key) match {
+      case x: Any => Option(x.asInstanceOf[T])
+      case _ => None
+    }
   }
 
-  /*
- * Return the given (key,Value) in the local cache.
- * @param cacheType
- * @param key
- */
-  def getCacheItem(cacheType: LocalCacheType.Value)(key: String):Any = {
-    getCache(cacheType).getIfPresent(key)
+
+  override def exists(key: String): Boolean = get(key).isDefined
+
+
+  override def flush() {
+    cache.cleanUp()
+    ConnektLogger(LogFile.SERVICE).info("Cleared local cache" + cacheName.toString)
   }
 
   /**
@@ -70,7 +69,16 @@ object LocalCacheManager extends CacheManager{
    * @return
    */
   def getStats(cacheType: LocalCacheType.Value): CacheStats = {
-    getCache[Any](cacheType).stats()
+    cache.stats()
+  }
+
+  /**
+   * Delete the given key from the local cache.
+   * @param cacheType
+   * @param key
+   */
+  def delCacheItem(cacheType: LocalCacheType.Value)(key: String) {
+    cache.invalidate(key)
   }
 
 }

@@ -1,16 +1,12 @@
 package com.flipkart.connekt.commons.cache
 
-import com.couchbase.client.java.document.{StringDocument, JsonDocument}
-import com.couchbase.client.java.document.json.JsonObject
+import com.couchbase.client.java.document.StringDocument
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.utils.StringUtils
-
-import scala.collection.Map
-import scala.concurrent.duration.DurationInt
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import scala.collection.JavaConverters._
-import scala.reflect.ClassTag
+
+import scala.collection.{Map, concurrent}
+import scala.concurrent.duration.DurationInt
 
 /**
  * Created by nidhi.mehla on 19/01/16.
@@ -21,7 +17,7 @@ object DistributedCacheManager extends CacheManager {
   cacheTTLMap += DistributedCacheType.AccessTokens -> CacheProperty(5000, 24.hours)
   cacheTTLMap += DistributedCacheType.Default -> CacheProperty(100, 24.hours)
 
-  private var cacheStorage: Map[DistributedCacheType.Value, Caches[AnyRef]] = Map()
+  private var cacheStorage = concurrent.TrieMap[DistributedCacheType.Value, Caches[AnyRef]]()
 
   /**
    * Get Map for given cacheType
@@ -81,4 +77,6 @@ class DistributedCaches[T](val cacheName: DistributedCacheType.Value, props: Cac
   }
 
   override def exists(key: String): Boolean = cacheStorageBucket.get(StringDocument.create(key)) != null
+
+  override def flush(): Unit = ???
 }

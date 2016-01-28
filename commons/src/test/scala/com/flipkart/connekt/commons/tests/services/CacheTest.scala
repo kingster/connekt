@@ -44,16 +44,20 @@ class CacheTest extends CommonsBaseTest {
     DistributedCacheManager.getCache[String](DistributedCacheType.Default).get(keyName).get shouldEqual data
   }
 
-  "LocalCacheManager" should "write" in {
-    LocalCacheManager.insertCacheItem(LocalCacheType.Default)(keyName, value)
+  "LocalCacheManager" should "insert" in {
+    LocalCacheManager.getCache[String](LocalCacheType.Default).put(keyName, data)
   }
 
   "LocalCacheManager" should "get" in {
-    LocalCacheManager.getCacheItem(LocalCacheType.Default)(keyName) shouldEqual value
+    LocalCacheManager.getCache[String](LocalCacheType.Default).get(keyName).get shouldEqual data
   }
-
-  "LocalCacheManager" should "delete" in {
-    LocalCacheManager.delCacheItem(LocalCacheType.Default)(keyName)
-  }
+//
+//  "LocalCacheManager" should "insert null" in {
+//    LocalCacheManager.getCache[String](LocalCacheType.Default).put("null", null) shouldEqual true
+//  }
+//
+//  "LocalCacheManager" should "get null" in {
+//    LocalCacheManager.getCache[String](LocalCacheType.Default).get("null").isDefined shouldEqual false
+//  }
 
 }
