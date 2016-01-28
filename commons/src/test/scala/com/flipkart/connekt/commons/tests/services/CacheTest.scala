@@ -26,7 +26,6 @@ class CacheTest extends CommonsBaseTest {
     cache.put(keyName, data) shouldEqual true
   }
 
-
   "DistributedCache " should "get " in {
     val cache = new DistributedCaches[String](DistributedCacheType.Default, CacheProperty(100, 24.hours))
     cache.get(keyName).isDefined shouldEqual true
@@ -40,7 +39,6 @@ class CacheTest extends CommonsBaseTest {
   "DistributedCacheManager" should "write different" in {
     DistributedCacheManager.getCache[String](DistributedCacheType.AccessTokens).put(keyName, "i-dont-care") shouldEqual true
   }
-
 
   "DistributedCacheManager" should "get different" in {
     DistributedCacheManager.getCache[String](DistributedCacheType.Default).get(keyName).get shouldEqual data

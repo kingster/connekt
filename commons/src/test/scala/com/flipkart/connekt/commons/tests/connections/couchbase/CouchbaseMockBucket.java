@@ -1,4 +1,4 @@
-package com.flipkart.connekt.commons.dal.impl.couchbase;
+package com.flipkart.connekt.commons.tests.connections.couchbase;
 
 /**
  * Created by kinshuk.bairagi on 22/01/16.

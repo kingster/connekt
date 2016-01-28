@@ -70,7 +70,7 @@ object LocalCacheManager extends CacheManager{
    * @return
    */
   def getStats(cacheType: LocalCacheType.Value): CacheStats = {
-    LocalCacheManager.getCache[Any](cacheType).stats()
+    getCache[Any](cacheType).stats()
   }
 
 }

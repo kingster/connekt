@@ -2,6 +2,7 @@ package com.flipkart.connekt.receptors
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
@@ -27,6 +28,8 @@ object ReceptorsBoot  {
       ConnektLogger.init(logConfigFile)
       ConnektLogger(LogFile.SERVICE).info("Receptors initializing.")
 
+      DaoFactory.setUpConnectionProvider(new ConnectionProvider())
+
       val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
 
@@ -37,12 +40,11 @@ object ReceptorsBoot  {
       val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
       KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
-
       ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getRequestInfoDao, null)
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
 
-      //Start up the receptors's
+      //Start up the receptors
       ReceptorsServer()
 
       ConnektLogger(LogFile.SERVICE).info("Receptors initialized.")
@@ -56,7 +58,6 @@ object ReceptorsBoot  {
       DaoFactory.shutdownHTableDaoFactory()
     }
   }
-
 
   def   main (args: Array[String]) {
     start()

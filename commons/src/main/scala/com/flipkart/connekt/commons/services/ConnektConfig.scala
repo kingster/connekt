@@ -3,7 +3,6 @@ package com.flipkart.connekt.commons.services
 import java.io.IOException
 import java.net.UnknownHostException
 
-import com.flipkart.connekt.commons.entities.{Environments, RunInfo}
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.services.ConnektConfig.{ConfigBucketId, BucketName}
 import com.flipkart.kloud.config.error.ConfigServiceException
@@ -73,7 +72,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
       }
     } catch {
       case uhe @( _: UnknownHostException | _: IOException | _:ConfigServiceException) =>
-        if (RunInfo.ENV == Environments.TEST && NetworkUtils.getHostname.contains("local"))
+        if (NetworkUtils.getHostname.contains("local"))
           ConnektLogger(LogFile.SERVICE).warn(s"Offline Mode, Unable to reach $cfgHost")
         else
           throw uhe;

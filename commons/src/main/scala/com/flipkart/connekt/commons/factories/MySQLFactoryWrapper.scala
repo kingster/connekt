@@ -4,6 +4,7 @@ import java.util.Properties
 import javax.sql.DataSource
 
 import com.flipkart.connekt.commons.behaviors.MySQLFactory
+import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.typesafe.config.Config
 import org.apache.commons.dbcp2.BasicDataSourceFactory
 import org.springframework.jdbc.core.JdbcTemplate
@@ -14,14 +15,14 @@ import org.springframework.jdbc.core.JdbcTemplate
  * @author durga.s
  * @version 12/10/15
  */
-class MySQLFactoryWrapper private(dataSource: DataSource) extends MySQLFactory {
-  var source: DataSource = dataSource
+class MySQLFactoryWrapper private(config: Properties, connProvider: TConnectionProvider) extends MySQLFactory {
 
-  def this(host: String, database: String, username: String, password: String, poolProps: Config) = {
-    this(
-      BasicDataSourceFactory.createDataSource(PropsHelper.getConnProperties(host, database, username, password, poolProps))
-    )
+  private val source: DataSource = connProvider.createDatasourceConnection(config)
+
+  def this(host: String, database: String, username: String, password: String, poolProps: Config, connProvider: TConnectionProvider) = {
+    this(PropsHelper.getConnProperties(host, database, username, password, poolProps), connProvider)
   }
+
 
   override def getJDBCInterface: JdbcTemplate = new JdbcTemplate(source)
 }

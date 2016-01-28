@@ -1,9 +1,10 @@
-package com.flipkart.connekt.commons.tests.dao
+package com.flipkart.connekt.commons.tests.dal
 
 import java.util.{Properties, UUID}
 
+import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.dao.HbaseDao
-import com.flipkart.connekt.commons.helpers.HConnectionHelper
+import com.flipkart.connekt.commons.factories.HTableFactoryWrapper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.typesafe.config.ConfigFactory
@@ -33,7 +34,8 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
     hConfProps.setProperty("hbase.zookeeper.property.clientPort", "2181")
 
     val hConfig = ConfigFactory.parseProperties(hConfProps)
-    HConnectionHelper.createHbaseConnection(hConfig)
+
+    new HTableFactoryWrapper(hConfig, new ConnectionProvider)
   }
 
   "A row put operation for single columnFamily" should "throw no IOException" in {
