@@ -14,6 +14,8 @@ abstract class Caches[T] {
 
   def get(key: String): Option[T]
 
+  def remove(key:String):Unit
+
   def exists(key: String): Boolean
 
   def flush(): Unit

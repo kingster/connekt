@@ -11,5 +11,5 @@ object DistributedCacheType extends CacheType {
 }
 
 object LocalCacheType extends CacheType{
-  val Default = Value
+  val Default, UserAccess = Value
 }
