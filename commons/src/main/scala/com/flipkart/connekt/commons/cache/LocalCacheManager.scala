@@ -65,19 +65,17 @@ class LocalCaches[T](val cacheName: LocalCacheType.Value, props: CacheProperty) 
 
   /**
    * Get Local Cache Stat's
-   * @param cacheType
    * @return
    */
-  def getStats(cacheType: LocalCacheType.Value): CacheStats = {
+  def getStats: CacheStats = {
     cache.stats()
   }
 
   /**
    * Delete the given key from the local cache.
-   * @param cacheType
    * @param key
    */
-  def delCacheItem(cacheType: LocalCacheType.Value)(key: String) {
+  def remove(key: String) {
     cache.invalidate(key)
   }
 
