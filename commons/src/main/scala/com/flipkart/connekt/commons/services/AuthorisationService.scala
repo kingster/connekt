@@ -30,21 +30,21 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
   }
 
   private def read(identifier: String, level: UserType): Option[ResourcePriv] = {
-    var accessPrivilege: ResourcePriv = null
+    var accessPrivilege: Option[ResourcePriv]  = None
     val key = cacheKey(identifier, level)
-    CacheManager.getCache[ResourcePriv].getIfPresent(key) match {
-      case x: ResourcePriv => accessPrivilege = x
+    CacheManager.getCache[Option[ResourcePriv]].getIfPresent(key) match {
+      case x: Option[ResourcePriv] =>
+        accessPrivilege = x
       case _ =>
         try {
-          accessPrivilege = privDao.getPrivileges(identifier, level).orNull
-          CacheManager.getCache[ResourcePriv].put(key, accessPrivilege)
+          accessPrivilege = privDao.getPrivileges(identifier, level)
+          CacheManager.getCache[Option[ResourcePriv]].put(key, accessPrivilege)
         } catch {
           case e: Exception =>
             throw e
         }
     }
-    Option(accessPrivilege)
-
+    accessPrivilege
   }
 
   private def getGroupPrivileges(groupName: String): List[String] = {
@@ -60,7 +60,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       val userPrivs = getUserPrivileges(username)
 
-      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).get.flatMap(getGroupPrivileges)
+      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).getOrElse(Array[String]()).flatMap(getGroupPrivileges)
       val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
       Success(allowedPrivileges.contains(tag))
     } catch {
@@ -74,9 +74,10 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.removePrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success()
+      Success(Nil)
     } catch {
       case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error(s"Error removeAuthorization [$userId] ERROR: ${e.getMessage}", e)
         Failure(e)
     }
   }
@@ -85,9 +86,10 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.addPrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success()
+      Success(Nil)
     } catch {
       case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error(s"Error addAuthorization [$userId] ERROR: ${e.getMessage}", e)
         Failure(e)
     }
   }

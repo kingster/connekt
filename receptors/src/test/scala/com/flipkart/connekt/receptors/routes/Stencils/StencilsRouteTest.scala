@@ -15,6 +15,7 @@ import scala.concurrent.duration._
  * @author aman.shrivastava on 25/01/16.
  */
 class StencilsRouteTest extends BaseRouteTest {
+
   val stencilRoute = new StencilsRoute().stencils
   val engine = StencilEngine.GROOVY
   val engineFabric = """
@@ -62,7 +63,6 @@ class StencilsRouteTest extends BaseRouteTest {
     """.stripMargin
 
   var stencilId = ""
-
 
   "Stencil test" should "return Ok for save" in {
     Post("/v1/stencils", HttpEntity(MediaTypes.`application/json`, input)).addHeader(header) ~>

@@ -12,6 +12,7 @@ import scala.concurrent.duration.FiniteDuration
  * @author aman.shrivastava on 10/12/15.
  */
 abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with ScalatestRouteTest {
+
   implicit val routeTestTimeout = RouteTestTimeout(FiniteDuration.apply(30, TimeUnit.SECONDS))
 
   implicit val am = system

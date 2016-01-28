@@ -6,3 +6,5 @@ target/
 .sonar/
 
 *.jar
+
+.DS_Store
