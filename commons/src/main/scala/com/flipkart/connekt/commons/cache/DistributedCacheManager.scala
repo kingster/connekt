@@ -21,20 +21,20 @@ object DistributedCacheManager extends CacheManager {
   cacheTTLMap += DistributedCacheType.AccessTokens -> CacheProperty(5000, 24.hours)
   cacheTTLMap += DistributedCacheType.Default -> CacheProperty(100, 24.hours)
 
-  private var cacheStorage: Map[DistributedCacheType.Value, Cache[AnyRef]] = Map()
+  private var cacheStorage: Map[DistributedCacheType.Value, Caches[AnyRef]] = Map()
 
   /**
    * Get Map for given cacheType
    * @param cacheName
    * @tparam V
-   * @return [[Cache]]
+   * @return [[Caches]]
    */
-  def getCache[V <: Any](cacheName: DistributedCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Cache[V] = {
+  def getCache[V <: Any](cacheName: DistributedCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Caches[V] = {
     cacheStorage.get(cacheName) match {
-      case Some(x) => x.asInstanceOf[Cache[V]]
+      case Some(x) => x.asInstanceOf[Caches[V]]
       case None =>
-        val cache = new DistributedCache[V](cacheName, cacheTTLMap(cacheName))
-        cacheStorage += cacheName -> cache.asInstanceOf[Cache[AnyRef]]
+        val cache = new DistributedCaches[V](cacheName, cacheTTLMap(cacheName))
+        cacheStorage += cacheName -> cache.asInstanceOf[Caches[AnyRef]]
         cache
     }
   }
@@ -53,7 +53,7 @@ object DistributedCacheManager extends CacheManager {
 
 }
 
-class DistributedCache[T](val cacheName: DistributedCacheType.Value, props: CacheProperty)(implicit cTag: reflect.ClassTag[T]) extends Cache[T] {
+class DistributedCaches[T](val cacheName: DistributedCacheType.Value, props: CacheProperty)(implicit cTag: reflect.ClassTag[T]) extends Caches[T] {
 
   private lazy val cacheStorageBucket = DaoFactory.getCouchbaseBucket(cacheName.toString)
 
