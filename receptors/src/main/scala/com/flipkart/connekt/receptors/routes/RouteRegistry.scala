@@ -3,7 +3,7 @@ package com.flipkart.connekt.receptors.routes
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.routes.Stencils.StencilsRoute
 import com.flipkart.connekt.receptors.routes.callbacks.Callback
-import com.flipkart.connekt.receptors.routes.push.{Fetch, Unicast, Registration}
+import com.flipkart.connekt.receptors.routes.push.{LdapAuthentication, Fetch, Unicast, Registration}
 import akka.http.scaladsl.server.Directives._
 import com.flipkart.connekt.receptors.routes.reports.Reports
 
@@ -17,6 +17,8 @@ class RouteRegistry(implicit mat:ActorMaterializer) {
  private val reportsRoute = new Reports().route
  private val fetchRoute = new Fetch().fetch
  private val stencilRoute = new StencilsRoute().stencils
+ private val ldapTokenRoute = new LdapAuthentication().token
 
- def allRoutes =  unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute
+ def allRoutes =  unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ ldapTokenRoute
+
 }

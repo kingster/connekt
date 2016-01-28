@@ -1,0 +1,14 @@
+package com.flipkart.connekt.commons.tests.utils
+
+import com.flipkart.connekt.commons.tests.ConnektUTSpec
+import com.flipkart.connekt.commons.utils.LdapUtils
+
+/**
+ * Created by avinash.h on 1/28/16.
+ */
+class LdapUtilsTest extends ConnektUTSpec {
+
+  "authenticate" should "return [boolean] ldap authentication valid or not" in {
+    LdapUtils.authenticate("123", "123") should not be true
+  }
+}

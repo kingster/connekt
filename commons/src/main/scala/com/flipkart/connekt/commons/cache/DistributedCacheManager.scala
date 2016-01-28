@@ -16,6 +16,7 @@ object DistributedCacheManager extends CacheManager {
   private var cacheTTLMap: Map[DistributedCacheType.Value, CacheProperty] = Map[DistributedCacheType.Value, CacheProperty]()
   cacheTTLMap += DistributedCacheType.AccessTokens -> CacheProperty(5000, 24.hours)
   cacheTTLMap += DistributedCacheType.Default -> CacheProperty(100, 24.hours)
+  cacheTTLMap += DistributedCacheType.TransientToken -> CacheProperty(100, 3.hours)
 
   private var cacheStorage = concurrent.TrieMap[DistributedCacheType.Value, Caches[AnyRef]]()
 
