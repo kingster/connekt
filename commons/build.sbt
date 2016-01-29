@@ -69,7 +69,8 @@ libraryDependencies ++= Seq(
   "org.codehaus.groovy" % "groovy-all" % "2.4.5",
   "com.roundeights" %% "hasher" % "1.2.0",
   "com.couchbase.client" % "java-client" % "2.1.3",
-  "com.google.guava" % "guava" % "18.0"
+  "com.google.guava" % "guava" % "18.0",
+  "io.reactivex" %% "rxscala" % "0.26.0"
 )
 
 

@@ -26,11 +26,24 @@ class CacheTest extends CommonsBaseTest {
     cache.put[String](keyName, data) shouldEqual true
   }
 
+
   "DistributedCache " should "get " in {
     val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
     cache.get[String](keyName).isDefined shouldEqual true
     cache.get[String](keyName).get shouldEqual data
   }
+
+  "DistributedCache " should "bulk write " in {
+    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    cache.put[String](List(Tuple2("k1", data),Tuple2("k2", data),Tuple2("k3", data), Tuple2("k4", data))) shouldEqual true
+  }
+
+  "DistributedCache " should "get from bulk write " in {
+    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    cache.get[String]("k2").isDefined shouldEqual true
+    cache.get[String]("k2").get shouldEqual data
+  }
+
 
   "DistributedCacheManager" should "get" in {
     DistributedCacheManager.getCache(DistributedCacheType.Default).get[String](keyName).get shouldEqual data

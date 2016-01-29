@@ -4,6 +4,7 @@ import com.couchbase.client.java.document.StringDocument
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import rx.lang.scala.Observable
 
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
@@ -56,7 +57,23 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
 
   override def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
-      cacheStorageBucket.upsert(StringDocument.create(key, props.ttl.toSeconds.toInt , value.asInstanceOf[AnyRef].getJson))
+
+      cacheStorageBucket.upsert(StringDocument.create(key, props.ttl.toSeconds.toInt, value.asInstanceOf[AnyRef].getJson))
+      true
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error("DistributedCache Write Failure", e)
+        false
+    }
+  }
+
+  def put[T](kv: List[(String, T)])(implicit cTag: reflect.ClassTag[T]): Boolean = {
+    try {
+      val documents = kv.map(doc => StringDocument.create(doc._1, props.ttl.toSeconds.toInt, doc._2.asInstanceOf[AnyRef].getJson))
+      Observable.from(documents).flatMap(doc => {
+        rx.lang.scala.JavaConversions.toScalaObservable(cacheStorageBucket.async().upsert(doc))
+      }).last.toBlocking.single
+
       true
     } catch {
       case e: Exception =>
@@ -74,10 +91,10 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
   }
 
   def remove(key: String) {
-    try{
+    try {
       cacheStorageBucket.remove(StringDocument.create(key))
     } catch {
-      case e:Exception =>
+      case e: Exception =>
     }
   }
 
