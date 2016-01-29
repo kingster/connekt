@@ -16,8 +16,9 @@ object DistributedCacheManager extends CacheManager {
   private var cacheTTLMap: Map[DistributedCacheType.Value, CacheProperty] = Map[DistributedCacheType.Value, CacheProperty]()
   cacheTTLMap += DistributedCacheType.AccessTokens -> CacheProperty(5000, 6.hours)
   cacheTTLMap += DistributedCacheType.Default -> CacheProperty(100, 24.hours)
+  cacheTTLMap += DistributedCacheType.DeviceDetails -> CacheProperty(100, 24.hours)
 
-  private var cacheStorage = concurrent.TrieMap[DistributedCacheType.Value, Caches[AnyRef]]()
+  private var cacheStorage = concurrent.TrieMap[DistributedCacheType.Value, Caches]()
 
   /**
    * Get Map for given cacheType
@@ -25,12 +26,12 @@ object DistributedCacheManager extends CacheManager {
    * @tparam V
    * @return [[Caches]]
    */
-  def getCache[V <: Any](cacheName: DistributedCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Caches[V] = {
+  def getCache[V <: Any](cacheName: DistributedCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Caches = {
     cacheStorage.get(cacheName) match {
-      case Some(x) => x.asInstanceOf[Caches[V]]
+      case Some(x) => x.asInstanceOf[Caches]
       case None =>
-        val cache = new DistributedCaches[V](cacheName, cacheTTLMap(cacheName))
-        cacheStorage += cacheName -> cache.asInstanceOf[Caches[AnyRef]]
+        val cache = new DistributedCaches(cacheName, cacheTTLMap(cacheName))
+        cacheStorage += cacheName -> cache.asInstanceOf[Caches]
         cache
     }
   }
@@ -49,11 +50,11 @@ object DistributedCacheManager extends CacheManager {
 
 }
 
-class DistributedCaches[T](val cacheName: DistributedCacheType.Value, props: CacheProperty)(implicit cTag: reflect.ClassTag[T]) extends Caches[T] {
+class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheProperty) extends Caches {
 
   private lazy val cacheStorageBucket = DaoFactory.getCouchbaseBucket(cacheName.toString)
 
-  override def put(key: String, value: T): Boolean = {
+  override def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
       cacheStorageBucket.upsert(StringDocument.create(key, props.ttl.toSeconds.toInt , value.asInstanceOf[AnyRef].getJson))
       true
@@ -64,7 +65,7 @@ class DistributedCaches[T](val cacheName: DistributedCacheType.Value, props: Cac
     }
   }
 
-  override def get(key: String): Option[T] = {
+  def get[T](key: String)(implicit cTag: reflect.ClassTag[T]): Option[T] = {
     cacheStorageBucket.get(StringDocument.create(key)) match {
       case null => None
       case x: StringDocument =>
@@ -73,7 +74,11 @@ class DistributedCaches[T](val cacheName: DistributedCacheType.Value, props: Cac
   }
 
   def remove(key: String) {
-    cacheStorageBucket.remove(StringDocument.create(key))
+    try{
+      cacheStorageBucket.remove(StringDocument.create(key))
+    } catch {
+      case e:Exception =>
+    }
   }
 
   override def exists(key: String): Boolean = cacheStorageBucket.get(StringDocument.create(key)) != null
