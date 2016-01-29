@@ -10,12 +10,12 @@ import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedC
 object TokenService {
 
   def get(tokenKey: String): Option[String] = {
-    DistributedCacheManager.getCache[String](DistributedCacheType.AccessTokens).get(tokenKey)
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[String](tokenKey)
   }
 
   def set(value: String): Option[String] = {
     val tokenKey = UUID.randomUUID().toString.replaceAll("-", "")
-    DistributedCacheManager.getCache[String](DistributedCacheType.AccessTokens).put(tokenKey, value) match {
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[String](tokenKey, value) match {
       case true =>
         Option(tokenKey)
       case false =>
