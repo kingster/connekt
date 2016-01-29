@@ -1,7 +1,7 @@
 package com.flipkart.connekt.receptors.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
-import com.flipkart.connekt.commons.entities.StencilEngine
+import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.GenericResponse
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -15,7 +15,6 @@ import scala.concurrent.duration._
  * @author aman.shrivastava on 25/01/16.
  */
 class StencilsRouteTest extends BaseRouteTest {
-
   val stencilRoute = new StencilsRoute().stencils
   val engine = StencilEngine.GROOVY
   val engineFabric = """
@@ -37,11 +36,21 @@ class StencilsRouteTest extends BaseRouteTest {
                            |}
                            |""".stripMargin
 
+  val updateEngine = StencilEngine.VELOCITY
+  val updateEngineFabric = """{
+                             |	"cType": "EMAIL",
+                             |	"subjectVtl": "Order for $product, $booleanValue, $integerValue",
+                             |	"bodyHtmlVtl": "Hello $name, Price for $product is $price"
+                             |}""".stripMargin
+  val escapedUpdateEngineFabric = StringEscapeUtils.escapeJava(updateEngineFabric)
+
   val message = StringUtils.generateRandomStr(10)
   val id = StringUtils.generateRandomStr(10)
   val triggerSound = false
   val notificationType = "Text"
   val title = StringUtils.generateRandomStr(10)
+  val bucket = "GLOBAL"
+
 
   val payload =
     s"""{
@@ -54,15 +63,28 @@ class StencilsRouteTest extends BaseRouteTest {
     """.stripMargin
 
   val escapedEngineFabric = StringEscapeUtils.escapeJava(engineFabric)
+  var stencil: Stencil = null
 
   val input = s"""
        |{
        |   "engine" : "$engine",
-       |   "engineFabric" : "$escapedEngineFabric"
+       |   "engineFabric" : "$escapedEngineFabric",
+       |   "bucket" : "$bucket"
        |}
     """.stripMargin
 
+  val update = s"""
+       |{
+       |   "engine" : "$updateEngine",
+       |   "engineFabric" : "$escapedUpdateEngineFabric",
+       |   "bucket" : "$bucket"
+       |}
+     """.stripMargin
+
   var stencilId = ""
+
+  val bucketName = StringUtils.generateRandomStr(6)
+
 
   "Stencil test" should "return Ok for save" in {
     Post("/v1/stencils", HttpEntity(MediaTypes.`application/json`, input)).addHeader(header) ~>
@@ -77,7 +99,7 @@ class StencilsRouteTest extends BaseRouteTest {
   }
 
   "Stencil test" should "return Ok for get" in {
-    Get(s"/v1/stencils/$stencilId", HttpEntity(MediaTypes.`application/json`, input)).addHeader(header) ~>
+    Get(s"/v1/stencils/$stencilId").addHeader(header) ~>
       stencilRoute ~>
       check {
         status shouldEqual StatusCodes.OK
@@ -90,9 +112,50 @@ class StencilsRouteTest extends BaseRouteTest {
       check {
         status shouldEqual StatusCodes.OK
       }
+  }
+
+  "Stencil test" should "return Ok for update" in {
+    Put(s"/v1/stencils/$stencilId", HttpEntity(MediaTypes.`application/json`, update)).addHeader(header) ~>
+      stencilRoute ~>
+        check {
+          status shouldEqual StatusCodes.OK
+        }
+  }
+
+  "Stencil test" should "return Ok for version get" in {
+    Get(s"/v1/stencils/$stencilId/1").addHeader(header) ~>
+      stencilRoute ~>
+        check {
+          println("response = " + response)
+          status shouldEqual StatusCodes.OK
+        }
 
   }
 
+  "Stencil test" should "return Ok for version preview" in {
+    Post(s"/v1/stencils/$stencilId/1/preview", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+      stencilRoute ~>
+      check {
+        status shouldEqual StatusCodes.OK
+      }
+  }
+
+  "Stencil test" should "return Ok for bucket create" in {
+    Post(s"/v1/stencils/bucket/$bucketName").addHeader(header) ~>
+      stencilRoute ~>
+      check {
+        status shouldEqual StatusCodes.Created
+
+      }
+  }
+
+  "Stencil test" should "return Ok for bucket get" in {
+    Get(s"/v1/stencils/bucket/$bucketName").addHeader(header) ~>
+      stencilRoute ~>
+      check {
+        status shouldEqual StatusCodes.OK
+      }
+  }
 
 
 

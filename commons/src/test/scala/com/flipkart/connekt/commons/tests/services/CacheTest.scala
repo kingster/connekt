@@ -44,6 +44,14 @@ class CacheTest extends CommonsBaseTest {
     DistributedCacheManager.getCache[String](DistributedCacheType.Default).get(keyName).get shouldEqual data
   }
 
+  "LocalCacheManager" should "insert int" in {
+    LocalCacheManager.getCache[Int](LocalCacheType.Default).put("int", 1)
+  }
+
+  "LocalCacheManager" should "get int" in {
+    LocalCacheManager.getCache[Int](LocalCacheType.Default).get("int").get shouldEqual 1
+  }
+
   "LocalCacheManager" should "insert" in {
     LocalCacheManager.getCache[String](LocalCacheType.Default).put(keyName, data)
   }

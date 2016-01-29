@@ -1,9 +1,11 @@
 package com.flipkart.connekt.commons.cache
 
 import java.util.concurrent.TimeUnit
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.google.common.cache.{Cache, CacheBuilder, CacheStats}
-import scala.collection.{concurrent, Map}
+
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.google.common.cache.{CacheBuilder, CacheStats}
+
+import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 
 /**
@@ -12,7 +14,9 @@ import scala.concurrent.duration.DurationInt
 object LocalCacheManager extends CacheManager {
 
   var cacheTTLMap: Map[LocalCacheType.Value, CacheProperty] = Map[LocalCacheType.Value, CacheProperty]()
+
   cacheTTLMap += LocalCacheType.Default -> CacheProperty(100, 1.hour)
+  cacheTTLMap += LocalCacheType.ResourcePriv -> CacheProperty(500, 10.hour)
 
   private var cacheStorage = concurrent.TrieMap[LocalCacheType.Value, Caches[AnyRef]]()
 
