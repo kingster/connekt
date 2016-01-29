@@ -9,10 +9,11 @@ trait CacheManager {
 
 }
 
-abstract class Caches[T] {
-  def put(key: String, value: T): Boolean
+abstract class Caches {
 
-  def get(key: String): Option[T]
+  def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean
+
+  def get[T](key: String)(implicit cTag: reflect.ClassTag[T]): Option[T]
 
   def remove(key:String):Unit
 
