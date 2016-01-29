@@ -6,19 +6,13 @@ Communications Platform
 Getting Started
 ---------------------
 
-#### Clone
-1. Checkout the repo `git clone <url>`
-2. Let's add a custom remote which will keep github and gitcorp in sync ( let's call it 'all')
-
-	```bash
-	git remote add all git.corp.flipkart.com:/git/mp/fk-connekt
-	git remote set-url --add --push all git.corp.flipkart.com:/git/mp/fk-connekt
-	git remote set-url --add --push all git@github.com:Flipkart/connekt.git
-	```
-3. Make your changes
+#### Fork & Clone
+1. Click on fork and clone the repo!
+2. Checkout the fork repo `git clone <url>`
+3. Let's create a branch to track these changes.
 	
 	```bash
-	git checkout <branch-name>
+	git checkout -b <branch-name>
 	```
 
 4. Push your changes
@@ -30,16 +24,13 @@ Getting Started
 	git push
 	```
 
-	Raise a pull request!
+5. Raise a pull request!
 	
 #### Running Locally
 To run the project locally ``sbt run `` and follow the instructions. For running receptors you will need to run ``sbt "run receptors"``.
 
 #### Promoting
-Promoting local changes to an environment
-```
-./scripts/fk-git-promote -e <enviroment> -b <branch> -p <package>
-```
+In order to promote your changes and build the package, refer to the jenkins job at [Connket Promote](http://usercrm-automation-qa-0001.nm.flipkart.com:8080/view/Promotion%20Jobs/job/promote_conneckt/) to trigger build
 
 Contributing
 -------------------------
