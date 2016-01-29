@@ -27,17 +27,17 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
 
   private def removeCache(identifier: String, level: UserType): Unit = {
     val key = cacheKey(identifier, level)
-    LocalCacheManager.getCache[ResourcePriv](LocalCacheType.ResourcePriv).remove(key)
+    LocalCacheManager.getCache(LocalCacheType.ResourcePriv).remove(key)
   }
 
   private def read(identifier: String, level: UserType): Option[ResourcePriv] = {
     val key = cacheKey(identifier, level)
-    LocalCacheManager.getCache[ResourcePriv](LocalCacheType.ResourcePriv).get(key) match {
+    LocalCacheManager.getCache(LocalCacheType.ResourcePriv).get[ResourcePriv](key) match {
       case p: Some[ResourcePriv] => p
       case None =>
         try {
           val accessPrivilege = privDao.getPrivileges(identifier, level)
-          LocalCacheManager.getCache[ResourcePriv](LocalCacheType.ResourcePriv).put(key, accessPrivilege.orNull)
+          LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[ResourcePriv](key, accessPrivilege.orNull)
           accessPrivilege
         } catch {
           case e: Exception =>
