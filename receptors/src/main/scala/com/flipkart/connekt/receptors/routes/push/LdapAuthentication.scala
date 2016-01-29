@@ -2,7 +2,6 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedCacheType}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseHandler
 import com.flipkart.connekt.receptors.service.{AuthenticationService, TokenService}
@@ -13,7 +12,7 @@ import scala.collection.immutable.Seq
  * Created by avinash.h on 1/21/16.
  */
 
-case class ldapuser(username: String, password: String)
+sealed case class ldapuser(username: String, password: String)
 
 class LdapAuthentication(implicit am: ActorMaterializer) extends BaseHandler {
 

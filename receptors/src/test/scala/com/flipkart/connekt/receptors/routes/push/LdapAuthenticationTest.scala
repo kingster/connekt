@@ -1,6 +1,6 @@
 package com.flipkart.connekt.receptors.routes.push
 
-import akka.http.scaladsl.model.{StatusCodes, MediaTypes, HttpEntity}
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
 
 /**
@@ -22,7 +22,6 @@ class LdapAuthenticationTest extends BaseRouteTest {
     Post(s"/v1/auth/ldap", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       ldapAuthentication ~>
       check {
-        println("RESPONSE==>>>>>>>" + responseAs[String])
         status shouldEqual StatusCodes.Unauthorized
       }
 
