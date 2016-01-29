@@ -18,32 +18,32 @@ object LocalCacheManager extends CacheManager {
   cacheTTLMap += LocalCacheType.Default -> CacheProperty(100, 1.hour)
   cacheTTLMap += LocalCacheType.ResourcePriv -> CacheProperty(500, 10.hour)
 
-  private var cacheStorage = concurrent.TrieMap[LocalCacheType.Value, Caches[AnyRef]]()
+  private var cacheStorage = concurrent.TrieMap[LocalCacheType.Value, Caches]()
 
-  def getCache[V <: Any](cacheName: LocalCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Caches[V] = {
+  def getCache[V <: Any](cacheName: LocalCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Caches = {
     cacheStorage.get(cacheName) match {
-      case Some(x) => x.asInstanceOf[Caches[V]]
+      case Some(x) => x.asInstanceOf[Caches]
       case None =>
-        val cache = new LocalCaches[V](cacheName, cacheTTLMap(cacheName))
-        cacheStorage += cacheName -> cache.asInstanceOf[Caches[AnyRef]]
+        val cache = new LocalCaches(cacheName, cacheTTLMap(cacheName))
+        cacheStorage += cacheName -> cache.asInstanceOf[Caches]
         cache
     }
   }
 
 }
 
-class LocalCaches[T](val cacheName: LocalCacheType.Value, props: CacheProperty) extends Caches[T] {
+class LocalCaches(val cacheName: LocalCacheType.Value, props: CacheProperty) extends Caches {
 
   val cache = CacheBuilder.newBuilder()
     .maximumSize(props.size)
     .expireAfterAccess(LocalCacheManager.cacheTTLMap(cacheName).ttl.toMinutes, TimeUnit.MINUTES)
     .asInstanceOf[CacheBuilder[String, Any]]
     .recordStats()
-    .build[String, T]()
+    .build[String, AnyRef]()
 
-  override def put(key: String, value: T): Boolean = {
+  override def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
-      cache.put(key, value)
+      cache.put(key, value.asInstanceOf[AnyRef])
       true
     } catch {
       case e: Exception => ConnektLogger(LogFile.SERVICE).error("Local cache write failure")
@@ -51,7 +51,7 @@ class LocalCaches[T](val cacheName: LocalCacheType.Value, props: CacheProperty) 
     }
   }
 
-  override def get(key: String): Option[T] = {
+  override def get[T](key: String)(implicit cTag: reflect.ClassTag[T]): Option[T] = {
     cache.getIfPresent(key) match {
       case x: Any => Option(x.asInstanceOf[T])
       case _ => None

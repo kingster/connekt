@@ -17,31 +17,48 @@ class CacheTest extends CommonsBaseTest {
   private val data = "dummy"
 
   "DistributedCache " should "add " in {
-    val cache = new DistributedCaches[String](DistributedCacheType.Default, CacheProperty(100, 24.hours))
-    cache.put(keyName, data) shouldEqual true
+    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    cache.put[String](keyName, data) shouldEqual true
   }
 
   "DistributedCache " should "write again " in {
-    val cache = new DistributedCaches[String](DistributedCacheType.Default, CacheProperty(100, 24.hours))
-    cache.put(keyName, data) shouldEqual true
+    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    cache.put[String](keyName, data) shouldEqual true
   }
 
   "DistributedCache " should "get " in {
-    val cache = new DistributedCaches[String](DistributedCacheType.Default, CacheProperty(100, 24.hours))
-    cache.get(keyName).isDefined shouldEqual true
-    cache.get(keyName).get shouldEqual data
+    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    cache.get[String](keyName).isDefined shouldEqual true
+    cache.get[String](keyName).get shouldEqual data
   }
 
   "DistributedCacheManager" should "get" in {
-    DistributedCacheManager.getCache[String](DistributedCacheType.Default).get(keyName).get shouldEqual data
+    DistributedCacheManager.getCache(DistributedCacheType.Default).get[String](keyName).get shouldEqual data
   }
 
   "DistributedCacheManager" should "write different" in {
-    DistributedCacheManager.getCache[String](DistributedCacheType.AccessTokens).put(keyName, "i-dont-care") shouldEqual true
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[String](keyName, "i-dont-care") shouldEqual true
+  }
+
+  "DistributedCacheManager" should "write different type" in {
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[Int]("int",1) shouldEqual true
+  }
+
+  "DistributedCacheManager" should "get different type" in {
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[Int]("int").get shouldEqual 1
   }
 
   "DistributedCacheManager" should "get different" in {
-    DistributedCacheManager.getCache[String](DistributedCacheType.Default).get(keyName).get shouldEqual data
+    DistributedCacheManager.getCache(DistributedCacheType.Default).get[String](keyName).get shouldEqual data
+  }
+
+  "DistributedCacheManager" should "write different list" in {
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[List[String]]("list-string", List("a", "b")) shouldEqual true
+  }
+
+  "DistributedCacheManager" should "get different list" in {
+    val d = DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[List[String]]("list-string").get
+    d shouldEqual List("a", "b")
   }
 
   "LocalCacheManager" should "insert int" in {
@@ -53,12 +70,13 @@ class CacheTest extends CommonsBaseTest {
   }
 
   "LocalCacheManager" should "insert" in {
-    LocalCacheManager.getCache[String](LocalCacheType.Default).put(keyName, data)
+    LocalCacheManager.getCache(LocalCacheType.Default).put(keyName, data)
   }
 
   "LocalCacheManager" should "get" in {
-    LocalCacheManager.getCache[String](LocalCacheType.Default).get(keyName).get shouldEqual data
+    LocalCacheManager.getCache(LocalCacheType.Default).get[String](keyName).get shouldEqual data
   }
+
 //
 //  "LocalCacheManager" should "insert null" in {
 //    LocalCacheManager.getCache[String](LocalCacheType.Default).put("null", null) shouldEqual true
