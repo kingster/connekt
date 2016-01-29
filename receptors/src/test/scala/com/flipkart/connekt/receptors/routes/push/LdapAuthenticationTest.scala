@@ -14,7 +14,7 @@ class LdapAuthenticationTest extends BaseRouteTest {
     val payload =
       s"""
          |{
-         |	"username": "avinash.h",
+         |	"username": "123",
          |	"password": "123"
          |}
       """.stripMargin
@@ -22,6 +22,7 @@ class LdapAuthenticationTest extends BaseRouteTest {
     Post(s"/v1/auth/ldap", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       ldapAuthentication ~>
       check {
+        println("RESPONSE==>>>>>>>" + responseAs[String])
         status shouldEqual StatusCodes.Unauthorized
       }
 

@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 
-object LdapUtils {
+object LdapService {
 
   val searchbase = "dc=flipkart,dc=com"
   val url = "ldaps://ldap.corp.flipkart.com:636"

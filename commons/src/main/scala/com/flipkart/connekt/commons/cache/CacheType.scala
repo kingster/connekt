@@ -7,7 +7,7 @@ package com.flipkart.connekt.commons.cache
 trait CacheType extends Enumeration
 
 object DistributedCacheType extends CacheType {
-  val Default, AccessTokens, TransientToken = Value
+  val Default, AccessTokens = Value
 }
 
 object LocalCacheType extends CacheType{

@@ -17,8 +17,8 @@ class RouteRegistry(implicit mat:ActorMaterializer) {
  private val reportsRoute = new Reports().route
  private val fetchRoute = new Fetch().fetch
  private val stencilRoute = new StencilsRoute().stencils
- private val ldapTokenRoute = new LdapAuthentication().token
+ private val ldapRoute = new LdapAuthentication().token
 
- def allRoutes =  unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ ldapTokenRoute
+ def allRoutes =  unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ ldapRoute
 
 }

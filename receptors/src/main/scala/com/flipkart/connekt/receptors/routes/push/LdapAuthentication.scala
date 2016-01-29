@@ -24,14 +24,13 @@ class LdapAuthentication(implicit am: ActorMaterializer) extends BaseHandler {
           entity(as[ldapuser]) { user =>
             AuthenticationService.authenticateLdap(user.username, user.password) match {
               case true =>
-                val tokenId = TokenService.getToken()
-                DistributedCacheManager.getCache[String](DistributedCacheType.TransientToken).put(tokenId, user.username) match {
-                  case true =>
+                TokenService.set(user.username) match {
+                  case Some(tokenId) =>
                     complete(respond[GenericResponse] (
                     StatusCodes.OK, Seq.empty[HttpHeader],
                     GenericResponse (StatusCodes.OK.intValue, null, Response ("generated token successfully", tokenId) )
                     ))
-                  case false =>
+                  case None =>
                     complete(respond[GenericResponse] (
                     StatusCodes.InternalServerError, Seq.empty[HttpHeader],
                     GenericResponse (StatusCodes.InternalServerError.intValue, null, Response ("Unable to set token in cache", null) )
