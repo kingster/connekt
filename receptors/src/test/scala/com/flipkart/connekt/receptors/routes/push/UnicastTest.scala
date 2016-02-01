@@ -2,6 +2,7 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{StatusCodes, HttpEntity, MediaTypes}
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
+import org.scalatest.Ignore
 
 /**
  *
@@ -9,6 +10,7 @@ import com.flipkart.connekt.receptors.routes.BaseRouteTest
  * @author durga.s
  * @version 12/9/15
  */
+@Ignore
 class UnicastTest extends BaseRouteTest {
 
   val unicastRoute = new Unicast().unicast

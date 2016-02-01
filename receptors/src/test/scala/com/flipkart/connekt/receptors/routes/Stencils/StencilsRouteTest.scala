@@ -7,6 +7,7 @@ import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
 import org.apache.commons.lang.StringEscapeUtils
+import org.scalatest.Ignore
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -14,6 +15,7 @@ import scala.concurrent.duration._
 /**
  * @author aman.shrivastava on 25/01/16.
  */
+@Ignore
 class StencilsRouteTest extends BaseRouteTest {
   val stencilRoute = new StencilsRoute().stencils
   val engine = StencilEngine.GROOVY

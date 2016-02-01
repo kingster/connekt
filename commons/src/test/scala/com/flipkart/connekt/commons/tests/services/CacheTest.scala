@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.flipkart.connekt.commons.cache._
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
+import org.scalatest.Ignore
 
 import scala.concurrent.duration.DurationInt
 
@@ -11,6 +12,7 @@ import scala.concurrent.duration.DurationInt
 /**
  * Created by nidhi.mehla on 21/01/16.
  */
+@Ignore
 class CacheTest extends CommonsBaseTest {
 
   private val keyName: String = UUID.randomUUID().toString
