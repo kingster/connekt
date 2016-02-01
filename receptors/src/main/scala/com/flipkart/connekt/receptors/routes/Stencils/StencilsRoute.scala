@@ -69,18 +69,11 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseHandler {
                       post {
                         entity(as[ObjectNode]) { entity =>
                           authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
-                            StencilService.render(stencil, entity) match {
-                              case Some(channelRequest) =>
-                                complete(respond[GenericResponse](
-                                  StatusCodes.OK, Seq.empty[HttpHeader],
-                                  GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("channelRequest" -> channelRequest)))
-                                ))
-                              case None =>
-                                complete(respond[GenericResponse](
-                                  StatusCodes.BadRequest, Seq.empty[HttpHeader],
-                                  GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Stencils cannot be render for id: %s".format(id), null))
-                                ))
-                            }
+                            val channelRequestData = StencilService.render(stencil, entity)
+                            complete(respond[GenericResponse](
+                              StatusCodes.OK, Seq.empty[HttpHeader],
+                              GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("channelRequest" -> channelRequestData)))
+                            ))
                           }
                         }
                       }
@@ -92,18 +85,12 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseHandler {
                               authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
                                 StencilService.get(id, Some(version)) match {
                                   case Some(stnc) =>
-                                    StencilService.render(stnc, entity) match {
-                                      case Some(channelRequest) =>
-                                        complete(respond[GenericResponse](
-                                          StatusCodes.OK, Seq.empty[HttpHeader],
-                                          GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("channelRequest" -> channelRequest)))
-                                        ))
-                                      case None =>
-                                        complete(respond[GenericResponse](
-                                          StatusCodes.BadRequest, Seq.empty[HttpHeader],
-                                          GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Stencils cannot be render for id: %s".format(id), null))
-                                        ))
-                                    }
+                                    val channelRequestData = StencilService.render(stnc, entity)
+                                    complete(respond[GenericResponse](
+                                      StatusCodes.OK, Seq.empty[HttpHeader],
+                                      GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("channelRequest" -> channelRequestData)))
+                                    ))
+
                                   case None =>
                                     complete(respond[GenericResponse](
                                       StatusCodes.BadRequest, Seq.empty[HttpHeader],

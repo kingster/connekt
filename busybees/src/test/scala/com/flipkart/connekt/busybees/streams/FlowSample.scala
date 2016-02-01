@@ -1,4 +1,4 @@
-package com.flipkart.connekt.busybees.flows
+package com.flipkart.connekt.busybees.streams
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl._

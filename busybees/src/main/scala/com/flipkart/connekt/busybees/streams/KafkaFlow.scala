@@ -1,4 +1,4 @@
-package com.flipkart.connekt.busybees.flows
+package com.flipkart.connekt.busybees.streams
 
 import akka.stream.SourceShape
 import akka.stream.scaladsl.{FlowGraph, Merge, Source}

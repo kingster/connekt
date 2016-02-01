@@ -3,7 +3,7 @@ package com.flipkart.connekt.busybees
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
-import com.flipkart.connekt.busybees.flows.KafkaMessageProcessFlow
+import com.flipkart.connekt.busybees.streams.KafkaMessageProcessFlow
 import com.flipkart.connekt.busybees.processors.PNProcessor
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
