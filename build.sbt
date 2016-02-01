@@ -23,7 +23,6 @@ seq(Revolver.settings: _*)
 
 seq(SbtStartScript.startScriptForJarSettings: _*)
 
-
-jira := "CST"
+jira := "CNKT"
 
 seq(JiraIdPlugin.settings: _*)
