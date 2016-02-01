@@ -69,7 +69,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseHandler {
                       post {
                         entity(as[ObjectNode]) { entity =>
                           authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
-                            StencilService.render(Option(stencil), entity) match {
+                            StencilService.render(stencil, entity) match {
                               case Some(channelRequest) =>
                                 complete(respond[GenericResponse](
                                   StatusCodes.OK, Seq.empty[HttpHeader],
@@ -92,7 +92,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseHandler {
                               authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
                                 StencilService.get(id, Some(version)) match {
                                   case Some(stnc) =>
-                                    StencilService.render(Option(stnc), entity) match {
+                                    StencilService.render(stnc, entity) match {
                                       case Some(channelRequest) =>
                                         complete(respond[GenericResponse](
                                           StatusCodes.OK, Seq.empty[HttpHeader],

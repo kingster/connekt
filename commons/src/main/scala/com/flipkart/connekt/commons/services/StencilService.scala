@@ -28,17 +28,14 @@ object StencilService {
     }
   }
 
-  def render(stencil: Option[Stencil], req: ObjectNode): Option[ChannelRequestData] = {
-    stencil.map(st =>
-      st.engine match {
+  def render(stencil: Stencil, req: ObjectNode): Option[ChannelRequestData] = {
+      val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
-          val fabric: GroovyFabric = FabricMaker.create(st.id, st.engineFabric)
-          fabric.renderData(st.id, req)
+          FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
         case StencilEngine.VELOCITY =>
-          val fabric = FabricMaker.createVtlFabric(st.id, st.engineFabric)
-          fabric.renderData(st.id, req)
+          FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
       }
-    )
+      Some(fabric.renderData(stencil.id, req))
   }
 
   def add(stencil: Stencil): Try[Unit] = {

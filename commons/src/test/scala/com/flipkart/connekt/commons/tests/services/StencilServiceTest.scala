@@ -59,7 +59,7 @@ class StencilServiceTest extends CommonsBaseTest {
   }
 
   "Stencil Service" should "render the stencil for given ConnektRequest" in {
-    StencilService.render(Some(stencil), payload.getObj[ObjectNode]).get shouldEqual EmailRequestData(subjectResult, bodyHtmlResult)
+    StencilService.render(stencil, payload.getObj[ObjectNode]).get shouldEqual EmailRequestData(subjectResult, bodyHtmlResult)
   }
 
 
