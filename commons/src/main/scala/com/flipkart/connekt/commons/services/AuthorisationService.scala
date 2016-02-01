@@ -1,8 +1,9 @@
 package com.flipkart.connekt.commons.services
 
+import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
 import com.flipkart.connekt.commons.dao.{PrivDao, UserInfo}
 import com.flipkart.connekt.commons.entities.UserType.UserType
-import com.flipkart.connekt.commons.entities.{CacheManager, ResourcePriv, UserType}
+import com.flipkart.connekt.commons.entities.{ResourcePriv, UserType}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.util.{Failure, Success, Try}
@@ -26,25 +27,23 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
 
   private def removeCache(identifier: String, level: UserType): Unit = {
     val key = cacheKey(identifier, level)
-    CacheManager.getCache[Any].invalidate(key)
+    LocalCacheManager.getCache(LocalCacheType.ResourcePriv).remove(key)
   }
 
   private def read(identifier: String, level: UserType): Option[ResourcePriv] = {
-    var accessPrivilege: Option[ResourcePriv]  = None
     val key = cacheKey(identifier, level)
-    CacheManager.getCache[Option[ResourcePriv]].getIfPresent(key) match {
-      case x: Option[ResourcePriv] =>
-        accessPrivilege = x
-      case _ =>
+    LocalCacheManager.getCache(LocalCacheType.ResourcePriv).get[ResourcePriv](key) match {
+      case p: Some[ResourcePriv] => p
+      case None =>
         try {
-          accessPrivilege = privDao.getPrivileges(identifier, level)
-          CacheManager.getCache[Option[ResourcePriv]].put(key, accessPrivilege)
+          val accessPrivilege = privDao.getPrivileges(identifier, level)
+          LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[ResourcePriv](key, accessPrivilege.orNull)
+          accessPrivilege
         } catch {
           case e: Exception =>
             throw e
         }
     }
-    accessPrivilege
   }
 
   private def getGroupPrivileges(groupName: String): List[String] = {
@@ -55,14 +54,13 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     read(userName, UserType.USER).map(_.resources.split(',').toList).getOrElse(List())
   }
 
-
-  override def isAuthorized(tag: String, username: String): Try[Boolean] = {
+  override def isAuthorized(resource: String, username: String): Try[Boolean] = {
     try {
       val userPrivs = getUserPrivileges(username)
-
-      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).getOrElse(Array[String]()).flatMap(getGroupPrivileges)
+      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).get.flatMap(getGroupPrivileges)
       val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
-      Success(allowedPrivileges.contains(tag))
+
+      Success(allowedPrivileges.contains(resource))
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$username] info: ${e.getMessage}", e)
@@ -74,10 +72,9 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.removePrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success(Nil)
+      Success()
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error(s"Error removeAuthorization [$userId] ERROR: ${e.getMessage}", e)
         Failure(e)
     }
   }
@@ -86,10 +83,9 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.addPrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success(Nil)
+      Success()
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error(s"Error addAuthorization [$userId] ERROR: ${e.getMessage}", e)
         Failure(e)
     }
   }

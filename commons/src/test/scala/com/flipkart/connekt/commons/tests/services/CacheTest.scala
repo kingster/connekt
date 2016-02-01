@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.flipkart.connekt.commons.cache._
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
+import org.scalatest.Ignore
 
 import scala.concurrent.duration.DurationInt
 
@@ -11,6 +12,7 @@ import scala.concurrent.duration.DurationInt
 /**
  * Created by nidhi.mehla on 21/01/16.
  */
+@Ignore
 class CacheTest extends CommonsBaseTest {
 
   private val keyName: String = UUID.randomUUID().toString
@@ -72,6 +74,14 @@ class CacheTest extends CommonsBaseTest {
   "DistributedCacheManager" should "get different list" in {
     val d = DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[List[String]]("list-string").get
     d shouldEqual List("a", "b")
+  }
+
+  "LocalCacheManager" should "insert int" in {
+    LocalCacheManager.getCache(LocalCacheType.Default).put[Int]("int", 1)
+  }
+
+  "LocalCacheManager" should "get int" in {
+    LocalCacheManager.getCache(LocalCacheType.Default).get[Int]("int").get shouldEqual 1
   }
 
   "LocalCacheManager" should "insert" in {

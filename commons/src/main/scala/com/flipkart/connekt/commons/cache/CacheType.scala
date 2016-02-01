@@ -10,6 +10,7 @@ object DistributedCacheType extends CacheType {
   val Default, AccessTokens, DeviceDetails = Value
 }
 
-object LocalCacheType extends CacheType{
-  val Default, UserAccess = Value
+object LocalCacheType extends CacheType {
+  val Default, UserAccess, ResourcePriv = Value
 }
+

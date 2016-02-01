@@ -6,7 +6,7 @@ Communications Platform
 Getting Started
 ---------------------
 
-#### Fork & Clone
+#### Fork & Clone ###
 1. Click on fork and clone the repo!
 2. Checkout the fork repo `git clone <url>`
 3. Let's create a branch to track these changes.
@@ -38,6 +38,8 @@ Contributing
 1. Create a branch for all feature developments.
 2. Ensure, your changes have corresponding UTs, so that functional correctness can be readily verified.
 2. Create a pull request when you feel that the code is production ready and ready for review and merge.
+
+
 
 
 
