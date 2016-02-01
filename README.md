@@ -3,7 +3,6 @@ Connekt Platform
 
 Communications Platform
 
-
 Getting Started
 ---------------------
 
