@@ -3,11 +3,10 @@ Connekt Platform
 
 Communications Platform
 
-
 Getting Started
 ---------------------
 
-#### Fork & Clone
+#### Fork & Clone ###
 1. Click on fork and clone the repo!
 2. Checkout the fork repo `git clone <url>`
 3. Let's create a branch to track these changes.
