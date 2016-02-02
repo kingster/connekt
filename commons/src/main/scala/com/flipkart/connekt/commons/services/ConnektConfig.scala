@@ -37,7 +37,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
 
   def readConfigs(): List[Config] = {
     cfgClient = new ConfigClient(cfgHost, cfgfPort, cfgAppVer)
-    ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketIdMap.values.toString()}}]")
+    ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketIdMap.values.toList}}]")
 
     for (bucketName <- bucketIdMap.values) {
       val bucket = cfgClient.getDynamicBucket(bucketName)

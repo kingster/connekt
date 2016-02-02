@@ -51,7 +51,7 @@ object BusyBeesBoot {
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
 
-      DeviceDetailsService.get("ConnectSampleApp","513803e45cf1b344ef494a04c9fb650a" )
+      println(DeviceDetailsService.get("ConnectSampleApp","513803e45cf1b344ef494a04c9fb650a" ))
       Topology.bootstrap(kafkaHelper)
       /*
             pnDispatchFlow = Some(new KafkaMessageProcessFlow[ConnektRequest, PNProcessor](kafkaHelper, "fk-connekt-pn", 1, 5)(system))

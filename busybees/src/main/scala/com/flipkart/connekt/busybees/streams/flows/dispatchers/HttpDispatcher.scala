@@ -10,14 +10,12 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.transmission.HostConnectionHelper
 import com.flipkart.connekt.commons.utils.StringUtils
 import scala.concurrent.duration._
 
 import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
 import scala.util.Try
-import com.flipkart.connekt.commons.utils.StringUtils._
 
 /**
  * Created by kinshuk.bairagi on 02/02/16.
@@ -33,7 +31,7 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
   implicit val ec = BusyBeesBoot.system.dispatcher
   implicit val mat = ActorMaterializer()
 
-  lazy implicit val poolClientFlow = HostConnectionHelper.getPoolClientFlow[String](uri.getHost, uri.getPort) //Http().cachedHostConnectionPool[String]()
+  lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolTls[String](uri.getHost, uri.getPort)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -52,11 +50,9 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
 
         ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Request Payload : ${request.entity.asInstanceOf[HttpEntityStrict].data().decodeString("UTF-8")}")
 
-//        val responseFuture: Future[(Try[HttpResponse], String)] =
-//          Source.single(request -> requestId)
-//            .via(poolClientFlow)
-//            .runWith(Sink.head)
-        val responseFuture = HostConnectionHelper.request[String](request, requestId)
+        val responseFuture: Future[(Try[HttpResponse], String)] = Source.single(request -> requestId)
+          .via(poolClientFlow).runWith(Sink.head)
+
 
         responseFuture.map(response => {
           val txtResponse = Await.result(response._1.get.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")),10.seconds)

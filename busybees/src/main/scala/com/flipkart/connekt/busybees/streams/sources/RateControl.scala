@@ -31,13 +31,13 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
 
     setHandler(in, new InHandler {
       override def onPush(): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Received Message:")
+        ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush")
         if (tokenBucket.tryConsume(1)) {
           val message = grab(in)
           ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Message ${message.toString}")
           push(out, message)
         } else {
-          ConnektLogger(LogFile.PROCESSORS).warn("Rate Limited..")
+          ConnektLogger(LogFile.PROCESSORS).warn("RateControl :: Rate Limited..")
         }
       }
     })
