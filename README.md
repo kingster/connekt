@@ -20,12 +20,12 @@ Getting Started
 	```bash
 	git add <files>
 	...
-	git commit -m "CST-<JIRA-NO> What changes does this commit make ?"
+	git commit -m "CNKT-<JIRA-NO> What changes does this commit make ?"
 	git push
 	```
 
-5. Raise a pull request!
-	
+5. Raise a [pull request](https://help.github.com/articles/creating-a-pull-request/) so that others may review and merge it.
+
 #### Running Locally
 To run the project locally ``sbt run `` and follow the instructions. For running receptors you will need to run ``sbt "run receptors"``.
 
