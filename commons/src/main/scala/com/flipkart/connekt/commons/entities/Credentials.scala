@@ -1,15 +1,21 @@
 package com.flipkart.connekt.commons.entities
 
-import com.flipkart.connekt.commons.dao.DaoFactory
+import org.apache.commons.lang.StringUtils
 
 /**
- *
- *
- * @author durga.s
- * @version 11/28/15
+ * Created by kinshuk.bairagi on 23/09/14.
  */
+case class Credentials(username: String, password: String) {
+
+  def isEmpty:Boolean = {
+    true
+   // Utility.isNullOrEmpty(username) && Utility.isNullOrEmpty(password)
+  }
+
+}
+
 object Credentials {
-  //FIXME
-  val sampleAppCred = "key=AIzaSyBCf_cvl1hkMQJvZ8LFlDwo6BR3J_hSuEM"
+
+  val EMPTY = Credentials(StringUtils.EMPTY, StringUtils.EMPTY)
 
 }

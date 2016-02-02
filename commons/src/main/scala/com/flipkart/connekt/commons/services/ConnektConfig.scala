@@ -13,6 +13,8 @@ import com.flipkart.connekt.commons.utils.{NetworkUtils, UtilsEnv}
 
 import scala.collection.mutable
 import scala.collection.JavaConversions._
+import com.flipkart.connekt.commons.utils.StringUtils._
+
 /**
  *
  *
@@ -71,7 +73,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
         appConfig = overlayConfigs(configs: _*)
       }
     } catch {
-      case uhe @( _: UnknownHostException | _: IOException | _:ConfigServiceException) =>
+      case uhe@(_: UnknownHostException | _: IOException | _: ConfigServiceException) =>
         if (NetworkUtils.getHostname.contains("local"))
           ConnektLogger(LogFile.SERVICE).warn(s"Offline Mode, Unable to reach $cfgHost")
         else
@@ -80,7 +82,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
         throw e;
 
     }
-    ConnektLogger(LogFile.SERVICE).info(s"Config Overlayed: $appConfig")
+    ConnektLogger(LogFile.SERVICE).info("Complete Config: " + ConnektConfig.mask(appConfig.getJson))
   }
 
   def terminate() = {
@@ -97,7 +99,7 @@ object ConnektConfig {
   var instance: ConnektConfig = null
 
   def apply(configHost: String = "config-service.nm.flipkart.com", configPort: Int = 80, configAppVersion: Int = 1)
-           (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(UtilsEnv.getConfEnv))) = {
+           (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(UtilsEnv.getConfEnv), "CREDENTIALS" -> "fk-connekt-credentials")) = {
     this.synchronized {
       if (null == instance) {
         instance = new ConnektConfig(configHost, configPort, configAppVersion)(bucketIdMap)
@@ -142,4 +144,15 @@ object ConnektConfig {
   } catch {
     case _: ConfigException.Missing => None
   }
+
+
+  /**
+   * Mask private information
+   * @param config
+   * @return
+   */
+  private def mask(config: String): String = {
+    config.replaceAll("(\")?password(\")?(\\s)*[:=]+[^\\n]*", "password : * * * * * *")
+  }
+
 }
