@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.entities
 
-import org.apache.commons.lang.StringUtils
+import com.flipkart.connekt.commons.utils.StringUtils
+import org.apache.commons.lang.{StringUtils => ApacheStringUtils}
 
 /**
  * Created by kinshuk.bairagi on 23/09/14.
@@ -8,14 +9,13 @@ import org.apache.commons.lang.StringUtils
 case class Credentials(username: String, password: String) {
 
   def isEmpty:Boolean = {
-    true
-   // Utility.isNullOrEmpty(username) && Utility.isNullOrEmpty(password)
+    StringUtils.isNullOrEmpty(username) && StringUtils.isNullOrEmpty(password)
   }
 
 }
 
 object Credentials {
 
-  val EMPTY = Credentials(StringUtils.EMPTY, StringUtils.EMPTY)
+  val EMPTY = Credentials(ApacheStringUtils.EMPTY, ApacheStringUtils.EMPTY)
 
 }
