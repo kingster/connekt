@@ -31,6 +31,12 @@
     <logger name="FACTORY" level="DEBUG">
         <appender-ref ref="FACTORY" />
     </logger>
+
+
+    <logger name="kafka" level="ERROR" />
+    <logger name="org.apache" level="ERROR" />
+    <logger name="com.couchbase.client" level="ERROR" />
+
     <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
