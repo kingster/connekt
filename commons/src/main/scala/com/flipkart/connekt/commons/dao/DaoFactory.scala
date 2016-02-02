@@ -53,7 +53,7 @@ object DaoFactory {
 
     daoMap += DaoType.USERINFO -> UserInfo("USER_INFO", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEDGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
-    daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", mysqlFactoryWrapper)
+    daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", "STENCIL_HISTORY_STORE", "BUCKET_REGISTRY", mysqlFactoryWrapper)
   }
 
   def initCouchbaseCluster(config: Config) {

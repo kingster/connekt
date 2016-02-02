@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.entities
 
-import java.math.BigInteger
 import javax.persistence.Column
+
 import org.apache.commons.lang.StringUtils
 
 /**
@@ -22,7 +22,7 @@ class AppUser {
   var groups: String = _
 
   @Column(name = "lastUpdatedTS")
-  var lastUpdatedTs: BigInteger = BigInteger.valueOf(System.currentTimeMillis())
+  var lastUpdatedTs: Long = System.currentTimeMillis()
 
   @Column(name = "updatedBy")
   var updatedBy: String = StringUtils.EMPTY
@@ -36,7 +36,7 @@ class AppUser {
     this.userId = userId
     this.apiKey = apiKey
     this.groups = groups
-    this.lastUpdatedTs = BigInteger.valueOf(lastUpdatedTs)
+    this.lastUpdatedTs = lastUpdatedTs
     this.updatedBy = updatedBy
   }
   

@@ -3,13 +3,14 @@ package com.flipkart.connekt.commons.tests.services
 import java.util.UUID
 
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
+import org.scalatest.Ignore
 
 /**
  * Created by nidhi.mehla on 28/01/16.
  */
+@Ignore
 class DeviceDetailsServiceTest extends CommonsBaseTest {
 
   private val deviceId: String = UUID.randomUUID().toString

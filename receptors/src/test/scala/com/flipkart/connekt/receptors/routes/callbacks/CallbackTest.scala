@@ -2,10 +2,12 @@ package com.flipkart.connekt.receptors.routes.callbacks
 
 import akka.http.scaladsl.model.{StatusCodes, MediaTypes, HttpEntity}
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
+import org.scalatest.Ignore
 
 /**
  * @author aman.shrivastava on 10/12/15.
  */
+@Ignore
 class CallbackTest extends BaseRouteTest {
 
   "Callback Test " should "return Ok" in {
