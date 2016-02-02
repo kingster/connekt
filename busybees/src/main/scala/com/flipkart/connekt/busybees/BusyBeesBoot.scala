@@ -3,7 +3,7 @@ package com.flipkart.connekt.busybees
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
-import com.flipkart.connekt.busybees.streams.KafkaMessageProcessFlow
+import com.flipkart.connekt.busybees.streams.{Topology, KafkaMessageProcessFlow}
 import com.flipkart.connekt.busybees.processors.PNProcessor
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -46,8 +46,11 @@ object BusyBeesBoot {
       ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConnConf.toString}")
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
+      Topology.bootstrap(kafkaHelper)
+/*
       pnDispatchFlow = Some(new KafkaMessageProcessFlow[ConnektRequest, PNProcessor](kafkaHelper, "fk-connekt-pn", 1, 5)(system))
       pnDispatchFlow.foreach(_.run())
+*/
     }
   }
 

@@ -4,9 +4,12 @@ import java.net.URL
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
+import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.flows.{AndroidChannelDispatchFlow, RenderFlow}
+import com.flipkart.connekt.busybees.streams.sinks.LoggingSink
 import com.flipkart.connekt.busybees.streams.sources.{KafkaSource, RateControl}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload}
@@ -23,6 +26,10 @@ object Topology {
 
   def bootstrap(consumerHelper: KafkaConsumerHelper) = {
 
+    implicit val system = BusyBeesBoot.system
+    implicit val ec = BusyBeesBoot.system.dispatcher
+    implicit val mat = ActorMaterializer()
+
     /* Fetch inlet / kafka message topic names */
     val topics = ConnektConfig.getStringList("allowedPNTopics").getOrElse(List.empty)
 
@@ -38,16 +45,18 @@ object Topology {
         (g: GCMPayload) => HttpEntity(ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`), g.getJson)
       )
 
+      /* Start kafkaSource(s) for each topic */
+      /* Attach rate-limiter flow for client sla */
+      /* Wire PN dispatcher flows to sources */
+
       Source.fromGraph(new KafkaSource[ConnektRequest](consumerHelper, t))
         .via(new RateControl[ConnektRequest](5, 1, 5))
         .via(new RenderFlow)
         .via(new AndroidChannelDispatchFlow)
         .via(httpDispatcher)
+        .runWith(new LoggingSink)
     })
 
-    /* Start kafkaSource(s) for each topic */
-    /* Attach rate-limiter flow for client sla */
-    /* Wire PN dispatcher flows to sources */
   }
 
   def shutdown() = {
