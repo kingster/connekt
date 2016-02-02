@@ -25,6 +25,7 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
   override def shape: FlowShape[V, Try[HttpResponse]] = FlowShape.of(in, out)
 
   implicit val system = BusyBeesBoot.system
+  implicit val ec = BusyBeesBoot.system.dispatcher
   implicit val mat = ActorMaterializer()
 
   lazy val poolClientFlow = Http().cachedHostConnectionPool[String](uri.getHost, uri.getPort)
