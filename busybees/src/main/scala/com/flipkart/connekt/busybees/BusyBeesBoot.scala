@@ -10,7 +10,7 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
-import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, ConnektConfig}
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -42,12 +42,16 @@ object BusyBeesBoot {
       val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
+      val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
+      DaoFactory.initCouchbaseCluster(couchbaseCf)
+
       val kafkaConnConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
-
       ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConnConf.toString}")
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
+
+      DeviceDetailsService.get("ConnectSampleApp","513803e45cf1b344ef494a04c9fb650a" )
       Topology.bootstrap(kafkaHelper)
       /*
             pnDispatchFlow = Some(new KafkaMessageProcessFlow[ConnektRequest, PNProcessor](kafkaHelper, "fk-connekt-pn", 1, 5)(system))

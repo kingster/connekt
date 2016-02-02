@@ -19,7 +19,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
-  def commitOffset(o: Long) = ???
+  def commitOffset(o: Long) = {}
 
   override def shape: SourceShape[V] = SourceShape(out)
 

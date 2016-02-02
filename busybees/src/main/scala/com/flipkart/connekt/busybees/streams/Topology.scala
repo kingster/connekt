@@ -44,7 +44,7 @@ object Topology {
         new URL("https", "android.googleapis.com", 443,"/gcm/send"),
         HttpMethods.POST,
         scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.password), RawHeader("Content-Type", "application/json")),
-        (g: GCMPayload) => HttpEntity(ContentTypes.`application/json`, g.getJson)
+        (g: GCMPayload) => HttpEntity(g.getJson)
       )
 
       /* Start kafkaSource(s) for each topic */

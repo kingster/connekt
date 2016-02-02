@@ -2,6 +2,7 @@ package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import java.net.URL
 
+import akka.http.javadsl.model.HttpEntityStrict
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream._
@@ -10,11 +11,13 @@ import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.utils.StringUtils
+import scala.concurrent.duration._
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
 import scala.util.Try
 import com.flipkart.connekt.commons.utils.StringUtils._
+
 /**
  * Created by kinshuk.bairagi on 02/02/16.
  */
@@ -47,12 +50,19 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
 
         val requestId = StringUtils.generateRandomStr(10)
 
+        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Request Payload : ${request.entity.asInstanceOf[HttpEntityStrict].data().decodeString("UTF-8")}")
+
         val responseFuture: Future[(Try[HttpResponse], String)] =
           Source.single(request -> requestId)
             .via(poolClientFlow)
             .runWith(Sink.head)
 
-        responseFuture.map(response => push(out, response._1))
+        responseFuture.map(response => {
+          val txtResponse = Await.result(response._1.get.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")),10.seconds)
+          ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Response : $txtResponse")
+
+          push(out, response._1)
+        })
       }
 
     })
