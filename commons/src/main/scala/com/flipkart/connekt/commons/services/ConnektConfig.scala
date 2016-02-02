@@ -12,7 +12,7 @@ import com.flipkart.connekt.commons.behaviors.ConfigAccumulator
 import com.flipkart.connekt.commons.utils.{NetworkUtils, UtilsEnv}
 
 import scala.collection.mutable
-
+import scala.collection.JavaConversions._
 /**
  *
  *
@@ -133,6 +133,12 @@ object ConnektConfig {
 
   def getConfig(k: String): Option[Config] = try {
     Some(instance.appConfig.getConfig(k))
+  } catch {
+    case _: ConfigException.Missing => None
+  }
+
+  def getStringList(k: String): Option[List[String]] = try {
+    Some(instance.appConfig.getStringList(k).toList)
   } catch {
     case _: ConfigException.Missing => None
   }
