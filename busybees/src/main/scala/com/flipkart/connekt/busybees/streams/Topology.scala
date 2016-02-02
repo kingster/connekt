@@ -11,6 +11,7 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.flows.{AndroidChannelDispatchFlow, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sinks.LoggingSink
 import com.flipkart.connekt.busybees.streams.sources.{KafkaSource, RateControl}
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload}
 import com.flipkart.connekt.commons.services.{ConnektConfig, CredentialManager}
@@ -34,6 +35,7 @@ object Topology {
     val topics = ConnektConfig.getStringList("allowedPNTopics").getOrElse(List.empty)
 
     topics.foreach(t => {
+      ConnektLogger(LogFile.WORKERS).info(s"Bootstrapping flow for topic: $t")
 
       //this would need to change to dynamic based on which app this is being send for.
       val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
@@ -42,7 +44,7 @@ object Topology {
         new URL("https", "android.googleapis.com", 443,"/gcm/send"),
         HttpMethods.POST,
         scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.password), RawHeader("Content-Type", "application/json")),
-        (g: GCMPayload) => HttpEntity(ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`), g.getJson)
+        (g: GCMPayload) => HttpEntity(ContentTypes.`application/json`, g.getJson)
       )
 
       /* Start kafkaSource(s) for each topic */

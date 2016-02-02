@@ -30,14 +30,17 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
       var cC = kafkaConsumerHelper.getConnector
       var itr = initIterator()
 
-      def initIterator() =
+      def initIterator() = {
+        ConnektLogger(LogFile.PROCESSORS).info("Kafka Iterator Init.")
         cC.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> 1), new DefaultDecoder(), new MessageDecoder[V]()).get(topic) match {
           case Some(s) => s.head.iterator()
           case None => throw new RuntimeException(s"No KafkaStreams for topic: $topic")
         }
+      }
 
       override def onPull(): Unit = try {
         val m = itr.next()
+        ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource::OnPull:: ${m.message().toString}")
         commitOffset(m.offset) //TODO
         push(out, m.message())
       } catch {

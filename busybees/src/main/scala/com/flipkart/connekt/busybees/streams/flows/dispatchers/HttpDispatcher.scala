@@ -8,12 +8,13 @@ import akka.stream._
 import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.BusyBeesBoot
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.utils.StringUtils
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 import scala.util.Try
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  * Created by kinshuk.bairagi on 02/02/16.
  */
@@ -38,6 +39,7 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
       override def onPush(): Unit = {
 
         val message = grab(in)
+        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Received Message: ${message.toString}")
 
         val request = new HttpRequest(method, uri.getPath,
           headers, payloadCreator(message)
@@ -56,7 +58,10 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
     })
 
     setHandler(out, new OutHandler {
-      override def onPull(): Unit = pull(in)
+      override def onPull(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPull")
+        pull(in)
+      }
     })
 
   }

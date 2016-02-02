@@ -31,8 +31,10 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
 
     setHandler(in, new InHandler {
       override def onPush(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Received Message:")
         if (tokenBucket.tryConsume(1)) {
           val message = grab(in)
+          ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Message ${message.toString}")
           push(out, message)
         } else {
           ConnektLogger(LogFile.PROCESSORS).warn("Rate Limited..")
@@ -41,7 +43,10 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
     })
 
     setHandler(out, new OutHandler {
-      override def onPull(): Unit = pull(in)
+      override def onPull(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPull.")
+        pull(in)
+      }
     })
 
   }

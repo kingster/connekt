@@ -3,8 +3,9 @@ package com.flipkart.connekt.busybees.streams.flows
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -21,6 +22,8 @@ class AndroidChannelDispatchFlow extends GraphStage[FlowShape[ConnektRequest, GC
         override def onPush(): Unit = {
           val r = grab(in)
 
+          ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelDispatchFlow:: onPush:: Received Message: ${r.getJson}")
+
           val pnInfo = r.channelInfo.asInstanceOf[PNRequestInfo]
           val registrationInfo = DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, pnInfo.deviceId)
           val token = registrationInfo.get.token
@@ -36,7 +39,10 @@ class AndroidChannelDispatchFlow extends GraphStage[FlowShape[ConnektRequest, GC
       })
 
       setHandler(out, new OutHandler {
-        override def onPull(): Unit = pull(in)
+        override def onPull(): Unit = {
+          ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelDispatchFlow:: onPull")
+          pull(in)
+        }
       })
     }
   }

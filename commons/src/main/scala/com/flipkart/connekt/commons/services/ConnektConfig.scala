@@ -82,7 +82,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
         throw e;
 
     }
-    ConnektLogger(LogFile.SERVICE).info("Complete Config: " + ConnektConfig.mask(appConfig.getJson))
+    ConnektLogger(LogFile.SERVICE).info("Complete Config: " + appConfig.toString)
   }
 
   def terminate() = {
