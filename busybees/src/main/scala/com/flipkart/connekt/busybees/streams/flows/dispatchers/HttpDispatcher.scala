@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 
 import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Success, Failure, Try}
 
 /**
  * Created by kinshuk.bairagi on 02/02/16.
@@ -29,7 +29,7 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
 
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
-  implicit val mat = ActorMaterializer()
+  implicit val mat = BusyBeesBoot.mat
 
   lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolTls[String](uri.getHost, uri.getPort)
 
@@ -54,12 +54,20 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
           .via(poolClientFlow).runWith(Sink.head)
 
 
-        responseFuture.map(response => {
-          val txtResponse = Await.result(response._1.get.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")),10.seconds)
-          ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Response : $txtResponse")
+        responseFuture.onComplete(responseT =>
+          responseT.map(response => {
 
-          push(out, response._1)
-        })
+            val txtResponse = Await.result(response._1.get.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
+            ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Response : $txtResponse")
+
+            push(out, response._1)
+//            emit(out, response._1)
+
+          })
+        )
+
+        //push(out, Success(null))
+
       }
 
     })

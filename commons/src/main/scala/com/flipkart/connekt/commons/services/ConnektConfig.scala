@@ -9,7 +9,7 @@ import com.flipkart.kloud.config.error.ConfigServiceException
 import com.flipkart.kloud.config.{Bucket, BucketUpdateListener, ConfigClient}
 import com.typesafe.config.{ConfigException, Config, ConfigFactory}
 import com.flipkart.connekt.commons.behaviors.ConfigAccumulator
-import com.flipkart.connekt.commons.utils.{NetworkUtils, UtilsEnv}
+import com.flipkart.connekt.commons.utils.{ConfigUtils, NetworkUtils}
 
 import scala.collection.mutable
 import scala.collection.JavaConversions._
@@ -99,7 +99,7 @@ object ConnektConfig {
   var instance: ConnektConfig = null
 
   def apply(configHost: String = "config-service.nm.flipkart.com", configPort: Int = 80, configAppVersion: Int = 1)
-           (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(UtilsEnv.getConfEnv), "CREDENTIALS" -> "fk-connekt-credentials")) = {
+           (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "CREDENTIALS" -> "fk-connekt-credentials")) = {
     this.synchronized {
       if (null == instance) {
         instance = new ConnektConfig(configHost, configPort, configAppVersion)(bucketIdMap)

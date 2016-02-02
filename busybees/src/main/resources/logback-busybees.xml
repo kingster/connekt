@@ -1,9 +1,10 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+
     <appender name="WORKERS" class="ch.qos.logback.core.FileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</file>
         <encoder>
@@ -40,30 +41,33 @@
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
-    <logger name="WORKERS" level="DEBUG">
-        <appender-ref ref="WORKERS" />
+    <logger name="WORKERS" additivity="false">
+        <appender-ref ref="WORKERS"/>
     </logger>
-    <logger name="CLIENTS" level="DEBUG">
-        <appender-ref ref="CLIENTS" />
+    <logger name="CLIENTS" level="DEBUG" additivity="false">
+        <appender-ref ref="CLIENTS"/>
     </logger>
-    <logger name="PROCESSORS" level="DEBUG">
-        <appender-ref ref="PROCESSORS" />
+    <logger name="PROCESSORS" additivity="false">
+        <appender-ref ref="PROCESSORS"/>
     </logger>
-    <logger name="SERVICE" level="DEBUG">
-        <appender-ref ref="SERVICE" />
+    <logger name="SERVICE" additivity="false">
+        <appender-ref ref="SERVICE"/>
     </logger>
-    <logger name="DAO" level="DEBUG">
-        <appender-ref ref="DAO" />
-    </logger>
-    <logger name="FACTORY" level="DEBUG">
-        <appender-ref ref="FACTORY" />
+    <logger name="DAO" additivity="false">
+        <appender-ref ref="DAO"/>
     </logger>
 
-    <logger name="kafka" level="ERROR" />
-    <logger name="org.apache" level="ERROR" />
-    <logger name="com.couchbase.client" level="ERROR" />
+    <logger name="FACTORY" additivity="false">
+        <appender-ref ref="FACTORY"/>
+    </logger>
+
+    <logger name="kafka" level="ERROR"/>
+    <logger name="org.apache" level="ERROR"/>
+    <logger name="com.couchbase.client" level="ERROR"/>
+    <logger name="com.flipkart.kloud.config" level="ERROR"/>
 
     <root level="DEBUG">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
+
 </configuration>

@@ -1,18 +1,16 @@
 package com.flipkart.connekt.commons.sync
 
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.utils.{StringUtils, UtilsEnv}
-import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
-import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import org.apache.curator.framework.recipes.cache._
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryForever
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
-
-import StringUtils._
 
 /**
  * Created by kinshuk.bairagi on 01/02/16.
@@ -23,7 +21,7 @@ class SyncManager(zkQuorum: String) {
   private val sessionTimeout = 100000
   private val connectionTimeout = 15000
 
-  private val BUCKET_NODE_PATH: String = s"/connekt-sync-${UtilsEnv.getConfEnv}"
+  private val BUCKET_NODE_PATH: String = s"/connekt-sync-${ConfigUtils.getConfEnvironment}"
 
   /** CuratorFramework Client */
   private lazy val client: CuratorFramework = CuratorFrameworkFactory.newClient(zkQuorum, sessionTimeout, connectionTimeout, new RetryForever(1000));

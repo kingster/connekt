@@ -3,6 +3,7 @@ package com.flipkart.connekt.busybees
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
+import akka.stream.{ActorMaterializerSettings, ActorMaterializer}
 import com.flipkart.connekt.busybees.streams.{Topology, KafkaMessageProcessFlow}
 import com.flipkart.connekt.busybees.processors.PNProcessor
 import com.flipkart.connekt.commons.connections.ConnectionProvider
@@ -11,6 +12,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, ConnektConfig}
+import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -23,16 +25,23 @@ object BusyBeesBoot {
 
   val initialized = new AtomicBoolean(false)
   var pnDispatchFlow: Option[KafkaMessageProcessFlow[ConnektRequest, PNProcessor]] = None
-  lazy val system = ActorSystem("busyBees-system")
+  lazy implicit val system = ActorSystem("busyBees-system")
+
+  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  lazy implicit val mat = ActorMaterializer(settings)
 
   def start() {
 
     if (!initialized.get()) {
       ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
 
-      val logConfigFile = getClass.getClassLoader.getResourceAsStream("logback-busybees.xml")
-      ConnektLogger.init(logConfigFile)
       ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
+
+      val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-busybees.xml")
+      val logConfigFile = getClass.getClassLoader.getResourceAsStream(configFile)
+
+      ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
+      ConnektLogger.init(logConfigFile)
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
@@ -50,13 +59,8 @@ object BusyBeesBoot {
       ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConnConf.toString}")
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
-
-      println(DeviceDetailsService.get("ConnectSampleApp","513803e45cf1b344ef494a04c9fb650a" ))
       Topology.bootstrap(kafkaHelper)
-      /*
-            pnDispatchFlow = Some(new KafkaMessageProcessFlow[ConnektRequest, PNProcessor](kafkaHelper, "fk-connekt-pn", 1, 5)(system))
-            pnDispatchFlow.foreach(_.run())
-      */
+
     }
   }
 
@@ -69,6 +73,7 @@ object BusyBeesBoot {
   }
 
   def main(args: Array[String]) {
+    System.setProperty("logback.config", "logback-test.xml")
     start()
   }
 }
