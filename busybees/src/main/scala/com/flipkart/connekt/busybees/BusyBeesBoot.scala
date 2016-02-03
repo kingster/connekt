@@ -9,7 +9,12 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
+<<<<<<< Updated upstream
 import com.flipkart.connekt.commons.services.ConnektConfig
+=======
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, ConnektConfig}
+import com.flipkart.connekt.commons.utils.{StringUtils, ConfigUtils}
+>>>>>>> Stashed changes
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -46,8 +51,10 @@ object BusyBeesBoot {
       ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConnConf.toString}")
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
+      println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
       pnDispatchFlow = Some(new KafkaMessageProcessFlow[ConnektRequest, PNProcessor](kafkaHelper, "fk-connekt-pn", 1, 5)(system))
       pnDispatchFlow.foreach(_.run())
+
     }
   }
 
