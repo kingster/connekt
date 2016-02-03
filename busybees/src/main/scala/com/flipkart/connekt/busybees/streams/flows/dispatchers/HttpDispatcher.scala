@@ -9,13 +9,12 @@ import akka.stream._
 import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils
-import scala.concurrent.duration._
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.reflect.ClassTag
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  * Created by kinshuk.bairagi on 02/02/16.
@@ -53,21 +52,13 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
         val responseFuture: Future[(Try[HttpResponse], String)] = Source.single(request -> requestId)
           .via(poolClientFlow).runWith(Sink.head)
 
-        /**
-         * Why Await?
-         *
-         * Because this damm Handler doesn't work when result is
-         * pushed from a future callback thread. Need to figure out something!
-         *
-         */
-        val response = Await.result(responseFuture, 10.seconds)
-
-        //TODO: Remove this debug log in future
-        val txtResponse = Await.result(response._1.get.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
-        ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Response : $txtResponse")
-
-        push(out, response._1)
-
+        responseFuture.onComplete {
+          case Success(tr) =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: ${tr._2}")
+            push(out, tr._1)
+          case Failure(ft) =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush:: ResponseFuture Failure ${ft.getMessage}", ft)
+        }
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush :: Error", e)
