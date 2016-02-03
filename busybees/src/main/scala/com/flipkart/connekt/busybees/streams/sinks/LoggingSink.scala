@@ -2,13 +2,12 @@ package com.flipkart.connekt.busybees.streams.sinks
 
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler}
-import akka.stream.{ActorMaterializer, Attributes, Inlet, SinkShape}
+import akka.stream.{Attributes, Inlet, SinkShape}
+import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
-import scala.concurrent.Await
-import scala.util.Try
-import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 /**
  *
  *
@@ -30,11 +29,15 @@ class LoggingSink extends GraphStage[SinkShape[Try[HttpResponse]]] {
       override def onPush(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: onPush::")
         val message = grab(in)
-        message.foreach(r =>
-          ConnektLogger(LogFile.WORKERS).info(s"ResponseBody: ${Await.result(r.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")),10.seconds)}")
-        )
+        message.foreach(r => {
+          r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).onComplete {
+            case Success(b) =>
+              ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: ResponseBody:: ${b.result().decodeString("UTF-8")}")
+            case Failure(t) =>
+              ConnektLogger(LogFile.PROCESSORS).error(s"LoggingSink:: Error Processing ResponseBody:: ${t.getMessage}", t)
+          }
+        })
       }
-
     })
 
     override def preStart(): Unit = {
