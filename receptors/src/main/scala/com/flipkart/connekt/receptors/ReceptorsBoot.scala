@@ -2,7 +2,6 @@ package com.flipkart.connekt.receptors
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.flipkart.connekt.busybees.BusyBeesBoot._
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}

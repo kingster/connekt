@@ -36,12 +36,12 @@ class UserInfo(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-         |INSERT INTO $table(userId, apikey, groups, lastUpdatedTs, updatedBy) VALUES(?, ?, ?, ?, ?)
-         |ON DUPLICATE KEY UPDATE apikey = ?, groups = ?, lastUpdatedTs = ?, updatedBy = ?
+         |INSERT INTO $table(userId, apikey, groups, updatedBy) VALUES(?, ?, ?, ?)
+         |ON DUPLICATE KEY UPDATE apikey = ?, groups = ?, updatedBy = ?
       """.stripMargin
 
     try {
-      update(q, user.userId, user.apiKey, user.groups,  new java.lang.Long(System.currentTimeMillis()), user.updatedBy, user.apiKey, user.groups, new java.lang.Long(System.currentTimeMillis()), user.updatedBy)
+      update(q, user.userId, user.apiKey, user.groups, user.updatedBy, user.apiKey, user.groups, user.updatedBy)
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding user [${user.getJson}] info: ${e.getMessage}", e)
