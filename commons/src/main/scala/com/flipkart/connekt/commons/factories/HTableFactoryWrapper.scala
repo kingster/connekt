@@ -21,7 +21,7 @@ class HTableFactoryWrapper(hConnConfig: Config, connProvider: TConnectionProvide
     hConfig.set(HConstants.ZOOKEEPER_CLIENT_PORT, hConnConfig.getString(HConstants.ZOOKEEPER_CLIENT_PORT))
     hConfig.set(HConstants.HBASE_REGIONSERVER_LEASE_PERIOD_KEY, HConstants.DEFAULT_HBASE_REGIONSERVER_LEASE_PERIOD.toString)
     hConfig.set(HConstants.HBASE_RPC_TIMEOUT_KEY, HConstants.DEFAULT_HBASE_RPC_TIMEOUT.toString)
-    hConfig.set("hbase.zookeeper.watcher.sync.connected.wait", "2000")
+    hConfig.set("hbase.zookeeper.watcher.sync.connected.wait", "5000")
     hConfig
   }
 
