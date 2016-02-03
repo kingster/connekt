@@ -22,7 +22,7 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = {
+      override def onPush(): Unit = try {
 
         val message = grab(in)
 
@@ -39,6 +39,9 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
         }
 
         push(out, gcmPayload)
+      }catch {
+        case e:Throwable =>
+          ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
       }
     })
 

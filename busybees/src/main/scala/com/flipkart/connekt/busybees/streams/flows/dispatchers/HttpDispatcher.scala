@@ -37,7 +37,7 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
 
     setHandler(in, new InHandler {
 
-      override def onPush(): Unit = {
+      override def onPush(): Unit = try {
 
         val message = grab(in)
         ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Received Message: ${message.toString}")
@@ -53,21 +53,16 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
         val responseFuture: Future[(Try[HttpResponse], String)] = Source.single(request -> requestId)
           .via(poolClientFlow).runWith(Sink.head)
 
+        val response = Await.result(responseFuture, 10.seconds)
 
-        responseFuture.onComplete(responseT =>
-          responseT.map(response => {
+        val txtResponse = Await.result(response._1.get.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
+        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Response : $txtResponse")
 
-            val txtResponse = Await.result(response._1.get.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
-            ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Response : $txtResponse")
+        push(out, response._1)
 
-            push(out, response._1)
-//            emit(out, response._1)
-
-          })
-        )
-
-        //push(out, Success(null))
-
+      } catch {
+        case e: Throwable =>
+          ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush :: Error", e)
       }
 
     })

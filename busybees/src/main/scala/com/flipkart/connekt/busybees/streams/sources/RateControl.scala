@@ -30,7 +30,7 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = {
+      override def onPush(): Unit = try{
         ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush")
         if (tokenBucket.tryConsume(1)) {
           val message = grab(in)
@@ -39,6 +39,9 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
         } else {
           ConnektLogger(LogFile.PROCESSORS).warn("RateControl :: Rate Limited..")
         }
+      } catch {
+        case e:Throwable =>
+          ConnektLogger(LogFile.PROCESSORS).error(s"RateControl:: onPush :: Error", e)
       }
     })
 
