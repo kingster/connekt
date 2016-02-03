@@ -25,22 +25,19 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
   override def shape: FlowShape[V, V] = FlowShape.of(in, out)
 
   val tokenBucket = TokenBuckets.builder().withCapacity(capacity)
-    .withFixedIntervalRefillStrategy(tokenRefreshAmount, tokenRefreshPeriod, TimeUnit.SECONDS).build()
+    .withFixedIntervalRefillStrategy( tokenRefreshAmount, tokenRefreshPeriod, TimeUnit.SECONDS).build()
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = try{
+      override def onPush(): Unit = try {
         ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush")
-        if (tokenBucket.tryConsume(1)) {
-          val message = grab(in)
-          ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Message ${message.toString}")
-          push(out, message)
-        } else {
-          ConnektLogger(LogFile.PROCESSORS).warn("RateControl :: Rate Limited..")
-        }
+        val message = grab(in)
+        tokenBucket.consume(1)
+        ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Message ${message.toString}")
+        push(out, message)
       } catch {
-        case e:Throwable =>
+        case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"RateControl:: onPush :: Error", e)
       }
     })
@@ -55,3 +52,4 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
   }
 
 }
+
