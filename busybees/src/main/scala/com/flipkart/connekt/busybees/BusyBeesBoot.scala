@@ -3,25 +3,16 @@ package com.flipkart.connekt.busybees
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializerSettings, ActorMaterializer}
-import com.flipkart.connekt.busybees.streams.{Topology, KafkaMessageProcessFlow}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.flipkart.connekt.busybees.processors.PNProcessor
+import com.flipkart.connekt.busybees.streams.{KafkaMessageProcessFlow, Topology}
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
-<<<<<<< HEAD
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, ConnektConfig}
-import com.flipkart.connekt.commons.utils.ConfigUtils
-=======
-<<<<<<< Updated upstream
-import com.flipkart.connekt.commons.services.ConnektConfig
-=======
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, ConnektConfig}
-import com.flipkart.connekt.commons.utils.{StringUtils, ConfigUtils}
->>>>>>> Stashed changes
->>>>>>> flux
+import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
+import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import com.typesafe.config.ConfigFactory
 
 /**
