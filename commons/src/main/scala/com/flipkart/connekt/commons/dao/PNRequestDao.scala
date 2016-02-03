@@ -17,10 +17,10 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
 
     val m = scala.collection.mutable.Map[String, Array[Byte]]()
-    Some(pnRequestInfo.platform).foreach("platform" -> _.toString.getUtf8Bytes)
-    Some(pnRequestInfo.appName).foreach("appName" -> _.toString.getUtf8Bytes)
-    Some(pnRequestInfo.ackRequired).foreach("ackRequired" -> _.toString.getUtf8Bytes)
-    Some(pnRequestInfo.delayWhileIdle).foreach("delayWhileIdle" -> _.toString.getUtf8Bytes)
+    Option(pnRequestInfo.platform).foreach("platform" -> _.toString.getUtf8Bytes)
+    Option(pnRequestInfo.appName).foreach("appName" -> _.toString.getUtf8Bytes)
+    Option(pnRequestInfo.ackRequired).foreach("ackRequired" -> _.toString.getUtf8Bytes)
+    Option(pnRequestInfo.delayWhileIdle).foreach("delayWhileIdle" -> _.toString.getUtf8Bytes)
 
     m.toMap
   }
@@ -36,14 +36,14 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
   }
 
   override protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]] = {
-    Some(channelRequestData).map(d => {
+    Option(channelRequestData).map(d => {
       val pnRequestData = d.asInstanceOf[PNRequestData]
-      Some(pnRequestData.data).map(m => Map[String, Array[Byte]]("data" -> m.toString.getUtf8Bytes)).orNull
+      Option(pnRequestData.data).map(m => Map[String, Array[Byte]]("data" -> m.toString.getUtf8Bytes)).orNull
     }).orNull
   }
 
   override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
-    Some(reqDataProps.getKV("data")).map(PNRequestData).orNull
+    Option(reqDataProps.getKV("data")).map(PNRequestData).orNull
   }
 
   def fetchPNRequestInfo(id: String): Option[PNRequestInfo] = {

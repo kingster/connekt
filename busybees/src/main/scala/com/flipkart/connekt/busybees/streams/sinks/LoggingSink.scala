@@ -40,10 +40,12 @@ class LoggingSink extends GraphStage[SinkShape[Try[HttpResponse]]] {
       }
     })
 
+/*
     override def preStart(): Unit = {
       ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: preStart::")
       pull(in)
     }
+*/
 
   }
 

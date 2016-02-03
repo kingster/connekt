@@ -45,8 +45,8 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
       request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
 
       val channelRequestInfoProps = channelRequestInfoMap(request.channelInfo)
-      val channelRequestDataProps = Some(request.channelData).map(channelRequestDataMap).getOrElse(Map[String, Array[Byte]]())
-      val channelRequestModelProps = Some(request.channelDataModel).map(channelRequestModel).getOrElse(Map[String, Array[Byte]]())
+      val channelRequestDataProps = Option(request.channelData).map(channelRequestDataMap).getOrElse(Map[String, Array[Byte]]())
+      val channelRequestModelProps = Option(request.channelDataModel).map(channelRequestModel).getOrElse(Map[String, Array[Byte]]())
 
       val rawData = Map[String, Map[String, Array[Byte]]]("r" -> requestProps, "c" -> channelRequestInfoProps, "t" -> (channelRequestDataProps ++ channelRequestModelProps))
       addRow( requestId, rawData)
@@ -82,12 +82,12 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
           id = connektId,
           channel = fields.getS("channel"),
           sla = fields.getS("sla"),
-          templateId = Some(fields.getS("templateId")),
-          scheduleTs = Some(fields.getL("scheduleTs").asInstanceOf[Long]),
-          expiryTs = Some(fields.getL("expiryTs").asInstanceOf[Long]),
+          templateId = Option(fields.getS("templateId")),
+          scheduleTs = Option(fields.getL("scheduleTs").asInstanceOf[Long]),
+          expiryTs = Option(fields.getL("expiryTs").asInstanceOf[Long]),
           channelInfo = channelReqInfo,
           channelData = channelReqData,
-          channelDataModel = Some(channelReqModel).getOrElse(StringUtils.getObjectNode),
+          channelDataModel = Option(channelReqModel).getOrElse(StringUtils.getObjectNode),
           meta = Map[String, String]()
         )
       })
