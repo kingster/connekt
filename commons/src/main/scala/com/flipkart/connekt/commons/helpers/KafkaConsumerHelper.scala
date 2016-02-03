@@ -20,7 +20,7 @@ trait KafkaConsumer {
   def readMessage(topic: String): Option[String]
 }
 
-class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: Config) extends KafkaConnectionHelper with GenericObjectPoolHelper {
+class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Config) extends KafkaConnectionHelper with GenericObjectPoolHelper {
 
   validatePoolProps("kafka consumer pool", globalContextConf)
 
@@ -71,9 +71,9 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
       s
     })
 
-    if(consumerStream.isDefined) {
+    if (consumerStream.isDefined) {
       val i = consumerStream.get.iterator()
-      if(i.hasNext()) Some(new String(i.next.message))
+      if (i.hasNext()) Some(new String(i.next.message))
     }
     None
   }
@@ -82,14 +82,13 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
 object KafkaConsumerHelper extends KafkaConsumer {
 
   var instance: KafkaConsumerHelper = null
+  var zkPath: String = null
 
-  def apply(consumerConfig: Config, globalContextConf: Config) =
-    new KafkaConsumerHelper(consumerConfig, globalContextConf)
-
-  def init(consumerConfig: Config, globalContextConf: Config) = {
-    if (null != instance)
+  def apply(consumerConfig: Config, globalContextConf: Config) = {
+    if (null == instance)
       this.synchronized {
-        instance = KafkaConsumerHelper(consumerConfig, globalContextConf)
+        instance = new KafkaConsumerHelper(consumerConfig, globalContextConf)
+        zkPath = consumerConfig.getString("zookeeper.connect")
       }
     instance
   }
@@ -97,4 +96,5 @@ object KafkaConsumerHelper extends KafkaConsumer {
   def shutdown() = instance.shutdown()
 
   def readMessage(topic: String): Option[String] = instance.readMessage(topic)
+
 }
