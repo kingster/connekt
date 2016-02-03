@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.entities
 
+import java.util.Date
 import javax.persistence.Column
 
 import org.apache.commons.lang.StringUtils
@@ -22,7 +23,7 @@ class AppUser {
   var groups: String = _
 
   @Column(name = "lastUpdatedTS")
-  var lastUpdatedTs: Long = System.currentTimeMillis()
+  var lastUpdatedTs: Date = new Date(System.currentTimeMillis())
 
   @Column(name = "updatedBy")
   var updatedBy: String = StringUtils.EMPTY
@@ -30,7 +31,7 @@ class AppUser {
   def this(userId: String,
            apiKey: String,
            groups: String,
-           lastUpdatedTs: Long,
+           lastUpdatedTs: Date,
            updatedBy: String) {
     this()
     this.userId = userId

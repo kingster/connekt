@@ -9,12 +9,8 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
-<<<<<<< Updated upstream
-import com.flipkart.connekt.commons.services.ConnektConfig
-=======
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, ConnektConfig}
-import com.flipkart.connekt.commons.utils.{StringUtils, ConfigUtils}
->>>>>>> Stashed changes
+import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.typesafe.config.ConfigFactory
 
 /**
