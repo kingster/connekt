@@ -28,7 +28,7 @@ object BusyBeesBoot {
   lazy implicit val system = ActorSystem("busyBees-system")
 
   val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  lazy implicit val mat = ActorMaterializer()
+  lazy implicit val mat = ActorMaterializer(settings)
 
   def start() {
 
