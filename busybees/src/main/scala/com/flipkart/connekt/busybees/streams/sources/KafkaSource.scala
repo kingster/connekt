@@ -5,8 +5,11 @@ import akka.stream.{Attributes, Outlet, SourceShape}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.utils.StringUtils._
+import kafka.consumer.ConsumerConnector
+import kafka.message.MessageAndMetadata
 import kafka.serializer.{Decoder, DefaultDecoder}
 
+import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
 /**
@@ -25,32 +28,45 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
-    setHandler(out, new OutHandler {
+    var kafkaConsumerConnector:ConsumerConnector = null
+    var iterator : Iterator[MessageAndMetadata[Array[Byte], V]] = null
 
-      var cC = kafkaConsumerHelper.getConnector
-      var itr = initIterator()
-
-      def initIterator() = {
-        ConnektLogger(LogFile.PROCESSORS).info("Kafka Iterator Init.")
-        cC.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> 1), new DefaultDecoder(), new MessageDecoder[V]()).get(topic) match {
-          case Some(s) => s.head.iterator()
-          case None => throw new RuntimeException(s"No KafkaStreams for topic: $topic")
-        }
+    private def initIterator(kafkaConnector:ConsumerConnector): Iterator[MessageAndMetadata[Array[Byte], V]] = {
+      ConnektLogger(LogFile.PROCESSORS).info("Kafka Iterator Init.")
+      val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> 5), new DefaultDecoder(), new MessageDecoder[V]())
+      val streams = consumerStreams.get(topic)
+      streams match {
+        case Some(s) =>
+          s.map(_.iterator().asInstanceOf[java.util.Iterator[MessageAndMetadata[Array[Byte], V]]].toIterator).foldLeft(Iterator.empty.asInstanceOf[Iterator[MessageAndMetadata[Array[Byte], V]]])(_ ++ _)
+        case None =>
+          throw new Exception(s"No KafkaStreams for topic: $topic")
       }
+    }
 
+    private def createKafkaConsumer(): Unit ={
+      kafkaConsumerConnector = kafkaConsumerHelper.getConnector
+      iterator = initIterator(kafkaConsumerConnector)
+    }
+
+    setHandler(out, new OutHandler {
       override def onPull(): Unit = try {
-        val m = itr.next()
+        val m = iterator.next()
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource::OnPull:: ${m.message().toString}")
         commitOffset(m.offset) //TODO
         push(out, m.message())
       } catch {
         case e: Exception =>
           ConnektLogger(LogFile.PROCESSORS).error(s"Kafka iteration error: ${e.getMessage}", e)
-          kafkaConsumerHelper.returnConnector(cC)
-          cC = kafkaConsumerHelper.getConnector
-          itr = initIterator()
+          kafkaConsumerHelper.returnConnector(kafkaConsumerConnector)
+          createKafkaConsumer()
       }
     })
+
+    override def preStart(): Unit = {
+      super.preStart()
+      createKafkaConsumer()
+    }
+
   }
 }
 

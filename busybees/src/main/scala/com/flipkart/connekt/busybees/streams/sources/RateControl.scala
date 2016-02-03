@@ -31,7 +31,6 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
 
     setHandler(in, new InHandler {
       override def onPush(): Unit = try {
-        ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush")
         val message = grab(in)
         tokenBucket.consume(1)
         ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Message ${message.toString}")
