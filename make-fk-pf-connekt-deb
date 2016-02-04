@@ -44,6 +44,7 @@ replacePlaceHolders() {
 BASE_DIR="$LOCAL_DIR"
 BUILD_DIR="$LOCAL_DIR/build/$PACKAGE"
 DEPLOY_DIR="$BUILD_DIR/deploy"
+DEPLOY_ALT_DIR="$BUILD_DIR/deploy-alt"
 DEB_DIR="$LOCAL_DIR/deb"
 
 TARGET_DIR="${LOCAL_DIR}/target"
@@ -88,6 +89,8 @@ cd "${CUR_SAVE_PWD}"
 mkdir -p "$DEB_DIR"
 cp -r "$BUILD_DIR"/deb/DEBIAN "$DEB_DIR"
 cp -r "$DEPLOY_DIR"/* "$DEB_DIR"
+cp -r "$DEPLOY_ALT_DIR/$ENV"/* "$DEB_DIR" || true ## dont bang head if the folder doesn't exist
+
 
 #Copy the entire package content to DEB_DIR
 cp -r "${APP_BUILD_DIR}" "${DEB_DIR}/var/lib/"
