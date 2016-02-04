@@ -2,7 +2,7 @@ package com.flipkart.connekt.busybees.streams.flows
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -29,7 +29,14 @@ class RenderFlow extends GraphStage[FlowShape[ConnektRequest, ConnektRequest]] {
           ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPush:: Received Message: ${m.getJson}")
 
           lazy val cRD = m.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, m.channelDataModel)).get
-          val mRendered = m.copy(channelData = Some(m.channelData).getOrElse(cRD))
+
+//          val mRendered = m.copy(channelData = Some(m.channelData).getOrElse(cRD))
+
+          val mRendered = m.copy(channelData = Option(m.channelData) match {
+            case Some(cD) => cD
+            case None => cRD
+          })
+
           push(out, mRendered)
         } catch {
           case e: Throwable =>
