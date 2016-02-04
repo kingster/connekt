@@ -2,15 +2,19 @@ package com.flipkart.connekt.busybees.streams
 
 import java.net.URL
 
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{HttpDispatcher, HttpResponseString}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
+import akka.util.{ByteString, ByteStringBuilder}
+import com.flipkart.connekt.busybees.BusyBeesBoot
+import com.flipkart.connekt.busybees.streams.flows.RenderFlow
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
-import com.flipkart.connekt.busybees.streams.sinks.LoggingSink
 import com.flipkart.connekt.busybees.streams.sources.{KafkaSource, RateControl}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
@@ -19,6 +23,7 @@ import com.flipkart.connekt.commons.services.{ConnektConfig, CredentialManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
  *
@@ -51,11 +56,22 @@ object Topology {
         (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
       )
 
-      val alternateLoggerSink = Sink.foreach[Try[HttpResponseString]]( message => {
-        message.foreach(response => {
-          ConnektLogger(LogFile.WORKERS).info(s"loggerSink ResponseBody: ${response.responseBody}")
-        })
+      val loggerSink = Sink.foreachParallel[(Try[HttpResponse], String)](10)(tR => {
+        tR._1 match {
+          case Success(r) =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"Sink:: Received httpResponse for r: ${tR._2}")
+            r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).onComplete {
+              case Success(b) =>
+                ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: ResponseBody:: ${b.result().decodeString("UTF-8")}")
+              case Failure(e1) =>
+                ConnektLogger(LogFile.PROCESSORS).error(s"LoggingSink:: Error Processing ResponseBody:: ${e1.getMessage}", e1)
+            }
+          case Failure(e2) =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"Sink:: Received Error for r: ${tR._2}, e: ${e2.getMessage}", e2)
+        }
       })
+
+      lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolTls[String]("android.googleapis.com", 443)
 
       /* Start kafkaSource(s) for each topic */
       /* Attach rate-limiter flow for client sla */
@@ -66,7 +82,8 @@ object Topology {
         .via(new RenderFlow)
         .via(new AndroidChannelFormatter)
         .via(httpDispatcher)
-        .runWith(new LoggingSink)
+        .via(poolClientFlow)
+        .runWith(loggerSink)
     })
 
   }

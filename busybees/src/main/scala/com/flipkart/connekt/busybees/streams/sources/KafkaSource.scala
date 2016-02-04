@@ -13,7 +13,6 @@ import org.I0Itec.zkclient.ZkClient
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
-import scala.util.Try
 
 /**
  *
@@ -49,6 +48,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
       val threadCount = Math.max(1, getTopicPartitionCount(topic) / 4) // TODO : Change this factor based on number of readers
       ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Readers[$threadCount]")
 
+      kafkaConsumerConnector.commitOffsets
       val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> threadCount), new DefaultDecoder(), new MessageDecoder[V]())
       val streams = consumerStreams.get(topic)
       streams match {
