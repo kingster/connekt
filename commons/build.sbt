@@ -71,7 +71,9 @@ libraryDependencies ++= Seq(
   "com.couchbase.client" % "java-client" % "2.1.3",
   "com.google.guava" % "guava" % "18.0",
   "io.reactivex" %% "rxscala" % "0.26.0",
-  "org.apache.curator" % "curator-recipes" % "2.9.1"
+  "org.apache.curator" % "curator-recipes" % "2.9.1",
+  "com.flipkart.specter" % "specter-client" % "1.1.4",
+  "joda-time" % "joda-time" % "2.3"
 )
 
 

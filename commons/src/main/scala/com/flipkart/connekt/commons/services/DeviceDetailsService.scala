@@ -16,6 +16,7 @@ object DeviceDetailsService {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
       dao.add(deviceDetails.appName, deviceDetails)
+      BigfootService.ingest(deviceDetails.toBigfootEntity)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error("Device Detail add service failed " + e.getCause)
@@ -37,12 +38,26 @@ object DeviceDetailsService {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
       }
-
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
 
       dao.update(deviceDetails.appName, deviceId, deviceDetails)
+      BigfootService.ingest(deviceDetails.toBigfootEntity)
     } catch {
       case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail update service failed " + e.getCause, e)
+    }
+  }
+
+  def delete(appName: String, deviceId: String) = {
+    try {
+      //TODO -- cache handling
+      dao.delete(appName, deviceId)
+      get(appName, deviceId) match {
+        case Some(device) =>
+          BigfootService.ingest(device.copy(active = false).toBigfootEntity)
+        case None =>
+      }
+    } catch {
+      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail delete service failed " + e.getCause, e)
     }
   }
 

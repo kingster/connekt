@@ -3,7 +3,8 @@ package com.flipkart.connekt.commons.dao
 import com.couchbase.client.java.Bucket
 import com.flipkart.connekt.commons.behaviors.{HTableFactory, MySQLFactory}
 import com.flipkart.connekt.commons.connections.TConnectionProvider
-import com.flipkart.connekt.commons.factories.{MySQLFactoryWrapper, HTableFactoryWrapper}
+import com.flipkart.connekt.commons.factories.{HTableFactoryWrapper, MySQLFactoryWrapper}
+import com.flipkart.phantom.client.sockets.{PhantomClientSocket, PhantomSocketFactory}
 import com.typesafe.config.Config
 
 /**
@@ -23,6 +24,8 @@ object DaoFactory {
 
   var couchBaseCluster: com.couchbase.client.java.Cluster = null
   var couchbaseBuckets: Map[String, Bucket] = null
+
+  var phantomClientSocket: PhantomClientSocket = null
 
   def setUpConnectionProvider(provider: TConnectionProvider): Unit = {
     this.connectionProvider = provider
@@ -73,6 +76,12 @@ object DaoFactory {
 
   def shutdownCouchbaseCluster() {
     Option(couchBaseCluster).foreach(_.disconnect())
+  }
+
+  def initSpecterSocket(specterConfig: Config): PhantomClientSocket = {
+    System.setProperty("org.newsclub.net.unix.library.path", specterConfig.getString("lib.path"))
+    phantomClientSocket = PhantomSocketFactory.getInstance(specterConfig.getString("socket"))
+    phantomClientSocket
   }
 
   def getDeviceDetailsDao: DeviceDetailsDao = daoMap(DaoType.DEVICE_DETAILS).asInstanceOf[DeviceDetailsDao]

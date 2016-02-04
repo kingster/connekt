@@ -154,6 +154,10 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     })
   }
 
+  def delete(appName: String, deviceId:String) = {
+
+  }
+
   private  def deleteTokenIdIndex(appName:String, deviceId:String, tokenId:String ) = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
     val rowKey = getTokenIndexRowKey(appName, deviceId,tokenId)
