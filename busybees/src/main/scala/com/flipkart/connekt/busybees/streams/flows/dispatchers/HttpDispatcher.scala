@@ -12,19 +12,23 @@ import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
 
 /**
  * Created by kinshuk.bairagi on 02/02/16.
  */
-class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.collection.immutable.Seq[HttpHeader], payloadCreator: (V) => RequestEntity) extends GraphStage[FlowShape[V, Try[HttpResponse]]] {
+
+case class HttpResponseString(reponseCode:Int, responseBody:String) extends Serializable
+
+class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.collection.immutable.Seq[HttpHeader], payloadCreator: (V) => RequestEntity) extends GraphStage[FlowShape[V, Try[HttpResponseString]]] {
 
   val in = Inlet[V]("HttpDispatcher.In")
-  val out = Outlet[Try[HttpResponse]]("HttpDispatcher.Out")
+  val out = Outlet[Try[HttpResponseString]]("HttpDispatcher.Out")
 
-  override def shape: FlowShape[V, Try[HttpResponse]] = FlowShape.of(in, out)
+  override def shape: FlowShape[V, Try[HttpResponseString]] = FlowShape.of(in, out)
 
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
@@ -54,11 +58,19 @@ class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.c
 
         responseFuture.onComplete {
           case Success(tr) =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: ${tr._2}")
-            push(out, tr._1)
-          case Failure(ft) =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush:: ResponseFuture Failure ${ft.getMessage}", ft)
+            tr._1 match {
+              case Success(response) =>
+                val txtResponse = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
+                val ret = HttpResponseString(response.status.intValue(),txtResponse)
+                ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush :: HttpResponse "+ ret)
+                push(out, Success(ret))
+              case Failure(e) =>
+                push(out, Failure(e))
+            }
+          case Failure(ex) =>
+            push(out, Failure(ex))
         }
+
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush :: Error", e)

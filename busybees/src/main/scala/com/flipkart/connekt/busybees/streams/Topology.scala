@@ -5,18 +5,20 @@ import java.net.URL
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{HttpDispatcher, HttpResponseString}
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sinks.LoggingSink
 import com.flipkart.connekt.busybees.streams.sources.{KafkaSource, RateControl}
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload}
 import com.flipkart.connekt.commons.services.{ConnektConfig, CredentialManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
+
+import scala.util.Try
 
 /**
  *
@@ -49,12 +51,18 @@ object Topology {
         (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
       )
 
+      val alternateLoggerSink = Sink.foreach[Try[HttpResponseString]]( message => {
+        message.foreach(response => {
+          ConnektLogger(LogFile.WORKERS).info(s"loggerSink ResponseBody: ${response.responseBody}")
+        })
+      })
+
       /* Start kafkaSource(s) for each topic */
       /* Attach rate-limiter flow for client sla */
       /* Wire PN dispatcher flows to sources */
 
       Source.fromGraph(new KafkaSource[ConnektRequest](consumerHelper, t))
-        .via(new RateControl[ConnektRequest](5, 1, 5))
+        .via(new RateControl[ConnektRequest](2, 1, 2))
         .via(new RenderFlow)
         .via(new AndroidChannelFormatter)
         .via(httpDispatcher)

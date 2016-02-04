@@ -1,22 +1,24 @@
 package com.flipkart.connekt.busybees.streams.sinks
 
-import akka.http.scaladsl.model.HttpResponse
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler}
 import akka.stream.{Attributes, Inlet, SinkShape}
-import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpResponseString
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.util.{Failure, Success, Try}
+
 /**
  *
  *
  * @author durga.s
  * @version 2/2/16
  */
-class LoggingSink extends GraphStage[SinkShape[Try[HttpResponse]]] {
+class LoggingSink extends GraphStage[SinkShape[Try[HttpResponseString]]] {
 
-  val in: Inlet[Try[HttpResponse]] = Inlet("LoggingSink.In")
+  val in: Inlet[Try[HttpResponseString]] = Inlet("LoggingSink.In")
+
+  override def shape: SinkShape[Try[HttpResponseString]] = SinkShape(in)
 
   /* Don't kill me, I'm just trying to get this baby run */
   implicit val ec = BusyBeesBoot.system.dispatcher
@@ -29,25 +31,16 @@ class LoggingSink extends GraphStage[SinkShape[Try[HttpResponse]]] {
       override def onPush(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: onPush::")
         val message = grab(in)
-        message.foreach(r => {
-          r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).onComplete {
-            case Success(b) =>
-              ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: ResponseBody:: ${b.result().decodeString("UTF-8")}")
-            case Failure(t) =>
-              ConnektLogger(LogFile.PROCESSORS).error(s"LoggingSink:: Error Processing ResponseBody:: ${t.getMessage}", t)
-          }
-        })
+        message match {
+          case Success(result) =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: Response[${result.reponseCode}}]:: ${result.responseBody}")
+          case Failure(error) =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"LoggingSink:: Error Recieved:: ${error.getMessage}", error)
+
+        }
       }
     })
 
-/*
-    override def preStart(): Unit = {
-      ConnektLogger(LogFile.PROCESSORS).info(s"LoggingSink:: preStart::")
-      pull(in)
-    }
-*/
-
   }
 
-  override def shape: SinkShape[Try[HttpResponse]] = SinkShape(in)
 }

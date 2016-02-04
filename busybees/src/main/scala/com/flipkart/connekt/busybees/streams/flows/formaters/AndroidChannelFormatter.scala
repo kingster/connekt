@@ -18,7 +18,6 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
   val in = Inlet[ConnektRequest]("Android.In")
   val out = Outlet[GCMPayload]("Android.Out")
 
-
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
