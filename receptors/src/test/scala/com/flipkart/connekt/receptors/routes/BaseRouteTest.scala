@@ -18,5 +18,9 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
 
   implicit val am = system
   val header = RawHeader("x-api-key", "connekt-genesis")
-  implicit val user = DaoFactory.getUserInfoDao.getUserByKey("connekt-genesis")
+  override def beforeAll() = {
+    super.beforeAll()
+    implicit val user = DaoFactory.getUserInfoDao.getUserByKey("connekt-genesis")
+  }
+
 }
