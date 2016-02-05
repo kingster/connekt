@@ -2,6 +2,7 @@ package com.flipkart.connekt.receptors.routes.reports
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
@@ -16,12 +17,12 @@ import scala.collection.immutable.Seq
  * @author durga.s
  * @version 12/8/15
  */
-class Reports(implicit am: ActorMaterializer) extends BaseHandler {
+class Reports(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
   val route =
     pathPrefix("v1") {
-      authenticate {
-        user =>
+//      authenticate {
+//        user =>
             pathPrefix("reports") {
               path(ChannelSegment / Segment / "messages" / Segment / Segment / "events") {
                 (channel: Channel, appName: String, contactId: String, messageId: String) =>
@@ -67,6 +68,6 @@ class Reports(implicit am: ActorMaterializer) extends BaseHandler {
                   }
               }
           }
-      }
+//      }
     }
 }

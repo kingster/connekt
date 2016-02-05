@@ -2,7 +2,7 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.DeviceDetails
+import com.flipkart.connekt.commons.entities.{AppUser, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.routes.BaseHandler
@@ -16,12 +16,12 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/20/15
  */
-class Registration(implicit am: ActorMaterializer) extends BaseHandler {
+class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
   val register =
     pathPrefix("v1") {
-      authenticate {
-        user =>
+//      authenticate {
+//        user =>
           pathPrefix("registration" / "push") {
             path(Segment / Segment / Segment) {
               (platform: String, appName: String, deviceId: String) =>
@@ -96,6 +96,6 @@ class Registration(implicit am: ActorMaterializer) extends BaseHandler {
             }
 
           }
-      }
+//      }
     }
 }

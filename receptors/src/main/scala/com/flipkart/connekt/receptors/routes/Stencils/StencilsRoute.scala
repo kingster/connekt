@@ -5,7 +5,7 @@ import java.util.Date
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.commons.entities.{Stencil, Bucket}
+import com.flipkart.connekt.commons.entities.{AppUser, Stencil, Bucket}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils
@@ -17,11 +17,11 @@ import scala.util.{Failure, Success}
 /**
  * @author aman.shrivastava on 19/01/16.
  */
-class StencilsRoute(implicit am: ActorMaterializer) extends BaseHandler {
+class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
   val stencils =
     pathPrefix("v1") {
-      authenticate {
-        user =>
+//      authenticate {
+//        user =>
           pathPrefix("stencils") {
             path("bucket" / Segment) {
               (name: String) =>
@@ -194,6 +194,6 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseHandler {
               }
             }
           }
-      }
+//      }
     }
 }

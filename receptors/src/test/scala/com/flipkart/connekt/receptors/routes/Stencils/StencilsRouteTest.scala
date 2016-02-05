@@ -1,7 +1,7 @@
 package com.flipkart.connekt.receptors.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
-import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
+import com.flipkart.connekt.commons.entities.{AppUser, Stencil, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.GenericResponse
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -16,7 +16,7 @@ import scala.concurrent.duration._
  * @author aman.shrivastava on 25/01/16.
  */
 @Ignore
-class StencilsRouteTest extends BaseRouteTest {
+class StencilsRouteTest(implicit user: AppUser) extends BaseRouteTest {
   val stencilRoute = new StencilsRoute().stencils
   val engine = StencilEngine.GROOVY
   val engineFabric = """

@@ -2,6 +2,7 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.routes.BaseHandler
@@ -15,11 +16,11 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/26/15
  */
-class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
+class Unicast(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
   val unicast =
     pathPrefix("v1") {
-      authenticate { user =>
+//      authenticate { user =>
         path("send" / "push" / "unicast" / Segment / Segment / Segment) {
           (appPlatform: String, appName: String, deviceId: String) =>
             authorize(user, "UNICAST_" + appName) {
@@ -53,6 +54,6 @@ class Unicast(implicit am: ActorMaterializer) extends BaseHandler {
               }
             }
         }
-      }
+//      }
     }
 }
