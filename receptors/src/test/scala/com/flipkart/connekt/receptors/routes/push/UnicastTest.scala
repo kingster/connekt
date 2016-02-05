@@ -1,6 +1,7 @@
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{StatusCodes, HttpEntity, MediaTypes}
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
 import org.scalatest.Ignore
 
@@ -11,7 +12,7 @@ import org.scalatest.Ignore
  * @version 12/9/15
  */
 @Ignore
-class UnicastTest extends BaseRouteTest {
+class UnicastTest(implicit user: AppUser) extends BaseRouteTest {
 
   val unicastRoute = new Unicast().unicast
   val appName = "ConnectSampleApp"

@@ -20,8 +20,6 @@ class Callback(implicit am: ActorMaterializer) extends BaseHandler {
 
   val callback =
     pathPrefix("v1") {
-      authenticate {
-        user =>
           path(Segment / "callback" / Segment / Segment / Segment) {
             (channel: String, appPlatform: String, app: String, devId: String) =>
               post {
@@ -46,7 +44,5 @@ class Callback(implicit am: ActorMaterializer) extends BaseHandler {
                 }
               }
           }
-      }
-
     }
 }
