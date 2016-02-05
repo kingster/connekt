@@ -71,7 +71,7 @@ object Topology {
         }
       })
 
-      lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolTls[String]("android.googleapis.com", 443)
+      lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
 
       /* Start kafkaSource(s) for each topic */
       /* Attach rate-limiter flow for client sla */

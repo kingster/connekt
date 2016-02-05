@@ -4,6 +4,15 @@ name := "commons"
 
 version := "1.0-SNAPSHOT"
 
+/** all akka only **/
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-stream" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-core" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-experimental" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-testkit-experimental" % "2.4.2-RC2" % Test withSources() withJavadoc()
+)
+
 libraryDependencies ++= Seq(
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
@@ -52,10 +61,6 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-core" % "1.1.3",
   "ch.qos.logback" % "logback-classic" % "1.1.3",
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
-  "com.typesafe.akka" % "akka-actor_2.11" % "2.4.0" withSources(),
-  "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1" withSources(),
-  "com.typesafe.akka" % "akka-http-core-experimental_2.11" % "2.0-M1" withSources(),
-  "com.typesafe.akka" % "akka-http-experimental_2.11" % "2.0-M1" withSources(),
   "com.lmax" % "disruptor" % "3.3.2",
   "commons-lang" % "commons-lang" % "2.6",
   "commons-pool" % "commons-pool" % "1.6",

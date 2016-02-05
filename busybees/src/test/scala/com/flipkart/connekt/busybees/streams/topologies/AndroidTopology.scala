@@ -35,7 +35,7 @@ class AndroidTopology extends TopologyUTSpec {
     )
 
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolTls[String]("android.googleapis.com", 443)
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
 
     val cRequest = """
                      |{

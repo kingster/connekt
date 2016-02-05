@@ -35,7 +35,7 @@ object AppBuild extends Build {
       "typesafe" at "http://repo.typesafe.com/typesafe/releases/",
       "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
       "jBoss" at "http://repository.jboss.org/nexus/content/groups/public",
-      "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
+      "Akka Snapshot Repository" at "http://repo.typesafe.com/typesafe/snapshots/",
       "RoundEights" at "http://maven.spikemark.net/roundeights"
     ),
     ivyScala := ivyScala.value map {

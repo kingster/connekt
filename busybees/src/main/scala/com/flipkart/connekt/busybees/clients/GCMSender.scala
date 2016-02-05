@@ -28,7 +28,7 @@ class GCMSender(host: String, port: Int, api: String, authKey: String) extends A
   override def receive: Receive = {
     case (payload: GCMPayload, messageId: String, deviceId: String) =>
       ConnektLogger(LogFile.CLIENTS).debug(s"$messageId GCM requestPayload: $payload")
-      val requestEntity = HttpEntity(ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`), payload.getJson)
+      val requestEntity = HttpEntity(ContentTypes.`application/json`, payload.getJson)
       val httpRequest = new HttpRequest(
         HttpMethods.POST,
         api,

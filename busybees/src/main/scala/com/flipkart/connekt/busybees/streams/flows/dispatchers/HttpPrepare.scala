@@ -2,8 +2,7 @@ package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import java.net.URL
 
-import akka.http.javadsl.model.HttpEntityStrict
-import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model._
 import akka.stream._
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
@@ -11,10 +10,6 @@ import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils
 
-import scala.concurrent.{Await, Future}
-import scala.reflect.ClassTag
-import scala.util.{Failure, Success, Try}
-import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 /**
@@ -32,8 +27,6 @@ class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.coll
   implicit val ec = BusyBeesBoot.system.dispatcher
   implicit val mat = BusyBeesBoot.mat
 
-  lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolTls[String](uri.getHost, uri.getPort)
-
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
@@ -46,7 +39,7 @@ class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.coll
         val request = new HttpRequest(method, uri.getPath, headers, payloadCreator(message))
         val requestId = StringUtils.generateRandomStr(10)
 
-        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Request Payload : ${request.entity.asInstanceOf[HttpEntityStrict].data().decodeString("UTF-8")}")
+        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Request Payload : ${request.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
         ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: $requestId")
 
         push(out, (request, requestId))

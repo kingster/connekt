@@ -5,7 +5,7 @@ import java.util.UUID
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
-import com.flipkart.connekt.commons.utils.{StringUtils, UtilsEnv}
+import com.flipkart.connekt.commons.utils.StringUtils
 
 /**
  * @author aman.shrivastava on 11/12/15.

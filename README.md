@@ -3,6 +3,13 @@ Connekt Platform
 
 Communications Platform
 
+Tech Stack 
+---------------------
+* [Akka] - Akka 2.4.2!
+
+[Akka]:http://doc.akka.io/docs/akka/2.4.2-RC2/scala.html
+
+
 Getting Started
 ---------------------
 
