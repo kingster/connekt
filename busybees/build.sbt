@@ -10,7 +10,9 @@ libraryDependencies ++= Seq(
   "org.igniterealtime.smack" % "smack-tcp" % "4.1.5",
   "org.igniterealtime.smack" % "smack-core" % "4.1.5",
   "org.igniterealtime.smack" % "smack-extensions" % "4.1.5",
-  "org.isomorphism" % "token-bucket" % "1.6"
+  "org.isomorphism" % "token-bucket" % "1.6",
+  "com.notnoop.apns" % "apns" % "0.2.3"
+
 )
 
 
