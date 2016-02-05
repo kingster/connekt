@@ -4,10 +4,9 @@ import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{APSPayload, iOSPNPayload}
-import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.marketing.connekt.BuildInfo
-import com.notnoop.apns.{APNS, SimpleApnsNotification}
+import com.notnoop.apns._
 /**
  * Created by kinshuk.bairagi on 05/02/16.
  */
@@ -20,9 +19,38 @@ class APNSDispatcher  extends GraphStage[FlowShape[APSPayload, String]] {
 
   private lazy val localCertPath = BuildInfo.baseDirectory.getParent + "/build/fk-pf-connekt/deploy/usr/local/fk-pf-connekt/certs/apns_cert_retail.p12"
 
-  private val apnsService = APNS.newService()
+  private lazy val apnsService = APNS.newService()
     .withCert( localCertPath, "flipkart")
-    .withProductionDestination().build()
+    .withProductionDestination()
+    .withDelegate(new ApnsDelegate {
+
+    override def messageSent(message: ApnsNotification, resent: Boolean): Unit = {
+      println("messageSent" + message)
+      println("messageSent resentAttempt" +  resent)
+    }
+
+    override def connectionClosed(e: DeliveryError, messageIdentifier: Int): Unit = {
+      println(s"connectionClosed $e : $messageIdentifier")
+    }
+
+    override def cacheLengthExceeded(newCacheLength: Int): Unit = {
+      println(s"cacheLengthExceeded $newCacheLength")
+
+    }
+
+    override def messageSendFailed(message: ApnsNotification, e: Throwable): Unit = {
+      println(s"messagefailed : $message")
+      e.printStackTrace()
+
+    }
+
+    override def notificationsResent(resendCount: Int): Unit = {
+      println(s"notificationsResent : $resendCount")
+
+    }
+
+  })
+    .build()
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =  new GraphStageLogic(shape){
 
@@ -31,16 +59,18 @@ class APNSDispatcher  extends GraphStage[FlowShape[APSPayload, String]] {
 
         val message = grab(in).asInstanceOf[iOSPNPayload]
         ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: onPush:: Received Message: $message")
-        val requestId = StringUtils.generateRandomStr(10)
+        val requestId = EnhancedApnsNotification.INCREMENT_ID()
 
         ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: onPush:: Send Payload: " + message.data.asInstanceOf[AnyRef].getJson)
 
-        val notif = new SimpleApnsNotification(message.token, message.data.asInstanceOf[AnyRef].getJson)
+
+        val notif = new EnhancedApnsNotification(requestId, EnhancedApnsNotification.MAXIMUM_EXPIRY, message.token, message.data.asInstanceOf[AnyRef].getJson)
 
 
         val res = apnsService.push(notif)
+        println(res)
 
-        push(out, requestId)
+        push(out, requestId.toString)
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: onPush :: Error", e)

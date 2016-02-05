@@ -10,6 +10,7 @@ import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.Await
@@ -22,16 +23,18 @@ class iOSTopology extends TopologyUTSpec {
 
   "AndroidTopology Test" should "run" in {
 
+    val deviceId = StringUtils.generateRandomStr(32)
+
     DeviceDetailsService.add(
       DeviceDetails(
-        deviceId = "kinshukIOSRetail",
+        deviceId = deviceId,
         userId = "",
         token = "6b1e059bb2a51d03d37384d1493aaffbba4edc58f8e21eb2f80ad4851875ee25",
         osName = "UT", osVersion = "UT", appName = "UT", appVersion = "UT", brand = "UT", model = "UT"
       )
     )
 
-    val cRequest = """
+    val cRequest = s"""
                      |{
                      |	"channel": "PN",
                      |	"sla": "H",
@@ -41,7 +44,7 @@ class iOSTopology extends TopologyUTSpec {
                      |	"channelData": {
                      |		"type": "PN",
                      |		"data": {
-                     |      "alert" : "Message received from Kinshuk 22",
+                     |      "alert" : "Message received from Kinshuk ${deviceId.substring(1,5)}",
                      |      "sound" : "default",
                      |      "badge" : 0
                      |		}
@@ -52,7 +55,7 @@ class iOSTopology extends TopologyUTSpec {
                      |    	"delayWhileIdle": true,
                      |      "platform" :  "ios",
                      |      "appName" : "UT",
-                     |      "deviceId" : "kinshukIOSRetail"
+                     |      "deviceId" : "$deviceId"
                      |	},
                      |	"meta": {}
                      |}
