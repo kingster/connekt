@@ -11,15 +11,6 @@ import com.flipkart.connekt.receptors.routes.reports.Reports
  * Created by kinshuk.bairagi on 10/12/15.
  */
 class RouteRegistry(implicit mat:ActorMaterializer) extends AuthenticationDirectives {
-/*
- private lazy val receptorReqHandler = new Registration().register
- private lazy val unicastHandler = new Unicast().unicast
- private lazy val callbackHandler = new Callback().callback
- private lazy val reportsRoute = new Reports().route
- private lazy val fetchRoute = new Fetch().fetch
- private lazy val stencilRoute = new StencilsRoute().stencils
- private lazy val ldapRoute = new LdapAuthentication().token
-*/
 
  def allRoutes = authenticate {
   implicit user => {

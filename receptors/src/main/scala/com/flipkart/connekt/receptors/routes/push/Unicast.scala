@@ -20,7 +20,6 @@ class Unicast(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler
 
   val unicast =
     pathPrefix("v1") {
-//      authenticate { user =>
         path("send" / "push" / "unicast" / Segment / Segment / Segment) {
           (appPlatform: String, appName: String, deviceId: String) =>
             authorize(user, "UNICAST_" + appName) {
@@ -54,6 +53,5 @@ class Unicast(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler
               }
             }
         }
-//      }
     }
 }

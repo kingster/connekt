@@ -21,8 +21,6 @@ class Reports(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler
 
   val route =
     pathPrefix("v1") {
-//      authenticate {
-//        user =>
             pathPrefix("reports") {
               path(ChannelSegment / Segment / "messages" / Segment / Segment / "events") {
                 (channel: Channel, appName: String, contactId: String, messageId: String) =>
@@ -68,6 +66,5 @@ class Reports(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler
                   }
               }
           }
-//      }
     }
 }

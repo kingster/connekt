@@ -20,8 +20,6 @@ import scala.util.{Failure, Success}
 class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
   val stencils =
     pathPrefix("v1") {
-//      authenticate {
-//        user =>
           pathPrefix("stencils") {
             path("bucket" / Segment) {
               (name: String) =>
@@ -194,6 +192,5 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
               }
             }
           }
-//      }
     }
 }

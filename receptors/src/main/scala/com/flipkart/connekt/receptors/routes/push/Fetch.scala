@@ -19,7 +19,6 @@ class Fetch(implicit user: AppUser) extends BaseHandler {
 
   val fetch =
     pathPrefix("v1") {
-//      authenticate { user =>
         path("fetch" / "push" / Segment / Segment / Segment) {
           (platform: String, app: String, subscriberId: String) =>
             authorize(user, "FETCH", s"FETCH_$platform", s"FETCH_${platform}_$app") {
@@ -49,6 +48,5 @@ class Fetch(implicit user: AppUser) extends BaseHandler {
               }
             }
         }
-//      }
     }
 }

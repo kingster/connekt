@@ -20,8 +20,6 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
 
   val register =
     pathPrefix("v1") {
-//      authenticate {
-//        user =>
           pathPrefix("registration" / "push") {
             path(Segment / Segment / Segment) {
               (platform: String, appName: String, deviceId: String) =>
@@ -96,6 +94,5 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
             }
 
           }
-//      }
     }
 }
