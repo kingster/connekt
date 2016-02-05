@@ -20,7 +20,7 @@ import scala.reflect.ClassTag
 /**
  * Created by kinshuk.bairagi on 02/02/16.
  */
-class HttpDispatcher[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.collection.immutable.Seq[HttpHeader], payloadCreator: (V) => RequestEntity)
+class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.collection.immutable.Seq[HttpHeader], payloadCreator: (V) => RequestEntity)
   extends GraphStage[FlowShape[V, (HttpRequest, String)]] {
 
   val in = Inlet[V]("HttpDispatcher.In")

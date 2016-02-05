@@ -6,6 +6,5 @@ package com.flipkart.connekt.commons.iomodels
  * @author durga.s
  * @version 2/2/16
  */
-class APSPayload {
-
-}
+abstract class APSPayload
+case class iOSPNPayload(token: String, data: Any) extends APSPayload

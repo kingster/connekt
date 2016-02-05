@@ -14,6 +14,7 @@ import com.flipkart.connekt.commons.iomodels._
  * @version 12/3/15
  */
 class AndroidPNProcessor extends Actor {
+
   lazy val deviceDetailsDao = DaoFactory.getDeviceDetailsDao
   lazy val gcmSender = context.actorOf(Props[GCMSender])
 

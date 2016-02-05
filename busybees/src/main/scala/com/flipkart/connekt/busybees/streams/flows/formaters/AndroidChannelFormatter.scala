@@ -2,9 +2,9 @@ package com.flipkart.connekt.busybees.streams.flows.formaters
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
-import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 /**
@@ -28,7 +28,7 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
         ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelFormatter:: onPush:: Received Message: ${message.getJson}")
 
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-        val registrationInfo = DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, pnInfo.deviceId)
+        val registrationInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceId)
         val token: String = registrationInfo.map(_.token).orNull
 
         val appDataWithId = message.channelData.asInstanceOf[PNRequestData].data.put("messageId", message.id)

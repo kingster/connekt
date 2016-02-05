@@ -9,11 +9,11 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpPrepare
 import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpPrepare
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.{KafkaSource, RateControl}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -49,7 +49,7 @@ object Topology {
       //this would need to change to dynamic based on which app this is being send for.
       val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
 
-      val httpDispatcher = new HttpDispatcher[GCMPayload](
+      val httpDispatcher = new HttpPrepare[GCMPayload](
         new URL("https", "android.googleapis.com", 443,"/gcm/send"),
         HttpMethods.POST,
         scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.password)),
