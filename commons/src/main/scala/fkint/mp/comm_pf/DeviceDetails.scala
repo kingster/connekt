@@ -7,7 +7,7 @@ import com.flipkart.seraph.schema.BaseSchema
  */
 case class DeviceDetails(deviceId: String, userId: String, token: String, osName: String, osVersion: String,
                          appName: String, appVersion: String, brand: String, model: String, state: String = "", ts: Long, active: Boolean = true) extends BaseSchema {
-  override def getSchemaVersion: String = "2.1"
+  override def getSchemaVersion: String = "3.0"
 
   override def validate(): Unit = {}
 }
