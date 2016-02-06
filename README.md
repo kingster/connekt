@@ -5,8 +5,10 @@ Communications Platform
 
 Tech Stack 
 ---------------------
+* [Scala] - Scala 2.11!
 * [Akka] - Akka 2.4.2!
 
+[Scala]:http://www.scala-lang.org
 [Akka]:http://doc.akka.io/docs/akka/2.4.2-RC2/scala.html
 
 
@@ -34,7 +36,7 @@ Getting Started
 5. Raise a [pull request](https://help.github.com/articles/creating-a-pull-request/) so that others may review and merge it.
 
 #### Running Locally
-To run the project locally ``sbt run `` and follow the instructions. For running receptors you will need to run ``sbt "run receptors"``.
+To run the project locally ``sbt compile`` followed by ``sbt run `` and follow the instructions. For running receptors you will need to run ``sbt "run receptors"``.
 
 #### Promoting
 In order to promote your changes and build the package, refer to the jenkins job at [Connket Promote](http://usercrm-automation-qa-0001.nm.flipkart.com:8080/view/Promotion%20Jobs/job/promote_conneckt/) to trigger build
