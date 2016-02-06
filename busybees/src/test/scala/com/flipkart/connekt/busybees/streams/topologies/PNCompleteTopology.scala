@@ -11,7 +11,7 @@ import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, HttpPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter}
-import com.flipkart.connekt.commons.entities.DeviceDetails
+import com.flipkart.connekt.commons.entities.{Credentials, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNRequestInfo}
 import com.flipkart.connekt.commons.services.{CredentialManager, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils
@@ -144,7 +144,7 @@ class PNCompleteTopology extends TopologyUTSpec {
         val render = b.add(new RenderFlow)
 
         val iosFormat = b.add(new IOSChannelFormatter)
-        val iosDispatch = b.add(new APNSDispatcher)
+        val iosDispatch = b.add(new APNSDispatcher(Credentials("apns_cert_retail.p12", "flipkart")))
 
         //        val androidFormat = b.add(new AndroidChannelFormatter)
         //        val httpPrepare = b.add(httpDispatcher)
@@ -160,7 +160,7 @@ class PNCompleteTopology extends TopologyUTSpec {
          * WHy do I need to do this? I don't know, without this proxy's merge throws
          * some crazy type error which I don't know what to do! Someone fix this
          */
-        val proxy1 = b.add(Flow[String].map(_.toString))
+        val proxy1 = b.add(Flow[Either[Throwable, String]].filter(_.isRight).map(_.toString))
         val proxy2 = b.add(Flow[ConnektRequest].map(_.toString))
 
 

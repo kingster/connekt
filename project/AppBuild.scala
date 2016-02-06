@@ -25,18 +25,18 @@ object AppBuild extends Build {
       "spray repo" at "http://repo.spray.io/",
       "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
       "Sonatype release" at "https://oss.sonatype.org/content/repositories/releases",
-      "flipkart local-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local",
-      "flipkart ext-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/ext-releases-local",
-      "flipkart central" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-release",
-      "flipkart snapshorts" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-snapshot",
-      "flipkart clojars" at "http://artifactory.nm.flipkart.com:8081/artifactory/clojars-repo",
       "cloudera" at "https://repository.cloudera.com/artifactory/repo/",
       "cloudera releases" at "https://repository.cloudera.com/content/repositories/releases/",
       "typesafe" at "http://repo.typesafe.com/typesafe/releases/",
       "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
       "jBoss" at "http://repository.jboss.org/nexus/content/groups/public",
       "Akka Snapshot Repository" at "http://repo.typesafe.com/typesafe/snapshots/",
-      "RoundEights" at "http://maven.spikemark.net/roundeights"
+      "RoundEights" at "http://maven.spikemark.net/roundeights",
+      "flipkart local-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local",
+      "flipkart ext-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/ext-releases-local",
+      "flipkart central" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-release",
+      "flipkart snapshorts" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-snapshot",
+      "flipkart clojars" at "http://artifactory.nm.flipkart.com:8081/artifactory/clojars-repo"
     ),
     ivyScala := ivyScala.value map {
       _.copy(overrideScalaVersion = true)
@@ -48,7 +48,7 @@ object AppBuild extends Build {
       .enablePlugins(SonarRunnerPlugin)
       .settings(_commonSettings ++ Seq(
       sonarRunnerOptions := Seq("-e")
-      ): _*)
+    ): _*)
       .aggregate(receptors, busybees, commons)
       .dependsOn(receptors, busybees, commons)
 

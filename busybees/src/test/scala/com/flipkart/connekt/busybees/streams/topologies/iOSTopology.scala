@@ -7,7 +7,7 @@ import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.APNSDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
-import com.flipkart.connekt.commons.entities.DeviceDetails
+import com.flipkart.connekt.commons.entities.{Credentials, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils
@@ -44,7 +44,7 @@ class iOSTopology extends TopologyUTSpec {
                      |	"channelData": {
                      |		"type": "PN",
                      |		"data": {
-                     |      "alert" : "Message received from Kinshuk ${deviceId.substring(1,5)}",
+                     |      "alert" : "Message received from Kinshuk ${deviceId.substring(0,4)}",
                      |      "sound" : "default",
                      |      "badge" : 0
                      |		}
@@ -66,10 +66,12 @@ class iOSTopology extends TopologyUTSpec {
       .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
       .via(new IOSChannelFormatter)
-      .via(new APNSDispatcher)
+      .via(new APNSDispatcher(Credentials("apns_cert_retail.p12", "flipkart")))
       .runWith(Sink.head)
 
     val response = Await.result(result, 60.seconds)
+
+    println(response)
 
     Thread.sleep(2000)
 
