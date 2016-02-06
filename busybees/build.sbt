@@ -21,5 +21,9 @@ test in assembly := {}
 
 parallelExecution in Test := false
 
+assemblyExcludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+  cp filter {_.data.getName == "netty-tcnative-1.1.33.Fork10-osx-x86_64.jar"}
+}
+
 
 assemblyMergeStrategy in assembly := AppBuild.mergeStrategy
