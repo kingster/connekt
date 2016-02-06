@@ -15,8 +15,8 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  */
 class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayload]] {
 
-  val in = Inlet[ConnektRequest]("iOS.In")
-  val out = Outlet[APSPayload]("iOS.Out")
+  val in = Inlet[ConnektRequest]("IOSChannelFormatter.In")
+  val out = Outlet[APSPayload]("IOSChannelFormatter.Out")
 
   override def shape: FlowShape[ConnektRequest, APSPayload] = FlowShape.of(in, out)
 

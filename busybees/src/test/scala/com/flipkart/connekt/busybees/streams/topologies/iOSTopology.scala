@@ -21,7 +21,7 @@ import scala.concurrent.duration._
  */
 class iOSTopology extends TopologyUTSpec {
 
-  "AndroidTopology Test" should "run" in {
+  "iOSTopology Test" should "run" in {
 
     val deviceId = StringUtils.generateRandomStr(32)
 
@@ -30,7 +30,7 @@ class iOSTopology extends TopologyUTSpec {
         deviceId = deviceId,
         userId = "",
         token = "6b1e059bb2a51d03d37384d1493aaffbba4edc58f8e21eb2f80ad4851875ee25",
-        osName = "UT", osVersion = "UT", appName = "UT", appVersion = "UT", brand = "UT", model = "UT"
+        osName = "iOS", osVersion = "UT", appName = "UT", appVersion = "UT", brand = "UT", model = "UT"
       )
     )
 

@@ -18,8 +18,8 @@ import scala.reflect.ClassTag
 class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.collection.immutable.Seq[HttpHeader], payloadCreator: (V) => RequestEntity)
   extends GraphStage[FlowShape[V, (HttpRequest, String)]] {
 
-  val in = Inlet[V]("HttpDispatcher.In")
-  val out = Outlet[(HttpRequest, String)]("HttpDispatcher.Out")
+  val in = Inlet[V]("HttpPrepare.In")
+  val out = Outlet[(HttpRequest, String)]("HttpPrepare.Out")
 
   override def shape: FlowShape[V, (HttpRequest, String)] = FlowShape.of(in, out)
 

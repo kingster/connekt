@@ -15,8 +15,8 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  */
 class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPayload]] {
 
-  val in = Inlet[ConnektRequest]("Android.In")
-  val out = Outlet[GCMPayload]("Android.Out")
+  val in = Inlet[ConnektRequest]("AndroidChannelFormatter.In")
+  val out = Outlet[GCMPayload]("AndroidChannelFormatter.Out")
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
