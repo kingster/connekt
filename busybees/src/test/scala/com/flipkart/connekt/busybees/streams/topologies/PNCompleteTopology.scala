@@ -27,7 +27,7 @@ class PNCompleteTopology extends TopologyUTSpec {
 
   "PNCompleteTopology Test" should "run" in {
 
-    val deviceId1 = StringUtils.generateRandomStr(32)
+    val deviceId1 = "VM6DODCT7BEOO0LGMH1Q399O96LPMRYE"
 
     DeviceDetailsService.add(
       DeviceDetails(
@@ -38,7 +38,7 @@ class PNCompleteTopology extends TopologyUTSpec {
       )
     )
 
-    val deviceId2 = StringUtils.generateRandomStr(32)
+    val deviceId2 = "EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97"
 
     DeviceDetailsService.add(
       DeviceDetails(
@@ -49,62 +49,66 @@ class PNCompleteTopology extends TopologyUTSpec {
       )
     )
 
-    val cRequest1 = s"""
-                       |{
-                       |	"channel": "PN",
-                       |	"sla": "H",
-                       |	"templateId": "retail-app-base-0x23",
-                       |	"scheduleTs": 12312312321,
-                       |	"expiryTs": 3243243224,
-                       |	"channelData": {
-                       |		"type": "PN",
-                       |		"data": {
-                       |    "alert" : "Message received from Kinshuk ${deviceId1.substring(1, 5)}",
-                                                                                                   |    "sound" : "default",
-                                                                                                   |    "badge" : 0
-                                                                                                   |		}
-                                                                                                   |	},
-                                                                                                   |	"channelInfo" : {
-                                                                                                   |	    "type" : "PN",
-                                                                                                   |	    "ackRequired": true,
-                                                                                                   |  	"delayWhileIdle": true,
-                                                                                                   |    "platform" :  "ios",
-                                                                                                   |    "appName" : "UT",
-                                                                                                   |    "deviceId" : "$deviceId1"
-                                                                                                                                  |	},
-                                                                                                                                  |	"meta": {}
-                                                                                                                                  |}
-                   """.stripMargin.getObj[ConnektRequest]
+    val cRequest1 =
+      """
+        |{
+        |	"id": "REQUEST-VM6DODCT7BEOO0LGMH1Q399O96LPMRYE",
+        |	"channel": "PN",
+        |	"sla": "H",
+        |	"templateId": "retail-app-base-0x23",
+        |	"scheduleTs": 12312312321,
+        |	"expiryTs": 3243243224,
+        |	"channelData": {
+        |		"type": "PN",
+        |		"data": {
+        |			"alert": "Message received from Kinshuk 1234",
+        |			"sound": "default",
+        |			"badge": 0
+        |		}
+        |	},
+        |	"channelInfo": {
+        |		"type": "PN",
+        |		"ackRequired": true,
+        |		"delayWhileIdle": true,
+        |		"platform": "ios",
+        |		"appName": "UT",
+        |		"deviceId": "VM6DODCT7BEOO0LGMH1Q399O96LPMRYE"
+        |	},
+        |	"meta": {}
+        |}
+      """.stripMargin.getObj[ConnektRequest]
 
-    val cRequest2 = s"""
-                       |{
-                       |	"channel": "PN",
-                       |	"sla": "H",
-                       |	"templateId": "retail-app-base-0x23",
-                       |	"scheduleTs": 12312312321,
-                       |	"expiryTs": 3243243224,
-                       |	"channelData": {
-                       |		"type": "PN",
-                       |		"data": {
-                       |			"message": "Hello Kinshuk. GoodLuck!",
-                       |			"title": "Kinshuk GCM Push Test",
-                       |			"id": "123456789",
-                       |			"triggerSound": true,
-                       |			"notificationType": "Text"
-                       |
-                       |		}
-                       |	},
-                       |	"channelInfo" : {
-                       |	    "type" : "PN",
-                       |	    "ackRequired": true,
-                       |  	"delayWhileIdle": true,
-                       |   "platform" :  "android",
-                       |   "appName" : "UT",
-                       |   "deviceId" : "$deviceId2"
-                                                     |	},
-                                                     |	"meta": {}
-                                                     |}
-                   """.stripMargin.getObj[ConnektRequest]
+    val cRequest2 =
+      """
+        |{
+        |	"id": "REQUEST-EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97",
+        |	"channel": "PN",
+        |	"sla": "H",
+        |	"templateId": "retail-app-base-0x23",
+        |	"scheduleTs": 12312312321,
+        |	"expiryTs": 3243243224,
+        |	"channelData": {
+        |		"type": "PN",
+        |		"data": {
+        |			"message": "Hello Kinshuk. GoodLuck!",
+        |			"title": "Kinshuk GCM Push Test",
+        |			"id": "123456789",
+        |			"triggerSound": true,
+        |			"notificationType": "Text"
+        |
+        |		}
+        |	},
+        |	"channelInfo": {
+        |		"type": "PN",
+        |		"ackRequired": true,
+        |		"delayWhileIdle": true,
+        |		"platform": "android",
+        |		"appName": "UT",
+        |		"deviceId": "EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97"
+        |	},
+        |	"meta": {}
+        |}
+      """.stripMargin.getObj[ConnektRequest]
 
 
     val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
