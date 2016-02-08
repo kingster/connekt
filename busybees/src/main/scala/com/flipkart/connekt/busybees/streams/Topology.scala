@@ -14,7 +14,10 @@ import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpPrepare
+import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
+import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.GCMResponseHandler
+import com.flipkart.connekt.busybees.streams.sinks.EventSenderSink
 import com.flipkart.connekt.busybees.streams.sources.{KafkaSource, RateControl}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
@@ -83,7 +86,9 @@ object Topology {
         .via(new AndroidChannelFormatter)
         .via(httpDispatcher)
         .via(poolClientFlow)
-        .runWith(loggerSink)
+        .via(new GCMResponseHandler)
+        .via(new PNBigfootEventCreator)
+        .runWith(new EventSenderSink)
     })
 
   }
