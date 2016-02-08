@@ -12,8 +12,6 @@ import com.flipkart.connekt.commons.iomodels.{PNRequestData, PNRequestInfo, Conn
 class PNProcessor extends Actor {
 
   lazy val androidPNProcessor = context.actorOf(Props[AndroidPNProcessor])
-  lazy val windowsPNProcessor = context.actorOf(Props[WindowsPNProcessor])
-  lazy val iosPNProcessor = context.actorOf(Props[IosPNProcessor])
 
   override def receive: Receive = {
     case request: ConnektRequest =>
@@ -22,8 +20,8 @@ class PNProcessor extends Actor {
 
       pnRequestInfo.platform.toLowerCase match {
         case "android" | "openweb" => androidPNProcessor ! (request.id, pnRequestInfo, pNRequestData)
-        case "windows" => windowsPNProcessor ! (request.id, pnRequestInfo, pNRequestData)
-        case "ios" => iosPNProcessor ! (request.id, pnRequestInfo, pNRequestData)
+        case "windows" =>
+        case "ios" =>
       }
   }
 }
