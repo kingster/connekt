@@ -7,6 +7,7 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.flipkart.connekt.busybees.processors.PNProcessor
 import com.flipkart.connekt.busybees.streams.{KafkaMessageProcessFlow, Topology}
 import com.flipkart.connekt.commons.connections.ConnectionProvider
+import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
@@ -21,7 +22,7 @@ import com.typesafe.config.ConfigFactory
  * @author durga.s
  * @version 11/28/15
  */
-object BusyBeesBoot {
+object BusyBeesBoot extends BaseApp {
 
   val initialized = new AtomicBoolean(false)
   var pnDispatchFlow: Option[KafkaMessageProcessFlow[ConnektRequest, PNProcessor]] = None
@@ -33,7 +34,8 @@ object BusyBeesBoot {
   def start() {
 
     if (!initialized.get()) {
-      ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
+
+      ConnektConfig(configServiceHost, configServicePort)()
 
       ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
 
@@ -61,6 +63,7 @@ object BusyBeesBoot {
 
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
       Topology.bootstrap(kafkaHelper)
+
 
     }
   }

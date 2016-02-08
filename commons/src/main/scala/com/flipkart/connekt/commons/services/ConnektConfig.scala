@@ -21,13 +21,9 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * @author durga.s
  * @version 11/16/15
  */
-class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
+class ConnektConfig(configHost: String, configPort: Int)
                    (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId])
   extends ConfigAccumulator {
-
-  val cfgHost = configHost
-  val cfgfPort = configPort
-  val cfgAppVer = configAppVersion
 
   var cfgClient: ConfigClient = null
 
@@ -36,8 +32,8 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
   var appConfig: Config = ConfigFactory.empty()
 
   def readConfigs(): List[Config] = {
-    cfgClient = new ConfigClient(cfgHost, cfgfPort, cfgAppVer)
-    ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketIdMap.values.toList}}]")
+    cfgClient = new ConfigClient(configHost, configPort, 1, 30000)
+    ConnektLogger(LogFile.SERVICE).info(s"Buckets to fetch config: [${bucketIdMap.values.toString()}}]")
 
     for (bucketName <- bucketIdMap.values) {
       val bucket = cfgClient.getDynamicBucket(bucketName)
@@ -75,7 +71,7 @@ class ConnektConfig(configHost: String, configPort: Int, configAppVersion: Int)
     } catch {
       case uhe@(_: UnknownHostException | _: IOException | _: ConfigServiceException) =>
         if (NetworkUtils.getHostname.contains("local"))
-          ConnektLogger(LogFile.SERVICE).warn(s"Offline Mode, Unable to reach $cfgHost")
+          ConnektLogger(LogFile.SERVICE).warn(s"Offline Mode, Unable to reach $configHost")
         else
           throw uhe;
       case e: Throwable =>
@@ -98,11 +94,11 @@ object ConnektConfig {
 
   var instance: ConnektConfig = null
 
-  def apply(configHost: String = "config-service.nm.flipkart.com", configPort: Int = 80, configAppVersion: Int = 1)
-           (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "CREDENTIALS" -> "fk-connekt-credentials")) = {
+  def apply(configHost: String = "10.47.0.101", configPort: Int = 80)
+           (bucketIdMap: mutable.LinkedHashMap[BucketName, ConfigBucketId] = mutable.LinkedHashMap("ROOT_CONF" -> "fk-connekt-root", "ENV_OVERRIDE_CONF" -> "fk-connekt-".concat(ConfigUtils.getConfEnvironment))) = {
     this.synchronized {
       if (null == instance) {
-        instance = new ConnektConfig(configHost, configPort, configAppVersion)(bucketIdMap)
+        instance = new ConnektConfig(configHost, configPort)(bucketIdMap)
         instance.init()
       }
     }

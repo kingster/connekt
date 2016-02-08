@@ -6,13 +6,15 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.services.BigfootService
 import fkint.mp.connekt.DeviceDetails
 import org.joda.time.format.DateTimeFormat
+import org.scalatest.Ignore
 
 /**
  * Created by nidhi.mehla on 03/02/16.
  */
+@Ignore
 class BigFootServiceTest extends CommonsBaseTest {
 
-  val deviceId = UUID.randomUUID().toString
+  val deviceId = "UT-" + UUID.randomUUID().toString
   val userId = "ACC-" + UUID.randomUUID().toString
   val token = "TOKEN-" + UUID.randomUUID().toString
 
