@@ -9,7 +9,7 @@ import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.connekt.receptors.service.ReceptorsServer
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 
 /**
  *
@@ -42,6 +42,9 @@ object ReceptorsBoot {
 
       val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
       DaoFactory.initCouchbaseCluster(couchbaseCf)
+
+      val specterConfig = ConnektConfig.getConfig("receptors.connections.specter").getOrElse(ConfigFactory.empty())
+      DaoFactory.initSpecterSocket(specterConfig)
 
       val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())

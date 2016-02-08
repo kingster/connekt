@@ -8,6 +8,7 @@ import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.entities.Credentials
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{APSPayload, iOSPNPayload}
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.marketing.connekt.BuildInfo
@@ -55,7 +56,11 @@ class APNSDispatcher(credentials: Credentials) extends GraphStage[FlowShape[APSP
               ConnektLogger(LogFile.PROCESSORS).error("APNSDispatcher:: onPush :: Notification rejected by the APNs gateway: " + pushNotificationResponse.getRejectionReason)
 
               if (pushNotificationResponse.getTokenInvalidationTimestamp != null) {
-                ConnektLogger(LogFile.PROCESSORS).error("\t…and the token is invalid as of " + pushNotificationResponse.getTokenInvalidationTimestamp)
+                /**
+                 * This device is now invalid, triggering cleanup.
+                 */
+
+                ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: Token Invalid [${message.token}] since " + pushNotificationResponse.getTokenInvalidationTimestamp)
               }
 
               push(out, Left(new Throwable(pushNotificationResponse.getRejectionReason)))
