@@ -7,7 +7,6 @@ import org.scalatest.Ignore
 /**
  * @author aman.shrivastava on 10/12/15.
  */
-@Ignore
 class CallbackTest extends BaseRouteTest {
 
   "Callback Test " should "return Ok" in {

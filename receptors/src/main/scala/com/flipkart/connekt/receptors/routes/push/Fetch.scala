@@ -7,7 +7,7 @@ import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
 import scala.util.Try
-import com.flipkart.connekt.commons.entities.Channel
+import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 
 /**
  *
@@ -15,11 +15,10 @@ import com.flipkart.connekt.commons.entities.Channel
  * @author durga.s
  * @version 1/14/16
  */
-class Fetch extends BaseHandler {
+class Fetch(implicit user: AppUser) extends BaseHandler {
 
   val fetch =
     pathPrefix("v1") {
-      authenticate { user =>
         path("fetch" / "push" / Segment / Segment / Segment) {
           (platform: String, app: String, subscriberId: String) =>
             authorize(user, "FETCH", s"FETCH_$platform", s"FETCH_${platform}_$app") {
@@ -49,6 +48,5 @@ class Fetch extends BaseHandler {
               }
             }
         }
-      }
     }
 }

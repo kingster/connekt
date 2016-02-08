@@ -1,6 +1,7 @@
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{StatusCodes, MediaTypes, HttpEntity}
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
 import org.scalatest.Ignore
@@ -9,7 +10,7 @@ import org.scalatest.Ignore
  * @author aman.shrivastava on 10/12/15.
  */
 @Ignore
-class RegistrationTest extends BaseRouteTest {
+class RegistrationTest(implicit user: AppUser) extends BaseRouteTest {
 
   val registrationRoute = new Registration().register
   val appName = "RetailApp"
