@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.entities
 
-import org.joda.time.format.DateTimeFormat
+import com.flipkart.connekt.commons.utils.DateTimeUtils
 
 /**
  *
@@ -16,8 +16,7 @@ case class DeviceDetails(deviceId: String, userId: String, token: String, osName
     fkint.mp.comm_pf.DeviceDetails(
       deviceId = deviceId, userId = userId, token = token, osName = osName, osVersion = osVersion,
       appName = appName, appVersion = appVersion, brand = brand, model = model, state = state,
-      ts = DateTimeFormat.forPattern("YYYY-MM-dd HH:mm:ss").print(System.currentTimeMillis()),
-      active = active
+      ts = DateTimeUtils.getStandardFormatted(), active = active
     )
   }
 
