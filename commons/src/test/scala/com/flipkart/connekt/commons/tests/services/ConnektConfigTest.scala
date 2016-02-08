@@ -16,7 +16,7 @@ class ConnektConfigTest extends ConnektUTSpec {
     val currentAppEnv = UtilsEnv.getConfEnv
     System.setProperty("CONNEKT_ENV", "local")
 
-    val connektConfig = ConnektConfig("config-service.nm.flipkart.com", 80, 1)()
+    val connektConfig = ConnektConfig("config-service.nm.flipkart.com", 80)()
     assert(null != connektConfig)
 
     val fetchedConfigs = connektConfig.readConfigs

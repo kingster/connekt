@@ -3,12 +3,13 @@ package com.flipkart.connekt.receptors
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.flipkart.connekt.commons.connections.ConnectionProvider
+import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.receptors.service.ReceptorsServer
-import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 
 /**
  *
@@ -16,13 +17,14 @@ import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
  * @author durga.s
  * @version 11/20/15
  */
-object ReceptorsBoot  {
+object ReceptorsBoot  extends BaseApp{
 
   private val initialized = new AtomicBoolean(false)
 
   def start() {
     if (!initialized.get()) {
-      ConnektConfig(configHost = "config-service.nm.flipkart.com", configPort = 80, configAppVersion = 1)()
+
+      ConnektConfig(configServiceHost, configServicePort)()
 
       val logConfigFile = getClass.getClassLoader.getResourceAsStream("logback-receptors.xml")
       ConnektLogger.init(logConfigFile)

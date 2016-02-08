@@ -1,8 +1,17 @@
+import AppBuild._
 import sbt.ExclusionRule
 
 name := "commons"
 
 version := "1.0-SNAPSHOT"
+
+envKey := {
+  System.getProperty("env.key") match {
+    case null => "default"
+    case defined: String => defined
+  }
+}
+
 
 libraryDependencies ++= Seq(
   "commons-pool" % "commons-pool" % "1.6",

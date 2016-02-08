@@ -43,18 +43,37 @@ object AppBuild extends Build {
     }
   )
 
+  val envKey = SettingKey[String]("env-key", "Flipkart Environment.")
+
+  // http://www.scala-sbt.org/0.13.5/docs/Howto/generatefiles.html#resources
+  lazy val bareResourceGenerators: Seq[Setting[_]] = Seq(
+    resourceGenerators in Compile += Def.task {
+
+      var resourceFiles = Seq[File]()
+      println(s"[info] Generating Runtime Resources for Environment [${envKey.value}]")
+      val profileResourcesDir = baseDirectory.value / "src" / "main" / "alternate-resources" / envKey.value
+      (profileResourcesDir * "*").get.foreach(f => {
+        IO.copyFile(f, (resourceManaged in Compile).value / f.name)
+        resourceFiles = resourceFiles :+ (resourceManaged in Compile).value / f.name
+      })
+
+      resourceFiles
+    }.taskValue
+  )
+
+
   lazy val root =
     Project("root", file("."))
       .enablePlugins(SonarRunnerPlugin)
       .settings(_commonSettings ++ Seq(
       sonarRunnerOptions := Seq("-e")
-      ): _*)
+    ): _*)
       .aggregate(receptors, busybees, commons)
       .dependsOn(receptors, busybees, commons)
 
   lazy val connekt_8087 = Project("connekt-8087", file("8087"), settings = _commonSettings)
 
-  lazy val commons = Project("commons", file("commons"), settings = _commonSettings)
+  lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ bareResourceGenerators)
 
   lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")
