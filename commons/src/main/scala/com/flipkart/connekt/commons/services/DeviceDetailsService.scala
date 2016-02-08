@@ -16,6 +16,7 @@ object DeviceDetailsService {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
       dao.add(deviceDetails.appName, deviceDetails)
+      BigfootService.ingest(deviceDetails.toBigfootEntity)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error("Device Detail add service failed " + e.getCause)
@@ -37,13 +38,35 @@ object DeviceDetailsService {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
       }
-
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
 
       dao.update(deviceDetails.appName, deviceId, deviceDetails)
+      BigfootService.ingest(deviceDetails.toBigfootEntity)
     } catch {
       case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail update service failed " + e.getCause, e)
     }
+  }
+
+  /*
+      get and delete device if device exists
+      And if device exists, delete corresponding cache entry
+      and mark device as INACTIVE in bigfoot
+   */
+  def delete(appName: String, deviceId: String) = {
+    try {
+      get(appName, deviceId) match {
+        case Some(device) =>
+          dao.delete(appName, deviceId)
+          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
+          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
+          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
+          BigfootService.ingest(device.copy(active = false).toBigfootEntity)
+        case None =>
+      }
+    } catch {
+      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail delete service failed " + e.getCause, e)
+    }
+
   }
 
   def getByTokenId(appName: String, tokenId: String): Option[DeviceDetails] = {
@@ -84,7 +107,11 @@ object DeviceDetailsService {
         case Some(device) => Some(device)
         case None =>
           val device = dao.get(appName, deviceId)
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, deviceId), device.orNull)
+          device match {
+            case None =>
+            case Some(x) =>
+              DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, deviceId), x)
+          }
           device
       }
     } catch {

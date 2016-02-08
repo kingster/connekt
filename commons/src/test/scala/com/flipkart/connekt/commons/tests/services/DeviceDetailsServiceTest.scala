@@ -10,7 +10,6 @@ import org.scalatest.Ignore
 /**
  * Created by nidhi.mehla on 28/01/16.
  */
-@Ignore
 class DeviceDetailsServiceTest extends CommonsBaseTest {
 
   private val deviceId: String = UUID.randomUUID().toString
@@ -49,5 +48,9 @@ class DeviceDetailsServiceTest extends CommonsBaseTest {
     newUpdatedDevice.userId shouldEqual updatedAccountId
   }
 
+  "DeviceDetails Service" should "delete Account" in {
+    noException should be thrownBy DeviceDetailsService.delete(appName, deviceId)
+    DeviceDetailsService.get(appName, deviceId) shouldEqual None
+  }
 
 }
