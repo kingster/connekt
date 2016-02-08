@@ -12,8 +12,8 @@ case class DeviceDetails(deviceId: String, userId: String, token: String, osName
                          appName: String, appVersion: String, brand: String, model: String, state: String = "",
                          active: Boolean = true) {
 
-  def toBigfootEntity: fkint.mp.comm_pf.DeviceDetails = {
-    fkint.mp.comm_pf.DeviceDetails(
+  def toBigfootEntity: fkint.mp.connekt.DeviceDetails = {
+    fkint.mp.connekt.DeviceDetails(
       deviceId = deviceId, userId = userId, token = token, osName = osName, osVersion = osVersion,
       appName = appName, appVersion = appVersion, brand = brand, model = model, state = state,
       ts = DateTimeUtils.getStandardFormatted(), active = active

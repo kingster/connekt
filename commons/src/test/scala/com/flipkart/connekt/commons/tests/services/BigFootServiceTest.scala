@@ -4,7 +4,7 @@ import java.util.UUID
 
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.services.BigfootService
-import fkint.mp.comm_pf.DeviceDetails
+import fkint.mp.connekt.DeviceDetails
 import org.joda.time.format.DateTimeFormat
 
 /**
