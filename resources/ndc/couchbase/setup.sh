@@ -1,3 +1,4 @@
+#!/bin/bash
 
 #setup infra-cli and default srcs.list
 echo "deb http://wzy-mirror.nm.flipkart.com/ftp.debian.org/debian wheezy-backports main" > /etc/apt/sources.list.d/wzy-backports.list
@@ -15,3 +16,13 @@ sudo apt-get install --yes --allow-unauthenticated couchbase-server
 # couchbase-cli python scripts expect python in /usr/bin
 sudo ln -s /usr/bin/python2.7 /usr/bin/python || true
 
+reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-commons --appkey connekt > /etc/apt/sources.list.d/fk-connekt-commons.list
+
+sudo apt-get update
+
+echo 'team_name="Connekt"' > /etc/default/nsca_wrapper
+echo 'nagios_server_ip="10.47.2.198"' >> /etc/default/nsca_wrapper
+
+sudo apt-get install --yes --allow-unauthenticated fk-nagios-common --reinstall
+
+#bash -c "echo 'connekt-cb' > /etc/default/cosmos-service"
