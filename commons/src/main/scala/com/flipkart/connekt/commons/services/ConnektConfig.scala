@@ -23,7 +23,7 @@ object ConnektConfig {
   }
 
   def getList[V](k: String): List[V] = {
-    instance.get[V](k).getOrElse(Nil).asInstanceOf[java.util.ArrayList[V]].asScala.toList
+    instance.get[V](k).map(_.asInstanceOf[java.util.ArrayList[V]].asScala.toList).getOrElse(Nil)
   }
 
 
