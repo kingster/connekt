@@ -1,8 +1,8 @@
 package com.flipkart.connekt.boot
 
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.commons.utils.NetworkUtils
 import com.flipkart.connekt.receptors.ReceptorsBoot
+import com.flipkart.utils.NetworkUtils
 
 /**
  *

@@ -7,9 +7,6 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpPrepare
 import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
@@ -25,7 +22,6 @@ import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload}
 import com.flipkart.connekt.commons.services.{ConnektConfig, CredentialManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-import scala.util.Try
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -42,8 +38,9 @@ object Topology {
     implicit val ec = BusyBeesBoot.system.dispatcher
     implicit val mat = ActorMaterializer()
 
+
     /* Fetch inlet / kafka message topic names */
-    val topics = ConnektConfig.getStringList("allowedPNTopics").getOrElse(List.empty)
+    val topics = ConnektConfig.getList[String]("allowedPNTopics")
 
     topics.foreach(t => {
 

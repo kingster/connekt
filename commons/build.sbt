@@ -29,7 +29,6 @@ libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.0",
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
-  "com.flipkart.kloud.config" % "client-java" % "1.0.8",
   "com.esotericsoftware" % "kryo-shaded" % "3.0.3",
   "org.apache.hbase" % "hbase" % "0.94.15-cdh4.7.0" excludeAll(
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
@@ -87,7 +86,10 @@ libraryDependencies ++= Seq(
   "io.reactivex" %% "rxscala" % "0.26.0",
   "org.apache.curator" % "curator-recipes" % "2.9.1",
   "com.flipkart.specter" % "specter-client" % "1.1.4",
-  "joda-time" % "joda-time" % "2.3"
+  "joda-time" % "joda-time" % "2.3",
+  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" changing(),
+  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT" changing()
+
 )
 
 

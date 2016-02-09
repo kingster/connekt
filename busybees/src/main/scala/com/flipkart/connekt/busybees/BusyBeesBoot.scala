@@ -34,9 +34,6 @@ object BusyBeesBoot extends BaseApp {
   def start() {
 
     if (!initialized.get()) {
-
-      ConnektConfig(configServiceHost, configServicePort)()
-
       ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
 
       val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-busybees.xml")
@@ -44,6 +41,8 @@ object BusyBeesBoot extends BaseApp {
 
       ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
       ConnektLogger.init(logConfigFile)
+
+      ConnektConfig(configServiceHost, configServicePort)()
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 

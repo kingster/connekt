@@ -16,10 +16,10 @@ class ConnektConfigTest extends ConnektUTSpec {
     val currentAppEnv = ConfigUtils.getConfEnvironment
     System.setProperty("CONNEKT_ENV", "local")
 
-    val connektConfig = ConnektConfig("config-service.nm.flipkart.com", 80)()
+    val connektConfig = ConnektConfig("10.47.0.101", 80)()
     assert(null != connektConfig)
 
-    val fetchedConfigs = connektConfig.readConfigs
+    val fetchedConfigs = connektConfig.bucketConfigs
     assert(fetchedConfigs.size > 0)
 
     if(null != currentAppEnv)
