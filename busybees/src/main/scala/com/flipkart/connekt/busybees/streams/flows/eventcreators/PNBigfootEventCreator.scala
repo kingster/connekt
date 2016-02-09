@@ -12,19 +12,17 @@ import com.flipkart.connekt.commons.utils.DateTimeUtils
  * @author durga.s
  * @version 2/8/16
  */
-class PNBigfootEventCreator extends GraphStage[FlowShape[List[PNCallbackEvent], List[fkint.mp.connekt.PNCallbackEvent]]] {
+class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.mp.connekt.PNCallbackEvent]] {
 
-  val in = Inlet[List[PNCallbackEvent]]("PNBigfootEventCreator.In")
-  val out = Outlet[List[fkint.mp.connekt.PNCallbackEvent]]("PNBigfootEventCreator.Out")
+  val in = Inlet[PNCallbackEvent]("PNBigfootEventCreator.In")
+  val out = Outlet[fkint.mp.connekt.PNCallbackEvent]("PNBigfootEventCreator.Out")
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
       override def onPush(): Unit = try {
-        val events = grab(in)
-        val w: List[fkint.mp.connekt.PNCallbackEvent] = events.map(e => fkint.mp.connekt.PNCallbackEvent(messageId = e.messageId, deviceId = e.deviceId, platform = e.platform, eventType = e.eventType, appName = e.appName, contextId = e.contextId, cargo = e.cargo, timestamp = DateTimeUtils.getStandardFormatted(e.timestamp)))
-
-        push(out, w)
+        val event = grab(in)
+        push(out, event.toBigfootEntity)
       }catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator:: onPush :: Error", e)
@@ -40,5 +38,5 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[List[PNCallbackEvent], 
 
   }
 
-  override def shape: FlowShape[List[PNCallbackEvent], List[fkint.mp.connekt.PNCallbackEvent]] = FlowShape.of(in, out)
+  override def shape  = FlowShape.of(in, out)
 }

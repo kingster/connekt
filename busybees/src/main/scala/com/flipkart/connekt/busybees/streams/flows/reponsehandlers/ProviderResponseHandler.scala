@@ -10,6 +10,6 @@ import com.flipkart.connekt.commons.iomodels.{EmailCallbackEvent, CallbackEvent,
  * @author durga.s
  * @version 2/8/16
  */
-abstract class ProviderResponseHandler[T, U <: CallbackEvent] extends GraphStage[FlowShape[T, List[U]]]
+abstract class ProviderResponseHandler[T, U <: CallbackEvent] extends GraphStage[FlowShape[T, U]]
 abstract class PNProviderResponseHandler[T] extends ProviderResponseHandler[T, PNCallbackEvent]
 abstract class EmailProviderResponseHandler[T] extends ProviderResponseHandler[T, EmailCallbackEvent]

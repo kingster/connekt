@@ -10,6 +10,7 @@ import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
@@ -22,7 +23,9 @@ import scala.util.{Failure, Success, Try}
 class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], String)] {
 
   val in = Inlet[(Try[HttpResponse], String)]("GCMResponseHandler.In")
-  val out = Outlet[List[PNCallbackEvent]]("GCMResponseHandler.Out")
+  val out = Outlet[PNCallbackEvent]("GCMResponseHandler.Out")
+
+  override def shape  = FlowShape.of(in, out)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -68,10 +71,11 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             ConnektLogger(LogFile.PROCESSORS).error(s"Sink:: Received Error for r: ${gcmResponse._2}, e: ${e2.getMessage}", e2)
         }
 
-        push(out, events.toList)
+
+        emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(events))
       }catch {
         case e:Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
+          ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush :: Error", e)
           pull(in)
       }
     })
@@ -84,5 +88,4 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
   }
 
-  override def shape: FlowShape[(Try[HttpResponse], String), List[PNCallbackEvent]] = FlowShape.of(in, out)
 }

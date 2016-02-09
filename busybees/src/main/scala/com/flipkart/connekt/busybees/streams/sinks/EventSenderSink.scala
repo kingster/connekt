@@ -7,14 +7,16 @@ import com.flipkart.connekt.commons.services.BigfootService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.{Failure, Success}
+
 /**
  *
  *
  * @author durga.s
  * @version 2/8/16
  */
-class EventSenderSink extends GraphStage[SinkShape[List[fkint.mp.connekt.PNCallbackEvent]]] {
-  val in: Inlet[List[fkint.mp.connekt.PNCallbackEvent]] = Inlet("EventSenderSink.In")
+class EventSenderSink extends GraphStage[SinkShape[fkint.mp.connekt.PNCallbackEvent]] {
+
+  val in: Inlet[fkint.mp.connekt.PNCallbackEvent] = Inlet("EventSenderSink.In")
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -22,18 +24,17 @@ class EventSenderSink extends GraphStage[SinkShape[List[fkint.mp.connekt.PNCallb
 
       override def onPush(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"EventSenderSink:: onPush::")
-        val events = grab(in)
-        events.foreach(e =>
-          BigfootService.ingest(e) match {
-            case Success(true) =>
-              ConnektLogger(LogFile.PROCESSORS).info(s"EventSenderSink:: ${e.messageId} | SUCCESS")
-            case Failure(t) =>
-              ConnektLogger(LogFile.PROCESSORS).error(s"EventSenderSink:: Event: [${e.getJson}] ingestion failed. ${t.getMessage}")
-          })
+        val event = grab(in)
+        BigfootService.ingest(event) match {
+          case Success(true) =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"EventSenderSink:: ${event.messageId} | SUCCESS")
+          case Failure(t) =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"EventSenderSink:: Event: [${event.getJson}] ingestion failed. ${t.getMessage}")
+        }
       }
-    })
 
+    })
   }
 
-  override def shape: SinkShape[List[fkint.mp.connekt.PNCallbackEvent]] = SinkShape(in)
+  override def shape  = SinkShape(in)
 }

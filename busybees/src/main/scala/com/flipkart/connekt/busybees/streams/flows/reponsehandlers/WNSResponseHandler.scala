@@ -17,9 +17,9 @@ import scala.util.Try
 class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], String)] {
 
   val in = Inlet[(Try[HttpResponse], String)]("WNSResponseHandler.In")
-  val out = Outlet[List[PNCallbackEvent]]("WNSResponseHandler.Out")
+  val out = Outlet[PNCallbackEvent]("WNSResponseHandler.Out")
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = ???
 
-  override def shape: FlowShape[(Try[HttpResponse], String), List[PNCallbackEvent]] = FlowShape.of(in, out)
+  override def shape  = FlowShape.of(in, out)
 }
