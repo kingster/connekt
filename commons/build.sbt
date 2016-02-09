@@ -23,6 +23,13 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+  /* logging using logback */
+  "ch.qos.logback" % "logback-core" % "1.1.3",
+  "ch.qos.logback" % "logback-classic" % "1.1.3",
+  "com.lmax" % "disruptor" % "3.3.2",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
+  "org.slf4j" % "slf4j-api" % "1.7.14",
+  /* logging dependency ends here */
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
@@ -65,9 +72,6 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "commons-beanutils")
     ),
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
-  "ch.qos.logback" % "logback-core" % "1.1.3",
-  "ch.qos.logback" % "logback-classic" % "1.1.3",
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
   "com.lmax" % "disruptor" % "3.3.2",
   "commons-lang" % "commons-lang" % "2.6",
@@ -88,7 +92,7 @@ libraryDependencies ++= Seq(
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
   "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" changing(),
-  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT" changing()
+  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT"
 
 )
 

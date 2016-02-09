@@ -61,12 +61,15 @@
         <appender-ref ref="FACTORY"/>
     </logger>
 
+
     <logger name="kafka" level="ERROR"/>
     <logger name="org.apache" level="ERROR"/>
     <logger name="com.couchbase.client" level="ERROR"/>
+
+    <logger name="com.flipkart" level="ALL"  />
     <logger name="com.flipkart.kloud.config" level="ERROR"/>
 
-    <root level="DEBUG">
+    <root level="ALL">
         <appender-ref ref="STDOUT"/>
     </root>
 

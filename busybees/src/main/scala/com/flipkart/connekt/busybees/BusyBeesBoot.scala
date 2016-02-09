@@ -46,6 +46,8 @@ object BusyBeesBoot extends BaseApp {
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
+      DaoFactory.setUpConnectionProvider(new ConnectionProvider)
+
       val hConfig = ConnektConfig.getConfig("busybees.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
 
