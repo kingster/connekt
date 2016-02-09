@@ -61,6 +61,11 @@ object AppBuild extends Build {
     }.taskValue
   )
 
+  lazy val buildInfoGenerator = Seq(
+    sourceGenerators in Compile <+= buildInfo,
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, baseDirectory),
+    buildInfoPackage := "com.flipkart.marketing.connekt"
+  )
 
   lazy val root =
     Project("root", file("."))
@@ -74,11 +79,7 @@ object AppBuild extends Build {
   lazy val connekt_8087 = Project("connekt-8087", file("8087"), settings = _commonSettings)
 
   lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++
-    Seq(
-      sourceGenerators in Compile <+= buildInfo,
-      buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, baseDirectory),
-      buildInfoPackage := "com.flipkart.marketing.connekt"
-    )  ++ bareResourceGenerators)
+    buildInfoGenerator ++ bareResourceGenerators)
 
   lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")
