@@ -22,12 +22,13 @@ object ConnektConfig {
 
   def getString(k: String): Option[String] = instance.getString(k)
 
-  def getInt(k: String): Option[Int] = instance.getInt(k)
+  def getInt(k: String): Option[Int] = instance.get[Int](k)
 
-  def getDouble(k: String): Option[Double] = instance.getDouble(k)
+  def getDouble(k: String): Option[Double] = instance.get[Double](k)
 
-  def getBoolean(k: String): Option[Boolean] = instance.getBoolean(k)
+  def getBoolean(k: String): Option[Boolean] = instance.get[Boolean](k)
 
   def getConfig(k: String): Option[Config] = instance.getConfig(k)
+
 
 }
