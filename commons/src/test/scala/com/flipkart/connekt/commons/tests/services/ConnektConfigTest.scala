@@ -19,7 +19,7 @@ class ConnektConfigTest extends ConnektUTSpec {
     val connektConfig = ConnektConfig("10.47.0.101", 80)()
     assert(null != connektConfig)
 
-    val fetchedConfigs = connektConfig.readConfigs
+    val fetchedConfigs = connektConfig.bucketConfigs
     assert(fetchedConfigs.size > 0)
 
     if(null != currentAppEnv)
