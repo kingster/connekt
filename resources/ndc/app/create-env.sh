@@ -11,5 +11,10 @@ curl -v -X PUT 'http://repo-svc-app-0001.nm.flipkart.com:8080/env/fk-connekt-app
         "repoName": "oracle-java",
         "repoVersion": 4,
         "repoReferenceType": "EXACT"        
+    },
+    {
+        "repoReferenceType": "EXACT",
+        "repoVersion": 62,
+        "repoName": "specter"
     }
 ]'   -H 'Content-Type: application/json'

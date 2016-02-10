@@ -10,6 +10,7 @@ apt-get install --yes --allow-unauthenticated infra-cli
 reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-app --appkey connekt > /etc/apt/sources.list.d/fk-connekt-app.list
 reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-commons --appkey connekt > /etc/apt/sources.list.d/fk-connekt-commons.list
 
+
 sudo apt-get update
 
 sudo apt-get install --yes --allow-unauthenticated fk-pf-connekt
@@ -24,3 +25,8 @@ echo 'team_name="Connekt"' > /etc/default/nsca_wrapper
 echo 'nagios_server_ip="10.47.2.198"' >> /etc/default/nsca_wrapper
 
 sudo apt-get install --yes --allow-unauthenticated fk-nagios-common --reinstall || true
+
+
+#specter
+echo 'export DART_CONFIG_SVC_BUCKETS=prod-fdpingestion-specter' > /etc/default/fk-bigfoot-dart.env
+# sudo apt-get install --yes --allow-unauthenticated specter  #we don't trust specter.
