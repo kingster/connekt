@@ -35,7 +35,7 @@ object ConnektMetricRegistry {
 
 trait Instrumented {
 
-  implicit val registry = ConnektMetricRegistry.REGISTRY
+  protected val registry = ConnektMetricRegistry.REGISTRY
 
   protected def getMetricName(name: String): String = MetricRegistry.name(getClass, name)
 

@@ -2,11 +2,16 @@ package com.flipkart.metrics
 
 
 import scala.annotation.StaticAnnotation
+import scala.collection.immutable.::
 import scala.reflect.macros.whitebox
 import scala.language.experimental.macros
 
 /**
  * Created by kinshuk.bairagi on 11/02/16.
+ *
+ * Annotation for timer metric of functions.
+ * Your class must extend Instrumented for this annotation to work.
+ *
  */
 class Timed(name: String) extends StaticAnnotation {
 
@@ -41,12 +46,13 @@ object TimedImpl {
                val timer = registry.timer(getMetricName($meterName))
                val context = timer.time()
                try {
-                  ..$body
+               ..$body
                } finally {
                   context.stop()
-               }
+             }
              }
            """
+
       }
 
     }

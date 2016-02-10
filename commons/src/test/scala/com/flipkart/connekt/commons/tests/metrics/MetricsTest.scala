@@ -19,10 +19,21 @@ class MetricsTest  extends ConnektUTSpec with Instrumented {
     }
 
 
-    1 to 100 foreach(x => someSleep("i"))
+    @Timed("meter-test2")
+    def someSleep2(x:String):Unit =  {
+      Thread.sleep(2)
+      Some(x)
+      val d = 1
+    }
 
 
-    Thread.sleep(30000)
+    1 to 100 foreach(x => {
+      someSleep("i")
+      someSleep2("X")
+    })
+
+
+    Thread.sleep(40000)
 
     assert(true, true)
 
