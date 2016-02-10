@@ -7,25 +7,26 @@ import com.flipkart.connekt.receptors.routes.Stencils.StencilsRoute
 import com.flipkart.connekt.receptors.routes.callbacks.Callback
 import com.flipkart.connekt.receptors.routes.push.{Fetch, LdapAuthentication, Registration, Unicast}
 import com.flipkart.connekt.receptors.routes.reports.Reports
+import com.flipkart.connekt.receptors.routes.status.SystemStatus
 
 /**
  * Created by kinshuk.bairagi on 10/12/15.
  */
 class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
 
-  def allRoutes = authenticate {
-    implicit user => {
+  val healthReqHandler = new SystemStatus().route
+  val ldapRoute = new LdapAuthentication().token
 
+  def allRoutes = healthReqHandler ~ ldapRoute ~ authenticate {
+    implicit user => {
       val receptorReqHandler = new Registration().register
       val unicastHandler = new Unicast().unicast
       val callbackHandler = new Callback().callback
       val reportsRoute = new Reports().route
       val fetchRoute = new Fetch().fetch
       val stencilRoute = new StencilsRoute().stencils
-      val ldapRoute = new LdapAuthentication().token
 
-      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ ldapRoute
+      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute
     }
   }
-
 }
