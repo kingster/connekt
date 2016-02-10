@@ -1,13 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
-import java.io.IOException
-
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
-
-import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -23,7 +18,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     Map[String, Array[Byte]](
       "platform" -> pnRequestInfo.platform.toString.getUtf8Bytes,
       "appName" -> pnRequestInfo.appName.getUtf8Bytes,
-      "deviceId" -> pnRequestInfo.deviceId.getUtf8Bytes,
+      "deviceId" -> pnRequestInfo.deviceId.mkString(",").getUtf8Bytes,
       "ackRequired" -> pnRequestInfo.ackRequired.getBytes,
       "delayWhileIdle" -> pnRequestInfo.delayWhileIdle.getBytes
     )
@@ -33,7 +28,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     PNRequestInfo(
       platform = reqInfoProps.getS("platform"),
       appName = reqInfoProps.getS("appName"),
-      deviceId = reqInfoProps.getS("deviceId"),
+      deviceId = reqInfoProps.getS("deviceId").split(",").toList,
       ackRequired = reqInfoProps.getB("ackRequired"),
       delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
     )
