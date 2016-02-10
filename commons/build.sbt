@@ -86,9 +86,9 @@ libraryDependencies ++= Seq(
   "org.apache.curator" % "curator-recipes" % "2.9.1",
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" changing(),
-  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT"
-
+  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT",
+  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT",
+  "io.dropwizard.metrics" % "metrics-core" % "3.1.0"
 )
 
 
