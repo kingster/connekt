@@ -5,7 +5,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
 import com.flipkart.connekt.receptors.routes.Stencils.StencilsRoute
 import com.flipkart.connekt.receptors.routes.callbacks.Callback
-import com.flipkart.connekt.receptors.routes.push.{Fetch, LdapAuthentication, Registration, Unicast}
+import com.flipkart.connekt.receptors.routes.push.{Fetch, LdapAuthentication, Registration, Send}
 import com.flipkart.connekt.receptors.routes.reports.Reports
 import com.flipkart.connekt.receptors.routes.status.SystemStatus
 
@@ -20,7 +20,7 @@ class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirec
   def allRoutes = healthReqHandler ~ ldapRoute ~ authenticate {
     implicit user => {
       val receptorReqHandler = new Registration().register
-      val unicastHandler = new Unicast().unicast
+      val unicastHandler = new Send().send
       val callbackHandler = new Callback().callback
       val reportsRoute = new Reports().route
       val fetchRoute = new Fetch().fetch

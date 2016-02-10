@@ -2,7 +2,7 @@ package com.flipkart.connekt.receptors.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.flipkart.connekt.commons.entities.{AppUser, Stencil, StencilEngine}
-import com.flipkart.connekt.commons.iomodels.GenericResponse
+import com.flipkart.connekt.commons.iomodels.{Response, GenericResponse}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
@@ -93,7 +93,7 @@ class StencilsRouteTest(implicit user: AppUser) extends BaseRouteTest {
       stencilRoute ~>
         check {
           val responseString = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
-          val responseData = responseString.getObj[GenericResponse].response
+          val responseData = responseString.getObj[GenericResponse].response.asInstanceOf[Response]
           stencilId = StringUtils.getDetail(responseData.data, "id").get.toString
           status shouldEqual StatusCodes.Created
         }

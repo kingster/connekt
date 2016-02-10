@@ -18,9 +18,9 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/26/15
  */
-class Unicast(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
-  val unicast =
+  val send =
     pathPrefix("v1") {
       path("send" / "push" / "multicast" / "platform-x" / Segment) {
         (appName: String) =>

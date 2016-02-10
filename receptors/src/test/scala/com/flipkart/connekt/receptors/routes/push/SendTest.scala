@@ -12,9 +12,9 @@ import org.scalatest.Ignore
  * @version 12/9/15
  */
 @Ignore
-class UnicastTest(implicit user: AppUser) extends BaseRouteTest {
+class SendTest(implicit user: AppUser) extends BaseRouteTest {
 
-  val unicastRoute = new Unicast().unicast
+  val unicastRoute = new Send().send
   val appName = "ConnectSampleApp"
   val platform = "android"
   val deviceId = "bbd505411b210e38b15142bd6a0de0f6"
