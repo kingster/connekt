@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import akka.actor.ActorSystem
 import com.flipkart.connekt.busybees.flows.KafkaMessageProcessFlow
 import com.flipkart.connekt.busybees.processors.PNProcessor
+import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -36,6 +37,8 @@ object BusyBeesBoot extends BaseApp {
       ConnektLogger.init(logConfigFile)
       ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
       ConnektLogger(LogFile.SERVICE).info(s"Busybees Log Config: $logConfigFile")
+
+      DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
       val hConfig = ConnektConfig.getConfig("busybees.connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
