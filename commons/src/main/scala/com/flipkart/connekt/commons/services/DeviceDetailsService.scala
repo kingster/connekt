@@ -4,14 +4,17 @@ import com.flipkart.connekt.commons.cache.{DistributedCacheType, DistributedCach
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
  */
-object DeviceDetailsService {
+object DeviceDetailsService extends Instrumented{
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
 
+  @Timed("DeviceDetailsService.add")
   def add(deviceDetails: DeviceDetails) = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
@@ -28,6 +31,7 @@ object DeviceDetailsService {
    * @param deviceId
    * @param deviceDetails
    */
+  @Timed("DeviceDetailsService.update")
   def update(deviceId: String, deviceDetails: DeviceDetails) = {
     try {
       val existingDevice = get(deviceDetails.appName, deviceId)
@@ -52,6 +56,7 @@ object DeviceDetailsService {
       And if device exists, delete corresponding cache entry
       and mark device as INACTIVE in bigfoot
    */
+  @Timed("DeviceDetailsService.delete")
   def delete(appName: String, deviceId: String) = {
     try {
       get(appName, deviceId) match {
@@ -69,6 +74,7 @@ object DeviceDetailsService {
 
   }
 
+  @Timed("DeviceDetailsService.getByTokenId")
   def getByTokenId(appName: String, tokenId: String): Option[DeviceDetails] = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, tokenId)) match {
@@ -84,6 +90,7 @@ object DeviceDetailsService {
     }
   }
 
+  @Timed("DeviceDetailsService.getByUserId")
   def getByUserId(appName: String, userId: String): List[DeviceDetails] = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)) match {
@@ -100,7 +107,7 @@ object DeviceDetailsService {
     }
   }
 
-
+  @Timed("DeviceDetailsService.get")
   def get(appName: String, deviceId: String): Option[DeviceDetails] = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, deviceId)) match {

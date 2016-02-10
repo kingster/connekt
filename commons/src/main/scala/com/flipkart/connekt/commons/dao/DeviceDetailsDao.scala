@@ -5,8 +5,10 @@ import java.io.IOException
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.metrics.Timed
 import com.roundeights.hasher.Implicits._
 
 
@@ -16,7 +18,7 @@ import com.roundeights.hasher.Implicits._
  * @author durga.s
  * @version 11/23/15
  */
-class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends Dao with HbaseDao {
+class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends Dao with HbaseDao with Instrumented{
   val hTableConnFactory = hTableFactory
 
   val hTableName = tableName
@@ -33,6 +35,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 
   private def getTokenIndexRowPrefix(appName: String, tokenId: String) = appName.toLowerCase + "_" + tokenId.sha256.hash.hex + "_"
 
+  @Timed("DeviceDetailsDao.add")
   def add(appName: String, deviceDetails: DeviceDetails) = {
 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
@@ -78,6 +81,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     }
   }
 
+  @Timed("DeviceDetailsDao.get")
   def get(appName: String, deviceId: String): Option[DeviceDetails] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
@@ -118,6 +122,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     }
   }
 
+  @Timed("DeviceDetailsDao.getByTokenId")
   def getByTokenId(appName: String, tokenId: String): Option[DeviceDetails] = {
 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
@@ -128,6 +133,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     deviceIndex.headOption.map(_.split("_").last).flatMap(get(appName, _))
   }
 
+  @Timed("DeviceDetailsDao.getByUserId")
   def getByUserId(appName: String, accId: String): List[DeviceDetails] = {
 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
@@ -144,6 +150,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
    * @param deviceId
    * @param _deviceDetails
    */
+  @Timed("DeviceDetailsDao.update")
   def update(appName: String, deviceId: String, _deviceDetails: DeviceDetails) = {
     val current = get(appName, deviceId)
     val deviceDetails = _deviceDetails.copy(deviceId = deviceId) //overide, to take care of developer mistakes
@@ -156,6 +163,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     })
   }
 
+  @Timed("DeviceDetailsDao.delete")
   def delete(appName: String, deviceId: String) = {
     val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     val hUserIndexTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
