@@ -3,6 +3,7 @@ import com.aol.sbt.sonar.SonarRunnerPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
+import sbtbuildinfo.Plugin._
 
 object AppBuild extends Build {
 
@@ -24,18 +25,18 @@ object AppBuild extends Build {
       "spray repo" at "http://repo.spray.io/",
       "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
       "Sonatype release" at "https://oss.sonatype.org/content/repositories/releases",
-      "flipkart local-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local",
-      "flipkart ext-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/ext-releases-local",
-      "flipkart central" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-release",
-      "flipkart snapshorts" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-snapshot",
-      "flipkart clojars" at "http://artifactory.nm.flipkart.com:8081/artifactory/clojars-repo",
       "cloudera" at "https://repository.cloudera.com/artifactory/repo/",
       "cloudera releases" at "https://repository.cloudera.com/content/repositories/releases/",
       "typesafe" at "http://repo.typesafe.com/typesafe/releases/",
       "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
       "jBoss" at "http://repository.jboss.org/nexus/content/groups/public",
-      "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
-      "RoundEights" at "http://maven.spikemark.net/roundeights"
+      "Akka Snapshot Repository" at "http://repo.typesafe.com/typesafe/snapshots/",
+      "RoundEights" at "http://maven.spikemark.net/roundeights",
+      "flipkart local-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local",
+      "flipkart ext-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/ext-releases-local",
+      "flipkart central" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-release",
+      "flipkart snapshorts" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-snapshot",
+      "flipkart clojars" at "http://artifactory.nm.flipkart.com:8081/artifactory/clojars-repo"
     ),
     ivyScala := ivyScala.value map {
       _.copy(overrideScalaVersion = true)
@@ -61,6 +62,11 @@ object AppBuild extends Build {
     }.taskValue
   )
 
+  lazy val buildInfoGenerator = Seq(
+    sourceGenerators in Compile <+= buildInfo,
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, baseDirectory),
+    buildInfoPackage := "com.flipkart.marketing.connekt"
+  )
 
   lazy val root =
     Project("root", file("."))
@@ -75,12 +81,11 @@ object AppBuild extends Build {
 
   lazy  val espion = Project("espion" , file("espion"), settings = _commonSettings)
 
-  lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ bareResourceGenerators)
+  lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++ buildInfoGenerator ++ bareResourceGenerators)
     .dependsOn(espion)
 
   lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")
-
 
   lazy val busybees = Project("busybees", file("busybees"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")
@@ -101,7 +106,6 @@ object AppBuild extends Build {
 
     case PathList("org", "xmlpull", "v1", xs@_x) => MergeStrategy.first //crazy xpp3 people http://jira.codehaus.org/browse/XSTR-689
     case PathList("javax", "xml", "namespace", "QName.class") => new IncludeFromJar("xpp3-1.1.4c.jar") //fuck u xpp3
-
 
     case "mapred-default.xml" | "logback.xml" => MergeStrategy.first
     case "application.conf" | "plugin.properties" => MergeStrategy.concat

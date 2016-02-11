@@ -8,6 +8,7 @@ import com.flipkart.connekt.commons.entities.Credentials
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConnectionHelper
 import com.flipkart.connekt.commons.iomodels.{PNRequestData, ConnektRequest, PNRequestInfo}
+import com.flipkart.connekt.commons.services.CredentialManager
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.ConfigFactory
 
@@ -38,7 +39,7 @@ class DummyWorker extends Runnable with KafkaConnectionHelper {
               val pnData = request.channelInfo.asInstanceOf[PNRequestData]
               val pnInfo = request.channelData.asInstanceOf[PNRequestInfo]
               ConnektLogger(LogFile.WORKERS).info(s"PN Request: ${pnData.getJson}")
-              GCMClient.instance.wirePN(request.id, pnInfo, pnData, Credentials.sampleAppCred)
+              GCMClient.instance.wirePN(request.id, pnInfo, pnData, CredentialManager.getCredential("PN.ConnektSampleApp").password)
             }
           })
         })

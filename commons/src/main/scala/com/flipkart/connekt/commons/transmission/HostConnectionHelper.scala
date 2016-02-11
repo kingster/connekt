@@ -21,7 +21,7 @@ object HostConnectionHelper {
   implicit val materializer = ActorMaterializer()
 
   def getPoolClientFlow[T](host: String, port: Int = 80) = {
-    Http().cachedHostConnectionPoolTls[T](host, port)
+    Http().cachedHostConnectionPoolHttps[T](host, port)
   }
 
   def terminate =

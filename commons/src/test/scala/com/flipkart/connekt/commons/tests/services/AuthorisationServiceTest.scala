@@ -18,13 +18,13 @@ class AuthorisationServiceTest extends CommonsBaseTest {
   "AuthorisationService Test " should "add  authorisation" in {
     val auth = ServiceFactory.getAuthorisationService
     auth.addAuthorization("aman.s", UserType.USER, List("r", "e", "f")).isSuccess shouldEqual true
-    auth.isAuthorized( "aman.s", "e",).get shouldEqual true
+    auth.isAuthorized( "aman.s", "e").get shouldEqual true
   }
 
   "AuthorisationService Test " should "remove authorisation " in {
     val auth = ServiceFactory.getAuthorisationService
     auth.removeAuthorization("aman.s", UserType.USER, List("e")).isSuccess shouldEqual true
-    auth.isAuthorized( "aman.s", "e",).get shouldEqual false
+    auth.isAuthorized( "aman.s", "e").get shouldEqual false
   }
 
 }

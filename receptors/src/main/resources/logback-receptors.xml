@@ -22,13 +22,13 @@
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
-    <logger name="SERVICE" level="DEBUG">
+    <logger name="SERVICE" additivity="false">
         <appender-ref ref="SERVICE" />
     </logger>
-    <logger name="DAO" level="DEBUG">
+    <logger name="DAO" additivity="false">
         <appender-ref ref="DAO" />
     </logger>
-    <logger name="FACTORY" level="DEBUG">
+    <logger name="FACTORY" additivity="false">
         <appender-ref ref="FACTORY" />
     </logger>
 

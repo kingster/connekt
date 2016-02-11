@@ -8,6 +8,7 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.connekt.receptors.service.ReceptorsServer
 import com.typesafe.config.ConfigFactory
 
@@ -26,9 +27,12 @@ object ReceptorsBoot  extends BaseApp{
 
       ConnektConfig(configServiceHost, configServicePort)()
 
-      val logConfigFile = getClass.getClassLoader.getResourceAsStream("logback-receptors.xml")
-      ConnektLogger.init(logConfigFile)
       ConnektLogger(LogFile.SERVICE).info("Receptors initializing.")
+
+      val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-receptors.xml")
+      val logConfigFile = getClass.getClassLoader.getResourceAsStream(configFile)
+      ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
+      ConnektLogger.init(logConfigFile)
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider())
 
@@ -67,7 +71,8 @@ object ReceptorsBoot  extends BaseApp{
     }
   }
 
-  def   main (args: Array[String]) {
+  def main(args: Array[String]) {
+    System.setProperty("logback.config", "logback-test.xml")
     start()
   }
 }

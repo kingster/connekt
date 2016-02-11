@@ -2,10 +2,12 @@ package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequestInfo, ConnektRequest}
+import com.flipkart.connekt.commons.utils.StringUtils
 
 /**
  *
@@ -25,22 +27,28 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
 
   protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData
 
+  private def getChannelRequestModel(reqDataProps: Map[String, Array[Byte]]) = reqDataProps.getKV("model")
+
+  private def channelRequestModel(requestModel: ObjectNode) = Map[String, Array[Byte]]("model" -> requestModel.toString.getUtf8Bytes)
+
   override def saveRequest(requestId: String, request: ConnektRequest) = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val requestProps = Map[String, Array[Byte]](
+      var requestProps = Map[String, Array[Byte]](
         "id" -> requestId.getUtf8Bytes,
         "channel" -> request.channel.getUtf8Bytes,
-        "sla" -> request.sla.getUtf8Bytes,
-        "templateId" -> request.templateId.getUtf8Bytes,
-        "scheduleTs" -> request.scheduleTs.getBytes,
-        "expiryTs" -> request.expiryTs.getBytes
+        "sla" -> request.sla.getUtf8Bytes
       )
 
-      val channelRequestInfoProps = channelRequestInfoMap(request.channelInfo)
-      val channelRequestDataProps = channelRequestDataMap(request.channelData)
+      request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
+      request.scheduleTs.foreach(requestProps += "scheduleTs" -> _.getBytes)
+      request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
 
-      val rawData = Map[String, Map[String, Array[Byte]]]("r" -> requestProps, "c" -> channelRequestInfoProps, "t" -> channelRequestDataProps)
+      val channelRequestInfoProps = channelRequestInfoMap(request.channelInfo)
+      val channelRequestDataProps = Option(request.channelData).map(channelRequestDataMap).getOrElse(Map[String, Array[Byte]]())
+      val channelRequestModelProps = Option(request.channelDataModel).map(channelRequestModel).getOrElse(Map[String, Array[Byte]]())
+
+      val rawData = Map[String, Map[String, Array[Byte]]]("r" -> requestProps, "c" -> channelRequestInfoProps, "t" -> (channelRequestDataProps ++ channelRequestModelProps))
       addRow( requestId, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Request info persisted for $requestId")
@@ -68,16 +76,18 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
       allProps.map(fields => {
         val channelReqInfo = reqChannelInfoProps.map(getChannelRequestInfo).orNull
         val channelReqData = reqChannelDataProps.map(getChannelRequestData).orNull
+        val channelReqModel = reqChannelDataProps.map(getChannelRequestModel).orNull
 
         ConnektRequest(
           id = connektId,
           channel = fields.getS("channel"),
           sla = fields.getS("sla"),
-          templateId = fields.getS("templateId"),
-          scheduleTs = fields.getL("scheduleTs").asInstanceOf[Long],
-          expiryTs = fields.getL("expiryTs").asInstanceOf[Long],
+          templateId = Option(fields.getS("templateId")),
+          scheduleTs = Option(fields.getL("scheduleTs").asInstanceOf[Long]),
+          expiryTs = Option(fields.getL("expiryTs").asInstanceOf[Long]),
           channelInfo = channelReqInfo,
           channelData = channelReqData,
+          channelDataModel = Option(channelReqModel).getOrElse(StringUtils.getObjectNode),
           meta = Map[String, String]()
         )
       })

@@ -8,7 +8,7 @@ import com.flipkart.seraph.schema.BaseSchema
 import com.flipkart.specter.ingestion.IngestionMetadata
 import com.flipkart.specter.ingestion.events.Event
 import com.flipkart.specter.{SpecterClient, SpecterRequest}
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -18,7 +18,11 @@ object BigfootService {
 
   val socketClient = DaoFactory.phantomClientSocket
 
+  val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(true)
+
   def ingest(obj: BaseSchema): Try[Boolean] = {
+
+    if (ingestionEnabled ) {
 
     val eventId = StringUtils.generateRandomStr(25)
     val eventTime = System.currentTimeMillis()
@@ -45,6 +49,11 @@ object BigfootService {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error("Unknown ERROR, FAILED_TO_INGEST", e)
         Failure(e)
+      }
+    } else {
+      // Ingestion disabled.
+      ConnektLogger(LogFile.SERVICE).warn(s"BF_SKIP_INGEST ${obj.getJson}")
+      Success(true)
     }
   }
 }

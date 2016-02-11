@@ -37,7 +37,7 @@ class GCMClient {
     val gcmRequestPayload = GCMPNPayload(tokens, pnRequestInfo.delayWhileIdle, pnRequestData.data)
     ConnektLogger(LogFile.SERVICE).info(s"GCM Request payload ${gcmRequestPayload.getJson}")
 
-    val requestEntity = HttpEntity(ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`), gcmRequestPayload.getJson)
+    val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmRequestPayload.getJson.getBytes("UTF-8"))
     val httpRequest = new HttpRequest(
       HttpMethods.POST,
       gcmApi,

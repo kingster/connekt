@@ -2,7 +2,7 @@ package com.flipkart.connekt.commons.tests.services
 
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
-import com.flipkart.connekt.commons.utils.UtilsEnv
+import com.flipkart.connekt.commons.utils.ConfigUtils
 
 /**
  *
@@ -13,7 +13,7 @@ import com.flipkart.connekt.commons.utils.UtilsEnv
 class ConnektConfigTest extends ConnektUTSpec {
 
   "ConnektConfig companion apply method" should "return an instance" in {
-    val currentAppEnv = UtilsEnv.getConfEnv
+    val currentAppEnv = ConfigUtils.getConfEnvironment
     System.setProperty("CONNEKT_ENV", "local")
 
     val connektConfig = ConnektConfig("10.47.0.101", 80)()
