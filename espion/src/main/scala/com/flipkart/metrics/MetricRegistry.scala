@@ -14,7 +14,7 @@ object MetricRegistry {
 
   val jmxReporter: JmxReporter = JmxReporter
     .forRegistry(REGISTRY)
-    .inDomain("connekt.metrics")
+    .inDomain("fk.metrics")
     .convertDurationsTo(TimeUnit.MILLISECONDS)
     .convertRatesTo(TimeUnit.SECONDS)
     .build()
