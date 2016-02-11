@@ -28,13 +28,12 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
         ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelFormatter:: onPush:: Received Message: ${message.getJson}")
 
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-        val registrationInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceId)
-        val token: String = registrationInfo.map(_.token).orNull
+        val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _)).map(_.token)
 
         val appDataWithId = message.channelData.asInstanceOf[PNRequestData].data.put("messageId", message.id)
         val gcmPayload = pnInfo.platform.toUpperCase match {
-          case "ANDROID" => GCMPNPayload(List[String](token), pnInfo.delayWhileIdle, appDataWithId)
-          case "OPENWEB" => OpenWebGCMPayload(List[String](token))
+          case "ANDROID" => GCMPNPayload(tokens, pnInfo.delayWhileIdle, appDataWithId)
+          case "OPENWEB" => OpenWebGCMPayload(tokens)
         }
 
         push(out, gcmPayload)

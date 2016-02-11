@@ -7,6 +7,8 @@ import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
+import scala.collection.immutable
+
 /**
  *
  *
@@ -30,14 +32,10 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
         ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: onPush:: Received Message: ${message.getJson}")
 
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-        val registrationInfo = DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, pnInfo.deviceId)
+        val tokens = pnInfo.deviceId.flatMap(DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, _)).map(_.token)
+        val iosRequestPayloads = tokens.map(iOSPNPayload(_, Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
 
-        //TODO : Handle null values.
-        val token: String = registrationInfo.map(_.token).orNull
-
-        val iosPayload = iOSPNPayload(token, Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data))
-
-        push(out, iosPayload)
+        emitMultiple[APSPayload](out, immutable.Iterable.concat(iosRequestPayloads))
 
       } catch {
         case e: Throwable =>
