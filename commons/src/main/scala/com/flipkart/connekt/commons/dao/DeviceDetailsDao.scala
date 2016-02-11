@@ -5,10 +5,9 @@ import java.io.IOException
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.metrics.Timed
+import com.flipkart.metrics.{Instrumented, Timed}
 import com.roundeights.hasher.Implicits._
 
 

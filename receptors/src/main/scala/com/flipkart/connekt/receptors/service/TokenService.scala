@@ -3,8 +3,7 @@ package com.flipkart.connekt.receptors.service
 import java.util.UUID
 
 import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedCacheType}
-import com.flipkart.connekt.commons.metrics.Instrumented
-import com.flipkart.metrics.Timed
+import com.flipkart.metrics.{Instrumented, Timed}
 
 /**
  * Created by avinash.h on 1/27/16.

@@ -2,9 +2,8 @@ package com.flipkart.connekt.receptors.service
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.LdapService
-import com.flipkart.metrics.Timed
+import com.flipkart.metrics.{Instrumented, Timed}
 
 /**
  *

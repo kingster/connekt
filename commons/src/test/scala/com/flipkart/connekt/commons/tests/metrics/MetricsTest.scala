@@ -1,8 +1,7 @@
 package com.flipkart.connekt.commons.tests.metrics
 
-import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
-import com.flipkart.metrics.Timed
+import com.flipkart.metrics.{Instrumented, Timed}
 
 /**
  * Created by kinshuk.bairagi on 11/02/16.
