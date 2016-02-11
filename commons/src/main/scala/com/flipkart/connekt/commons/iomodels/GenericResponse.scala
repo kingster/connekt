@@ -12,4 +12,4 @@ abstract class ResponseBody
 
 case class Response(message: String, data: Any) extends ResponseBody
 
-case class MulticastResponse(message: String, success: Map[String, List[String]], failure: List[String], missingInfo: List[String]) extends ResponseBody
+case class MulticastResponse(message: String, success: Map[String, List[String]], failure: List[String]) extends ResponseBody

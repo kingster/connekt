@@ -60,7 +60,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
       val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).get.flatMap(getGroupPrivileges)
       val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
 
-      Success(allowedPrivileges.intersect(resource.toSet).nonEmpty)
+      Success(allowedPrivileges.intersect(resource.toSet[String].map(_.toUpperCase)).nonEmpty)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$username] info: ${e.getMessage}", e)

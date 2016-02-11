@@ -2,8 +2,10 @@ package com.flipkart.connekt.receptors.routes.callbacks
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
@@ -20,11 +22,11 @@ class Callback(implicit am: ActorMaterializer) extends BaseHandler {
 
   val callback =
     pathPrefix("v1") {
-          path(Segment / "callback" / Segment / Segment / Segment) {
-            (channel: String, appPlatform: String, app: String, devId: String) =>
+          path(Segment / "callback" / MPlatformSegment / Segment / Segment) {
+            (channel: String, appPlatform: MobilePlatform, app: String, devId: String) =>
               post {
                 entity(as[CallbackEvent]) { e =>
-                  val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform, appName = app, deviceId = devId)
+                  val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app, deviceId = devId)
                   ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, Channel.PUSH, event) match {
                     case Success(requestId) =>
                       ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")

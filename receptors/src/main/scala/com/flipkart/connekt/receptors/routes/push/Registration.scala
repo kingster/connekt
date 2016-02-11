@@ -2,9 +2,11 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities.{AppUser, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
@@ -21,12 +23,12 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
   val register =
     pathPrefix("v1") {
           pathPrefix("registration" / "push") {
-            path(Segment / Segment / Segment) {
-              (platform: String, appName: String, deviceId: String) =>
+            path(MPlatformSegment / Segment / Segment) {
+              (platform: MobilePlatform, appName: String, deviceId: String) =>
                 put {
                   authorize(user, "REGISTRATION") {
                     entity(as[DeviceDetails]) { d =>
-                      val deviceDetails = d.copy(appName = appName, osName = platform, deviceId = deviceId)
+                      val deviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId)
                       DeviceDetailsService.get(appName, deviceId) match {
                         case None =>
                           DeviceDetailsService.add(deviceDetails)
@@ -64,8 +66,8 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
                     }
                   }
                 }
-            } ~ path(Segment / Segment / Segment) {
-              (platform: String, appName: String, deviceId: String) =>
+            } ~ path(MPlatformSegment / Segment / Segment) {
+              (platform: MobilePlatform, appName: String, deviceId: String) =>
                 get {
                   authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
                     def fetch = DeviceDetailsService.get(appName, deviceId)
