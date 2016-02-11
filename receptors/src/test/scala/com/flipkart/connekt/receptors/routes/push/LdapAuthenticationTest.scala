@@ -2,13 +2,14 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
+import com.flipkart.connekt.receptors.routes.common.LdapAuthentication
 
 /**
  * Created by avinash.h on 1/21/16.
  */
 class LdapAuthenticationTest extends BaseRouteTest {
 
-  val ldapAuthentication = new LdapAuthentication().token
+  val ldapAuthentication = new LdapAuthentication().route
   "LdapAuthentication test" should "return Ok for save " in {
 
     val payload =
