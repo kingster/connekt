@@ -20,5 +20,4 @@ object CredentialManager {
       Credentials(username, password)
   }
 
-
 }

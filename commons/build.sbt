@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.3",
   "com.lmax" % "disruptor" % "3.3.2",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
-  "org.slf4j" % "slf4j-api" % "1.7.14",
+  "org.slf4j" % "slf4j-api" % "1.7.7",
   /* logging dependency ends here */
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
@@ -86,14 +86,12 @@ libraryDependencies ++= Seq(
   "org.codehaus.groovy" % "groovy-all" % "2.4.5",
   "com.roundeights" %% "hasher" % "1.2.0",
   "com.couchbase.client" % "java-client" % "2.1.3",
-  "com.google.guava" % "guava" % "18.0",
   "io.reactivex" %% "rxscala" % "0.26.0",
   "org.apache.curator" % "curator-recipes" % "2.9.1",
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" changing(),
-  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT"
-
+  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT",
+  "io.dropwizard.metrics" % "metrics-core" % "3.1.0"
 )
 
 

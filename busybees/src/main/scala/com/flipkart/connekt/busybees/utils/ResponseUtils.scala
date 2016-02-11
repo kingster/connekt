@@ -16,7 +16,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object ResponseUtils {
 
-
   implicit class responseParser(val response: HttpResponse)(implicit fm: Materializer) {
     def getResponseMessage:String = {
       val txtResponse = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)

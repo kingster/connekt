@@ -1,9 +1,9 @@
 import com.aol.sbt.sonar.SonarRunnerPlugin
-import sbtassembly.AssemblyPlugin.autoImport._
-import SonarRunnerPlugin.autoImport._
-import sbtbuildinfo.Plugin._
-import sbt._
+import com.aol.sbt.sonar.SonarRunnerPlugin.autoImport._
 import sbt.Keys._
+import sbt._
+import sbtassembly.AssemblyPlugin.autoImport._
+import sbtbuildinfo.Plugin._
 
 object AppBuild extends Build {
 
@@ -40,7 +40,8 @@ object AppBuild extends Build {
     ),
     ivyScala := ivyScala.value map {
       _.copy(overrideScalaVersion = true)
-    }
+    },
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
   )
 
   val envKey = SettingKey[String]("env-key", "Flipkart Environment.")
@@ -78,12 +79,13 @@ object AppBuild extends Build {
 
   lazy val connekt_8087 = Project("connekt-8087", file("8087"), settings = _commonSettings)
 
-  lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++
-    buildInfoGenerator ++ bareResourceGenerators)
+  lazy  val espion = Project("espion" , file("espion"), settings = _commonSettings)
+
+  lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++ buildInfoGenerator ++ bareResourceGenerators)
+    .dependsOn(espion)
 
   lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")
-
 
   lazy val busybees = Project("busybees", file("busybees"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")

@@ -26,6 +26,7 @@ object BusyBeesBoot extends BaseApp {
 
   val initialized = new AtomicBoolean(false)
   var pnDispatchFlow: Option[KafkaMessageProcessFlow[ConnektRequest, PNProcessor]] = None
+
   lazy implicit val system = ActorSystem("busyBees-system")
 
   val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
@@ -43,8 +44,6 @@ object BusyBeesBoot extends BaseApp {
       ConnektLogger.init(logConfigFile)
 
       ConnektConfig(configServiceHost, configServicePort)()
-
-      DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 

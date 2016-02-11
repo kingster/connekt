@@ -20,17 +20,16 @@ class AndroidPNProcessor extends Actor {
 
   override def receive: Receive = {
     case (messageId: String, pnInfo: PNRequestInfo, pnData: PNRequestData) =>
-      val registrationInfo = deviceDetailsDao.get(pnInfo.appName, pnInfo.deviceId)
-      val token = registrationInfo.get.token
-      val appName = registrationInfo.get.appName
+      val tokens = pnInfo.deviceId.map(deviceDetailsDao.get(pnInfo.appName, _).get.token)
 
       val appDataWithId = pnData.data.put("messageId", messageId)
       val gcmPayload = pnInfo.platform.toUpperCase match {
-        case "ANDROID" => GCMPNPayload(List[String](token), pnInfo.delayWhileIdle, appDataWithId)
-        case "OPENWEB" => OpenWebGCMPayload(List[String](token))
+        case "ANDROID" => GCMPNPayload(tokens, pnInfo.delayWhileIdle, appDataWithId)
+        case "OPENWEB" => OpenWebGCMPayload(tokens)
       }
 
-      gcmSender ! (gcmPayload, messageId, pnInfo.deviceId)
+      gcmSender ! (gcmPayload, messageId, pnInfo.deviceId.mkString(","))
+
       ConnektLogger(LogFile.WORKERS).debug(s"GCM Request sent for $messageId")
 
     case (messageId: String, deviceId: String, p: GCMProcessed) =>

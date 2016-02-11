@@ -3,6 +3,7 @@ package com.flipkart.connekt.receptors.service
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.utils.LdapService
+import com.flipkart.metrics.{Instrumented, Timed}
 
 /**
  *
@@ -10,8 +11,9 @@ import com.flipkart.connekt.commons.utils.LdapService
  * @author durga.s
  * @version 11/22/15
  */
-object AuthenticationService {
+object AuthenticationService extends Instrumented {
 
+  @Timed("AuthenticationService.authenticateKey")
   def authenticateKey(apiKey: String): Option[AppUser] = {
     //if transient token present
     TokenService.get(apiKey) match {

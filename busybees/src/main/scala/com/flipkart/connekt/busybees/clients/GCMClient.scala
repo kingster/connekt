@@ -32,11 +32,12 @@ class GCMClient {
 
   def wirePN(requestId: String, pnRequestInfo: PNRequestInfo, pnRequestData: PNRequestData, authKey: String) = {
     ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequestInfo.appName} ${pnRequestInfo.deviceId} [${pnRequestInfo.getJson}]")
-    val deviceDetails = deviceDetailsDao.get(pnRequestInfo.appName, pnRequestInfo.deviceId)
-    val gcmRequestPayload = GCMPNPayload(List[String](deviceDetails.get.token), pnRequestInfo.delayWhileIdle, pnRequestData.data)
+    val tokens = pnRequestInfo.deviceId.map(deviceDetailsDao.get(pnRequestInfo.appName, _).get.token)
+
+    val gcmRequestPayload = GCMPNPayload(tokens, pnRequestInfo.delayWhileIdle, pnRequestData.data)
     ConnektLogger(LogFile.SERVICE).info(s"GCM Request payload ${gcmRequestPayload.getJson}")
 
-    val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmRequestPayload.getJson)
+    val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmRequestPayload.getJson.getBytes("UTF-8"))
     val httpRequest = new HttpRequest(
       HttpMethods.POST,
       gcmApi,

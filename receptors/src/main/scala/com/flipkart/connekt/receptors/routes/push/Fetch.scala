@@ -1,8 +1,10 @@
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
+import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.immutable.Seq
@@ -19,9 +21,9 @@ class Fetch(implicit user: AppUser) extends BaseHandler {
 
   val fetch =
     pathPrefix("v1") {
-        path("fetch" / "push" / Segment / Segment / Segment) {
-          (platform: String, app: String, subscriberId: String) =>
-            authorize(user, "FETCH", s"FETCH_$platform", s"FETCH_${platform}_$app") {
+        path("fetch" / "push" / MPlatformSegment / Segment / Segment) {
+          (platform: MobilePlatform, app: String, subscriberId: String) =>
+            authorize(user, "FETCH", s"FETCH_${platform.toString}", s"FETCH_${platform.toString}_$app") {
               get {
                 parameters('startTs ?, 'endTs ?){ (startTs, endTs) =>
                   def fetchMessages = {

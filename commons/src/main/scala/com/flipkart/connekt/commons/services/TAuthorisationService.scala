@@ -9,7 +9,7 @@ import scala.util.Try
  */
 trait TAuthorisationService extends TService {
 
-  def isAuthorized(resource: String, username: String): Try[Boolean]
+  def isAuthorized(username: String,resource: String*): Try[Boolean]
   def removeAuthorization(userId: String, userType: UserType, resources: List[String]): Try[Unit]
   def addAuthorization(userId: String, userType: UserType, resources: List[String]): Try[Unit]
 }
