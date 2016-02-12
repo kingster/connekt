@@ -34,13 +34,13 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
                           DeviceDetailsService.add(deviceDetails)
                           complete(respond[GenericResponse](
                             StatusCodes.Created, Seq.empty[HttpHeader],
-                            GenericResponse(StatusCodes.Created.intValue, null, Response("DeviceDetails created for %s".format(deviceDetails.deviceId), null))
+                            GenericResponse(StatusCodes.Created.intValue, null, Response("DeviceDetails created for %s".format(deviceDetails.deviceId), deviceDetails))
                           ))
                         case Some(existingDevice) =>
                           DeviceDetailsService.update(deviceId, deviceDetails)
                           complete(respond[GenericResponse](
                             StatusCodes.OK, Seq.empty[HttpHeader],
-                            GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails updated for %s".format(deviceDetails.deviceId), null))
+                            GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails updated for %s".format(deviceDetails.deviceId), deviceDetails))
                           ))
                       }
                       

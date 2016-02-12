@@ -42,9 +42,7 @@ object ReceptorsServer extends BaseHandler {
     case _ => None // other kind of responses
   }
 
-
   def apply() = {
-
 
     implicit def rejectionHandler =
       RejectionHandler.newBuilder()
