@@ -46,7 +46,7 @@ object StencilService {
         checkStencil(stencil) match {
           case Success(b) =>
             DaoFactory.getStencilDao.writeStencil(stencil)
-            Success()
+            Success(Unit)
           case Failure(e) =>
             Failure(e)
         }
@@ -56,10 +56,10 @@ object StencilService {
   def update(stencil: Stencil): Try[Unit] = {
     get(stencil.id) match {
       case Some(stn) =>
-        checkStencil(stn) match {
+        checkStencil(stencil) match {
           case Success(b) =>
-            DaoFactory.getStencilDao.writeStencil(stn)
-            Success()
+            DaoFactory.getStencilDao.writeStencil(stencil)
+            Success(Unit)
           case Failure(e) =>
             Failure(e)
         }
