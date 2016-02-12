@@ -5,13 +5,14 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.fabric._
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.ChannelRequestData
+import com.flipkart.metrics.{Instrumented, Timed}
 
 import scala.util.{Failure, Success, Try}
 
 /**
  * Created by kinshuk.bairagi on 14/12/15.
  */
-object StencilService {
+object StencilService extends Instrumented{
 
   private def checkStencil(stencil: Stencil): Try[Boolean] = {
     try {
@@ -28,6 +29,7 @@ object StencilService {
     }
   }
 
+  @Timed("render")
   def render(stencil: Stencil, req: ObjectNode): Option[ChannelRequestData] = {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
@@ -38,6 +40,7 @@ object StencilService {
       Some(fabric.renderData(stencil.id, req))
   }
 
+  @Timed("add")
   def add(stencil: Stencil): Try[Unit] = {
     get(stencil.id) match {
       case Some(stn) =>
@@ -53,6 +56,7 @@ object StencilService {
     }
   }
 
+  @Timed("update")
   def update(stencil: Stencil): Try[Unit] = {
     get(stencil.id) match {
       case Some(stn) =>
@@ -68,10 +72,13 @@ object StencilService {
     }
   }
 
+  @Timed("get")
   def get(id: String, version: Option[String] = None) = DaoFactory.getStencilDao.getStencil(id, version)
 
+  @Timed("getBucket")
   def getBucket(name: String): Option[Bucket] = DaoFactory.getStencilDao.getBucket(name)
 
+  @Timed("addBucket")
   def addBucket(bucket: Bucket) : Try[Unit] = {
     getBucket(bucket.name) match {
       case Some(bck) =>
