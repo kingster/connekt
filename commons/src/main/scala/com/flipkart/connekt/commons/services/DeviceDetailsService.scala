@@ -106,6 +106,12 @@ object DeviceDetailsService extends Instrumented{
     }
   }
 
+  //TODO : Implement this properly
+  @Timed("multi.get")
+  def get(appName: String, deviceId: List[String]): Map[String,DeviceDetails] = {
+    deviceId.flatMap(id =>  get(appName,id)).map( data => data.deviceId -> data).toMap
+  }
+
   @Timed("get")
   def get(appName: String, deviceId: String): Option[DeviceDetails] = {
     try {
