@@ -83,12 +83,10 @@ object DeviceDetailsService extends Instrumented {
 
   @Timed("getByUserId")
   def getByUserId(appName: String, userId: String): Try[List[DeviceDetails]] = Try_(message = "DeviceDetail userId service failed") {
-    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)) match {
-      case Some(deviceList) => deviceList
-      case None =>
-        val deviceList = dao.getByUserId(appName, userId)
-        DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
-        deviceList
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)).getOrElse {
+      val deviceList = dao.getByUserId(appName, userId)
+      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
+      deviceList
     }
   }
 
