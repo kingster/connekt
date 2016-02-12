@@ -4,7 +4,8 @@ import com.flipkart.connekt.commons.cache.{DistributedCacheType, DistributedCach
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.metrics.{Instrumented, Timed}
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
 
 import scala.util.{Try, Failure, Success}
 
