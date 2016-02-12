@@ -46,12 +46,12 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
         } ~ path(Segment / "users" / Segment) {
           (appName: String, userId: String) =>
             get {
-              authorize(user, "REGISTRATION_READ", "REGISTRATION_READ_" + appName) {
+              authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
                 DeviceDetailsService.getByUserId(appName, userId) match {
                   case Success(deviceDetails) =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response("DeviceDetails fetched for app: %s user: %s".format(appName, userId), Map[String, Any]("deviceDetails" -> deviceDetails))).respond)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName, user: $userId", Map[String, Any]("deviceDetails" -> deviceDetails))).respond)
                   case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Fetching DeviceDetails failed for app:%s %s".format(appName, userId), null)).respond)
+                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName, user: $userId", null)).respond)
                 }
               }
             }
@@ -61,11 +61,11 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
               authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
                 DeviceDetailsService.get(appName, deviceId) match {
                   case Success(deviceDetail) if deviceDetail.isDefined =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: [$appName] id: [$deviceId]", Map[String, Any]("deviceDetails" -> deviceDetail.get))).respond)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName id: $deviceId", Map[String, Any]("deviceDetails" -> deviceDetail.get))).respond)
                   case Success(deviceDetail) if deviceDetail.isEmpty =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"No DeviceDetails found for app: [$appName] id: [$deviceId]", null)).respond)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"No DeviceDetails found for app: $appName id: $deviceId", null)).respond)
                   case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: [$appName] id: [$deviceId]", null)).respond)
+                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName id: $deviceId", null)).respond)
                 }
               }
             }

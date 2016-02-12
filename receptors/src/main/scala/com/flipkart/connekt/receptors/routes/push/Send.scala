@@ -27,7 +27,7 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
           authorize(user, "MULTICAST_" + appName) {
             post {
               entity(as[ConnektRequest]) { r =>
-                ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
+                ConnektLogger(LogFile.SERVICE).debug(s"Received multicast PN request with payload: ${r.toString}")
 
                 /* Find platform for each deviceId, group */
                 val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName)
@@ -55,7 +55,7 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   }
                 }
 
-                complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast request processed.", success.toMap, failure.toList)).respond)
+                complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)).respond)
               }
             }
           }
@@ -73,12 +73,12 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   async(enqueue) {
                     case Success(t) => t match {
                       case Success(requestId) =>
-                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN Request en-queued successfully for %s".format(requestId), null)).respond)
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)).respond)
                       case Failure(e) =>
-                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null)).respond)
+                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request enqueue failed, e: ${e.getMessage}", null)).respond)
                     }
                     case Failure(e) =>
-                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null)).respond)
+                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request processing failed, e: ${e.getMessage}", null)).respond)
                   }
                 }
               }

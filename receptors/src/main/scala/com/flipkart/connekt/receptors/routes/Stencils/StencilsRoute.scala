@@ -30,18 +30,18 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                 bucket.id = id
                 StencilService.addBucket(bucket) match {
                   case Success(x) =>
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response("Bucket create for name %s".format(bucket.name), Map("id" -> id))).respond)
+                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"StencilBucket created for name: ${bucket.name}", Map("id" -> id))).respond)
                   case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Bucket cannot be created for name %s".format(bucket.name), e)).respond)
+                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"StencilBucket creation failed for name: ${bucket.name}", e)).respond)
                 }
               }
             } ~ get {
               authorize(user, "ADMIN_BUCKET") {
                 StencilService.getBucket(name) match {
                   case Some(bucket) =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Bucket found for name %s".format(bucket.name), Map("bucket" -> bucket))).respond)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"StencilBucket found for name: ${bucket.name}", Map("bucket" -> bucket))).respond)
                   case _ =>
-                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Bucket not found for name %s".format(name), null)).respond)
+                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"StencilBucket not found for name: $name}", null)).respond)
                 }
               }
             }
@@ -56,9 +56,9 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                       authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
                         StencilService.render(stencil, entity) match {
                           case Some(channelRequest) =>
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("channelRequest" -> channelRequest))).respond)
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))).respond)
                           case None =>
-                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Stencils cannot be render for id: %s".format(id), null)).respond)
+                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils cannot be render for id: $id", null)).respond)
                         }
                       }
                     }
@@ -73,12 +73,12 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                               case Some(stnc) =>
                                 StencilService.render(stnc, entity) match {
                                   case Some(channelRequest) =>
-                                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("channelRequest" -> channelRequest))).respond)
+                                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))).respond)
                                   case None =>
-                                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Stencils cannot be render for id: %s".format(id), null)).respond)
+                                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils cannot be render for id: $id", null)).respond)
                                 }
                               case None =>
-                                complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Stencils Not found for id: %s".format(id), null)).respond)
+                                complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils Not found for id: $id", null)).respond)
                             }
                           }
                         }
@@ -88,9 +88,9 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                         authorize(user, bucketIds.map("STENCIL_GET_" + _): _*) {
                           StencilService.get(id, Option(version)) match {
                             case Some(stnc) =>
-                              complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("stencils" -> stencil))).respond)
+                              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencil))).respond)
                             case None =>
-                              complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Stencil not found for name %s with version: %s".format(id, version), null)).respond)
+                              complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id with version: $version", null)).respond)
                           }
                         }
                       }
@@ -104,20 +104,20 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                         stnc.bucket = stencil.bucket.split(",").map(StencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "").mkString(",")
                         StencilService.update(stencil) match {
                           case Success(sten) =>
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Stencil registered for %s".format(id), null)).respond)
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil registered for id: $id", null)).respond)
                           case _ =>
-                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil for %s".format(stencil.id), null)).respond)
+                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: ${stencil.id}", null)).respond)
                         }
                       }
                     }
                   } ~ get {
                     authorize(user, bucketIds.map("STENCIL_GET_" + _): _*) {
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Stencils fetched for id: %s".format(id), Map[String, Any]("stencils" -> stencil))).respond)
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencil))).respond)
                     }
                   }
                 }
               case None =>
-                complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Stencil not found for name %s".format(id), null)).respond)
+                complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id", null)).respond)
 
             }
         } ~ pathEndOrSingleSlash {
@@ -135,9 +135,9 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
 
                 StencilService.add(stencil) match {
                   case Success(sten) =>
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response("Stencil registered with %s".format(stencil.id), Map("id" -> stencil.id))).respond)
+                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: ${stencil.id}", Map("id" -> stencil.id))).respond)
                   case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil for %s".format(stencil.id), e)).respond)
+                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: ${stencil.id}, e: ${e.getMessage}", null)).respond)
                 }
               }
             }
