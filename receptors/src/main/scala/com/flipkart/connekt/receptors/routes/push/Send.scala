@@ -38,8 +38,8 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
                 appPlatform match {
                   case MobilePlatform.UNKNOWN =>
-                    val groupedTokens = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).groupBy(_.osName).mapValues(_.map(_.token))
-                    groupedPlatformRequests ++= groupedTokens.map(kv => kv._1 -> r.copy(channelInfo = pnRequestInfo.copy(platform = kv._1, deviceId = kv._2))).values
+                    val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).groupBy(_.osName).mapValues(_.map(_.deviceId))
+                    groupedPlatformRequests ++= groupedDevices.map(kv => kv._1 -> r.copy(channelInfo = pnRequestInfo.copy(platform = kv._1, deviceId = kv._2))).values
                   case _ =>
                     groupedPlatformRequests += r
                 }
