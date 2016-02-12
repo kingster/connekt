@@ -42,10 +42,7 @@ class Fetch(implicit user: AppUser) extends BaseHandler {
 
                   val pushRequests = fetchMessages.map(r => r.id -> r.channelData.asInstanceOf[PNRequestData]).toMap
 
-                  complete(respond[GenericResponse](
-                    StatusCodes.Created, Seq.empty[HttpHeader],
-                    GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetch result for $subscriberId", pushRequests))
-                  ))
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetch result for $subscriberId", pushRequests)).respond)
                 }
               }
             }

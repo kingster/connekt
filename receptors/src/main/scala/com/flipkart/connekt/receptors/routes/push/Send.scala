@@ -1,6 +1,6 @@
 package com.flipkart.connekt.receptors.routes.push
 
-import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities.{AppUser, MobilePlatform}
@@ -10,10 +10,8 @@ import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
-import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
-
 /**
  *
  *
@@ -57,10 +55,7 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   }
                 }
 
-                complete(respond[GenericResponse](
-                  StatusCodes.OK, Seq.empty[HttpHeader],
-                  GenericResponse(StatusCodes.OK.intValue, null, MulticastResponse("Multicast request processed.", success.toMap, failure.toList))
-                ))
+                complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast request processed.", success.toMap, failure.toList)).respond)
               }
             }
           }
@@ -78,21 +73,12 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   async(enqueue) {
                     case Success(t) => t match {
                       case Success(requestId) =>
-                        complete(respond[GenericResponse](
-                          StatusCodes.Created, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.OK.intValue, null, Response("PN Request en-queued successfully for %s".format(requestId), null))
-                        ))
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN Request en-queued successfully for %s".format(requestId), null)).respond)
                       case Failure(e) =>
-                        complete(respond[GenericResponse](
-                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null))
-                        ))
+                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null)).respond)
                     }
                     case Failure(e) =>
-                      complete(respond[GenericResponse](
-                        StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                        GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null))
-                      ))
+                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null)).respond)
                   }
                 }
               }

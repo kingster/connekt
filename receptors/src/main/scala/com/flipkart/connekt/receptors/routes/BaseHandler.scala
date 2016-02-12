@@ -3,7 +3,8 @@ package com.flipkart.connekt.receptors.routes
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.{HttpHeader, _}
 import akka.http.scaladsl.server.Directives
-import com.flipkart.connekt.receptors.directives.{AuthorizationDirectives, AsyncDirectives, AuthenticationDirectives, HeaderDirectives}
+import com.flipkart.connekt.commons.iomodels.GenericResponse
+import com.flipkart.connekt.receptors.directives.{AsyncDirectives, AuthenticationDirectives, AuthorizationDirectives, HeaderDirectives}
 import com.flipkart.connekt.receptors.wire.GenericJsonSupport
 
 import scala.collection.immutable.Seq
@@ -25,7 +26,7 @@ abstract class BaseHandler extends GenericJsonSupport with Directives with Heade
    * @tparam T type of instance to serialize as payload, used in finding suitable `ToEntityMarshaller` in context
    * @return that can be serialized later to `HttpResponse`
    */
-  def respond[T](statusCode: StatusCode, httpHeaders: Seq[HttpHeader], responseObj: T)
+  def responseMarshallable[T](statusCode: StatusCode, httpHeaders: Seq[HttpHeader], responseObj: T)
                 (implicit m: ToEntityMarshaller[T]): ToResponseMarshallable = {
 
     def entity2HttpResponse(obj: MessageEntity): HttpResponse =
@@ -34,5 +35,10 @@ abstract class BaseHandler extends GenericJsonSupport with Directives with Heade
     implicit val toHttpResponseMarshaller: ToResponseMarshaller[T] = m.map(entity2HttpResponse)
 
     ToResponseMarshallable(responseObj)
+  }
+  
+  implicit class RouteUtil(r: GenericResponse) {
+    def respond = responseMarshallable[GenericResponse](r.status, Seq.empty[HttpHeader], r)
+    def respondWithHeaders(headers: Seq[HttpHeader]) = responseMarshallable[GenericResponse](r.status, headers, r)
   }
 }
