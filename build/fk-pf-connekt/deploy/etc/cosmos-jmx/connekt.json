@@ -6,7 +6,8 @@
       "process": "connekt",
       "queries": [
         {
-          "obj" : "fk.metrics:name=*"
+          "obj" : "fk.metrics:name=*",
+          "saperator" : "."
         }
       ],
       "numQueryThreads": 2
