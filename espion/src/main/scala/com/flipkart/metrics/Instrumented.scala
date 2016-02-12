@@ -9,7 +9,7 @@ trait Instrumented {
 
   protected val registry = MetricRegistry.REGISTRY
 
-  protected def getMetricName(name: String): String = com.codahale.metrics.MetricRegistry.name(getClass, name)
+  protected def getMetricName(name: String): String = com.codahale.metrics.MetricRegistry.name(getClass, name).replaceAll("$","")
 
   def profile[T](metricName: String)(fn: ⇒ T): T = {
     val context = registry.timer(getMetricName(metricName)).time()
