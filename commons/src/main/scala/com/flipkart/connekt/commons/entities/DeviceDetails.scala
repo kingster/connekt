@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.entities
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.flipkart.connekt.commons.utils.DateTimeUtils
 
 /**
@@ -8,8 +9,16 @@ import com.flipkart.connekt.commons.utils.DateTimeUtils
  * @author durga.s
  * @version 11/20/15
  */
-case class DeviceDetails(deviceId: String, userId: String, token: String, osName: String, osVersion: String,
-                         appName: String, appVersion: String, brand: String, model: String, state: String = "",
+case class DeviceDetails(deviceId: String,
+                         userId: String,
+                         @JsonProperty(required = true) token: String,
+                         @JsonProperty(required = false) osName: String,
+                         @JsonProperty(required = false) osVersion: String,
+                         @JsonProperty(required = false) appName: String,
+                         @JsonProperty(required = false) appVersion: String,
+                         brand: String,
+                         model: String,
+                         state: String = "",
                          active: Boolean = true) {
 
   def toBigfootEntity: fkint.mp.connekt.DeviceDetails = {
