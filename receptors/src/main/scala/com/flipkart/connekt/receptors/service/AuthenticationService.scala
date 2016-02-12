@@ -13,7 +13,7 @@ import com.flipkart.metrics.{Instrumented, Timed}
  */
 object AuthenticationService extends Instrumented {
 
-  @Timed("AuthenticationService.authenticateKey")
+  @Timed("authenticateKey")
   def authenticateKey(apiKey: String): Option[AppUser] = {
     //if transient token present
     TokenService.get(apiKey) match {

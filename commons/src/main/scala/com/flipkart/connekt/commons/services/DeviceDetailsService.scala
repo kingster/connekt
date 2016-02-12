@@ -13,7 +13,7 @@ object DeviceDetailsService extends Instrumented{
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
 
-  @Timed("DeviceDetailsService.add")
+  @Timed("add")
   def add(deviceDetails: DeviceDetails) = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
@@ -30,7 +30,7 @@ object DeviceDetailsService extends Instrumented{
    * @param deviceId
    * @param deviceDetails
    */
-  @Timed("DeviceDetailsService.update")
+  @Timed("update")
   def update(deviceId: String, deviceDetails: DeviceDetails) = {
     try {
       val existingDevice = get(deviceDetails.appName, deviceId)
@@ -55,7 +55,7 @@ object DeviceDetailsService extends Instrumented{
       And if device exists, delete corresponding cache entry
       and mark device as INACTIVE in bigfoot
    */
-  @Timed("DeviceDetailsService.delete")
+  @Timed("delete")
   def delete(appName: String, deviceId: String) = {
     try {
       get(appName, deviceId) match {
@@ -73,7 +73,7 @@ object DeviceDetailsService extends Instrumented{
 
   }
 
-  @Timed("DeviceDetailsService.getByTokenId")
+  @Timed("getByTokenId")
   def getByTokenId(appName: String, tokenId: String): Option[DeviceDetails] = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, tokenId)) match {
@@ -89,7 +89,7 @@ object DeviceDetailsService extends Instrumented{
     }
   }
 
-  @Timed("DeviceDetailsService.getByUserId")
+  @Timed("getByUserId")
   def getByUserId(appName: String, userId: String): List[DeviceDetails] = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)) match {
@@ -106,7 +106,7 @@ object DeviceDetailsService extends Instrumented{
     }
   }
 
-  @Timed("DeviceDetailsService.get")
+  @Timed("get")
   def get(appName: String, deviceId: String): Option[DeviceDetails] = {
     try {
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, deviceId)) match {
