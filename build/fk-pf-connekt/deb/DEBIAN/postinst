@@ -5,6 +5,7 @@ USER=_USER_
 GROUP=_GROUP_
 USER_UID=_UID_
 USER_GID=_GID_
+HOST=$(hostname -f)
 
 variant=base
 if [ "$1" == "configure" ] ; then
@@ -33,7 +34,14 @@ if [ "$1" == "configure" ] ; then
 
     chown root:root /etc/logrotate.d/fk-pf-connekt || true
 
+    ## SetUp Cosmos
+    sed -i -e "s/__HOST__/$HOST/g" /etc/cosmos-jmx/connekt.json
 
+    if [ -f "/etc/init.d/cosmos-jmx" ]; then
+        sudo /etc/init.d/cosmos-jmx restart
+    else
+        echo "[WARN] cosmox-jmx is not installed."
+    fi
 fi
 
 exit 0
