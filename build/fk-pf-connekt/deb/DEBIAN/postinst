@@ -35,7 +35,7 @@ if [ "$1" == "configure" ] ; then
     chown root:root /etc/logrotate.d/fk-pf-connekt || true
 
     ## SetUp Cosmos
-    sed -i -e "s/__HOST__/$HOST/g" /etc/cosmos-jmx/connekt.json
+    sed -i -e "s/_HOSTNAME_/$HOST/g" /etc/cosmos-jmx/connekt.json
 
     if [ -f "/etc/init.d/cosmos-jmx" ]; then
         sudo /etc/init.d/cosmos-jmx restart
