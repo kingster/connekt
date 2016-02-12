@@ -12,6 +12,12 @@ function usage() {
     exit 1
 }
 
+function die() {
+    echo "ERROR: $1" >&2
+    echo "Aborting." >&2
+    exit 1
+}
+
 while getopts "lnNe:p:b:" option; do
     case "$option" in
         n) nodeploy=nodeploy;;
@@ -27,6 +33,15 @@ done
 
 # Environment and Package are required attributes
 [ -n "$env" ] || usage;
+
+#lock down allowed enviroments
+case "$env" in
+        local) ALLOW=local;;
+        stage) ALLOW=local;;
+        stagech) ALLOW=stagech;;
+		cidqa) ALLOW=qa;;
+esac
+[ -z "$ALLOW" ] && die "Promote Not Allowed for $env. Create Pull Request on github.com"
 
 # If package name does not begin with fk-, add it automatically
 if [ -n "$pkg" ]; then
