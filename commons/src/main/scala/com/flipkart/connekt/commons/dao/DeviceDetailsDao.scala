@@ -147,18 +147,18 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
    * Update takes care of updateing/removeing older index's and then updating the deviceDetails
    * @param appName
    * @param deviceId
-   * @param _deviceDetails
+   * @param deviceDetails
    */
   @Timed("update")
-  def update(appName: String, deviceId: String, _deviceDetails: DeviceDetails) = {
+  def update(appName: String, deviceId: String, deviceDetails: DeviceDetails) = {
     val current = get(appName, deviceId)
-    val deviceDetails = _deviceDetails.copy(deviceId = deviceId) //overide, to take care of developer mistakes
+    val update = deviceDetails.copy(deviceId = deviceId) //override, to take care of developer mistakes
     current.foreach(existingDetails => {
-      if (existingDetails.token != deviceDetails.token)
+      if (existingDetails.token != update.token)
         deleteTokenIdIndex(appName, deviceId, existingDetails.token)
-      if (!StringUtils.isNullOrEmpty(existingDetails.userId) && existingDetails.userId != deviceDetails.userId)
+      if (!StringUtils.isNullOrEmpty(existingDetails.userId) && existingDetails.userId != update.userId)
         deleteUserIdIndex(appName, deviceId, existingDetails.token)
-      add(appName, deviceDetails)
+      add(appName, update)
     })
   }
 

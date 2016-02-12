@@ -25,7 +25,7 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
   val send =
     pathPrefix("v1") {
       path("send" / "push" / "multicast" / MPlatformSegment / Segment) {
-        (platform: MobilePlatform, appName: String) =>
+        (appPlatform: MobilePlatform, appName: String) =>
           authorize(user, "MULTICAST_" + appName) {
             post {
               entity(as[ConnektRequest]) { r =>
@@ -36,12 +36,10 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                 val deviceIds = pnRequestInfo.deviceId
                 val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
-                platform match {
+                appPlatform match {
                   case MobilePlatform.UNKNOWN =>
-                    val w = deviceIds.groupBy(DeviceDetailsService.get(pnRequestInfo.appName, _).map(_.osName).getOrElse("__MISSING__"))
-                    groupedPlatformRequests ++= w.filterKeys(!_.equalsIgnoreCase("__MISSING__")).map(kv => {
-                      r.copy(channelInfo = pnRequestInfo.copy(deviceId = kv._2, platform = kv._1))
-                    })
+                    val groupedTokens = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).groupBy(_.osName).mapValues(_.map(_.token))
+                    groupedPlatformRequests ++= groupedTokens.map(kv => kv._1 -> r.copy(channelInfo = pnRequestInfo.copy(platform = kv._1, deviceId = kv._2))).values
                   case _ =>
                     groupedPlatformRequests += r
                 }
