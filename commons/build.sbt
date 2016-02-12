@@ -91,7 +91,8 @@ libraryDependencies ++= Seq(
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
   "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT",
-  "io.dropwizard.metrics" % "metrics-core" % "3.1.0"
+  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT",
+  "com.flipkart" %% "espion" % "1.0.0"
 )
 
 

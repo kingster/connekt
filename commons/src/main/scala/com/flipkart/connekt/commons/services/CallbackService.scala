@@ -4,7 +4,8 @@ import com.flipkart.connekt.commons.dao._
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
-import com.flipkart.metrics.{Instrumented, Timed}
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
 import org.apache.commons.lang.RandomStringUtils
 
 import scala.util.{Failure, Success, Try}

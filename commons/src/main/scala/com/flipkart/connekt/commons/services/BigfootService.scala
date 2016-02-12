@@ -2,8 +2,9 @@ package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils._
-import com.flipkart.metrics.{Timed, Instrumented}
+import com.flipkart.metrics.Timed
 import com.flipkart.phantom.client.exceptions.PhantomClientException
 import com.flipkart.seraph.schema.BaseSchema
 import com.flipkart.specter.ingestion.IngestionMetadata

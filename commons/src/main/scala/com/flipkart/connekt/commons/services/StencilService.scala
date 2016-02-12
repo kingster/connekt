@@ -5,7 +5,8 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.fabric._
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.ChannelRequestData
-import com.flipkart.metrics.{Instrumented, Timed}
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Success, Try}
 

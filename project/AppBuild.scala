@@ -79,10 +79,9 @@ object AppBuild extends Build {
 
   lazy val connekt_8087 = Project("connekt-8087", file("8087"), settings = _commonSettings)
 
-  lazy  val espion = Project("espion" , file("espion"), settings = _commonSettings)
+  lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++
+    buildInfoGenerator ++ bareResourceGenerators)
 
-  lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++ buildInfoGenerator ++ bareResourceGenerators)
-    .dependsOn(espion)
 
   lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)
     .dependsOn(commons % "test->test;compile->compile")

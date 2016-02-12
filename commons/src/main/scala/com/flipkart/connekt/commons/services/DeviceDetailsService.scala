@@ -4,12 +4,13 @@ import com.flipkart.connekt.commons.cache.{DistributedCacheType, DistributedCach
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.metrics.{Instrumented, Timed}
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
  */
-object DeviceDetailsService extends Instrumented{
+object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
 
@@ -34,13 +35,13 @@ object DeviceDetailsService extends Instrumented{
   def update(deviceId: String, deviceDetails: DeviceDetails) = {
     try {
       val existingDevice = get(deviceDetails.appName, deviceId)
-      existingDevice match {
-        case None =>
-        case Some(device) =>
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
+      existingDevice.foreach { device =>
+        //remove mapping for existing data
+        DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
+        DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
+        DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
       }
+      // remove mapping for new user
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
 
       dao.update(deviceDetails.appName, deviceId, deviceDetails)
@@ -50,22 +51,26 @@ object DeviceDetailsService extends Instrumented{
     }
   }
 
-  /*
-      get and delete device if device exists
-      And if device exists, delete corresponding cache entry
-      and mark device as INACTIVE in bigfoot
+
+  /**
+   *
+   * get and delete device if device exists
+   * And if device exists, delete corresponding cache entry
+   * and mark device as INACTIVE in bigfoot
+   * @param appName
+   * @param deviceId
+   * @return
    */
   @Timed("delete")
   def delete(appName: String, deviceId: String) = {
     try {
-      get(appName, deviceId) match {
-        case Some(device) =>
+      get(appName, deviceId) foreach {
+        device =>
           dao.delete(appName, deviceId)
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
           BigfootService.ingest(device.copy(active = false).toBigfootEntity)
-        case None =>
       }
     } catch {
       case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail delete service failed " + e.getCause, e)
@@ -108,8 +113,8 @@ object DeviceDetailsService extends Instrumented{
 
   //TODO : Implement this properly
   @Timed("mget")
-  def get(appName: String, deviceId: List[String]): Map[String,DeviceDetails] = {
-    deviceId.flatMap(id =>  get(appName,id)).map( data => data.deviceId -> data).toMap
+  def get(appName: String, deviceId: List[String]): Map[String, DeviceDetails] = {
+    deviceId.flatMap(id => get(appName, id)).map(data => data.deviceId -> data).toMap
   }
 
   @Timed("get")
@@ -119,11 +124,7 @@ object DeviceDetailsService extends Instrumented{
         case Some(device) => Some(device)
         case None =>
           val device = dao.get(appName, deviceId)
-          device match {
-            case None =>
-            case Some(x) =>
-              DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, deviceId), x)
-          }
+          device.foreach(d => DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, deviceId), d))
           device
       }
     } catch {
