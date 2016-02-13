@@ -12,6 +12,7 @@ import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
+
 /**
  *
  *
@@ -37,7 +38,9 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                 appPlatform match {
                   case MobilePlatform.UNKNOWN =>
                     val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).groupBy(_.osName).mapValues(_.map(_.deviceId))
-                    groupedPlatformRequests ++= groupedDevices.map(kv => kv._1 -> r.copy(channelInfo = pnRequestInfo.copy(platform = kv._1, deviceId = kv._2))).values
+                    groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                        platform -> r.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                    }.values
                   case _ =>
                     groupedPlatformRequests += r
                 }

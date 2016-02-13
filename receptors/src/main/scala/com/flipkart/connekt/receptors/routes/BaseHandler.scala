@@ -41,6 +41,6 @@ abstract class BaseHandler extends GenericJsonSupport with Directives with Heade
     def respondWithHeaders(headers: Seq[HttpHeader]) = responseMarshallable[GenericResponse](r.status, headers, r)
   }
 
-  implicit def GenericResponse2Marshallable(r : GenericResponse) : ToResponseMarshallable = responseMarshallable[GenericResponse](r.status, Seq.empty[HttpHeader], r)
+  implicit def GenericResponse2Marshallable(r: GenericResponse): ToResponseMarshallable = responseMarshallable[GenericResponse](r.status, Seq.empty[HttpHeader], r)
 
 }

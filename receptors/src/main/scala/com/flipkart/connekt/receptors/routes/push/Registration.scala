@@ -20,6 +20,9 @@ import scala.util.{Failure, Success}
  */
 class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
+  type Created = Boolean
+  type Updated = Boolean
+
   val register =
     pathPrefix("v1") {
       pathPrefix("registration" / "push") {
@@ -29,13 +32,15 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
               authorize(user, "REGISTRATION") {
                 entity(as[DeviceDetails]) { d =>
                   val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId)
-                  val result = DeviceDetailsService.get(appName, deviceId).transform[Unit]({
-                    case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails)
-                    case None => DeviceDetailsService.add(newDeviceDetails)
+                  val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Updated, Created]]({
+                    case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(true))
+                    case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(true))
                   }, Failure(_))
 
                   result match {
-                    case Success(r) =>
+                    case Success(r) if r.isRight =>
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                    case Success(r) if r.isLeft =>
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
                     case Failure(e) =>
                       complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"DeviceDetails registration failed for ${newDeviceDetails.deviceId}", newDeviceDetails)))
