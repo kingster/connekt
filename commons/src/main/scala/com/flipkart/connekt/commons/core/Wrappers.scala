@@ -8,9 +8,9 @@ import scala.util.{Failure, Success, Try}
 /**
  * Created by kinshuk.bairagi on 13/02/16.
  */
-object Handlers {
+object Wrappers {
 
-  def Try_[T](fileName: LogFile = LogFile.SERVICE, message: String = "ERROR")(f: => T) : Try[T] = {
+  def Try_#[T](fileName: LogFile = LogFile.SERVICE, message: String = "ERROR")(f: => T) : Try[T] = {
     try {
       Success(f)
     }
@@ -21,7 +21,7 @@ object Handlers {
     }
   }
 
-  def Try__ [T](f: => T) : Try[T] = {
-    Try_()(f)
+  def Try_ [T](f: => T) : Try[T] = {
+    Try_#()(f)
   }
 }

@@ -9,7 +9,7 @@ import com.flipkart.metrics.Timed
 
 import scala.util.{Try, Failure, Success}
 
-import com.flipkart.connekt.commons.core.Handlers._
+import com.flipkart.connekt.commons.core.Wrappers._
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
@@ -19,7 +19,7 @@ object DeviceDetailsService extends Instrumented {
   lazy val dao = DaoFactory.getDeviceDetailsDao
 
   @Timed("add")
-  def add(deviceDetails: DeviceDetails): Try[Unit] = Try_(message = "Device Detail add service failed") {
+  def add(deviceDetails: DeviceDetails): Try[Unit] = Try_#(message = "DeviceDetailsService.add Failed") {
     dao.add(deviceDetails.appName, deviceDetails)
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
     BigfootService.ingest(deviceDetails.toBigfootEntity)
@@ -34,7 +34,7 @@ object DeviceDetailsService extends Instrumented {
   def update(deviceId: String, deviceDetails: DeviceDetails): Try[Unit] = {
     get(deviceDetails.appName, deviceId) flatMap {
       case Some(device) =>
-        Try__ {
+        Try_ {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
@@ -58,7 +58,7 @@ object DeviceDetailsService extends Instrumented {
   def delete(appName: String, deviceId: String): Try[Unit] = {
     get(appName, deviceId).flatMap {
       case Some(device) =>
-        Try__ {
+        Try_ {
           dao.delete(appName, deviceId)
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
@@ -72,7 +72,7 @@ object DeviceDetailsService extends Instrumented {
 
 
   @Timed("getByTokenId")
-  def getByTokenId(appName: String, tokenId: String): Try[Option[DeviceDetails]] = Try_(message = "Device Detail getByToken service failed") {
+  def getByTokenId(appName: String, tokenId: String): Try[Option[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getByToken Failed") {
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, tokenId)).orElse {
       val device = dao.getByTokenId(appName, tokenId)
       device.foreach(d => DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, tokenId), d))
@@ -82,7 +82,7 @@ object DeviceDetailsService extends Instrumented {
 
 
   @Timed("getByUserId")
-  def getByUserId(appName: String, userId: String): Try[List[DeviceDetails]] = Try_(message = "DeviceDetail userId service failed") {
+  def getByUserId(appName: String, userId: String): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getByUserId Failed") {
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)).getOrElse {
       val deviceList = dao.getByUserId(appName, userId)
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
@@ -99,7 +99,7 @@ object DeviceDetailsService extends Instrumented {
   }
 
   @Timed("get")
-  def get(appName: String, deviceId: String): Try[Option[DeviceDetails]] = Try_(message = "Device Detail get service failed") {
+  def get(appName: String, deviceId: String): Try[Option[DeviceDetails]] = Try_#(message = "DeviceDetailsService.get Failed") {
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, deviceId)).orElse {
       val device = dao.get(appName, deviceId)
       device.foreach(d => DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, deviceId), d))
