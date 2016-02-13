@@ -48,12 +48,12 @@ object ReceptorsServer extends BaseHandler {
       RejectionHandler.newBuilder()
         .handle {
         case AuthorizationFailedRejection =>
-          complete(respond[GenericResponse](
+          complete(responseMarshallable[GenericResponse](
             StatusCodes.Unauthorized, Seq.empty[HttpHeader],
             GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)
             )))
         case MalformedRequestContentRejection(msg, _) =>
-          complete(respond[GenericResponse](
+          complete(responseMarshallable[GenericResponse](
             StatusCodes.BadRequest, Seq.empty[HttpHeader],
             GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> msg))
             )))
@@ -61,13 +61,13 @@ object ReceptorsServer extends BaseHandler {
         .handleAll[MethodRejection] {
         methodRejections =>
           val names = methodRejections.map(_.supported.name)
-          complete(respond[GenericResponse](
+          complete(responseMarshallable[GenericResponse](
             StatusCodes.MethodNotAllowed, Seq.empty[HttpHeader],
             GenericResponse(StatusCodes.MethodNotAllowed.intValue, null, Response(s"Can't do that! Supported: ${names mkString " or "}!", null)
             )))
       }
         .handleNotFound {
-        complete(respond[GenericResponse](
+        complete(responseMarshallable[GenericResponse](
           StatusCodes.NotFound, Seq.empty[HttpHeader],
           GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)
           )))
@@ -80,7 +80,7 @@ object ReceptorsServer extends BaseHandler {
           val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
           ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- ${errorUID}  --  Reason [ ${e.getMessage} ]", e)
           val response = Map("message" -> ("Server Error # " + errorUID), "reason" -> e.getMessage)
-          complete(respond[GenericResponse](
+          complete(responseMarshallable[GenericResponse](
             StatusCodes.InternalServerError, Seq.empty[HttpHeader],
             GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Internal Server Error", response))
           ))
