@@ -36,9 +36,9 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
 
                   result match {
                     case Success(r) =>
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)).respond)
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
                     case Failure(e) =>
-                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"DeviceDetails registration failed for ${newDeviceDetails.deviceId}", newDeviceDetails)).respond)
+                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"DeviceDetails registration failed for ${newDeviceDetails.deviceId}", newDeviceDetails)))
                   }
                 }
               }
@@ -49,9 +49,9 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
               authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
                 DeviceDetailsService.getByUserId(appName, userId) match {
                   case Success(deviceDetails) =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName, user: $userId", Map[String, Any]("deviceDetails" -> deviceDetails))).respond)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName, user: $userId", Map[String, Any]("deviceDetails" -> deviceDetails))))
                   case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName, user: $userId", null)).respond)
+                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName, user: $userId", null)))
                 }
               }
             }
@@ -61,11 +61,11 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
               authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
                 DeviceDetailsService.get(appName, deviceId) match {
                   case Success(deviceDetail) if deviceDetail.isDefined =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName id: $deviceId", Map[String, Any]("deviceDetails" -> deviceDetail.get))).respond)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName id: $deviceId", Map[String, Any]("deviceDetails" -> deviceDetail.get))))
                   case Success(deviceDetail) if deviceDetail.isEmpty =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"No DeviceDetails found for app: $appName id: $deviceId", null)).respond)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"No DeviceDetails found for app: $appName id: $deviceId", null)))
                   case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName id: $deviceId", null)).respond)
+                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName id: $deviceId", null)))
                 }
               }
             }

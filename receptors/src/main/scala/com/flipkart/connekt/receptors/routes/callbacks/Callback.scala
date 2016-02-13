@@ -30,11 +30,11 @@ class Callback(implicit am: ActorMaterializer) extends BaseHandler {
               ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, Channel.PUSH, event) match {
                 case Success(requestId) =>
                   ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)).respond)
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
 
                 case Failure(t) =>
                   ConnektLogger(LogFile.SERVICE).debug(s"Saving callback event failed ${event.toString} ${t.getMessage}")
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Saving PN callback failed: ${t.getMessage}", null)).respond)
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Saving PN callback failed: ${t.getMessage}", null)))
               }
             }
           }

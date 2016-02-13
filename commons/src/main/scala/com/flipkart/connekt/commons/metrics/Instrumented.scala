@@ -1,6 +1,5 @@
 package com.flipkart.connekt.commons.metrics
 
-import com.codahale.metrics.MetricRegistry
 import com.flipkart.metrics.InstrumentedBase
 
 /**
@@ -8,7 +7,7 @@ import com.flipkart.metrics.InstrumentedBase
  */
 trait Instrumented extends InstrumentedBase {
 
-  val registry:MetricRegistry = MetricRegistry.REGISTRY
+  val registry = MetricRegistry.REGISTRY
 
 }
 

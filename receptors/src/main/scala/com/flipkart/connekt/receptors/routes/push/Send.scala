@@ -55,7 +55,7 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   }
                 }
 
-                complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)).respond)
+                complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)))
               }
             }
           }
@@ -73,12 +73,12 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   async(enqueue) {
                     case Success(t) => t match {
                       case Success(requestId) =>
-                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)).respond)
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
                       case Failure(e) =>
-                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request enqueue failed, e: ${e.getMessage}", null)).respond)
+                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request enqueue failed, e: ${e.getMessage}", null)))
                     }
                     case Failure(e) =>
-                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request processing failed, e: ${e.getMessage}", null)).respond)
+                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request processing failed, e: ${e.getMessage}", null)))
                   }
                 }
               }

@@ -16,4 +16,4 @@ class SystemStatus(implicit am: ActorMaterializer) extends BaseHandler {
     }
 }
 
-sealed case class ELBResponse(upTime:Long, requests:Long, capacity:Int)
+sealed case class ELBResponse(uptime:Long, requests:Long, capacity:Int)
