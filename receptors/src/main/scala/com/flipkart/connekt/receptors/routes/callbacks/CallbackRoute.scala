@@ -27,15 +27,9 @@ class CallbackRoute(implicit am: ActorMaterializer) extends BaseHandler {
           post {
             entity(as[CallbackEvent]) { e =>
               val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app, deviceId = devId)
-              ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, Channel.PUSH, event) match {
-                case Success(requestId) =>
-                  ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
-
-                case Failure(t) =>
-                  ConnektLogger(LogFile.SERVICE).debug(s"Saving callback event failed ${event.toString} ${t.getMessage}")
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Saving PN callback failed: ${t.getMessage}", null)))
-              }
+              ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, event.deviceId, Channel.PUSH, event).get
+              ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
             }
           }
       }

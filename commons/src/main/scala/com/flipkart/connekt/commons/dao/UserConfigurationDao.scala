@@ -1,8 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.MySQLFactory
+import com.flipkart.connekt.commons.entities.AppUserConfiguration
 import com.flipkart.connekt.commons.entities.Channel.Channel
-import com.flipkart.connekt.commons.entities.{AppUserConfiguration, AppUser}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}

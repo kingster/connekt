@@ -75,13 +75,9 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
 
                   ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
                   val queueName = ServiceFactory.getMessageService.getRequestBucket(unicastRequest, user)
-                  val enqueue = ServiceFactory.getMessageService.persistRequest(unicastRequest, queueName, isCrucial = true)
-                  enqueue match {
-                    case Success(requestId) =>
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
-                    case Failure(e) =>
-                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request enqueue failed, e: ${e.getMessage}", null)))
-                  }
+                  val requestId = ServiceFactory.getMessageService.persistRequest(unicastRequest, queueName, isCrucial = true).get
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
+
                 }
               }
             }

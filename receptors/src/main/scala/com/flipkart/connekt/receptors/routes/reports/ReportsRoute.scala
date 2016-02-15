@@ -35,7 +35,6 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
           get {
             val events = ServiceFactory.getCallbackService.fetchCallbackEventByMId(messageId, channel).get
             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId fetched.", events)))
-
           }
         }
     } ~ path(ChannelSegment / Segment / "messages" / Segment) {
