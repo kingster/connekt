@@ -39,9 +39,9 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
                   }, Failure(_)).get
 
                   result match {
-                    case result.isRight =>
+                    case Right(x) =>
                       complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
-                    case result.isLeft =>
+                    case Left(x) =>
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
                   }
                 }
@@ -61,7 +61,7 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
               authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
                 DeviceDetailsService.get(appName, deviceId).get match {
                   case Some(deviceDetail) =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName id: $deviceId", Map[String, Any]("deviceDetails" -> deviceDetail.get))))
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName id: $deviceId", Map[String, Any]("deviceDetails" -> deviceDetail))))
                   case None =>
                     complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No DeviceDetails found for app: $appName id: $deviceId", null)))
                 }
