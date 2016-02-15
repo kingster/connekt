@@ -2,7 +2,9 @@ package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils._
+import com.flipkart.metrics.Timed
 import com.flipkart.phantom.client.exceptions.PhantomClientException
 import com.flipkart.seraph.schema.BaseSchema
 import com.flipkart.specter.ingestion.IngestionMetadata
@@ -14,12 +16,13 @@ import scala.util.{Failure, Success, Try}
 /**
  * Created by nidhi.mehla on 02/02/16.
  */
-object BigfootService {
+object BigfootService extends Instrumented{
 
   val socketClient = DaoFactory.phantomClientSocket
 
   val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(true)
 
+  @Timed("ingest")
   def ingest(obj: BaseSchema): Try[Boolean] = {
 
     if (ingestionEnabled ) {

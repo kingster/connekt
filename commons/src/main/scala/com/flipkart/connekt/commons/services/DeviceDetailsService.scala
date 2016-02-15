@@ -4,25 +4,25 @@ import com.flipkart.connekt.commons.cache.{DistributedCacheType, DistributedCach
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.metrics.{Instrumented, Timed}
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
+
+import scala.util.{Try, Failure, Success}
+
+import com.flipkart.connekt.commons.core.Wrappers._
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
  */
-object DeviceDetailsService extends Instrumented{
+object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
 
-  @Timed("DeviceDetailsService.add")
-  def add(deviceDetails: DeviceDetails) = {
-    try {
-      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
-      dao.add(deviceDetails.appName, deviceDetails)
-      BigfootService.ingest(deviceDetails.toBigfootEntity)
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error("Device Detail add service failed " + e.getCause)
-    }
+  @Timed("add")
+  def add(deviceDetails: DeviceDetails): Try[Unit] = Try_#(message = "DeviceDetailsService.add Failed") {
+    dao.add(deviceDetails.appName, deviceDetails)
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
+    BigfootService.ingest(deviceDetails.toBigfootEntity)
   }
 
   /**
@@ -30,100 +30,80 @@ object DeviceDetailsService extends Instrumented{
    * @param deviceId
    * @param deviceDetails
    */
-  @Timed("DeviceDetailsService.update")
-  def update(deviceId: String, deviceDetails: DeviceDetails) = {
-    try {
-      val existingDevice = get(deviceDetails.appName, deviceId)
-      existingDevice match {
-        case None =>
-        case Some(device) =>
+  @Timed("update")
+  def update(deviceId: String, deviceDetails: DeviceDetails): Try[Unit] = {
+    get(deviceDetails.appName, deviceId) flatMap {
+      case Some(device) =>
+        Try_ {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
-      }
-      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
+          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
 
-      dao.update(deviceDetails.appName, deviceId, deviceDetails)
-      BigfootService.ingest(deviceDetails.toBigfootEntity)
-    } catch {
-      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail update service failed " + e.getCause, e)
+          dao.update(deviceDetails.appName, deviceId, deviceDetails)
+          BigfootService.ingest(deviceDetails.toBigfootEntity)
+        }
+      case None => Failure(new Throwable(s"No Device Detail found for id: [$deviceId] to update."))
     }
+
   }
+
 
   /*
       get and delete device if device exists
       And if device exists, delete corresponding cache entry
       and mark device as INACTIVE in bigfoot
    */
-  @Timed("DeviceDetailsService.delete")
-  def delete(appName: String, deviceId: String) = {
-    try {
-      get(appName, deviceId) match {
-        case Some(device) =>
+  @Timed("delete")
+  def delete(appName: String, deviceId: String): Try[Unit] = {
+    get(appName, deviceId).flatMap {
+      case Some(device) =>
+        Try_ {
           dao.delete(appName, deviceId)
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
           BigfootService.ingest(device.copy(active = false).toBigfootEntity)
-        case None =>
-      }
-    } catch {
-      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail delete service failed " + e.getCause, e)
-    }
-
-  }
-
-  @Timed("DeviceDetailsService.getByTokenId")
-  def getByTokenId(appName: String, tokenId: String): Option[DeviceDetails] = {
-    try {
-      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, tokenId)) match {
-        case Some(device) => Some(device)
-        case None =>
-          val device = dao.getByTokenId(appName, tokenId)
-          device.foreach(d => DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, tokenId), d))
-          device
-      }
-    } catch {
-      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail getByToken service failed " + e.getCause, e)
-        None
+        }
+      case None =>
+        Failure(new Throwable(s"No Device Detail found for app: [$appName] id: [$deviceId] to delete."))
     }
   }
 
-  @Timed("DeviceDetailsService.getByUserId")
-  def getByUserId(appName: String, userId: String): List[DeviceDetails] = {
-    try {
-      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)) match {
-        case Some(deviceList) => deviceList
-        case None =>
-          val deviceList = dao.getByUserId(appName, userId)
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
-          deviceList
-      }
-    }
-    catch {
-      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Device Detail get by userId service failed " + e.getCause, e)
-        List()
+
+  @Timed("getByTokenId")
+  def getByTokenId(appName: String, tokenId: String): Try[Option[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getByToken Failed") {
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, tokenId)).orElse {
+      val device = dao.getByTokenId(appName, tokenId)
+      device.foreach(d => DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, tokenId), d))
+      device
     }
   }
 
-  @Timed("DeviceDetailsService.get")
-  def get(appName: String, deviceId: String): Option[DeviceDetails] = {
-    try {
-      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, deviceId)) match {
-        case Some(device) => Some(device)
-        case None =>
-          val device = dao.get(appName, deviceId)
-          device match {
-            case None =>
-            case Some(x) =>
-              DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, deviceId), x)
-          }
-          device
-      }
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error("Device Detail get service failed " + e.getCause, e)
-        None
+
+  @Timed("getByUserId")
+  def getByUserId(appName: String, userId: String): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getByUserId Failed") {
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)).getOrElse {
+      val deviceList = dao.getByUserId(appName, userId)
+      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
+      deviceList
+    }
+  }
+
+  //TODO : Change with underlying mget implementation
+  //Per our usage changing it to return only a list of deviceDetails found, since, biz wants us to send
+  //it to as many devices we find.
+  @Timed("mget")
+  def get(appName: String, deviceIds: List[String]): List[DeviceDetails] = {
+    deviceIds.flatMap(get(appName, _).getOrElse(None))
+  }
+
+  @Timed("get")
+  def get(appName: String, deviceId: String): Try[Option[DeviceDetails]] = Try_#(message = "DeviceDetailsService.get Failed") {
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, deviceId)).orElse {
+      val device = dao.get(appName, deviceId)
+      device.foreach(d => DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(appName, deviceId), d))
+      device
     }
   }
 

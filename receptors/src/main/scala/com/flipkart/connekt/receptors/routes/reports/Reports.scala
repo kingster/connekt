@@ -21,50 +21,38 @@ class Reports(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler
 
   val route =
     pathPrefix("v1") {
-            pathPrefix("reports") {
-              path(ChannelSegment / Segment / "messages" / Segment / Segment / "events") {
-                (channel: Channel, appName: String, contactId: String, messageId: String) =>
-                  authorize(user, "REPORTS") {
-                    get {
-                      val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, channel).get
-                      complete(respond[GenericResponse](
-                      StatusCodes.OK, Seq.empty[HttpHeader],
-                      GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId $contactId fetched.", Map(contactId -> events)))
-                    ))
-                    }
-                  }
-              } ~ path(ChannelSegment / Segment / "messages" / Segment / "events") {
-                (channel: Channel, appName: String, messageId: String) =>
-                  authorize(user, "REPORTS") {
-                    get {
-                      val events = ServiceFactory.getCallbackService.fetchCallbackEventByMId(messageId, channel).get
-                      complete(respond[GenericResponse](
-                      StatusCodes.OK, Seq.empty[HttpHeader],
-                      GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId  fetched.", events))
-                      ))
-
-                    }
-                  }
-              } ~ path(ChannelSegment / Segment / "messages" / Segment) {
-                (channel: Channel, appName: String, messageId: String) =>
-                  authorize(user, "REPORTS") {
-                    get {
-                      val data = ServiceFactory.getMessageService.getRequestInfo(messageId).get
-                      data match {
-                        case None =>
-                          complete(respond[GenericResponse](
-                        StatusCodes.NotFound, Seq.empty[HttpHeader],
-                        GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No Data found for MessageId $messageId", null))
-                      ))
-                        case Some(x) =>
-                          complete(respond[GenericResponse](
-                        StatusCodes.OK, Seq.empty[HttpHeader],
-                        GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Details for $messageId.", data))
-                      ))
-                      }
-                    }
-                  }
+      pathPrefix("reports") {
+        path(ChannelSegment / Segment / "messages" / Segment / Segment / "events") {
+          (channel: Channel, appName: String, contactId: String, messageId: String) =>
+            authorize(user, "REPORTS") {
+              get {
+                val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, channel).get
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $contactId fetched.", Map(contactId -> events))))
               }
-          }
+            }
+        } ~ path(ChannelSegment / Segment / "messages" / Segment / "events") {
+          (channel: Channel, appName: String, messageId: String) =>
+            authorize(user, "REPORTS") {
+              get {
+                val events = ServiceFactory.getCallbackService.fetchCallbackEventByMId(messageId, channel).get
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId fetched.", events)))
+
+              }
+            }
+        } ~ path(ChannelSegment / Segment / "messages" / Segment) {
+          (channel: Channel, appName: String, messageId: String) =>
+            authorize(user, "REPORTS") {
+              get {
+                val data = ServiceFactory.getMessageService.getRequestInfo(messageId).get
+                data match {
+                  case None =>
+                    complete(GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No events found for messageId $messageId.", null)))
+                  case Some(x) =>
+                    complete(GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Events fetched for messageId: $messageId.", data)))
+                }
+              }
+            }
+        }
+      }
     }
 }

@@ -1,6 +1,6 @@
 package com.flipkart.connekt.receptors.routes.push
 
-import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities.{AppUser, MobilePlatform}
@@ -10,7 +10,6 @@ import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
-import scala.collection.immutable.Seq
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 
@@ -25,23 +24,23 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
   val send =
     pathPrefix("v1") {
       path("send" / "push" / "multicast" / MPlatformSegment / Segment) {
-        (platform: MobilePlatform, appName: String) =>
+        (appPlatform: MobilePlatform, appName: String) =>
           authorize(user, "MULTICAST_" + appName) {
             post {
               entity(as[ConnektRequest]) { r =>
-                ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
+                ConnektLogger(LogFile.SERVICE).debug(s"Received multicast PN request with payload: ${r.toString}")
 
                 /* Find platform for each deviceId, group */
                 val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName)
                 val deviceIds = pnRequestInfo.deviceId
                 val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
-                platform match {
+                appPlatform match {
                   case MobilePlatform.UNKNOWN =>
-                    val w = deviceIds.groupBy(DeviceDetailsService.get(pnRequestInfo.appName, _).map(_.osName).getOrElse("__MISSING__"))
-                    groupedPlatformRequests ++= w.filterKeys(!_.equalsIgnoreCase("__MISSING__")).map(kv => {
-                      r.copy(channelInfo = pnRequestInfo.copy(deviceId = kv._2, platform = kv._1))
-                    })
+                    val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).groupBy(_.osName).mapValues(_.map(_.deviceId))
+                    groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                        platform -> r.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                    }.values
                   case _ =>
                     groupedPlatformRequests += r
                 }
@@ -59,10 +58,7 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   }
                 }
 
-                complete(respond[GenericResponse](
-                  StatusCodes.OK, Seq.empty[HttpHeader],
-                  GenericResponse(StatusCodes.OK.intValue, null, MulticastResponse("Multicast request processed.", success.toMap, failure.toList))
-                ))
+                complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)))
               }
             }
           }
@@ -80,21 +76,12 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   async(enqueue) {
                     case Success(t) => t match {
                       case Success(requestId) =>
-                        complete(respond[GenericResponse](
-                          StatusCodes.Created, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.OK.intValue, null, Response("PN Request en-queued successfully for %s".format(requestId), null))
-                        ))
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
                       case Failure(e) =>
-                        complete(respond[GenericResponse](
-                          StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                          GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null))
-                        ))
+                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request enqueue failed, e: ${e.getMessage}", null)))
                     }
                     case Failure(e) =>
-                      complete(respond[GenericResponse](
-                        StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-                        GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("PN Request processing failed: %s".format(e.getMessage), null))
-                      ))
+                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Unicast PN request processing failed, e: ${e.getMessage}", null)))
                   }
                 }
               }
