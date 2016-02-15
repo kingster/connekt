@@ -12,7 +12,8 @@ import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAcce
  * @author durga.s
  * @version 12/11/15
  */
-class UserInfo(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with MySQLDao {
+class UserInfoDao(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with MySQLDao {
+
   val mysqlHelper = mysqlFactory
 
   override def getUserInfo(userId: String): Option[AppUser] = {
@@ -67,10 +68,10 @@ class UserInfo(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with
   }
 }
 
-object UserInfo {
+object UserInfoDao {
 
   def apply(tableName: String = "USER_INFO", mysqlFactory: MySQLFactory) =
-    new UserInfo(tableName, mysqlFactory)
+    new UserInfoDao(tableName, mysqlFactory)
 
 
 }

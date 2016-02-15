@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/20/15
  */
-class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
   type Created = Boolean
   type Updated = Boolean

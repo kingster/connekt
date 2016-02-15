@@ -18,7 +18,7 @@ import com.flipkart.connekt.commons.entities.Channel
  * @author durga.s
  * @version 12/8/15
  */
-class Callback(implicit am: ActorMaterializer) extends BaseHandler {
+class CallbackRoute(implicit am: ActorMaterializer) extends BaseHandler {
 
   val callback =
     pathPrefix("v1") {
