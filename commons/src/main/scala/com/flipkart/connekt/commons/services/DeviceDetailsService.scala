@@ -3,10 +3,10 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.connekt.commons.cache.{DistributedCacheType, DistributedCacheManager}
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
 
+import scala.collection.mutable.ListBuffer
 import scala.util.{Try, Failure, Success}
 
 import com.flipkart.connekt.commons.core.Wrappers._
@@ -94,9 +94,26 @@ object DeviceDetailsService extends Instrumented {
   //Per our usage changing it to return only a list of deviceDetails found, since, biz wants us to send
   //it to as many devices we find.
   @Timed("mget")
-  def get(appName: String, deviceIds: List[String]): List[DeviceDetails] = {
-    deviceIds.flatMap(get(appName, _).getOrElse(None))
+  def mget(appName: String, deviceIds: List[String]): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.mget Failed") {
+    var cacheHits = ListBuffer[DeviceDetails]()
+    var cacheHitIds = ListBuffer[String]()
+    var cacheMissedIds = ListBuffer[String]()
+    deviceIds.foreach(id => {
+      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, id)) match {
+        case None => cacheMissedIds += id
+        case Some(device: DeviceDetails) => {
+          cacheHitIds += id
+          cacheHits += device
+        }
+        case _ =>
+      }
+    })
+    val cacheMiss = ListBuffer[DeviceDetails]()
+    cacheMiss ++= dao.getDevices(appName, cacheMissedIds.toList)
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).multiPut[DeviceDetails](getDeviceMap(appName, cacheMiss.toList))
+    (cacheMiss ++ cacheHits).toList
   }
+
 
   @Timed("get")
   def get(appName: String, deviceId: String): Try[Option[DeviceDetails]] = Try_#(message = "DeviceDetailsService.get Failed") {
@@ -108,5 +125,11 @@ object DeviceDetailsService extends Instrumented {
   }
 
   private def cacheKey(appName: String, id: String): String = appName + "_" + id
+
+  private def getDeviceMap(appName: String, deviceDetails: List[DeviceDetails]): Map[String, DeviceDetails] = {
+    val deviceTupleList = for (device <- deviceDetails) yield (cacheKey(appName, device.deviceId), device)
+    deviceTupleList.groupBy(_._1).mapValues(_.map(_._2)).asInstanceOf[Map[String, DeviceDetails]]
+  }
+
 
 }

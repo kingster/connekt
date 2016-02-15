@@ -6,6 +6,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import rx.lang.scala.Observable
 
+import scala.Predef
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 
@@ -57,7 +58,6 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
 
   override def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
-
       cacheStorageBucket.upsert(StringDocument.create(key, props.ttl.toSeconds.toInt, value.asInstanceOf[AnyRef].getJson))
       true
     } catch {
@@ -66,6 +66,21 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
         false
     }
   }
+
+  override def multiPut[T](kvMap: scala.collection.immutable.Map[String, T])(implicit cTag: ClassManifest[T]): Boolean = {
+    try {
+      var done = true
+      for ((k, v) <- kvMap) {
+        put(k, v) && done
+      }
+      done
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error("DistributedCache Write Failure", e)
+        false
+    }
+  }
+
 
   def put[T](kv: List[(String, T)])(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
@@ -101,6 +116,4 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
   override def exists(key: String): Boolean = cacheStorageBucket.get(StringDocument.create(key)) != null
 
   override def flush(): Unit = ???
-
-
 }

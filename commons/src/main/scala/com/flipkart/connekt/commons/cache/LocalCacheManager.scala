@@ -51,6 +51,8 @@ class LocalCaches(val cacheName: LocalCacheType.Value, props: CacheProperty) ext
     }
   }
 
+  override def multiPut[T](map: Predef.Map[String, T])(implicit cTag: ClassManifest[T]): Boolean = ???
+
   override def get[T](key: String)(implicit cTag: reflect.ClassTag[T]): Option[T] = {
     cache.getIfPresent(key) match {
       case x: Any => Option(x.asInstanceOf[T])
@@ -82,6 +84,5 @@ class LocalCaches(val cacheName: LocalCacheType.Value, props: CacheProperty) ext
   def remove(key: String) {
     cache.invalidate(key)
   }
-
 }
 

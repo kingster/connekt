@@ -13,6 +13,8 @@ abstract class Caches {
 
   def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean
 
+  def multiPut[T](kv: scala.collection.immutable.Map[String, T])(implicit cTag: reflect.ClassTag[T]): Boolean
+
   def get[T](key: String)(implicit cTag: reflect.ClassTag[T]): Option[T]
 
   def remove(key:String):Unit
