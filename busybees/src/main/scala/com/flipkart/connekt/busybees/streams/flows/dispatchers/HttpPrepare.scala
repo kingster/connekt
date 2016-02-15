@@ -46,6 +46,7 @@ class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.coll
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush :: Error", e)
+          pull(in)
       }
     })
 

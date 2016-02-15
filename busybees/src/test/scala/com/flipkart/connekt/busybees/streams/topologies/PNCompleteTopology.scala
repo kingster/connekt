@@ -6,17 +6,16 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ClosedShape
+import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, HttpPrepare}
-import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter}
+import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.commons.entities.{Credentials, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNRequestInfo}
 import com.flipkart.connekt.commons.services.{CredentialManager, DeviceDetailsService}
-import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
-import akka.stream.scaladsl.GraphDSL.Implicits._
 
 import scala.util.Try
 

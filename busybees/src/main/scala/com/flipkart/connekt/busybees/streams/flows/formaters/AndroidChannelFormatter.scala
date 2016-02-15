@@ -40,6 +40,7 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
       }catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
+          pull(in)
       }
     })
 

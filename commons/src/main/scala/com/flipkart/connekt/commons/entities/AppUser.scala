@@ -40,6 +40,16 @@ class AppUser {
     this.lastUpdatedTs = lastUpdatedTs
     this.updatedBy = updatedBy
   }
+
+  def this(userId: String,
+           apiKey: String,
+           groups: String
+           ) {
+    this()
+    this.userId = userId
+    this.apiKey = apiKey
+    this.groups = groups
+  }
   
   def canEqual(other: Any): Boolean = other.isInstanceOf[AppUser]
 

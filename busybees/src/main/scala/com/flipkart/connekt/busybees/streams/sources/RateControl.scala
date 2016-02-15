@@ -38,6 +38,7 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"RateControl:: onPush :: Error", e)
+          pull(in)
       }
     })
 

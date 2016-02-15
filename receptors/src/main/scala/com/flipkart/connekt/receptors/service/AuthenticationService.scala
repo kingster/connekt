@@ -19,9 +19,8 @@ object AuthenticationService extends Instrumented {
     //if transient token present
     TokenService.get(apiKey) match {
       case Some(userId) =>
-        DaoFactory.getUserInfoDao.getUserInfo(userId)
+        DaoFactory.getUserInfoDao.getUserInfo(userId).orElse(Option(new AppUser(userId,apiKey,"")))
       case None =>
-        //TODO: Use cache
         DaoFactory.getUserInfoDao.getUserByKey(apiKey)
     }
   }
