@@ -3,7 +3,7 @@ package com.flipkart.connekt.receptors.routes
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
-import com.flipkart.connekt.receptors.routes.Stencils.StencilsRoute
+import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 import com.flipkart.connekt.receptors.routes.callbacks.CallbackRoute
 import com.flipkart.connekt.receptors.routes.common.{ClientRoute, LdapAuthRoute}
 import com.flipkart.connekt.receptors.routes.push.{FetchRoute, RegistrationRoute, SendRoute}
