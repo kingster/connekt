@@ -1,4 +1,4 @@
-package com.flipkart.connekt.receptors.routes.Stencils
+package com.flipkart.connekt.receptors.routes.stencils
 
 import java.util.Date
 
