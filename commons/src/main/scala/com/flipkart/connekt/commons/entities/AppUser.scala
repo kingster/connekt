@@ -22,6 +22,9 @@ class AppUser {
   @Column(name = "groups")
   var groups: String = _
 
+  @Column(name = "contact")
+  var contact: String = _
+
   @Column(name = "lastUpdatedTS")
   var lastUpdatedTs: Date = new Date(System.currentTimeMillis())
 
@@ -31,16 +34,18 @@ class AppUser {
   def this(userId: String,
            apiKey: String,
            groups: String,
+           contact: String,
            lastUpdatedTs: Date,
            updatedBy: String) {
     this()
     this.userId = userId
     this.apiKey = apiKey
     this.groups = groups
+    this.contact = contact
     this.lastUpdatedTs = lastUpdatedTs
     this.updatedBy = updatedBy
   }
-  
+
   def canEqual(other: Any): Boolean = other.isInstanceOf[AppUser]
 
   override def equals(other: Any): Boolean = other match {

@@ -17,6 +17,7 @@ object LocalCacheManager extends CacheManager {
 
   cacheTTLMap += LocalCacheType.Default -> CacheProperty(100, 1.hour)
   cacheTTLMap += LocalCacheType.ResourcePriv -> CacheProperty(500, 10.hour)
+  cacheTTLMap += LocalCacheType.UserConfiguration -> CacheProperty(1000, 24.hour)
 
   private var cacheStorage = concurrent.TrieMap[LocalCacheType.Value, Caches]()
 

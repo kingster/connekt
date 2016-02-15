@@ -7,10 +7,10 @@ import org.scalatest.Ignore
 /**
  * @author aman.shrivastava on 10/12/15.
  */
-class CallbackTest extends BaseRouteTest {
+class CallbackRouteTest extends BaseRouteTest {
 
   "Callback Test " should "return Ok" in {
-    val callbackRoute = new Callback().callback
+    val callbackRoute = new CallbackRoute().callback
     val payload =
       """
         |{

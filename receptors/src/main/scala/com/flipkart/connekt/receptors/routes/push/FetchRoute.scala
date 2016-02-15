@@ -16,7 +16,7 @@ import scala.util.Try
  * @author durga.s
  * @version 1/14/16
  */
-class Fetch(implicit user: AppUser) extends BaseHandler {
+class FetchRoute(implicit user: AppUser) extends BaseHandler {
 
   val fetch =
     pathPrefix("v1") {

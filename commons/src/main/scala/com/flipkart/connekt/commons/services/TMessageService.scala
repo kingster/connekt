@@ -2,6 +2,7 @@ package com.flipkart.connekt.commons.services
 
 import java.util.UUID
 
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ConnektRequest}
 
 import scala.util.Try
@@ -13,9 +14,17 @@ import scala.util.Try
  * @version 12/8/15
  */
 trait TMessageService extends TService {
+
   protected def generateId: String = UUID.randomUUID().toString
+
+  def getRequestBucket(request: ConnektRequest, client:AppUser):String
+
   def persistRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean = true): Try[String]
+
   protected def enqueueRequest(request: ConnektRequest, requestBucket: String)
+
   def getRequestInfo(id: String): Try[Option[ConnektRequest]]
+
   def updateRequestStatus(id: String, channelStatus: ChannelRequestData): Try[String]
+
 }

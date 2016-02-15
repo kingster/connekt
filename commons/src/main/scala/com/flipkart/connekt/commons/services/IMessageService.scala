@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.dao.TRequestDao
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducer}
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ConnektRequest}
@@ -59,5 +60,9 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
         ConnektLogger(LogFile.SERVICE).error(s"Update request $id, ${e.getMessage}", e)
         Failure(e)
     }
+  }
+
+  override def getRequestBucket(request: ConnektRequest, client: AppUser): String = {
+    s"connekt-${request.channel}"
   }
 }
