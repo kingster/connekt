@@ -3,7 +3,7 @@
 function usage() {
     echo "USAGE: fk-git-promote <options>"
     echo -e "\nOPTIONS:"
-	echo -e "\t-e <env>\n\t\tEnvironment (nm/stage/qa/eng/stagech); required"
+	echo -e "\t-e <env>\n\t\tEnvironment (nm/stage/qa/eng/stagech/cidqa); required"
 	echo -e "\t-n \n\t\tBuild, don't deploy; optional"
         echo -e "\t-l \n\t\tBuild, no push ; optional"
 	echo -e "\t-N \n\t\tDon't trigger build; optional"
