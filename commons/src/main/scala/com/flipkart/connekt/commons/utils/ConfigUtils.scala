@@ -24,4 +24,10 @@ object ConfigUtils {
     def getValueOrElse[T](key: String, default: T): T =
       c.getOrElse(emptyConf).getOrElse[T](key, default)
   }
+
+  def getConfEnvironment = getSystemEnv("CONNEKT_ENV").getOrElse("local")
+
+  def getSystemEnv(name:String) = Option(System.getenv(name))
+
+  def getSystemProperty(name:String) = Option(System.getProperty(name))
 }

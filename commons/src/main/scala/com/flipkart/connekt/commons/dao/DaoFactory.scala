@@ -54,8 +54,9 @@ object DaoFactory {
       connectionProvider
     )
 
-    daoMap += DaoType.USERINFO -> UserInfo("USER_INFO", mysqlFactoryWrapper)
-    daoMap += DaoType.PRIVILEDGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
+    daoMap += DaoType.USER_INFO -> UserInfoDao("USER_INFO", mysqlFactoryWrapper)
+    daoMap += DaoType.USER_CONFIG -> UserConfigurationDao("USER_CONFIG", mysqlFactoryWrapper)
+    daoMap += DaoType.PRIVILEGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
     daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", "STENCIL_HISTORY_STORE", "BUCKET_REGISTRY", mysqlFactoryWrapper)
   }
 
@@ -92,9 +93,11 @@ object DaoFactory {
 
   def getEmailCallbackDao: EmailCallbackDao = daoMap(DaoType.CALLBACK_EMAIL).asInstanceOf[EmailCallbackDao]
 
-  def getPrivDao: PrivDao = daoMap(DaoType.PRIVILEDGE).asInstanceOf[PrivDao]
+  def getPrivDao: PrivDao = daoMap(DaoType.PRIVILEGE).asInstanceOf[PrivDao]
 
-  def getUserInfoDao: UserInfo = daoMap(DaoType.USERINFO).asInstanceOf[UserInfo]
+  def getUserInfoDao: TUserInfo = daoMap(DaoType.USER_INFO).asInstanceOf[UserInfoDao]
+
+  def getUserConfigurationDao: TUserConfiguration = daoMap(DaoType.USER_CONFIG).asInstanceOf[UserConfigurationDao]
 
   def getStencilDao: TStencilDao = daoMap(DaoType.STENCIL).asInstanceOf[StencilDao]
 
@@ -106,8 +109,9 @@ object DaoType extends Enumeration {
   PN_REQUEST_INFO,
   CALLBACK_EMAIL,
   CALLBACK_PN,
-  PRIVILEDGE,
-  USERINFO,
+  PRIVILEGE,
+  USER_INFO,
+  USER_CONFIG,
   STENCIL = Value
 }
 

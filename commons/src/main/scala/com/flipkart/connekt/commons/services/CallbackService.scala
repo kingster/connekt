@@ -4,6 +4,8 @@ import com.flipkart.connekt.commons.dao._
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
 import org.apache.commons.lang.RandomStringUtils
 
 import scala.util.{Failure, Success, Try}
@@ -14,7 +16,7 @@ import scala.util.{Failure, Success, Try}
  * @author durga.s
  * @version 12/9/15
  */
-class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService {
+class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService with Instrumented{
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
@@ -26,6 +28,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
     case Channel.EMAIL => emailRequestDao
   }
 
+  @Timed("persistCallbackEvent")
   override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
     Try {
       channelEventsDao(channel).saveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
@@ -34,6 +37,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
     }
   }
 
+  @Timed("fetchCallbackEvent")
   override def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
     Try {
       channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None)
@@ -42,6 +46,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
 
   private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 
+  @Timed("fetchCallbackEventByContactId")
   def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
     Try {
       channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(minTimestamp, maxTimestamp)))
@@ -54,6 +59,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
    * @param channel
    * @return Map ( DeviceId -> List[Events] )
    */
+  @Timed("fetchCallbackEventByMId")
   def fetchCallbackEventByMId(messageId: String, channel: Channel.Value): Try[Map[String, List[CallbackEvent]]] = {
     Try{
       val events = requestDao(channel).fetchRequestInfo(messageId)
@@ -66,6 +72,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
     }
   }
 
+  @Timed("fetchEventsMapForContactId")
   override def fetchEventsMapForContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]] = {
     Try {
       val eventList = fetchCallbackEventByContactId(contactId, channel, minTimestamp, maxTimestamp)

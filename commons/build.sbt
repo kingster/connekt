@@ -13,7 +13,23 @@ envKey := {
 }
 
 
+/** all akka only **/
 libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-stream" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-core" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-experimental" % "2.4.2-RC2" withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-testkit-experimental" % "2.4.2-RC2" % Test withSources() withJavadoc()
+)
+
+libraryDependencies ++= Seq(
+  /* logging using logback */
+  "ch.qos.logback" % "logback-core" % "1.1.3",
+  "ch.qos.logback" % "logback-classic" % "1.1.3",
+  "com.lmax" % "disruptor" % "3.3.2",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
+  "org.slf4j" % "slf4j-api" % "1.7.7",
+  /* logging dependency ends here */
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
@@ -56,14 +72,7 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "commons-beanutils")
     ),
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
-  "ch.qos.logback" % "logback-core" % "1.1.3",
-  "ch.qos.logback" % "logback-classic" % "1.1.3",
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
-  "com.typesafe.akka" % "akka-actor_2.11" % "2.4.0",
-  "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1",
-  "com.typesafe.akka" % "akka-http-core-experimental_2.11" % "2.0-M1",
-  "com.typesafe.akka" % "akka-http-experimental_2.11" % "2.0-M1",
   "com.lmax" % "disruptor" % "3.3.2",
   "commons-lang" % "commons-lang" % "2.6",
   "commons-pool" % "commons-pool" % "1.6",
@@ -77,12 +86,13 @@ libraryDependencies ++= Seq(
   "org.codehaus.groovy" % "groovy-all" % "2.4.5",
   "com.roundeights" %% "hasher" % "1.2.0",
   "com.couchbase.client" % "java-client" % "2.1.3",
-  "com.google.guava" % "guava" % "18.0",
   "io.reactivex" %% "rxscala" % "0.26.0",
   "org.apache.curator" % "curator-recipes" % "2.9.1",
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" changing()
+  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT",
+  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT",
+  "com.flipkart" %% "espion" % "1.0.0"
 )
 
 

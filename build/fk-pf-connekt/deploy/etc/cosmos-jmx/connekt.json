@@ -1,0 +1,16 @@
+{
+  "servers": [
+    {
+      "port": "28005",
+      "host" : "_HOSTNAME_",
+      "process": "connekt",
+      "queries": [
+        {
+          "obj" : "fk.metrics:name=*",
+          "saperator" : "."
+        }
+      ],
+      "numQueryThreads": 2
+    }
+  ]
+}

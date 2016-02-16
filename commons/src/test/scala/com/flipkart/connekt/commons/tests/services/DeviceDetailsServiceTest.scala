@@ -25,27 +25,27 @@ class DeviceDetailsServiceTest extends CommonsBaseTest {
 
   "DeviceDetails Service" should "get device by deviceId" in {
     val device = DeviceDetailsService.get(appName, deviceId)
-    device.get.deviceId shouldEqual deviceId
+    device.get.get.deviceId shouldEqual deviceId
   }
 
   "DeviceDetails Service" should "get list of devices by userId" in {
     val deviceList = DeviceDetailsService.getByUserId(appName, accountId)
-    deviceList.length shouldEqual 1
+    deviceList.get.length shouldEqual 1
   }
 
   "DeviceDetails Service" should "get list of devices by token Id" in {
     val device = DeviceDetailsService.getByTokenId(appName, tokenId).get
-    device.deviceId shouldEqual deviceId
+    device.get.deviceId shouldEqual deviceId
   }
 
   "DeviceDetails Service" should "update account" in {
-    DeviceDetailsService.get(appName, deviceId).get.userId shouldEqual accountId
+    DeviceDetailsService.get(appName, deviceId).get.get.userId shouldEqual accountId
     val updatedAccountId: String = "ACC1-" + UUID.randomUUID().toString.take(5)
     val updatedDevice = DeviceDetails(deviceId, userId = updatedAccountId, token = tokenId, "osName",
       "osVersion", appName, "appVersion", "brand", "model")
     DeviceDetailsService.update(deviceId, updatedDevice)
     val newUpdatedDevice = DeviceDetailsService.get(appName, deviceId).get
-    newUpdatedDevice.userId shouldEqual updatedAccountId
+    newUpdatedDevice.get.userId shouldEqual updatedAccountId
   }
 
   "DeviceDetails Service" should "delete Account" in {

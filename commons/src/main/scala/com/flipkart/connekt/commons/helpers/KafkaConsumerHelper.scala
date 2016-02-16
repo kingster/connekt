@@ -82,14 +82,13 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
 object KafkaConsumerHelper extends KafkaConsumer {
 
   var instance: KafkaConsumerHelper = null
+  var zkPath: String = null
 
-  def apply(consumerConfig: Config, globalContextConf: Config) =
-    new KafkaConsumerHelper(consumerConfig, globalContextConf)
-
-  def init(consumerConfig: Config, globalContextConf: Config) = {
-    if (null != instance)
+  def apply(consumerConfig: Config, globalContextConf: Config) = {
+    if (null == instance)
       this.synchronized {
-        instance = KafkaConsumerHelper(consumerConfig, globalContextConf)
+        instance = new KafkaConsumerHelper(consumerConfig, globalContextConf)
+        zkPath = consumerConfig.getString("zookeeper.connect")
       }
     instance
   }

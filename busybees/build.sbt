@@ -3,19 +3,27 @@ name := "busybees"
 version := "0.1"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" % "akka-actor_2.11" % "2.4.0",
-  "com.typesafe.akka" % "akka-stream-experimental_2.11" % "2.0-M1",
-  "com.typesafe.akka" % "akka-http-core-experimental_2.11" % "2.0-M1",
-  "com.typesafe.akka" % "akka-http-experimental_2.11" % "2.0-M1",
   "org.igniterealtime.smack" % "smack-tcp" % "4.1.5",
   "org.igniterealtime.smack" % "smack-core" % "4.1.5",
-  "org.igniterealtime.smack" % "smack-extensions" % "4.1.5"
+  "org.igniterealtime.smack" % "smack-extensions" % "4.1.5",
+  "org.isomorphism" % "token-bucket" % "1.6",
+
+  /** apns using pushy **/
+  "com.relayrides" % "pushy" % "0.5.1",
+  "io.netty" % "netty-tcnative" % "1.1.33.Fork10" classifier "linux-x86_64",
+  "io.netty" % "netty-tcnative" % "1.1.33.Fork10" classifier "osx-x86_64",
+  "org.eclipse.jetty.alpn" % "alpn-api" % "1.1.2.v20150522"
+  /** pushy dependecy ends **/
 )
 
 
 test in assembly := {}
 
 parallelExecution in Test := false
+
+assemblyExcludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+  cp filter {_.data.getName == "netty-tcnative-1.1.33.Fork10-osx-x86_64.jar"}
+}
 
 
 assemblyMergeStrategy in assembly := AppBuild.mergeStrategy

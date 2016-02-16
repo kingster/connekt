@@ -50,6 +50,8 @@ class XMPPChannelHandler private (xmppConnection: XMPPTCPConnection)
         val x = m.getExtension(gcmMessageElement, gcmMessageNamespace).asInstanceOf[Element].toXML.toString
         val json = XML.loadString(x).text
         self ! json.getObj[XmppResponse]
+
+
       }
     }, new StanzaTypeFilter(classOf[Stanza]))
 

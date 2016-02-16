@@ -22,7 +22,7 @@ object ServiceFactory {
     serviceCache += ServiceType.CALLBACK ->  new CallbackService(pnCallbackDao,emailCallbackDao, requestInfoDao, emailRequestDao)
   }
 
-  def initAuthorisationService(priv: PrivDao, userInfo: UserInfo) = {
+  def initAuthorisationService(priv: PrivDao, userInfo: TUserInfo) = {
     serviceCache += ServiceType.AUTHORISATION -> new AuthorisationService(priv,userInfo)
   }
 

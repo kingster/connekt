@@ -3,29 +3,32 @@ package com.flipkart.connekt.receptors.routes
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
-import com.flipkart.connekt.receptors.routes.Stencils.StencilsRoute
-import com.flipkart.connekt.receptors.routes.callbacks.Callback
-import com.flipkart.connekt.receptors.routes.push.{Fetch, LdapAuthentication, Registration, Unicast}
-import com.flipkart.connekt.receptors.routes.reports.Reports
+import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
+import com.flipkart.connekt.receptors.routes.callbacks.CallbackRoute
+import com.flipkart.connekt.receptors.routes.common.{ClientRoute, LdapAuthRoute}
+import com.flipkart.connekt.receptors.routes.push.{FetchRoute, RegistrationRoute, SendRoute}
+import com.flipkart.connekt.receptors.routes.reports.ReportsRoute
+import com.flipkart.connekt.receptors.routes.status.SystemStatus
 
 /**
  * Created by kinshuk.bairagi on 10/12/15.
  */
 class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
 
-  def allRoutes = authenticate {
+  val healthReqHandler = new SystemStatus().route
+  val ldapRoute = new LdapAuthRoute().route
+
+  def allRoutes = healthReqHandler ~ ldapRoute ~ authenticate {
     implicit user => {
-
-      val receptorReqHandler = new Registration().register
-      val unicastHandler = new Unicast().unicast
-      val callbackHandler = new Callback().callback
-      val reportsRoute = new Reports().route
-      val fetchRoute = new Fetch().fetch
+      val receptorReqHandler = new RegistrationRoute().register
+      val unicastHandler = new SendRoute().route
+      val callbackHandler = new CallbackRoute().callback
+      val reportsRoute = new ReportsRoute().route
+      val fetchRoute = new FetchRoute().fetch
       val stencilRoute = new StencilsRoute().stencils
-      val ldapRoute = new LdapAuthentication().token
+      val clientRoute = new ClientRoute().route
 
-      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ ldapRoute
+      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ clientRoute
     }
   }
-
 }

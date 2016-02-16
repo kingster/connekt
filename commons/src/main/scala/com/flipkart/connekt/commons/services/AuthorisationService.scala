@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
-import com.flipkart.connekt.commons.dao.{PrivDao, UserInfo}
+import com.flipkart.connekt.commons.dao.{TUserInfo, PrivDao}
 import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.entities.{ResourcePriv, UserType}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -12,7 +12,7 @@ import scala.util.{Failure, Success, Try}
  * @author aman.shrivastava on 12/12/15.
  */
 
-class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAuthorisationService {
+class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAuthorisationService {
 
   private lazy val globalPrivileges = {
     read("*", UserType.GLOBAL) match {
@@ -54,13 +54,13 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     read(userName, UserType.USER).map(_.resources.split(',').toList).getOrElse(List())
   }
 
-  override def isAuthorized(resource: String, username: String): Try[Boolean] = {
+  override def isAuthorized(username: String, resource: String*): Try[Boolean] = {
     try {
       val userPrivs = getUserPrivileges(username)
       val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).get.flatMap(getGroupPrivileges)
       val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
 
-      Success(allowedPrivileges.contains(resource))
+      Success(allowedPrivileges.intersect(resource.toSet[String].map(_.toUpperCase)).nonEmpty)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$username] info: ${e.getMessage}", e)
@@ -72,7 +72,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.removePrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success()
+      Success(Unit)
     } catch {
       case e: Exception =>
         Failure(e)
@@ -83,7 +83,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAut
     try {
       privDao.addPrivileges(userId, userType, resources)
       removeCache(userId, userType)
-      Success()
+      Success(Unit)
     } catch {
       case e: Exception =>
         Failure(e)
