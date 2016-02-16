@@ -90,28 +90,15 @@ object DeviceDetailsService extends Instrumented {
     }
   }
 
-  //TODO : Change with underlying mget implementation
-  //Per our usage changing it to return only a list of deviceDetails found, since, biz wants us to send
-  //it to as many devices we find.
   @Timed("mget")
-  def mget(appName: String, deviceIds: List[String]): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.mget Failed") {
-    var cacheHits = ListBuffer[DeviceDetails]()
-    var cacheHitIds = ListBuffer[String]()
-    var cacheMissedIds = ListBuffer[String]()
-    deviceIds.foreach(id => {
-      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](cacheKey(appName, id)) match {
-        case None => cacheMissedIds += id
-        case Some(device: DeviceDetails) => {
-          cacheHitIds += id
-          cacheHits += device
-        }
-        case _ =>
-      }
-    })
-    val cacheMiss = ListBuffer[DeviceDetails]()
-    cacheMiss ++= dao.getDevices(appName, cacheMissedIds.toList)
-    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).multiPut[DeviceDetails](getDeviceMap(appName, cacheMiss.toList))
-    (cacheMiss ++ cacheHits).toList
+  def get(appName: String, deviceIds: List[String]): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.mget Failed") {
+    val cacheHitsDevices = DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](deviceIds)
+
+    val cacheMissedIds = deviceIds.diff(cacheHitsDevices.keySet.toList)
+    val cacheMissDevices = dao.get(appName, cacheMissedIds)
+
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheMissDevices.map(device => (cacheKey(appName, device.deviceId), device)))
+    cacheMissDevices ++ cacheHitsDevices.values
   }
 
 
@@ -125,11 +112,5 @@ object DeviceDetailsService extends Instrumented {
   }
 
   private def cacheKey(appName: String, id: String): String = appName + "_" + id
-
-  private def getDeviceMap(appName: String, deviceDetails: List[DeviceDetails]): Map[String, DeviceDetails] = {
-    val deviceTupleList = for (device <- deviceDetails) yield (cacheKey(appName, device.deviceId), device)
-    deviceTupleList.groupBy(_._1).mapValues(_.map(_._2)).asInstanceOf[Map[String, DeviceDetails]]
-  }
-
 
 }

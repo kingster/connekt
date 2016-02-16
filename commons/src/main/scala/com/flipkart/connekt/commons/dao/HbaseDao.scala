@@ -116,12 +116,12 @@ trait HbaseDao {
     rowKeys.map(rowKey => {
       val get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
       colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
-      gets :+ get
+      gets += get
     })
     val rowResults = hTableInterface.get(gets.toList.asJava)
-    val rowMap = Map[String,RowData]()
+    var rowMap = Map[String,RowData]()
     for (result <- rowResults) {
-      rowMap + (result.getRow.getString -> getRowData(result, colFamilies))
+      rowMap += result.getRow.getString -> getRowData(result, colFamilies)
     }
     rowMap
   }

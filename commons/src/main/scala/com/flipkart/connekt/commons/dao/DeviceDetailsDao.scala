@@ -88,7 +88,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     try {
       val colFamiliesReqd = List("p", "a")
       val rawData = fetchRow(getRowKey(appName, deviceId), colFamiliesReqd)
-      getDevice(rawData)
+      extractDeviceDetails(rawData)
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceId, ${e.getMessage}")
@@ -98,13 +98,12 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     }
   }
 
-  @Timed("getDevices")
-  def getDevices(appName: String, deviceIds: List[String]): List[DeviceDetails] = {
+  @Timed("mget")
+  def get(appName: String, deviceIds: List[String]): List[DeviceDetails] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("p", "a")
-      fetchMultiRows(deviceIds.map(getRowKey(appName, _)), colFamiliesReqd).values.map(getDevice(_).get).toList
-      //.filter(getDevice(_).isDefined)  TODO: check if rowData fails
+      fetchMultiRows(deviceIds.map(getRowKey(appName, _)), colFamiliesReqd).values.map(extractDeviceDetails(_).get).toList
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceIds, ${e.getMessage}")
@@ -188,7 +187,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     hTableConnFactory.releaseTableInterface(hTableInterface)
   }
 
-  private def getDevice(data: RowData): Option[DeviceDetails] = {
+  private def extractDeviceDetails(data: RowData): Option[DeviceDetails] = {
     val devRegProps = data.get("p")
     val devMetaProps = data.get("a")
     val allProps = devRegProps.flatMap[Map[String, Array[Byte]]](r => devMetaProps.map[Map[String, Array[Byte]]](m => m ++ r))

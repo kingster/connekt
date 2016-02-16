@@ -96,34 +96,21 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
     try {
       val result = fetchRow(rowKey, List[String]("p", "a"))
-
       println("result for [%s] is :\n%s".format(rowKey, result.toString()))
     } finally {
       hConnectionHelper.releaseTableInterface(h)
     }
   }
 
-  //  "Multi get operation for a row" should "not throw IOException" in {
-  //    implicit val h = hConnectionHelper.getTableInterface(tblName)
-  //    try {
-  //      val rowKey = UUID.randomUUID().toString
-  //      val data = Map[String, Array[Byte]](
-  //        "deviceId" -> "0b6dc5db9fd9f664438f4f9ea03e53d7".getBytes(CharEncoding.UTF_8),
-  //        "make" -> "Motorola".getBytes(CharEncoding.UTF_8),
-  //        "osVersion" -> "4.4.4".getBytes(CharEncoding.UTF_8),
-  //        "app" -> "Retail".getBytes(CharEncoding.UTF_8),
-  //        "platform" -> "Android".getBytes(CharEncoding.UTF_8),
-  //        "deviceId" -> "0b6dc5db9fd9f664438f4f9ea03e53d7".getBytes(CharEncoding.UTF_8)
-  //      )
-  //
-  //      addRow(rowKey, Map[String, Map[String, Array[Byte]]]("p" -> data))
-  //      val device = fetchMultiRows(List(rowKey), List("p")).head
-  //      println("result for [%s] is :\n%s".format(rowKey, device.toString()))
-  //
-  //      println("inserted hbase table row: %s".format(data.toString()))
-  //    } finally {
-  //      hConnectionHelper.releaseTableInterface(h)
-  //    }
-  //  }
+  "Get multi operation for a row" should "throw no IOException" in {
+    implicit val h = hConnectionHelper.getTableInterface(tblName)
+
+    try {
+      val result = fetchMultiRows(List(rowKey), List[String]("p", "a"))
+      println("result for [%s] is :\n%s".format(rowKey, result(rowKey).toString()))
+    } finally {
+      hConnectionHelper.releaseTableInterface(h)
+    }
+  }
 
 }

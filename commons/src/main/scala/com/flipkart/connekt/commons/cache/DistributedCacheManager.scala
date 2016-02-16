@@ -67,21 +67,6 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     }
   }
 
-  override def multiPut[T](kvMap: scala.collection.immutable.Map[String, T])(implicit cTag: ClassManifest[T]): Boolean = {
-    try {
-      var done = true
-      for ((k, v) <- kvMap) {
-        put(k, v) && done
-      }
-      done
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.SERVICE).error("DistributedCache Write Failure", e)
-        false
-    }
-  }
-
-
   def put[T](kv: List[(String, T)])(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
       val documents = kv.map(doc => StringDocument.create(doc._1, props.ttl.toSeconds.toInt, doc._2.asInstanceOf[AnyRef].getJson))
@@ -105,6 +90,7 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     }
   }
 
+
   def remove(key: String) {
     try {
       cacheStorageBucket.remove(StringDocument.create(key))
@@ -116,4 +102,16 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
   override def exists(key: String): Boolean = cacheStorageBucket.get(StringDocument.create(key)) != null
 
   override def flush(): Unit = ???
+
+  override def get[T](keys: List[String])(implicit cTag: reflect.ClassTag[T]): Predef.Map[String, T] = {
+    try {
+      Observable.from(keys).flatMap(key => {
+        rx.lang.scala.JavaConversions.toScalaObservable(cacheStorageBucket.async().get(StringDocument.create(key))).filter(_ != null).map(d => key -> d.content().getObj[T])
+      }).toList.toBlocking.single.toMap
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error("DistributedCache multi get Failure", e)
+        Predef.Map[String, T]()
+    }
+  }
 }

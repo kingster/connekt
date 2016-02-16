@@ -38,6 +38,18 @@ class DeviceDetailsServiceTest extends CommonsBaseTest {
     device.get.deviceId shouldEqual deviceId
   }
 
+  "DeviceDetails Service" should "get list of devices for given list of deviceIds" in {
+    DeviceDetailsService.get(appName, List(deviceId)).get.head.deviceId shouldEqual deviceId
+  }
+
+  "DeviceDetails Service" should "get one device from cache, another from datastore" in {
+    val deviceId1: String = UUID.randomUUID().toString
+    val device1 = DeviceDetails(deviceId1, userId = accountId, token = tokenId, "osName", "osVersion", appName, "appVersion", "brand", "model")
+    DeviceDetailsService.get(appName, List(deviceId)).get.head.deviceId shouldEqual deviceId
+    noException should be thrownBy DeviceDetailsService.add(device1)
+    DeviceDetailsService.get(appName, List(deviceId, deviceId1)).get.size shouldEqual 2
+  }
+
   "DeviceDetails Service" should "update account" in {
     DeviceDetailsService.get(appName, deviceId).get.get.userId shouldEqual accountId
     val updatedAccountId: String = "ACC1-" + UUID.randomUUID().toString.take(5)
@@ -48,9 +60,9 @@ class DeviceDetailsServiceTest extends CommonsBaseTest {
     newUpdatedDevice.get.userId shouldEqual updatedAccountId
   }
 
-  "DeviceDetails Service" should "delete Account" in {
-    noException should be thrownBy DeviceDetailsService.delete(appName, deviceId)
-    DeviceDetailsService.get(appName, deviceId) shouldEqual None
-  }
+//  "DeviceDetails Service" should "delete Account" in {
+//    noException should be thrownBy DeviceDetailsService.delete(appName, deviceId)
+//    DeviceDetailsService.get(appName, deviceId) shouldEqual None
+//  }
 
 }
