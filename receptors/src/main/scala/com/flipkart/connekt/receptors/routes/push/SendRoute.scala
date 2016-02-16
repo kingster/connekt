@@ -37,7 +37,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
 
                 appPlatform match {
                   case MobilePlatform.UNKNOWN =>
-                    val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).groupBy(_.osName).mapValues(_.map(_.deviceId))
+                    val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
                     groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
                       platform -> multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
                     }.values

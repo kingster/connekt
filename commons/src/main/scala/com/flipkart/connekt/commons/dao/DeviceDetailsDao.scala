@@ -3,6 +3,7 @@ package com.flipkart.connekt.commons.dao
 import java.io.IOException
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
+import com.flipkart.connekt.commons.dao.HbaseDao.RowData
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.metrics.Instrumented
@@ -18,7 +19,7 @@ import com.roundeights.hasher.Implicits._
  * @author durga.s
  * @version 11/23/15
  */
-class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends Dao with HbaseDao with Instrumented{
+class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends Dao with HbaseDao with Instrumented {
   val hTableConnFactory = hTableFactory
 
   val hTableName = tableName
@@ -87,36 +88,26 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     try {
       val colFamiliesReqd = List("p", "a")
       val rawData = fetchRow(getRowKey(appName, deviceId), colFamiliesReqd)
-
-      val devRegProps = rawData.get("p")
-      val devMetaProps = rawData.get("a")
-
-      val allProps = devRegProps.flatMap[Map[String, Array[Byte]]](r => devMetaProps.map[Map[String, Array[Byte]]](m => m ++ r))
-
-      allProps.map(fields => {
-
-        def get(key: String) = fields.get(key).map(v => v.getString).orNull
-        def getNullableString(key: String) = fields.get(key).map(v => v.getStringNullable).orNull
-
-        DeviceDetails(
-          deviceId = get("deviceId"),
-          userId = getNullableString("userId"),
-          token = get("token"),
-          osName = get("osName"),
-          osVersion = getNullableString("osVersion"),
-          appName = get("appName"),
-          appVersion = get("appVersion"),
-          brand = getNullableString("brand"),
-          model = getNullableString("model"),
-          state = getNullableString("state")
-        )
-
-      })
-
+      extractDeviceDetails(rawData)
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceId, ${e.getMessage}")
         throw new IOException("Fetching DeviceDetails failed for %s".format(deviceId), e)
+    } finally {
+      hTableConnFactory.releaseTableInterface(hTableInterface)
+    }
+  }
+
+  @Timed("mget")
+  def get(appName: String, deviceIds: List[String]): List[DeviceDetails] = {
+    implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
+    try {
+      val colFamiliesReqd = List("p", "a")
+      fetchMultiRows(deviceIds.map(getRowKey(appName, _)), colFamiliesReqd).values.map(extractDeviceDetails(_).get).toList
+    } catch {
+      case e: IOException =>
+        ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceIds, ${e.getMessage}")
+        throw new IOException("Fetching DeviceDetails failed for %s".format(deviceIds), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }
@@ -194,6 +185,30 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     val rowKey = getUserIndexRowKey(appName, deviceId, userId)
     removeRow(rowKey)
     hTableConnFactory.releaseTableInterface(hTableInterface)
+  }
+
+  private def extractDeviceDetails(data: RowData): Option[DeviceDetails] = {
+    val devRegProps = data.get("p")
+    val devMetaProps = data.get("a")
+    val allProps = devRegProps.flatMap[Map[String, Array[Byte]]](r => devMetaProps.map[Map[String, Array[Byte]]](m => m ++ r))
+    allProps.map(fields => {
+
+      def get(key: String) = fields.get(key).map(v => v.getString).orNull
+      def getNullableString(key: String) = fields.get(key).map(v => v.getStringNullable).orNull
+
+      DeviceDetails(
+        deviceId = get("deviceId"),
+        userId = getNullableString("userId"),
+        token = get("token"),
+        osName = get("osName"),
+        osVersion = getNullableString("osVersion"),
+        appName = get("appName"),
+        appVersion = get("appVersion"),
+        brand = getNullableString("brand"),
+        model = getNullableString("model"),
+        state = getNullableString("state")
+      )
+    })
   }
 
 
