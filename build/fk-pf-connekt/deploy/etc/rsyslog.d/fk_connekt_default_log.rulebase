@@ -1,1 +1,4 @@
 rule=fk_connekt_default_logs:%timestamp:char-to:,%,%timetaken:char-to: % %infolevel:char-to: % [%thread:char-to:]%] %type:char-to: % [%filename:char-to:]%] %message:char-sep:\x25%
+
+# Error Logs with stacktrace
+rule=fk_connekt_error_logs:%exception-name:char-to::%:%error-message:char-to::%:%message:char-sep:\x25%
