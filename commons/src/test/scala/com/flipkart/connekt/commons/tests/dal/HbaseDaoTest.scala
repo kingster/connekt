@@ -16,7 +16,7 @@ import org.apache.commons.codec.CharEncoding
  * @author durga.s
  * @version 11/18/15
  */
-class HbaseDaoTest extends ConnektUTSpec with HbaseDao  {
+class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
   var hConnectionHelper = getHBaseConnHelper
   val tblName = "fk-connekt-proto"
@@ -31,7 +31,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao  {
 
     ConnektConfig(configHost = "10.47.0.101", configPort = 80)()
     val hConfProps = new Properties()
-    hConfProps.setProperty("hbase.zookeeper.quorum", ConnektConfig.getString("hbase.zookeeper.quorum").getOrElse("usercrm-zookeeper-qa-0001.nm.flipkart.com") )
+    hConfProps.setProperty("hbase.zookeeper.quorum", ConnektConfig.getString("hbase.zookeeper.quorum").getOrElse("usercrm-zookeeper-qa-0001.nm.flipkart.com"))
     hConfProps.setProperty("hbase.zookeeper.property.clientPort", "2181")
 
     val hConfig = ConfigFactory.parseProperties(hConfProps)
@@ -45,13 +45,13 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao  {
     try {
       val rowKey = UUID.randomUUID().toString
       val data = Map[String, Array[Byte]](
-        "deviceId" -> "0b6dc5db9fd9f664438f4f9ea03e53d7".getBytes(CharEncoding.UTF_8),
-        "make" -> "Motorola".getBytes(CharEncoding.UTF_8),
-        "osVersion" -> "4.4.4".getBytes(CharEncoding.UTF_8),
-        "app" -> "Retail".getBytes(CharEncoding.UTF_8),
-        "platform" -> "Android".getBytes(CharEncoding.UTF_8),
-        "deviceId" -> "0b6dc5db9fd9f664438f4f9ea03e53d7".getBytes(CharEncoding.UTF_8)
-      )
+          "deviceId" -> "0b6dc5db9fd9f664438f4f9ea03e53d7".getBytes(CharEncoding.UTF_8),
+          "make" -> "Motorola".getBytes(CharEncoding.UTF_8),
+          "osVersion" -> "4.4.4".getBytes(CharEncoding.UTF_8),
+          "app" -> "Retail".getBytes(CharEncoding.UTF_8),
+          "platform" -> "Android".getBytes(CharEncoding.UTF_8),
+          "deviceId" -> "0b6dc5db9fd9f664438f4f9ea03e53d7".getBytes(CharEncoding.UTF_8)
+        )
 
       addRow(rowKey, Map[String, Map[String, Array[Byte]]]("p" -> data))
 
@@ -83,7 +83,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao  {
         ("namespace", "ceryx".getBytes(CharEncoding.UTF_8))
       )
 
-      addRow( rowKey, Map[String, Map[String, Array[Byte]]]("p" -> dataPrimary, "a" -> dataAuxiliary))
+      addRow(rowKey, Map[String, Map[String, Array[Byte]]]("p" -> dataPrimary, "a" -> dataAuxiliary))
 
       println("inserted hbase table row:\np: %s \na: %s ".format(dataPrimary.toString(), dataAuxiliary.toString()))
     } finally {
@@ -95,11 +95,22 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao  {
     implicit val h = hConnectionHelper.getTableInterface(tblName)
 
     try {
-      val result = fetchRow( rowKey, List[String]("p", "a"))
-
+      val result = fetchRow(rowKey, List[String]("p", "a"))
       println("result for [%s] is :\n%s".format(rowKey, result.toString()))
     } finally {
       hConnectionHelper.releaseTableInterface(h)
     }
   }
+
+  "Get multi operation for a row" should "throw no IOException" in {
+    implicit val h = hConnectionHelper.getTableInterface(tblName)
+
+    try {
+      val result = fetchMultiRows(List(rowKey), List[String]("p", "a"))
+      println("result for [%s] is :\n%s".format(rowKey, result(rowKey).toString()))
+    } finally {
+      hConnectionHelper.releaseTableInterface(h)
+    }
+  }
+
 }

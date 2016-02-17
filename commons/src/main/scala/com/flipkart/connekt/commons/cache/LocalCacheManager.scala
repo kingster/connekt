@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.google.common.cache.{CacheBuilder, CacheStats}
 
+import scala.Predef
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 
@@ -84,5 +85,8 @@ class LocalCaches(val cacheName: LocalCacheType.Value, props: CacheProperty) ext
     cache.invalidate(key)
   }
 
+  override def get[T](keys: List[String])(implicit cTag: reflect.ClassTag[T]): Predef.Map[String, T] = ???
+
+  override def put[T](kv: List[(String, T)])(implicit cTag: reflect.ClassTag[T]): Boolean = ???
 }
 

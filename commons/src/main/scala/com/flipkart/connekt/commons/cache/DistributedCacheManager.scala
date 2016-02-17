@@ -6,6 +6,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import rx.lang.scala.Observable
 
+import scala.Predef
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 
@@ -57,7 +58,6 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
 
   override def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
-
       cacheStorageBucket.upsert(StringDocument.create(key, props.ttl.toSeconds.toInt, value.asInstanceOf[AnyRef].getJson))
       true
     } catch {
@@ -90,6 +90,7 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     }
   }
 
+
   def remove(key: String) {
     try {
       cacheStorageBucket.remove(StringDocument.create(key))
@@ -102,5 +103,15 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
 
   override def flush(): Unit = ???
 
-
+  override def get[T](keys: List[String])(implicit cTag: reflect.ClassTag[T]): Predef.Map[String, T] = {
+    try {
+      Observable.from(keys).flatMap(key => {
+        rx.lang.scala.JavaConversions.toScalaObservable(cacheStorageBucket.async().get(StringDocument.create(key))).filter(_ != null).map(d => key -> d.content().getObj[T])
+      }).toList.toBlocking.single.toMap
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error("DistributedCache multi get Failure", e)
+        Predef.Map[String, T]()
+    }
+  }
 }

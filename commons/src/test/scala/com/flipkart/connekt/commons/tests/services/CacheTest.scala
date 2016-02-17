@@ -76,8 +76,11 @@ class CacheTest extends CommonsBaseTest {
     d shouldEqual List("a", "b")
   }
 
-  "LocalCacheManager" should "insert int" in {
-    LocalCacheManager.getCache(LocalCacheType.Default).put[Int]("int", 1)
+  "Distributed CacheManger" should "write in batch" in {
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[String](List("a" -> "a", "b" ->"b")) shouldEqual true
+    val result = DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[String](List("a", "b"))
+    result.size shouldEqual 2
+    result("a") shouldEqual "a"
   }
 
   "LocalCacheManager" should "get int" in {

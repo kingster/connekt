@@ -46,6 +46,11 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
                   }
                 }
               }
+            } ~ delete {
+              authorize(user, "REGISTRATION") {
+                DeviceDetailsService.delete(appName, deviceId).get
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for ${deviceId}", null)))
+              }
             }
         } ~ path(Segment / "users" / Segment) {
           (appName: String, userId: String) =>
