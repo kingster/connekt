@@ -62,6 +62,8 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
     }
   }
 
+
+  //TODO: Make this proper
   override def getRequestBucket(request: ConnektRequest, client: AppUser): String = {
     s"fk-connekt-${request.channel.toLowerCase}"
   }
