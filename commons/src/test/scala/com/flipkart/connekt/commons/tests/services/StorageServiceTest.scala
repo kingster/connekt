@@ -19,7 +19,7 @@ class StorageServiceTest extends CommonsBaseTest {
 
   "Storage Service" should "get value for key" in {
     noException should be thrownBy ServiceFactory.getStorageService.get(keyData)
-    ServiceFactory.getStorageService.get(keyData).get shouldEqual keyValue.getBytes
+    ServiceFactory.getStorageService.get(keyData).get.get shouldEqual keyValue.getBytes
   }
 
 }

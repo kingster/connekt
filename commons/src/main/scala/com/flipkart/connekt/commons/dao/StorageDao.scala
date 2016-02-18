@@ -27,7 +27,7 @@ class StorageDao(table: String, mysqlFactory: MySQLFactory) extends TStorageDao 
     }
   }
 
-  override def put(data: DataStore): Boolean = {
+  override def put(data: DataStore): Unit = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
@@ -36,7 +36,6 @@ class StorageDao(table: String, mysqlFactory: MySQLFactory) extends TStorageDao 
       """.stripMargin
     try {
       update(q, data.key, data.`type`, data.value, data.creationTS, data.lastUpdatedTS, data.value, data.lastUpdatedTS)
-      true
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding data to data store for [${data.key}] info: ${e.getMessage}", e)

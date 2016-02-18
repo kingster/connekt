@@ -2,9 +2,12 @@ package com.flipkart.connekt.commons.services
 
 import java.util.Date
 
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.TStorageDao
 import com.flipkart.connekt.commons.entities.DataStore
 import com.flipkart.connekt.commons.metrics.Instrumented
+
+import scala.util.Try
 
 
 /**
@@ -20,15 +23,15 @@ class StorageService(dao: TStorageDao) extends TStorageService with Instrumented
   //    DaoFactory.getStorageDao.put(new DataStore(key, "STRING", dataBytes, new Date(), new Date()))
   //  }
 
-  override def put(key: String, value: String): Boolean = {
+  override def put(key: String, value: String): Try[Unit] = Try_ {
     dao.put(new DataStore(key, "STRING", value.getBytes, new Date(), new Date()))
   }
 
-  override def put(key: String, value: Array[Byte]): Boolean = {
+  override def put(key: String, value: Array[Byte]): Try[Unit] = Try_ {
     dao.put(new DataStore(key, "BYTE_ARRAY", value, new Date(), new Date()))
   }
 
-  override def get(key: String): Option[Array[Byte]] = {
+  override def get(key: String): Try[Option[Array[Byte]]] = Try_ {
     dao.get(key).map(_.value)
   }
 

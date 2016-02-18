@@ -9,6 +9,6 @@ trait TStorageDao {
 
   def get(key: String): Option[DataStore]
 
-  def put(data: DataStore): Boolean
+  def put(data: DataStore): Unit
 
 }
