@@ -48,7 +48,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
                 val failure = ListBuffer[String]()
                 val success = scala.collection.mutable.Map[String, List[String]]()
 
-                val queueName = ServiceFactory.getMessageService.getRequestBucket(multicastRequest, user)
+                val queueName = ServiceFactory.getMessageService.getRequestBucket(multicastRequest.copy(channel = "PN"), user)
 
                 groupedPlatformRequests.toList.foreach { p =>
                   /* enqueue multiple requests into kafka */
@@ -71,7 +71,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
               post {
                 entity(as[ConnektRequest]) { r =>
                   val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName, platform = appPlatform.toString)
-                  val unicastRequest = r.copy(channelInfo = pnRequestInfo)
+                  val unicastRequest = r.copy(channelInfo = pnRequestInfo, channel = "PN")
 
                   ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
                   val queueName = ServiceFactory.getMessageService.getRequestBucket(unicastRequest, user)

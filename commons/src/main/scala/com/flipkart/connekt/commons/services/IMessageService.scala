@@ -24,8 +24,8 @@ class IMessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProduce
   override def persistRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean): Try[String] = {
     try {
       val reqWithId = request.copy(id = generateId)
-      queueProducer.writeMessages(requestBucket, reqWithId.getJson)
       messageDao.saveRequest(reqWithId.id, reqWithId)
+      queueProducer.writeMessages(requestBucket, reqWithId.getJson)
       ConnektLogger(LogFile.SERVICE).info(s"Persisted request ${reqWithId.id}, with bucket $requestBucket")
       Success(reqWithId.id)
     } catch {
