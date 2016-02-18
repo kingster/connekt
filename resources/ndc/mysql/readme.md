@@ -8,9 +8,9 @@ Password : <na>
 
 Cluster
 -----------
-Master      :   10.33.141.22
-Slave       :
-HotStandby  :    
+Master      :   10.33.105.21
+Slave       :   10.32.213.186
+HotStandby  :   10.32.229.22 
 
 Config Buckets
 --------------
