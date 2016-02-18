@@ -16,7 +16,6 @@ import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventC
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
-import com.flipkart.connekt.commons.entities.Credentials
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNCallbackEvent, PNRequestInfo}
@@ -45,12 +44,12 @@ object Topology {
     * GRAPH TEMPLATE DEFINITION
     ##############################################################*/
     //this would need to change to dynamic based on which app this is being send for.
-    val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
+    val credentials = CredentialManager.getGoogleCredential("ConnektSampleApp").get
 
     val httpDispatcher = new HttpPrepare[GCMPayload](
       new URL("https", "android.googleapis.com", 443,"/gcm/send"),
       HttpMethods.POST,
-      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.password)),
+      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
       (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
     )
 
@@ -101,7 +100,7 @@ object Topology {
 
       val merger = b.add(Merge[PNCallbackEvent](3))
       val wnsDispatcher = b.add(new WNSDispatcher())
-      val apnsDispatcher = b.add(new APNSDispatcher(Credentials("apns_cert_retail.p12", "flipkart")))
+      val apnsDispatcher = b.add(new APNSDispatcher(CredentialManager.getAppleCredentials("flipkart").get))
       val wnsRHandler = b.add(new WNSResponseHandler)
       val gcmPoolFlow = b.add(gcmPoolClientFlow)
       val wnsPoolFlow = b.add(wnsPoolClientFlow)

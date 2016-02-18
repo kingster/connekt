@@ -1,24 +1,21 @@
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
-import java.io.File
 import java.util.concurrent.ExecutionException
 
 import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
-import com.flipkart.connekt.commons.entities.Credentials
+import com.flipkart.connekt.commons.entities.AppleCredential
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{APSPayload, iOSPNPayload}
-import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.marketing.connekt.BuildInfo
-import com.relayrides.pushy.apns.{ClientNotConnectedException, ApnsClient}
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
+import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException}
 
 /**
  * Created by kinshuk.bairagi on 05/02/16.
  */
-class APNSDispatcher(credentials: Credentials) extends GraphStage[FlowShape[APSPayload, Either[Throwable, String]]] {
+class APNSDispatcher(credential: AppleCredential) extends GraphStage[FlowShape[APSPayload, Either[Throwable, String]]] {
 
   val in = Inlet[APSPayload]("APNSDispatcher.In")
   val out = Outlet[ Either[Throwable, String]]("APNSDispatcher.Out")
@@ -27,9 +24,7 @@ class APNSDispatcher(credentials: Credentials) extends GraphStage[FlowShape[APSP
 
   var callback: AsyncCallback[String] = null
 
-  //TODO : Change this to dynamic path.
-  private lazy val localCertificatePath = BuildInfo.baseDirectory.getParent + "/build/fk-pf-connekt/deploy/usr/local/fk-pf-connekt/certs/" + credentials.username
-  private lazy val apnsClient = new ApnsClient[SimpleApnsPushNotification](new File(localCertificatePath), credentials.password)
+  private lazy val apnsClient = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
