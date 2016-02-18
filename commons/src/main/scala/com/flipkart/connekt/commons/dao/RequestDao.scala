@@ -42,7 +42,6 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
 
       request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
       request.scheduleTs.foreach(requestProps += "scheduleTs" -> _.getBytes)
-      request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
 
       val channelRequestInfoProps = channelRequestInfoMap(request.channelInfo)
       val channelRequestDataProps = Option(request.channelData).map(channelRequestDataMap).getOrElse(Map[String, Array[Byte]]())
@@ -83,8 +82,8 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
           channel = fields.getS("channel"),
           sla = fields.getS("sla"),
           templateId = Option(fields.getS("templateId")),
-          scheduleTs = Option(fields.getL("scheduleTs").asInstanceOf[Long]),
-          expiryTs = Option(fields.getL("expiryTs").asInstanceOf[Long]),
+          scheduleTs = Option(fields.getL("scheduleTs")),
+          expiryTs = Option(fields.getL("expiryTs")),
           channelInfo = channelReqInfo,
           channelData = channelReqData,
           channelDataModel = Option(channelReqModel).getOrElse(StringUtils.getObjectNode),
