@@ -22,6 +22,22 @@
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
+
+    <appender name="AKKA" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-akka.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover with compression -->
+            <fileNamePattern>receptors-akka-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <!-- keep 1 week worth of history -->
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date %level [%thread] %logger{10} %msg%n</pattern>
+            <!-- this quadruples logging throughput -->
+            <immediateFlush>false</immediateFlush>
+        </encoder>
+    </appender>
+
     <logger name="SERVICE" additivity="false">
         <appender-ref ref="SERVICE" />
     </logger>
@@ -30,6 +46,11 @@
     </logger>
     <logger name="FACTORY" additivity="false">
         <appender-ref ref="FACTORY" />
+    </logger>
+
+    <!-- additivity=false ensures access log data only goes to the access log -->
+    <logger name="akka.actor.ActorSystemImpl" level="DEBUG" additivity="false">
+        <appender-ref ref="AKKA" />
     </logger>
 
 

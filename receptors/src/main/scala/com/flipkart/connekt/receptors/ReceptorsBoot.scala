@@ -22,6 +22,7 @@ object ReceptorsBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
 
+
   def start() {
     if (!initialized.get()) {
 

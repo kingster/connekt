@@ -14,12 +14,14 @@ envKey := {
 
 
 /** all akka only **/
+val akkaVersion = "2.4.2-RC2"
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.2-RC2" withSources() withJavadoc(),
-  "com.typesafe.akka" %% "akka-stream" % "2.4.2-RC2" withSources() withJavadoc(),
-  "com.typesafe.akka" %% "akka-http-core" % "2.4.2-RC2" withSources() withJavadoc(),
-  "com.typesafe.akka" %% "akka-http-experimental" % "2.4.2-RC2" withSources() withJavadoc(),
-  "com.typesafe.akka" %% "akka-http-testkit-experimental" % "2.4.2-RC2" % Test withSources() withJavadoc()
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-stream" % akkaVersion withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-core" % akkaVersion withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion withSources(),
+  "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaVersion % Test withSources() withJavadoc()
 )
 
 libraryDependencies ++= Seq(
@@ -90,8 +92,8 @@ libraryDependencies ++= Seq(
   "org.apache.curator" % "curator-recipes" % "2.9.1",
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT",
-  "com.flipkart" %% "util-core" % "0.0.1-SNAPSHOT",
+  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" exclude ("com.flipkart" , "util-core"),
+  "com.flipkart" %% "util-core" % "0.0.1",
   "com.flipkart" %% "espion" % "1.0.0"
 )
 
