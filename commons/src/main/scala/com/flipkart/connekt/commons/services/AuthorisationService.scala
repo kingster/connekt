@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
-import com.flipkart.connekt.commons.dao.{PrivDao, UserInfo}
+import com.flipkart.connekt.commons.dao.{TUserInfo, PrivDao}
 import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.entities.{ResourcePriv, UserType}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -12,7 +12,7 @@ import scala.util.{Failure, Success, Try}
  * @author aman.shrivastava on 12/12/15.
  */
 
-class AuthorisationService(privDao: PrivDao, userInfoDao: UserInfo) extends TAuthorisationService {
+class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAuthorisationService {
 
   private lazy val globalPrivileges = {
     read("*", UserType.GLOBAL) match {

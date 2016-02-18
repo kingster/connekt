@@ -3,12 +3,13 @@
 function usage() {
     echo "USAGE: fk-git-promote <options>"
     echo -e "\nOPTIONS:"
-	echo -e "\t-e <env>\n\t\tEnvironment (nm/stage/qa/eng/stagech); required"
+	echo -e "\t-e <env>\n\t\tEnvironment (nm/stage/qa/eng/stagech/cidqa); required"
 	echo -e "\t-n \n\t\tBuild, don't deploy; optional"
         echo -e "\t-l \n\t\tBuild, no push ; optional"
 	echo -e "\t-N \n\t\tDon't trigger build; optional"
 	echo -e "\t-p <pkg> \n\t\tThe package to promote; optional, promotes all packages by default"
-	echo -e "\t-b <branch> \n\t\tThe remote (origin) branch to promote; optional, promotes origin/master by default"
+    echo -e "\t-b <branch> \n\t\tThe remote branch to promote; optional, promotes master by default"
+	echo -e "\t-r <repo> \n\t\tThe remote to promote; optional, promotes origin by default"
     exit 1
 }
 
@@ -18,14 +19,16 @@ function die() {
     exit 1
 }
 
-while getopts "lnNe:p:b:" option; do
+while getopts "lnNe:p:b:r:" option; do
     case "$option" in
         n) nodeploy=nodeploy;;
         N) nobuild=nobuild;;
-	l) nopush=nopush;;
+	    l) nopush=nopush;;
         e) env="$OPTARG";;
         p) pkg="$OPTARG";;
         b) branch="$OPTARG";;
+        r) remote="$OPTARG";;
+
         [?]) usage;;
     esac
 done
@@ -63,9 +66,12 @@ if [ ! -z "$nopush"]; then
 fi
 
 [ -z "$branch" ] && branch=master
+[ -z "$remote" ] && remote=origin
+
 
 echo -e "Environment: \033[1;31m$env \033[0m"
 echo -e "Package: \033[1;31m${pkg%/} \033[0m"
+echo -e "Remote: \033[1;31m$remote \033[0m"
 echo -e "Branch: \033[1;31m$branch \033[0m"
 echo -e "Tag: \033[1;31m$version \033[0m"
 echo
@@ -78,5 +84,5 @@ if [ "$proceed" != "y" ]; then
 fi
 
 (set -x;
-git tag -m "Promoting to $env." release/$pkg$version all/${branch} && git push all --tags;
+git tag -m "Promoting to $env." release/$pkg$version $remote/${branch} && git push $remote --tags;
 )

@@ -1,4 +1,4 @@
-package com.flipkart.connekt.receptors.routes.Stencils
+package com.flipkart.connekt.receptors.routes.stencils
 
 import java.util.Date
 
@@ -54,8 +54,12 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                   post {
                     entity(as[ObjectNode]) { entity =>
                       authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
-                        val channelReqData = StencilService.render(stencil, entity)
-                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelReqData))))
+                        StencilService.render(stencil, entity) match {
+                          case Some(channelRequest) =>
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))))
+                          case None =>
+                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils cannot be render for id: $id", null)))
+                        }
                       }
                     }
                   }
@@ -66,9 +70,13 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                         entity(as[ObjectNode]) { entity =>
                           authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
                             StencilService.get(id, Some(version)) match {
-                              case Some(stn) =>
-                                val channelRequest = StencilService.render(stn, entity)
-                                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))))
+                              case Some(stnc) =>
+                                StencilService.render(stnc, entity) match {
+                                  case Some(channelRequest) =>
+                                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))))
+                                  case None =>
+                                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils cannot be render for id: $id", null)))
+                                }
                               case None =>
                                 complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils Not found for id: $id", null)))
                             }
@@ -82,7 +90,7 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                             case Some(stnc) =>
                               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencil))))
                             case None =>
-                              complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id with version: $version", null)))
+                              complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Stencil not found for name: $id with version: $version", null)))
                           }
                         }
                       }
@@ -109,7 +117,7 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                   }
                 }
               case None =>
-                complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id", null)))
+                complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Stencil not found for name: $id", null)))
 
             }
         } ~ pathEndOrSingleSlash {
@@ -118,6 +126,7 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
               val bucketIds = stencil.bucket.split(",").map(StencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "")
               val resources = bucketIds.map("STENCIL_UPDATE_" + _)
               authorize(user, resources: _*) {
+
                 stencil.bucket = bucketIds.mkString(",")
                 stencil.id = "STNC" + StringUtils.generateRandomStr(4)
                 stencil.createdBy = user.userId
@@ -125,12 +134,9 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
                 stencil.version = 1
                 stencil.creationTS = new Date(System.currentTimeMillis())
 
-                StencilService.add(stencil) match {
-                  case Success(sten) =>
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: ${stencil.id}", Map("id" -> stencil.id))))
-                  case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: ${stencil.id}, e: ${e.getMessage}", null)))
-                }
+                StencilService.add(stencil).get
+                complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: ${stencil.id}", Map("id" -> stencil.id))))
+
               }
             }
           }

@@ -18,9 +18,10 @@ import com.typesafe.config.ConfigFactory
  * @author durga.s
  * @version 11/20/15
  */
-object ReceptorsBoot  extends BaseApp{
+object ReceptorsBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
+
 
   def start() {
     if (!initialized.get()) {
@@ -55,6 +56,7 @@ object ReceptorsBoot  extends BaseApp{
       ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getRequestInfoDao, null)
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
+      ServiceFactory.initStorageService(DaoFactory.getStorageDao)
 
       //Start up the receptors
       ReceptorsServer()

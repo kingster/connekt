@@ -1,15 +1,13 @@
 package com.flipkart.connekt.commons.services
 
-import com.flipkart.connekt.commons.cache.{DistributedCacheType, DistributedCacheManager}
+import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedCacheType}
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
 
-import scala.util.{Try, Failure, Success}
-
-import com.flipkart.connekt.commons.core.Wrappers._
+import scala.util.{Failure, Try}
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
@@ -90,13 +88,17 @@ object DeviceDetailsService extends Instrumented {
     }
   }
 
-  //TODO : Change with underlying mget implementation
-  //Per our usage changing it to return only a list of deviceDetails found, since, biz wants us to send
-  //it to as many devices we find.
   @Timed("mget")
-  def get(appName: String, deviceIds: List[String]): List[DeviceDetails] = {
-    deviceIds.flatMap(get(appName, _).getOrElse(None))
+  def get(appName: String, deviceIds: List[String]): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.mget Failed") {
+    val cacheHitsDevices = DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](deviceIds)
+
+    val cacheMissedIds = deviceIds.diff(cacheHitsDevices.keySet.toList)
+    val cacheMissDevices = dao.get(appName, cacheMissedIds)
+
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheMissDevices.map(device => (cacheKey(appName, device.deviceId), device)))
+    cacheMissDevices ++ cacheHitsDevices.values
   }
+
 
   @Timed("get")
   def get(appName: String, deviceId: String): Try[Option[DeviceDetails]] = Try_#(message = "DeviceDetailsService.get Failed") {

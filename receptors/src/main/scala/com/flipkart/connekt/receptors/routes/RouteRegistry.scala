@@ -3,11 +3,11 @@ package com.flipkart.connekt.receptors.routes
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
-import com.flipkart.connekt.receptors.routes.Stencils.StencilsRoute
-import com.flipkart.connekt.receptors.routes.callbacks.Callback
-import com.flipkart.connekt.receptors.routes.common.LdapAuthentication
-import com.flipkart.connekt.receptors.routes.push.{Fetch, Registration, Send}
-import com.flipkart.connekt.receptors.routes.reports.Reports
+import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
+import com.flipkart.connekt.receptors.routes.callbacks.CallbackRoute
+import com.flipkart.connekt.receptors.routes.common.{ClientRoute, LdapAuthRoute}
+import com.flipkart.connekt.receptors.routes.push.{FetchRoute, RegistrationRoute, SendRoute}
+import com.flipkart.connekt.receptors.routes.reports.ReportsRoute
 import com.flipkart.connekt.receptors.routes.status.SystemStatus
 
 /**
@@ -16,18 +16,19 @@ import com.flipkart.connekt.receptors.routes.status.SystemStatus
 class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
 
   val healthReqHandler = new SystemStatus().route
-  val ldapRoute = new LdapAuthentication().route
+  val ldapRoute = new LdapAuthRoute().route
 
   def allRoutes = healthReqHandler ~ ldapRoute ~ authenticate {
     implicit user => {
-      val receptorReqHandler = new Registration().register
-      val unicastHandler = new Send().send
-      val callbackHandler = new Callback().callback
-      val reportsRoute = new Reports().route
-      val fetchRoute = new Fetch().fetch
+      val receptorReqHandler = new RegistrationRoute().register
+      val unicastHandler = new SendRoute().route
+      val callbackHandler = new CallbackRoute().callback
+      val reportsRoute = new ReportsRoute().route
+      val fetchRoute = new FetchRoute().fetch
       val stencilRoute = new StencilsRoute().stencils
+      val clientRoute = new ClientRoute().route
 
-      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute
+      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ clientRoute
     }
   }
 }

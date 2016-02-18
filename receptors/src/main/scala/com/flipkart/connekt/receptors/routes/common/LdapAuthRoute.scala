@@ -11,7 +11,7 @@ import com.flipkart.connekt.receptors.service.{AuthenticationService, TokenServi
  * Created by avinash.h on 1/21/16.
  */
 
-class LdapAuthentication(implicit am: ActorMaterializer) extends BaseHandler {
+class LdapAuthRoute(implicit am: ActorMaterializer) extends BaseHandler {
 
   val route =
     pathPrefix("v1") {

@@ -21,6 +21,7 @@ object AppBuild extends Build {
     ),
     crossPaths in Scope.GlobalScope := false,
     resolvers ++= Seq(
+      Resolver.jcenterRepo,
       "Maven2 Local" at Resolver.mavenLocal.root,
       "spray repo" at "http://repo.spray.io/",
       "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",

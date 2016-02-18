@@ -31,6 +31,10 @@ class DeviceDetailsDaoTest extends CommonsBaseTest {
     DaoFactory.getDeviceDetailsDao.get(appName, deviceId).get shouldEqual deviceDetails
   }
 
+  "Device Details Dao" should "fetch multiple Device details" in {
+    DaoFactory.getDeviceDetailsDao.get(appName, List(deviceId)).head shouldEqual deviceDetails
+  }
+
   "Device Details Dao" should " get by userId" in {
     println(DaoFactory.getDeviceDetailsDao.getByUserId(appName, userId).head)
     DaoFactory.getDeviceDetailsDao.getByUserId(appName, userId).nonEmpty shouldBe true
@@ -45,7 +49,6 @@ class DeviceDetailsDaoTest extends CommonsBaseTest {
     DaoFactory.getDeviceDetailsDao.getByTokenId(appName, tokenId).get shouldEqual deviceDetails
 
   }
-
 
   "Device Details Dao" should "update" in {
     noException should be thrownBy DaoFactory.getDeviceDetailsDao.update(appName, deviceId, updatedDeviceDetails)

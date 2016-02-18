@@ -11,7 +11,7 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
  */
 class UserInfoDaoTest extends CommonsBaseTest {
   val id = UUID.randomUUID().toString
-  val user = new AppUser(id, UUID.randomUUID().toString, "bro,commsvc", new Date(345678875), "aman.s")
+  val user = new AppUser(id, UUID.randomUUID().toString, "bro,commsvc","connekt-dev@flipkart.com" , new Date(345678875), "aman.s")
 
   "UserInfoDao test" should "add user info" in {
     val userDao = DaoFactory.getUserInfoDao

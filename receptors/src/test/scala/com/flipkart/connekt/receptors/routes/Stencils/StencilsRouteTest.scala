@@ -6,6 +6,7 @@ import com.flipkart.connekt.commons.iomodels.{Response, GenericResponse}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
+import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 import org.apache.commons.lang.StringEscapeUtils
 import org.scalatest.Ignore
 

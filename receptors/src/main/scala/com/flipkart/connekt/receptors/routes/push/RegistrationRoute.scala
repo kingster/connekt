@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/20/15
  */
-class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
 
   type Created = Boolean
   type Updated = Boolean
@@ -32,45 +32,43 @@ class Registration(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
               authorize(user, "REGISTRATION") {
                 entity(as[DeviceDetails]) { d =>
                   val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId)
+
                   val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Updated, Created]]({
                     case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(true))
                     case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(true))
-                  }, Failure(_))
+                  }, Failure(_)).get
 
                   result match {
-                    case Success(r) if r.isRight =>
+                    case Right(x) =>
                       complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
-                    case Success(r) if r.isLeft =>
+                    case Left(x) =>
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
-                    case Failure(e) =>
-                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"DeviceDetails registration failed for ${newDeviceDetails.deviceId}", newDeviceDetails)))
                   }
                 }
+              }
+            } ~ delete {
+              authorize(user, "REGISTRATION") {
+                DeviceDetailsService.delete(appName, deviceId).get
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for ${deviceId}", null)))
               }
             }
         } ~ path(Segment / "users" / Segment) {
           (appName: String, userId: String) =>
             get {
               authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
-                DeviceDetailsService.getByUserId(appName, userId) match {
-                  case Success(deviceDetails) =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName, user: $userId", Map[String, Any]("deviceDetails" -> deviceDetails))))
-                  case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName, user: $userId", null)))
-                }
+                val deviceDetails = DeviceDetailsService.getByUserId(appName, userId).get
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName, user: $userId", Map[String, Any]("deviceDetails" -> deviceDetails))))
               }
             }
         } ~ path(MPlatformSegment / Segment / Segment) {
           (platform: MobilePlatform, appName: String, deviceId: String) =>
             get {
               authorize(user, "REGISTRATION_READ", s"REGISTRATION_READ_$appName") {
-                DeviceDetailsService.get(appName, deviceId) match {
-                  case Success(deviceDetail) if deviceDetail.isDefined =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName id: $deviceId", Map[String, Any]("deviceDetails" -> deviceDetail.get))))
-                  case Success(deviceDetail) if deviceDetail.isEmpty =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"No DeviceDetails found for app: $appName id: $deviceId", null)))
-                  case Failure(e) =>
-                    complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Fetching DeviceDetails failed for app: $appName id: $deviceId", null)))
+                DeviceDetailsService.get(appName, deviceId).get match {
+                  case Some(deviceDetail) =>
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails fetched for app: $appName id: $deviceId", Map[String, Any]("deviceDetails" -> deviceDetail))))
+                  case None =>
+                    complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No DeviceDetails found for app: $appName id: $deviceId", null)))
                 }
               }
             }

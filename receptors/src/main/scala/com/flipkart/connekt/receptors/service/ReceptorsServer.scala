@@ -2,12 +2,13 @@ package com.flipkart.connekt.receptors.service
 
 import java.util.UUID
 
-import _root_.akka.actor.ActorSystem
-import _root_.akka.http.scaladsl.Http
-import _root_.akka.stream.ActorMaterializer
-import akka.http.scaladsl.model.{HttpResponse, HttpRequest, HttpHeader, StatusCodes}
-import akka.http.scaladsl.server.directives.LogEntry
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.stream.ActorMaterializer
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest, StatusCodes}
+import akka.http.scaladsl.server.RouteResult.Complete
 import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.directives.{DebuggingDirectives, LogEntry}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.ConnektConfig
@@ -36,10 +37,11 @@ object ReceptorsServer extends BaseHandler {
 
   // logs just the request method and response status at info level
   private def requestMethodAndResponseStatusAsInfo(req: HttpRequest): Any => Option[LogEntry] = {
-    case res: HttpResponse =>
+    case Complete(res) =>
       val remoteIp: String = req.headers.find(_.is("remote-address")).map(_.value()).getOrElse("")
-      Some(LogEntry(logFormat.format(remoteIp, req.method, req.uri, res.status.intValue()), akka.event.Logging.InfoLevel))
-    case _ => None // other kind of responses
+      Some(LogEntry(logFormat.format(remoteIp, req.method.value, req.uri, res.status.intValue()), akka.event.Logging.InfoLevel))
+    case _ =>
+      None // other kind of responses
   }
 
   def apply() = {
@@ -78,7 +80,7 @@ object ReceptorsServer extends BaseHandler {
       ExceptionHandler {
         case e: Throwable =>
           val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
-          ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- ${errorUID}  --  Reason [ ${e.getMessage} ]", e)
+          ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- $errorUID  --  Reason [ ${e.getMessage} ]", e)
           val response = Map("message" -> ("Server Error # " + errorUID), "reason" -> e.getMessage)
           complete(responseMarshallable[GenericResponse](
             StatusCodes.InternalServerError, Seq.empty[HttpHeader],
@@ -87,9 +89,14 @@ object ReceptorsServer extends BaseHandler {
       }
 
     //TODO : Wrap this route inside CORS
-    val route = new RouteRegistry().allRoutes
+    val allRoutes = new RouteRegistry().allRoutes
 
-    httpService = Http().bindAndHandle(route, bindHost, bindPort)
+    def routeWithLogging = ConnektConfig.getString("http.request.log").getOrElse("true").toBoolean match {
+      case true => DebuggingDirectives.logRequestResult(requestMethodAndResponseStatusAsInfo _)(allRoutes)
+      case false =>  allRoutes
+    }
+
+    httpService = Http().bindAndHandle(routeWithLogging, bindHost, bindPort)
   }
 
 

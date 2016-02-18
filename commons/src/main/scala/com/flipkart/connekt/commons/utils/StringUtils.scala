@@ -3,6 +3,9 @@ package com.flipkart.connekt.commons.utils
 import java.math.BigInteger
 import java.security.{MessageDigest, SecureRandom}
 
+import akka.http.scaladsl.model.HttpEntity
+import akka.stream.Materializer
+import akka.util.{ByteString, ByteStringBuilder}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
@@ -48,6 +51,13 @@ object StringUtils {
     def getObj[T: ClassTag] = objMapper.readValue(s, classTag[T].runtimeClass).asInstanceOf[T]
     def getObj(implicit cType: Class[_]) = objMapper.readValue(s, cType)
   }
+
+  implicit  class HttpEntity2String(val entity:HttpEntity){
+    def getString(implicit materializer: Materializer) = {
+      entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).map( bb => new String(bb.result().toArray))
+    }
+  }
+
 
   def isNullOrEmpty(o: Any): Boolean = o match {
     case m: Map[_, _] => m.isEmpty

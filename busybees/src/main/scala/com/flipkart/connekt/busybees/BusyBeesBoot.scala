@@ -9,7 +9,7 @@ import com.flipkart.connekt.busybees.streams.{KafkaMessageProcessFlow, Topology}
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
@@ -55,6 +55,8 @@ object BusyBeesBoot extends BaseApp {
 
       val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
       DaoFactory.initCouchbaseCluster(couchbaseCf)
+
+      ServiceFactory.initStorageService(DaoFactory.getStorageDao)
 
       val kafkaConnConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
