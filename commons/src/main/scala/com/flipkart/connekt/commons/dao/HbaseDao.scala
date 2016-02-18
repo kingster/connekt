@@ -179,7 +179,7 @@ object HbaseDao {
 
     def getB(key: String):Boolean = m.get(key).exists(_.getBoolean)
 
-    def getL(key: String):Long = m.get(key).map(Bytes.toLong).getOrElse(null)
+    def getL(key: String) = m.get(key).map(Bytes.toLong).getOrElse(null)
 
     def getKV(key: String):ObjectNode = m.get(key).map(_.getString).map(objMapper.readValue[ObjectNode]).orNull
   }
