@@ -24,10 +24,10 @@ class RenderFlow extends GraphStage[FlowShape[ConnektRequest, ConnektRequest]] {
     new GraphStageLogic(shape) {
       setHandler(in, new InHandler {
         override def onPush(): Unit = try {
+          ConnektLogger(LogFile.PROCESSORS).info("RenderFlow:: onPush")
           val m = grab(in)
 
           ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPush:: Received Message: ${m.getJson}")
-
           lazy val cRD = m.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, m.channelDataModel)).get
 
 //          val mRendered = m.copy(channelData = Some(m.channelData).getOrElse(cRD))

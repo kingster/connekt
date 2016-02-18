@@ -8,7 +8,7 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.WindowsChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHandler
 import com.flipkart.connekt.busybees.streams.sources.RateControl
-import com.flipkart.connekt.commons.entities.{DeviceDetails, WNSCredential}
+import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.{CredentialManager, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils
@@ -83,14 +83,14 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
     val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[String]("hk2.notify.windows.com")
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[(String, String)]("hk2.notify.windows.com")
 
 
     val result = Source.single(cRequest)
       .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
       .via(new WindowsChannelFormatter)
-      .via(new WNSDispatcher(WNSCredential("ms-app://s-1-15-2-2528958255-2029194746-749418806-697355668-3484495234-315031297-461998615", "0wYL2+lFYpHHD3nJS2Hoyh8gfpcmWFOV")))
+      .via(new WNSDispatcher())
       .via(poolClientFlow)
       .via(new WNSResponseHandler)
       .runWith(Sink.head)

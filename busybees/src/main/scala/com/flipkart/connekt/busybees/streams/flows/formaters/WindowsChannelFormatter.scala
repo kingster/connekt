@@ -38,11 +38,27 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
           ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: onPush :: Error", e)
           pull(in)
       }
+
+      override def onUpstreamFinish(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).info("WindowsChannelFormatter:: onUpstream finish invoked")
+        super.onUpstreamFinish()
+      }
+
+      override def onUpstreamFailure(e: Throwable): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: onUpstream failure: ${e.getMessage}", e)
+        super.onUpstreamFinish()
+      }
     })
+
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         pull(in)
+      }
+
+      override def onDownstreamFinish(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).info("WindowsChannelFormatter:: onDownstreamFinish finish invoked")
+        super.onDownstreamFinish()
       }
     })
 

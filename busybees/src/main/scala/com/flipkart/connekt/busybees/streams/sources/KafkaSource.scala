@@ -68,6 +68,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = try {
+        ConnektLogger(LogFile.PROCESSORS).info("KafkaFlow:: OnPull")
         val m = iterator.next()
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource::OnPull:: ${m.message().toString}")
         commitOffset(m.offset) //TODO

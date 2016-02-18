@@ -44,6 +44,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
               case 200 =>
                 r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).onComplete {
                   case Success(b) =>
+                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: RESPONSE: ${b.result().decodeString("UTF-8")}")
                     val responseBody = b.result().decodeString("UTF-8").getObj[ObjectNode]
                     responseBody.findValues("results").toList.foreach({
                       case s if s.has("message_id") => events += PNCallbackEvent(messageId = gcmResponse._2, deviceId = "", platform = "android", eventType = "GCM_RECEIVED", appName = "", contextId = "", cargo = s.get("message_id").asText(), timestamp = eventTS)

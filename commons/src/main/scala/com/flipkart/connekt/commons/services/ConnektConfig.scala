@@ -3,8 +3,8 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.utils.config.KloudConfig
 import com.typesafe.config.Config
+
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 
 
 object ConnektConfig {
@@ -26,6 +26,7 @@ object ConnektConfig {
     instance.get[V](k).map(_.asInstanceOf[java.util.ArrayList[V]].asScala.toList).getOrElse(Nil)
   }
 
+  def getOrElse[V](k: String, default: V): V = instance.getOrElse(k, default)
 
   def get[V](k: String): Option[V] = instance.get[V](k)
 

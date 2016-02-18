@@ -14,13 +14,11 @@ import com.flipkart.connekt.commons.utils.StringUtils
 /**
  * @author aman.shrivastava on 08/02/16.
  */
-class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, String, String)]] {
+class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, (String, String))]] {
   val in = Inlet[WNSPNPayload]("WNSDispatcher.In")
-  val out = Outlet[(HttpRequest, String, String)]("WNSDispatcher.Out")
+  val out = Outlet[(HttpRequest, (String, String))]("WNSDispatcher.Out")
 
   override def shape = FlowShape.of(in, out)
-
-  var callback: AsyncCallback[String] = null
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -41,19 +39,35 @@ class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, Str
         val requestId = StringUtils.generateRandomStr(10)
 
 
-      push(out, (request, requestId, message.appName))
+      push(out, (request, (requestId, message.appName)))
 
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
           pull(in)
       }
+
+      override def onUpstreamFinish(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).info("WNSDispatcher:: onUpstream finish invoked")
+        super.onUpstreamFinish()
+      }
+
+      override def onUpstreamFailure(e: Throwable): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onUpstream failure: ${e.getMessage}", e)
+        super.onUpstreamFinish()
+      }
+
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPull")
         pull(in)
+      }
+
+      override def onDownstreamFinish(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).info("WNSDispatcher:: onDownstreamFinish finish invoked")
+        super.onDownstreamFinish()
       }
     })
 
