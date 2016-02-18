@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
  */
 class GCMSender(host: String, port: Int, api: String, authKey: String) extends Actor {
 
-  def this() = this("android.googleapis.com", 443,"/gcm/send", CredentialManager.getCredential("PN.ConnektSampleApp").password)
+  def this() = this("android.googleapis.com", 443,"/gcm/send", CredentialManager.getGoogleCredential("ConnektSampleApp").get.apiKey)
 
   lazy implicit val clientPoolFlow = getPoolClientFlow[String](host, port)
   implicit val contextDispatcher = context.dispatcher

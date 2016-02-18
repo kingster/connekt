@@ -41,7 +41,7 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
       (channel: Channel, appName: String, messageId: String) =>
         authorize(user, "REPORTS") {
           get {
-            val data = ServiceFactory.getMessageService.getRequestInfo(messageId).get
+            val data = ServiceFactory.getPNMessageService.getRequestInfo(messageId).get
             data match {
               case None =>
                 complete(GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No events found for messageId $messageId.", null)))

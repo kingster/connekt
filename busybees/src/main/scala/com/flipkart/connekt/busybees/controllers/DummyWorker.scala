@@ -38,7 +38,7 @@ class DummyWorker extends Runnable with KafkaConnectionHelper {
               val pnData = request.channelInfo.asInstanceOf[PNRequestData]
               val pnInfo = request.channelData.asInstanceOf[PNRequestInfo]
               ConnektLogger(LogFile.WORKERS).info(s"PN Request: ${pnData.getJson}")
-              GCMClient.instance.wirePN(request.id, pnInfo, pnData, CredentialManager.getCredential("PN.ConnektSampleApp").password)
+              GCMClient.instance.wirePN(request.id, pnInfo, pnData, CredentialManager.getGoogleCredential("ConnektSampleApp").get.apiKey)
             }
           })
         })

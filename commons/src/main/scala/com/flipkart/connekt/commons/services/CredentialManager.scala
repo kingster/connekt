@@ -1,7 +1,8 @@
 package com.flipkart.connekt.commons.services
 
-import com.flipkart.connekt.commons.entities.Credentials
-import com.typesafe.config.{Config => TypesafeConfig}
+import com.flipkart.connekt.commons.entities._
+import com.flipkart.connekt.commons.factories.ServiceFactory
+import com.flipkart.connekt.commons.serializers.KryoSerializer
 
 
 /**
@@ -10,14 +11,46 @@ import com.typesafe.config.{Config => TypesafeConfig}
 
 object CredentialManager {
 
-  def getCredential(propPath: String): Credentials = {
-    val username = ConnektConfig.getString(propPath + ".username").orNull
-    val password = ConnektConfig.getString(propPath + ".password").orNull
+  private val storage = ServiceFactory.getStorageService
 
-    if (username == null || password == null)
-      Credentials.EMPTY
-    else
-      Credentials(username, password)
+  def addSimpleCredential(name: String, credential: SimpleCredential) = {
+    val bytes = KryoSerializer.serialize(credential)
+    storage.put(name, bytes)
+  }
+
+  @throws[Exception]
+  def getSimpleCredential(name: String): Option[SimpleCredential] = {
+    storage.get(name).get.map(KryoSerializer.deserialize[SimpleCredential])
+  }
+
+  def addAppleCredentials(name: String, credential: AppleCredential) = {
+    val bytes = KryoSerializer.serialize(credential)
+    storage.put(name, bytes)
+  }
+
+  @throws[Exception]
+  def getAppleCredentials(name: String): Option[AppleCredential] = {
+    storage.get(name).get.map(KryoSerializer.deserialize[AppleCredential])
+  }
+
+  def addMicrosoftCredential(name: String, credential: MicrosoftCredential) = {
+    val bytes = KryoSerializer.serialize(credential)
+    storage.put(name, bytes)
+  }
+
+  @throws[Exception]
+  def getMicrosoftCredential(name: String): Option[MicrosoftCredential] = {
+    storage.get(name).get.map(KryoSerializer.deserialize[MicrosoftCredential])
+  }
+
+  def addGoogleCredential(name: String, credential: GoogleCredential) = {
+    val bytes = KryoSerializer.serialize(credential)
+    storage.put(name, bytes)
+  }
+
+  @throws[Exception]
+  def getGoogleCredential(name: String): Option[GoogleCredential] = {
+    storage.get(name).get.map(KryoSerializer.deserialize[GoogleCredential])
   }
 
 }

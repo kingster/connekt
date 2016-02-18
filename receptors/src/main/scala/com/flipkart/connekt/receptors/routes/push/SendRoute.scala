@@ -48,11 +48,11 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
                 val failure = ListBuffer[String]()
                 val success = scala.collection.mutable.Map[String, List[String]]()
 
-                val queueName = ServiceFactory.getMessageService.getRequestBucket(multicastRequest, user)
+                val queueName = ServiceFactory.getPNMessageService.getRequestBucket(multicastRequest, user)
 
                 groupedPlatformRequests.toList.foreach { p =>
                   /* enqueue multiple requests into kafka */
-                  ServiceFactory.getMessageService.persistRequest(p, queueName, isCrucial = true) match {
+                  ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                     case Success(id) =>
                       success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
                     case Failure(t) =>
@@ -74,8 +74,8 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
                   val unicastRequest = r.copy(channelInfo = pnRequestInfo)
 
                   ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
-                  val queueName = ServiceFactory.getMessageService.getRequestBucket(unicastRequest, user)
-                  val requestId = ServiceFactory.getMessageService.persistRequest(unicastRequest, queueName, isCrucial = true).get
+                  val queueName = ServiceFactory.getPNMessageService.getRequestBucket(unicastRequest, user)
+                  val requestId = ServiceFactory.getPNMessageService.saveRequest(unicastRequest, queueName, isCrucial = true).get
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
 
                 }
