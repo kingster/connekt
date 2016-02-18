@@ -12,4 +12,6 @@ trait TStorageService extends TService {
   def put(key: String, value: Array[Byte]): Try[Unit]
 
   def get(key: String): Try[Option[Array[Byte]]]
+
+
 }
