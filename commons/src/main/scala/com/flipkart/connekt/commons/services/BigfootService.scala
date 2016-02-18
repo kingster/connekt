@@ -20,7 +20,7 @@ object BigfootService extends Instrumented{
 
   val socketClient = DaoFactory.phantomClientSocket
 
-  val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(true)
+  val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(false)
 
   @Timed("ingest")
   def ingest(obj: BaseSchema): Try[Boolean] = {

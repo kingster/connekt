@@ -72,7 +72,7 @@ class Send(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
                   val unicastRequest = r.copy(channelInfo = pnRequestInfo)
 
                   ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
-                  def enqueue = ServiceFactory.getMessageService.persistRequest(unicastRequest, "fk-connekt-pn", isCrucial = true)
+                    def enqueue = ServiceFactory.getMessageService.persistRequest(unicastRequest, "fk-connekt-pn", isCrucial = true)
                   async(enqueue) {
                     case Success(t) => t match {
                       case Success(requestId) =>

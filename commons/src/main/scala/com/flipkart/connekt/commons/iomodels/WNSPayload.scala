@@ -11,7 +11,7 @@ import scala.xml.Node
  * @author aman.shrivastava on 08/02/16.
  */
 
-case class WNSPNPayload(token: String, wnsPNType: WNSTypePayload)
+case class WNSPNPayload(token: String, appName: String, wnsPNType: WNSTypePayload)
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,

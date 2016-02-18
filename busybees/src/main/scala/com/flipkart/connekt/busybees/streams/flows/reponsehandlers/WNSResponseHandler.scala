@@ -5,6 +5,7 @@ import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
+import com.flipkart.connekt.commons.services.WindowsTokenService
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Success, Try}
@@ -15,9 +16,9 @@ import scala.util.{Success, Try}
  * @author durga.s
  * @version 2/8/16
  */
-class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], String)] {
+class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], String, String)] {
 
-  val in = Inlet[(Try[HttpResponse], String)]("WNSResponseHandler.In")
+  val in = Inlet[(Try[HttpResponse], String, String)]("WNSResponseHandler.In")
   val out = Outlet[PNCallbackEvent]("WNSResponseHandler.Out")
 
   override def shape  = FlowShape.of(in, out)
@@ -45,7 +46,9 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                 event = PNCallbackEvent(messageId = wnsResponse._2, deviceId = "", platform = "windows", eventType = "INVALID_HEADER", appName = "", contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
                 ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Invalid/Missing header send:: $wnsResponse")
               case 401 =>
-                event = PNCallbackEvent(messageId = wnsResponse._2, deviceId = "", platform = "windows", eventType = "FORBIDDEN_CHANNEL", appName = "", contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
+                event = PNCallbackEvent(messageId = wnsResponse._2, deviceId = "", platform = "windows", eventType = "UNAUTHORIZED", appName = "", contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
+                WindowsTokenService.refreshToken(wnsResponse._3)
+
                 ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: The cloud service is not authorized to send a notification to this URI even though they are authenticated.")
               case 403 =>
                 event = PNCallbackEvent(messageId = wnsResponse._2, deviceId = "", platform = "windows", eventType = "INVALID_METHOD", appName = "", contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
