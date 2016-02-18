@@ -20,8 +20,6 @@ import scala.util.Try
  */
 class FetchRoute(implicit user: AppUser) extends BaseHandler {
 
-  val messageService = ServiceFactory.getMessageService
-
   val fetch =
     pathPrefix("v1") {
       path("fetch" / "push" / MPlatformSegment / Segment / Segment) {
@@ -31,6 +29,7 @@ class FetchRoute(implicit user: AppUser) extends BaseHandler {
               parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis()) { (startTs, endTs) =>
 
                 val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(instanceId, Channel.PUSH, startTs, endTs)
+                val messageService = ServiceFactory.getPNMessageService
 
                 val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
                   val messageIds = res.map(_.asInstanceOf[PNCallbackEvent].messageId).distinct

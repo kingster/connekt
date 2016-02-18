@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.entities.{AppUser, AppUserConfiguration, Channel}
+import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.UserConfigurationService
 import com.flipkart.connekt.receptors.directives.ChannelSegment
@@ -21,7 +22,11 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHan
         post {
           entity(as[AppUserConfiguration]) { userConfig =>
             UserConfigurationService.add(userConfig).get
-            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Added Client", userConfig)))
+            val mSvc = ServiceFactory.getPNMessageService
+            val clientTopic = mSvc.getClientChannelTopic(userConfig.channel.toString, userConfig.userId)
+            mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate))
+
+            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
           }
         }
       } ~ path(Segment) {
@@ -32,11 +37,13 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHan
           }
       } ~ path(Segment / ChannelSegment) {
         (clientName: String, channel: Channel) =>
-          UserConfigurationService.get(clientName, channel).get match {
-            case Some(data) =>
-              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched ClientConfig ", data)))
-            case None =>
-              complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching ClientDetails failed.", Map("clientName" -> clientName, "channel" -> channel))))
+          get {
+            UserConfigurationService.get(clientName, channel).get match {
+              case Some(data) =>
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched ClientConfig ", data)))
+              case None =>
+                complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching ClientDetails failed.", Map("clientName" -> clientName, "channel" -> channel))))
+            }
           }
 
       }
