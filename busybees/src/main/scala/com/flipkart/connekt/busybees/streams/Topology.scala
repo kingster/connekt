@@ -104,7 +104,7 @@ object Topology {
       val apnsDispatcher = b.add(new APNSDispatcher(Credentials("apns_cert_retail.p12", "flipkart")))
       val wnsRHandler = b.add(new WNSResponseHandler)
       val gcmPoolFlow = b.add(gcmPoolClientFlow)
-//      val wnsPoolFlow = b.add(wnsPoolClientFlow)
+      val wnsPoolFlow = b.add(wnsPoolClientFlow)
 
       val apnsEventCreator = b.add(Flow[Either[Throwable, String]].map {
         case Right(s) =>
@@ -118,7 +118,7 @@ object Topology {
       source ~> /*flowRate ~>*/ render ~> platformPartition.in
       platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> apnsEventCreator ~> merger.in(0)
       platformPartition.out(1) ~> fmtAndroid ~> httpDispatcher ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
-      platformPartition.out(2) ~> fmtWindows ~> wnsDispatcher ~> wnsPoolClientFlow ~> wnsRHandler ~> merger.in(2)
+      platformPartition.out(2) ~> fmtWindows ~> wnsDispatcher ~> wnsPoolFlow ~> wnsRHandler ~> merger.in(2)
       merger.out ~> evtCreator ~> Sink.ignore
 
       ClosedShape
