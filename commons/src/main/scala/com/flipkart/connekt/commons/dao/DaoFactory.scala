@@ -8,11 +8,11 @@ import com.flipkart.phantom.client.sockets.{PhantomClientSocket, PhantomSocketFa
 import com.typesafe.config.Config
 
 /**
-  *
-  *
-  * @author durga.s
-  * @version 11/23/15
-  */
+ *
+ *
+ * @author durga.s
+ * @version 11/23/15
+ */
 object DaoFactory {
 
   var connectionProvider: TConnectionProvider = null
@@ -58,6 +58,7 @@ object DaoFactory {
     daoMap += DaoType.USER_CONFIG -> UserConfigurationDao("USER_CONFIG", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
     daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", "STENCIL_HISTORY_STORE", "BUCKET_REGISTRY", mysqlFactoryWrapper)
+    daoMap += DaoType.STORAGE -> StorageDao("DATA_STORE", mysqlFactoryWrapper)
   }
 
   def initCouchbaseCluster(config: Config) {
@@ -97,6 +98,8 @@ object DaoFactory {
 
   def getUserInfoDao: TUserInfo = daoMap(DaoType.USER_INFO).asInstanceOf[UserInfoDao]
 
+  def getStorageDao: TStorageDao = daoMap(DaoType.STORAGE).asInstanceOf[StorageDao]
+
   def getUserConfigurationDao: TUserConfiguration = daoMap(DaoType.USER_CONFIG).asInstanceOf[UserConfigurationDao]
 
   def getStencilDao: TStencilDao = daoMap(DaoType.STENCIL).asInstanceOf[StencilDao]
@@ -112,6 +115,7 @@ object DaoType extends Enumeration {
   PRIVILEGE,
   USER_INFO,
   USER_CONFIG,
-  STENCIL = Value
+  STENCIL,
+  STORAGE = Value
 }
 

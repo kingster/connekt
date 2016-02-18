@@ -44,6 +44,7 @@ class CommonsBaseTest extends ConnektUTSpec {
     ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
     ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getRequestInfoDao, null)
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
+    ServiceFactory.initStorageService(DaoFactory.getStorageDao)
 
 
     ConnektLogger(LogFile.SERVICE).info("BaseReceptorsTest bootstrapped.")
