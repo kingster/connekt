@@ -13,7 +13,9 @@ import com.flipkart.connekt.commons.utils.NullWrapper._
 import org.apache.commons.codec.CharEncoding
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Await
 import scala.reflect.{ClassTag, _}
+import scala.concurrent.duration._
 /**
  *
  *
@@ -53,8 +55,8 @@ object StringUtils {
   }
 
   implicit  class HttpEntity2String(val entity:HttpEntity){
-    def getString(implicit materializer: Materializer) = {
-      entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).map( bb => new String(bb.result().toArray))
+    def getString(implicit materializer: Materializer,  ec:scala.concurrent.ExecutionContext):String = {
+      Await.result(entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).map( bb => new String(bb.result().toArray)), 30.seconds)
     }
   }
 
