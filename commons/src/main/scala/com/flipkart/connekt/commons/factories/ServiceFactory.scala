@@ -2,7 +2,7 @@ package com.flipkart.connekt.commons.factories
 
 import com.flipkart.connekt.commons.dao._
 import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducer}
-import com.flipkart.connekt.commons.services._
+import com.flipkart.connekt.commons.services.{StorageService, _}
 
 /**
  *
@@ -19,11 +19,15 @@ object ServiceFactory {
   }
 
   def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao) = {
-    serviceCache += ServiceType.CALLBACK ->  new CallbackService(pnCallbackDao,emailCallbackDao, requestInfoDao, emailRequestDao)
+    serviceCache += ServiceType.CALLBACK -> new CallbackService(pnCallbackDao, emailCallbackDao, requestInfoDao, emailRequestDao)
   }
 
   def initAuthorisationService(priv: PrivDao, userInfo: TUserInfo) = {
-    serviceCache += ServiceType.AUTHORISATION -> new AuthorisationService(priv,userInfo)
+    serviceCache += ServiceType.AUTHORISATION -> new AuthorisationService(priv, userInfo)
+  }
+
+  def initStorageService(dao: TStorageDao) = {
+    serviceCache += ServiceType.STORAGE -> new StorageService(dao)
   }
 
   def getMessageService = serviceCache(ServiceType.MESSAGE).asInstanceOf[TMessageService]
@@ -32,8 +36,10 @@ object ServiceFactory {
 
   def getAuthorisationService = serviceCache(ServiceType.AUTHORISATION).asInstanceOf[TAuthorisationService]
 
+  def getStorageService = serviceCache(ServiceType.STORAGE).asInstanceOf[TStorageService]
+
 }
 
 object ServiceType extends Enumeration {
-  val MESSAGE, TEMPLATE, CALLBACK, AUTHORISATION = Value
+  val MESSAGE, TEMPLATE, CALLBACK, AUTHORISATION, STORAGE = Value
 }
