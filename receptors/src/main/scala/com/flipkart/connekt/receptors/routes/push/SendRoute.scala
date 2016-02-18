@@ -33,7 +33,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
                 /* Find platform for each deviceId, group */
                 multicastRequest.validate() match {
                   case true =>
-                    val pnRequestInfo = multicastRequest.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName)
+                    val pnRequestInfo = multicastRequest.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
                     val deviceIds = pnRequestInfo.deviceId
                     val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
@@ -79,7 +79,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
                 entity(as[ConnektRequest]) { r =>
                   r.validate() match {
                     case true =>
-                      val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName, platform = appPlatform.toString)
+                      val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase, platform = appPlatform.toString)
                       val unicastRequest = r.copy(channelInfo = pnRequestInfo, channel = "PN")
 
                       ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
