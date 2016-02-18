@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.fasterxml.jackson.databind.node.ObjectNode
 
@@ -19,4 +20,19 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
                           channelInfo: ChannelRequestInfo,
                           @JsonProperty(required = false) channelData: ChannelRequestData,
                           @JsonProperty(required = false) channelDataModel: ObjectNode = StringUtils.getObjectNode,
-                          meta: Map[String, String])
+                          meta: Map[String, String]) {
+  def validate() : Boolean = {
+    templateId match {
+      case Some(tId) =>
+        StencilService.get(tId) match {
+          case Some(stencil) => true
+          case None => false
+        }
+      case None =>
+        Option(channelData) match {
+          case Some(cD) => true
+          case None => false
+        }
+    }
+  }
+}

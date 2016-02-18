@@ -73,7 +73,7 @@ class StencilEngineToStringDeserializer extends JsonDeserializer[StencilEngine] 
   @Override
   override def deserialize(parser:JsonParser, context:DeserializationContext):StencilEngine.Value={
     try {
-      StencilEngine.withName(parser.getValueAsString)
+      StencilEngine.withName(parser.getValueAsString.toUpperCase)
     } catch {
       case e: NoSuchElementException =>
         null
