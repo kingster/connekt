@@ -15,15 +15,12 @@ import com.flipkart.connekt.commons.utils.StringUtils
  * @author aman.shrivastava on 08/02/16.
  */
 class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, String, String)]] {
-  val in = Inlet[WNSPNPayload]("APNSDispatcher.In")
-  val out = Outlet[(HttpRequest, String, String)]("APNSDispatcher.Out")
+  val in = Inlet[WNSPNPayload]("WNSDispatcher.In")
+  val out = Outlet[(HttpRequest, String, String)]("WNSDispatcher.Out")
 
   override def shape = FlowShape.of(in, out)
 
   var callback: AsyncCallback[String] = null
-
-  //TODO : Change this to dynamic path.
-  val logging = true
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -32,8 +29,6 @@ class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, Str
 
         val message = grab(in)
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Received Message: $message")
-
-        ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Send Payload: " + message)
         val uri = new URI(message.token).toURL
 
         val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + WindowsTokenService.getToken(message.appName)), RawHeader("Content-Length", "500"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
