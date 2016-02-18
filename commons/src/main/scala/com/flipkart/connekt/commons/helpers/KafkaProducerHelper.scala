@@ -22,7 +22,7 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
 
   validatePoolProps("kafka producer pool", globalContextConf)
 
-  var zkPath: String = globalContextConf.getString("zookeeper.connect")
+  var zkPath: String = producerFactoryConf.getString("zookeeper.connect")
 
   val kafkaProducerPool: GenericObjectPool[Producer[String, String]] = {
     try {
