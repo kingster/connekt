@@ -14,8 +14,8 @@ import org.apache.commons.codec.CharEncoding
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Await
-import scala.reflect.{ClassTag, _}
 import scala.concurrent.duration._
+import scala.reflect.{ClassTag, _}
 /**
  *
  *

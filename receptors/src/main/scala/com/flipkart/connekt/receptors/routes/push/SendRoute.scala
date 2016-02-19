@@ -8,7 +8,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/26/15
  */
-class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   val route =
     pathPrefix("v1") {
