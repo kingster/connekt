@@ -8,6 +8,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducerHelper}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.utils.StringUtils._
+import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
 import com.roundeights.hasher.Implicits._
 import scala.util.{Failure, Success, Try}
@@ -63,7 +64,7 @@ class MessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProducer
 
   //# ADMIN ACTIONS
   override def addClientTopic(topicName: String, numPartitions: Int, replicationFactor: Int = 1): Try[Unit] = Try {
-    val zkClient = new ZkClient(queueProducerHelper.zkPath, 5000)
+    val zkClient = new ZkClient(queueProducerHelper.zkPath, 5000, 5000, ZKStringSerializer)
     kafka.admin.AdminUtils.createTopic(zkClient, topicName, numPartitions, replicationFactor, new Properties())
     ConnektLogger(LogFile.SERVICE).info(s"Created topic $topicName with $numPartitions, replicationFactor $replicationFactor")
   }
