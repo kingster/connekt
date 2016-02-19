@@ -56,7 +56,7 @@ object ReceptorsBoot extends BaseApp {
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, kafkaProducerHelper, null)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
-      ServiceFactory.initStorageService(DaoFactory.getStorageDao)
+      ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
 
       //Start up the receptors
       ReceptorsServer()

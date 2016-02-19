@@ -27,7 +27,7 @@ object ServiceFactory {
     serviceCache += ServiceType.AUTHORISATION -> new AuthorisationService(priv, userInfo)
   }
 
-  def initStorageService(dao: TStorageDao) = {
+  def initStorageService(dao: TKeyChainDao) = {
     serviceCache += ServiceType.STORAGE -> new StorageService(dao)
   }
 
