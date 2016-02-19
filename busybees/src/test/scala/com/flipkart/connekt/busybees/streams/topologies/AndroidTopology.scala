@@ -12,7 +12,7 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpPrepare
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload}
-import com.flipkart.connekt.commons.services.CredentialManager
+import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.Await
@@ -25,12 +25,12 @@ class AndroidTopology extends TopologyUTSpec {
 
   "AndroidTopology Test" should "run" in {
 
-    val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
+    val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
     val httpDispatcher = new HttpPrepare[GCMPayload](
       new URL("https", "android.googleapis.com", 443, "/gcm/send"),
       HttpMethods.POST,
-      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.password)),
+      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
       (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
     )
 

@@ -15,9 +15,7 @@ class KeyChainRouteTest extends BaseRouteTest {
   implicit val uu = new AppUser(userId = "connekt-genesis",
     apiKey = "connekt-genesis",
     groups = "revbnt",
-    contact = "",
-    lastUpdatedTs = new Date(),
-    updatedBy = "@#!45y")
+    contact = "")
 
   val storageRoute = new KeyChainRoute().route
 

@@ -10,7 +10,7 @@ import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHa
 import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
-import com.flipkart.connekt.commons.services.{CredentialManager, DeviceDetailsService}
+import com.flipkart.connekt.commons.services.{KeyChainManager, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -81,7 +81,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
 
 
-    val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
+    val credentials = KeyChainManager.getMicrosoftCredential("RetailApp")
 
     lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[(String, String)]("hk2.notify.windows.com")
 

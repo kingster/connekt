@@ -14,7 +14,7 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, 
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.commons.entities.{Credentials, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNRequestInfo}
-import com.flipkart.connekt.commons.services.{CredentialManager, DeviceDetailsService}
+import com.flipkart.connekt.commons.services.{KeyChainManager,  DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.Try
@@ -110,12 +110,13 @@ class PNCompleteTopology extends TopologyUTSpec {
       """.stripMargin.getObj[ConnektRequest]
 
 
-    val credentials = CredentialManager.getCredential("PN.ConnektSampleApp")
+    val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
+    val appleCredentials = KeyChainManager.getAppleCredentials("ConnektSampleApp").get
 
     val httpDispatcher = new HttpPrepare[GCMPayload](
       new URL("https", "android.googleapis.com", 443, "/gcm/send"),
       HttpMethods.POST,
-      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.password)),
+      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
       (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
     )
 
@@ -143,7 +144,7 @@ class PNCompleteTopology extends TopologyUTSpec {
         val render = b.add(new RenderFlow)
 
         val iosFormat = b.add(new IOSChannelFormatter)
-        val iosDispatch = b.add(new APNSDispatcher(Credentials("apns_cert_retail.p12", "flipkart")))
+        val iosDispatch = b.add(new APNSDispatcher(appleCredentials))
 
         //        val androidFormat = b.add(new AndroidChannelFormatter)
         //        val httpPrepare = b.add(httpDispatcher)

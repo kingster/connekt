@@ -9,7 +9,7 @@ import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.commons.entities.{Credentials, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.services.{KeyChainManager, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -62,11 +62,13 @@ class iOSTopology extends TopologyUTSpec {
                    """.stripMargin.getObj[ConnektRequest]
 
 
+    val appleCreds = KeyChainManager.getAppleCredentials("RetailApp").get
+
     val result = Source.single(cRequest)
       .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
       .via(new IOSChannelFormatter)
-      .via(new APNSDispatcher(Credentials("apns_cert_retail.p12", "flipkart")))
+      .via(new APNSDispatcher(appleCreds))
       .runWith(Sink.head)
 
     val response = Await.result(result, 60.seconds)

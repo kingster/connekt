@@ -19,7 +19,7 @@ import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNCallbackEvent, PNRequestInfo}
-import com.flipkart.connekt.commons.services.{ConnektConfig, CredentialManager}
+import com.flipkart.connekt.commons.services.{KeyChainManager, ConnektConfig}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
@@ -44,7 +44,7 @@ object Topology {
     * GRAPH TEMPLATE DEFINITION
     ##############################################################*/
     //this would need to change to dynamic based on which app this is being send for.
-    val credentials = CredentialManager.getGoogleCredential("ConnektSampleApp").get
+    val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
     val httpDispatcher = new HttpPrepare[GCMPayload](
       new URL("https", "android.googleapis.com", 443,"/gcm/send"),
@@ -100,7 +100,7 @@ object Topology {
 
       val merger = b.add(Merge[PNCallbackEvent](3))
       val wnsDispatcher = b.add(new WNSDispatcher())
-      val apnsDispatcher = b.add(new APNSDispatcher(CredentialManager.getAppleCredentials("flipkart").get))
+      val apnsDispatcher = b.add(new APNSDispatcher(KeyChainManager.getAppleCredentials("flipkart").get))
       val wnsRHandler = b.add(new WNSResponseHandler)
       val gcmPoolFlow = b.add(gcmPoolClientFlow)
       val wnsPoolFlow = b.add(wnsPoolClientFlow)
