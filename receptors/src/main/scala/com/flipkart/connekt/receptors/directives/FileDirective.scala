@@ -11,41 +11,44 @@ import akka.stream.scaladsl.FileIO
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+import com.flipkart.connekt.commons.utils.StringUtils._
 
+import MultiPartFormData._
 
 /**
  * Created by nidhi.mehla on 18/02/16.
  * Based upon https://github.com/clockfly/akka-http-file-server
  */
+
 trait FileDirective {
 
-  //form field name
-  type Name = String
-
-  case class FileInfo(fileName: String, targetFile: String, status: Try[Done])
-
-  private def uploadFileImpl(implicit mat: Materializer, ec: ExecutionContext): Directive1[Future[Map[Name, FileInfo]]] = {
-    Directive[Tuple1[Future[Map[Name, FileInfo]]]] { inner =>
-      entity(as[Multipart.FormData]) { (formdata: Multipart.FormData) =>
-        val fileNameMap = formdata.parts.mapAsync(1) { p =>
-          if (p.filename.isDefined) {
-            val targetPath = File.createTempFile(s"userfile_${p.name}_${p.filename.getOrElse("")}", "")
-            val written = p.entity.dataBytes.runWith(FileIO.toFile(targetPath))
+  private def uploadFileImpl(implicit mat: Materializer, ec: ExecutionContext): Directive1[Future[Map[Name, Either[Value, FileInfo]]]] = {
+    Directive[Tuple1[Future[Map[Name, Either[Value, FileInfo]]]]] { inner =>
+      entity(as[Multipart.FormData]) { formData: Multipart.FormData =>
+        val fileNameMap = formData.parts.mapAsync(1) { part =>
+          if (part.filename.isDefined) {
+            val targetPath = File.createTempFile(s"upload_${part.name}_", part.filename.getOrElse(""))
+            val written = part.entity.dataBytes.runWith(FileIO.toFile(targetPath))
             written.map(written =>
-              Map(p.name -> FileInfo(p.filename.get, targetPath.getAbsolutePath, written.status)))
+              Map(part.name -> Right(FileInfo(part.filename.get, targetPath.getAbsolutePath, written.status))))
           } else {
-            Future(Map.empty[Name, FileInfo])
+            //simple value
+            Future(Map(part.name -> Left(part.entity.getString)))
           }
-        }.runFold(Map.empty[Name, FileInfo])((set, value) => set ++ value)
+        }.runFold(Map.empty[Name, Either[Value, FileInfo]])((set, value) => set ++ value)
         inner(Tuple1(fileNameMap))
       }
     }
   }
 
-  def uploadFile: Directive1[Map[Name, FileInfo]] = {
-    Directive[Tuple1[Map[Name, FileInfo]]] { inner =>
-      extractMaterializer {implicit mat =>
-        extractExecutionContext {implicit ec =>
+  /**
+   * Map[Key -> Either[Value/FileInfo] ]
+   * @return
+   */
+  def extractFormData: Directive1[Map[Name,  Either[Value, FileInfo]]] = {
+    Directive[Tuple1[Map[Name,  Either[Value, FileInfo]]]] { inner =>
+      extractMaterializer { implicit mat =>
+        extractExecutionContext { implicit ec =>
           uploadFileImpl(mat, ec) { filesFuture =>
             ctx => {
               filesFuture.map(map => inner(Tuple1(map))).flatMap(route => route(ctx))
@@ -64,4 +67,14 @@ trait FileDirective {
       FileIO.fromFile(f, chunkSize = 262144))
     complete(responseEntity)
   }
+}
+
+
+object MultiPartFormData {
+
+  //form field name
+  type Name = String
+  type Value = String
+
+  case class FileInfo(fileName: String, tmpFilePath: String, status: Try[Done])
 }

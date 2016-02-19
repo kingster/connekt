@@ -4,14 +4,14 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.SimpleCredential
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.service.{AuthenticationService, TokenService}
 
 /**
  * Created by avinash.h on 1/21/16.
  */
 
-class LdapAuthRoute(implicit am: ActorMaterializer) extends BaseHandler {
+class LdapAuthRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val route =
     pathPrefix("v1") {

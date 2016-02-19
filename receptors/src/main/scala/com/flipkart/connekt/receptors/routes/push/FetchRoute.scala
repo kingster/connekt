@@ -7,7 +7,7 @@ import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.immutable.Seq
 import scala.util.Try
@@ -18,7 +18,7 @@ import scala.util.Try
  * @author durga.s
  * @version 1/14/16
  */
-class FetchRoute(implicit user: AppUser) extends BaseHandler {
+class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 
   val fetch =
     pathPrefix("v1") {

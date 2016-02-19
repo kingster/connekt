@@ -5,7 +5,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
 import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 import com.flipkart.connekt.receptors.routes.callbacks.CallbackRoute
-import com.flipkart.connekt.receptors.routes.common.{StorageRoute, ClientRoute, LdapAuthRoute}
+import com.flipkart.connekt.receptors.routes.common.{CredentialsRoute, ClientRoute, LdapAuthRoute}
 import com.flipkart.connekt.receptors.routes.push.{FetchRoute, RegistrationRoute, SendRoute}
 import com.flipkart.connekt.receptors.routes.reports.ReportsRoute
 import com.flipkart.connekt.receptors.routes.status.SystemStatus
@@ -27,10 +27,9 @@ class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirec
       val fetchRoute = new FetchRoute().fetch
       val stencilRoute = new StencilsRoute().stencils
       val clientRoute = new ClientRoute().route
-      val storageRoute = new StorageRoute().route
+      val credentialsRoute = new CredentialsRoute().route
 
-
-      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ clientRoute ~ storageRoute
+      unicastHandler ~ receptorReqHandler ~ callbackHandler ~ reportsRoute ~ fetchRoute ~ stencilRoute ~ clientRoute ~ credentialsRoute
     }
   }
 }
