@@ -5,12 +5,12 @@ import java.util.Date
 import akka.http.scaladsl.model._
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
-import com.flipkart.connekt.receptors.routes.common.CredentialsRoute
+import com.flipkart.connekt.receptors.routes.common.KeyChainRoute
 
 /**
  * Created by nidhi.mehla on 18/02/16.
  */
-class CredentialsRouteTest extends BaseRouteTest {
+class KeyChainRouteTest extends BaseRouteTest {
 
   implicit val uu = new AppUser(userId = "connekt-genesis",
     apiKey = "connekt-genesis",
@@ -19,7 +19,7 @@ class CredentialsRouteTest extends BaseRouteTest {
     lastUpdatedTs = new Date(),
     updatedBy = "@#!45y")
 
-  val storageRoute = new CredentialsRoute().route
+  val storageRoute = new KeyChainRoute().route
 
 
 

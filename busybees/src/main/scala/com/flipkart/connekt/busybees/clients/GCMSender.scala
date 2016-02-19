@@ -5,7 +5,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GCMPayload, GCMProcessed, GCMRejected, GCMSendFailure}
-import com.flipkart.connekt.commons.services.CredentialManager
+import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.transmission.HostConnectionHelper._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
  */
 class GCMSender(host: String, port: Int, api: String, authKey: String) extends Actor {
 
-  def this() = this("android.googleapis.com", 443,"/gcm/send", CredentialManager.getGoogleCredential("ConnektSampleApp").get.apiKey)
+  def this() = this("android.googleapis.com", 443,"/gcm/send", KeyChainManager.getGoogleCredential("ConnektSampleApp").get.apiKey)
 
   lazy implicit val clientPoolFlow = getPoolClientFlow[String](host, port)
   implicit val contextDispatcher = context.dispatcher

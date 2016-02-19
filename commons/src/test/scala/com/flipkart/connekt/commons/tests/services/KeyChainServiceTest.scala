@@ -8,18 +8,18 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
 /**
  * Created by nidhi.mehla on 17/02/16.
  */
-class StorageServiceTest extends CommonsBaseTest {
+class KeyChainServiceTest extends CommonsBaseTest {
 
   val keyData = UUID.randomUUID().toString.take(6)
   val keyValue = UUID.randomUUID().toString.take(6)
 
   "Storage Service" should "store key value" in {
-    noException should be thrownBy ServiceFactory.getStorageService.put(keyData, keyValue)
+    noException should be thrownBy ServiceFactory.getKeyChainService.put(keyData, keyValue)
   }
 
   "Storage Service" should "get value for key" in {
-    noException should be thrownBy ServiceFactory.getStorageService.get(keyData)
-    ServiceFactory.getStorageService.get(keyData).get.get shouldEqual keyValue.getBytes
+    noException should be thrownBy ServiceFactory.getKeyChainService.get(keyData)
+    ServiceFactory.getKeyChainService.get(keyData).get.get shouldEqual keyValue.getBytes
   }
 
 }

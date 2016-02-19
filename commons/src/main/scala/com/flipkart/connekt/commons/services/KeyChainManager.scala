@@ -10,9 +10,9 @@ import com.flipkart.connekt.commons.serializers.KryoSerializer
  * Created by kinshuk.bairagi on 13/11/14.
  */
 
-object CredentialManager {
+object KeyChainManager {
 
-  private val storage = ServiceFactory.getStorageService
+  private val storage = ServiceFactory.getKeyChainService
 
   private def getNameSpacedKey(platform: MobilePlatform, appName: String) = s"$platform.${appName.toLowerCase}"
 

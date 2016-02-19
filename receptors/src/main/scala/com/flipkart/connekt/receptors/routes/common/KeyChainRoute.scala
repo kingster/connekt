@@ -8,7 +8,7 @@ import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.entities.{AppUser, AppleCredential, GoogleCredential, MicrosoftCredential}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
-import com.flipkart.connekt.commons.services.CredentialManager
+import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.receptors.directives.{FileDirective, MPlatformSegment}
 import com.flipkart.connekt.receptors.routes.BaseHandler
 
@@ -17,7 +17,7 @@ import scala.util.{Failure, Success}
 /**
  * Created by nidhi.mehla on 18/02/16.
  */
-class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler with FileDirective {
+class KeyChainRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler with FileDirective {
 
   /**
    * formFields doesn't work now.
@@ -29,7 +29,7 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
    */
 
   val route =
-    pathPrefix("v1" / "credentials") {
+    pathPrefix("v1" / "keychain") {
 
       path(Segment / MPlatformSegment) {
         (appName: String, platform: MobilePlatform) =>
@@ -45,7 +45,7 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
 
                     case Success(x) =>
                       val credential = AppleCredential(new File(fileInfo.tmpFilePath), password)
-                      CredentialManager.addAppleCredentials(appName,credential )
+                      KeyChainManager.addAppleCredentials(appName,credential )
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
 
                     case Failure(e) =>
@@ -56,7 +56,7 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
 
                 }
               } ~ get {
-                CredentialManager.getAppleCredentials(appName) match {
+                KeyChainManager.getAppleCredentials(appName) match {
                   case Some(x) =>
                     //TODO : Serve the file here.
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
@@ -74,11 +74,11 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
                   val appKey: String = postMap("appKey").left.get
 
                   val credential = GoogleCredential(appId, appKey)
-                  CredentialManager.addGoogleCredential(appName, credential)
+                  KeyChainManager.addGoogleCredential(appName, credential)
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
                 }
               } ~ get {
-                CredentialManager.getGoogleCredential(appName) match {
+                KeyChainManager.getGoogleCredential(appName) match {
                   case Some(x) =>
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
                   case None =>
@@ -94,11 +94,11 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
                   val clientId: String = postMap("clientId").left.get
                   val clientSecret: String = postMap("secret").left.get
                   val credential = MicrosoftCredential(clientId, clientSecret)
-                  CredentialManager.addMicrosoftCredential(appName,credential )
+                  KeyChainManager.addMicrosoftCredential(appName,credential )
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
                 }
               } ~ get {
-                CredentialManager.getMicrosoftCredential(appName) match {
+                KeyChainManager.getMicrosoftCredential(appName) match {
                   case Some(x) =>
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
                   case None =>
