@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.factories
 
 import com.flipkart.connekt.commons.dao._
-import com.flipkart.connekt.commons.services.{StorageService, _}
+import com.flipkart.connekt.commons.services.{KeyChainService, _}
 import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducerHelper}
 import com.flipkart.connekt.commons.services._
 
@@ -28,7 +28,7 @@ object ServiceFactory {
   }
 
   def initStorageService(dao: TKeyChainDao) = {
-    serviceCache += ServiceType.STORAGE -> new StorageService(dao)
+    serviceCache += ServiceType.KEY_CHAIN -> new KeyChainService(dao)
   }
 
   def getPNMessageService = serviceCache(ServiceType.PN_MESSAGE).asInstanceOf[TMessageService]
@@ -37,10 +37,10 @@ object ServiceFactory {
 
   def getAuthorisationService = serviceCache(ServiceType.AUTHORISATION).asInstanceOf[TAuthorisationService]
 
-  def getStorageService = serviceCache(ServiceType.STORAGE).asInstanceOf[TStorageService]
+  def getKeyChainService = serviceCache(ServiceType.KEY_CHAIN).asInstanceOf[TStorageService]
 
 }
 
 object ServiceType extends Enumeration {
-  val PN_MESSAGE, TEMPLATE, CALLBACK, AUTHORISATION, STORAGE = Value
+  val PN_MESSAGE, TEMPLATE, CALLBACK, AUTHORISATION, KEY_CHAIN = Value
 }

@@ -13,7 +13,7 @@ import scala.util.Try
 /**
  * Created by nidhi.mehla on 17/02/16.
  */
-class StorageService(dao: TKeyChainDao) extends TStorageService with Instrumented {
+class KeyChainService(dao: TKeyChainDao) extends TStorageService with Instrumented {
 
   override def put(key: String, value: String): Try[Unit] = Try_ {
     dao.put(new Key(key, "STRING", value.getBytes, new Date(), new Date(), null))
