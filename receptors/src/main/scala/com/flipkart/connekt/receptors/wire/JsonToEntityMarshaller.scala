@@ -24,18 +24,22 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
  * @author durga.s
  * @version 11/20/15
  */
-trait GenericJsonSupport extends PredefinedFromEntityUnmarshallers with PredefinedToEntityMarshallers {
+trait JsonToEntityMarshaller extends PredefinedFromEntityUnmarshallers with PredefinedToEntityMarshallers {
 
   val jacksonModules = Seq(DefaultScalaModule)
 
   val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModules(jacksonModules:_*)
 
-  implicit def genericUnmarshaller[T: Manifest]: FromEntityUnmarshaller[T] =
+  implicit def genericUnmarshaller[T : Manifest]: FromEntityUnmarshaller[T] =
     stringUnmarshaller.forContentTypes(MediaTypes.`application/json`)
       .map( mapper.readValue[T] )
 
   implicit def genericMarshaller[T <: AnyRef]: ToEntityMarshaller[T] =
     stringMarshaller(MediaTypes.`application/json`)
       .compose[T]( mapper.writeValueAsString )
+}
+
+trait JsonFromEntityUnmarshaller {
+
 }
