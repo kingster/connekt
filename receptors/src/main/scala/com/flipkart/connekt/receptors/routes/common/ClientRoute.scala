@@ -21,9 +21,10 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
       pathEndOrSingleSlash {
         post {
           entity(as[AppUserConfiguration]) { userConfig =>
-            UserConfigurationService.add(userConfig).get
             val mSvc = ServiceFactory.getPNMessageService
             val clientTopic = mSvc.getClientChannelTopic(userConfig.channel.toString, userConfig.userId)
+            userConfig.queueName = clientTopic
+            UserConfigurationService.add(userConfig).get
             mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate))
 
             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
