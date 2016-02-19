@@ -14,7 +14,7 @@ object CredentialManager {
 
   private val storage = ServiceFactory.getStorageService
 
-  private def getNameSpacedKey(platform: MobilePlatform, key: String) = s"$platform.$key"
+  private def getNameSpacedKey(platform: MobilePlatform, appName: String) = s"$platform.${appName.toLowerCase}"
 
   def addSimpleCredential(name: String, credential: SimpleCredential) = {
     val bytes = KryoSerializer.serialize(credential)
