@@ -25,7 +25,7 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
             val clientTopic = mSvc.getClientChannelTopic(userConfig.channel.toString, userConfig.userId)
             userConfig.queueName = clientTopic
             UserConfigurationService.add(userConfig).get
-            mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate))
+            mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
 
             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
           }
