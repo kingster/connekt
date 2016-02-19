@@ -33,7 +33,6 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
 
       path(Segment / MPlatformSegment) {
         (appName: String, platform: MobilePlatform) =>
-          val storageKey = s"$platform.$appName"
           platform match {
             case IOS =>
               post {
@@ -46,7 +45,7 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
 
                     case Success(x) =>
                       val credential = AppleCredential(new File(fileInfo.tmpFilePath), password)
-                      CredentialManager.addAppleCredentials(storageKey,credential )
+                      CredentialManager.addAppleCredentials(appName,credential )
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
 
                     case Failure(e) =>
@@ -57,7 +56,7 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
 
                 }
               } ~ get {
-                CredentialManager.getAppleCredentials(storageKey) match {
+                CredentialManager.getAppleCredentials(appName) match {
                   case Some(x) =>
                     //TODO : Serve the file here.
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
@@ -75,11 +74,11 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
                   val appKey: String = postMap("appKey").left.get
 
                   val credential = GoogleCredential(appId, appKey)
-                  CredentialManager.addGoogleCredential(storageKey, credential)
+                  CredentialManager.addGoogleCredential(appName, credential)
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
                 }
               } ~ get {
-                CredentialManager.getGoogleCredential(storageKey) match {
+                CredentialManager.getGoogleCredential(appName) match {
                   case Some(x) =>
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
                   case None =>
@@ -95,11 +94,11 @@ class CredentialsRoute(implicit am: ActorMaterializer, user: AppUser) extends Ba
                   val clientId: String = postMap("clientId").left.get
                   val clientSecret: String = postMap("secret").left.get
                   val credential = MicrosoftCredential(clientId, clientSecret)
-                  CredentialManager.addMicrosoftCredential(storageKey,credential )
+                  CredentialManager.addMicrosoftCredential(appName,credential )
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
                 }
               } ~ get {
-                CredentialManager.getMicrosoftCredential(storageKey) match {
+                CredentialManager.getMicrosoftCredential(appName) match {
                   case Some(x) =>
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
                   case None =>

@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.services
 
+import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.serializers.KryoSerializer
@@ -13,6 +14,8 @@ object CredentialManager {
 
   private val storage = ServiceFactory.getStorageService
 
+  private def getNameSpacedKey(platform: MobilePlatform, key: String) = s"$platform.$key"
+
   def addSimpleCredential(name: String, credential: SimpleCredential) = {
     val bytes = KryoSerializer.serialize(credential)
     storage.put(name, bytes)
@@ -25,32 +28,32 @@ object CredentialManager {
 
   def addAppleCredentials(name: String, credential: AppleCredential) = {
     val bytes = KryoSerializer.serialize(credential)
-    storage.put(name, bytes)
+    storage.put(getNameSpacedKey(MobilePlatform.IOS, name), bytes)
   }
 
   @throws[Exception]
   def getAppleCredentials(name: String): Option[AppleCredential] = {
-    storage.get(name).get.map(KryoSerializer.deserialize[AppleCredential])
+    storage.get(getNameSpacedKey(MobilePlatform.IOS, name)).get.map(KryoSerializer.deserialize[AppleCredential])
   }
 
   def addMicrosoftCredential(name: String, credential: MicrosoftCredential) = {
     val bytes = KryoSerializer.serialize(credential)
-    storage.put(name, bytes)
+    storage.put(getNameSpacedKey(MobilePlatform.WINDOWS, name), bytes)
   }
 
   @throws[Exception]
   def getMicrosoftCredential(name: String): Option[MicrosoftCredential] = {
-    storage.get(name).get.map(KryoSerializer.deserialize[MicrosoftCredential])
+    storage.get(getNameSpacedKey(MobilePlatform.WINDOWS, name)).get.map(KryoSerializer.deserialize[MicrosoftCredential])
   }
 
   def addGoogleCredential(name: String, credential: GoogleCredential) = {
     val bytes = KryoSerializer.serialize(credential)
-    storage.put(name, bytes)
+    storage.put(getNameSpacedKey(MobilePlatform.ANDROID, name), bytes)
   }
 
   @throws[Exception]
   def getGoogleCredential(name: String): Option[GoogleCredential] = {
-    storage.get(name).get.map(KryoSerializer.deserialize[GoogleCredential])
+    storage.get(getNameSpacedKey(MobilePlatform.ANDROID, name)).get.map(KryoSerializer.deserialize[GoogleCredential])
   }
 
 
