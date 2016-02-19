@@ -4,11 +4,12 @@ import java.util.Properties
 
 import com.flipkart.connekt.commons.dao.TRequestDao
 import com.flipkart.connekt.commons.entities.AppUser
+import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducerHelper}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.utils.StringUtils._
-import kafka.utils.ZKStringSerializer
+import kafka.utils.{ZkUtils, ZKStringSerializer}
 import org.I0Itec.zkclient.ZkClient
 import com.roundeights.hasher.Implicits._
 import scala.util.{Failure, Success, Try}
@@ -71,5 +72,9 @@ class MessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProducer
 
   override def partitionEstimate(qpsBound: Int): Int = {
     ConnektConfig.getInt("admin.partitionsPer5k").getOrElse(1) * Math.max(qpsBound / 5000, 1)
+  }
+
+  override def getTopicNames(channel: Channel): Try[Seq[String]] = Try {
+    ZkUtils.getAllTopics(new ZkClient(queueProducerHelper.zkPath, 5000, 5000, ZKStringSerializer)).filter(_.startsWith(channel.toString))
   }
 }
