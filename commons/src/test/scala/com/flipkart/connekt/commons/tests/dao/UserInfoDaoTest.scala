@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.tests.dao
 
-import java.util.{Date, UUID}
+import java.util.UUID
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.AppUser

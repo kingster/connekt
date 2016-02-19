@@ -32,6 +32,9 @@ import scala.util.{Failure, Success, Try}
  * @author durga.s
  * @version 2/2/16
  */
+
+case class wnsResponse(appName: String, requestId: String)
+
 object Topology {
 
   def bootstrap(consumerHelper: KafkaConsumerHelper) = {
@@ -47,7 +50,7 @@ object Topology {
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
     val httpDispatcher = new HttpPrepare[GCMPayload](
-      new URL("https", "android.googleapis.com", 443,"/gcm/send"),
+      new URL("https", "android.googleapis.com", 443, "/gcm/send"),
       HttpMethods.POST,
       scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
       (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
@@ -68,24 +71,26 @@ object Topology {
       }
     })
 
-    lazy implicit val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
+    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
 
-    lazy implicit val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[(String, String)]("hk2.notify.windows.com")
+    val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[wnsResponse]("hk2.notify.windows.com")
+
+    //    lazy implicit val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[wnsResponse]("hk2.notify.windows.com")
 
     /* Start kafkaSource(s) for each topic */
     /* Attach rate-limiter flow for client sla */
     /* Wire PN dispatcher flows to sources */
-    val g = GraphDSL.create(){ implicit b =>
+    val g = GraphDSL.create() { implicit b =>
 
-      val source = b.add(new KafkaSource[ConnektRequest](consumerHelper, "PN_connekt"))
-//      val flowRate = b.add(new RateControl[ConnektRequest](2, 1, 2))
+      val source = b.add(new KafkaSource[ConnektRequest](consumerHelper, "push_ec06191e4ed41b85b45973652c659ad4704644a13975a088c731bf69375ac5c1"))
+      //      val flowRate = b.add(new RateControl[ConnektRequest](2, 1, 2))
       val render = b.add(new RenderFlow)
       val fmtAndroid = b.add(new AndroidChannelFormatter)
       val fmtWindows = b.add(new WindowsChannelFormatter)
       val fmtIOS = b.add(new IOSChannelFormatter)
       val rHandlerGCM = b.add(new GCMResponseHandler)
-      val evtCreator = b.add( new PNBigfootEventCreator)
-//      val evtSenderSink = b.add(new EventSenderSink)
+      val evtCreator = b.add(new PNBigfootEventCreator)
+      //      val evtSenderSink = b.add(new EventSenderSink)
       val platformPartition = b.add(new Partition[ConnektRequest](3, {
         case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
           ConnektLogger(LogFile.WORKERS).info(s"Routing IOS message: ${ios.id}")
@@ -100,7 +105,7 @@ object Topology {
 
       val merger = b.add(Merge[PNCallbackEvent](3))
       val wnsDispatcher = b.add(new WNSDispatcher())
-      val apnsDispatcher = b.add(new APNSDispatcher(KeyChainManager.getAppleCredentials("flipkart").get))
+      val apnsDispatcher = b.add(new APNSDispatcher(KeyChainManager.getAppleCredentials("RetailApp").get))
       val wnsRHandler = b.add(new WNSResponseHandler)
       val gcmPoolFlow = b.add(gcmPoolClientFlow)
       val wnsPoolFlow = b.add(wnsPoolClientFlow)
@@ -128,27 +133,27 @@ object Topology {
     Thread.sleep(25000)
 
     /* Fetch inlet / kafka message topic names */
-//    val topics = ConnektConfig.getList[String]("allowedPNTopics")
+    //    val topics = ConnektConfig.getList[String]("allowedPNTopics")
     val pnTopicPrefix = ConnektConfig.getOrElse("topicPrefix.PN", "PN_")
     val emailTopicPrefix = ConnektConfig.getOrElse("topicPrefix.PN", "EM_")
 
     val channelTopics = ZkUtils.getAllTopics(new ZkClient(KafkaConsumerHelper.zkPath, 5000, 5000, ZKStringSerializer))
 
     /* start all pn flows */
-//    channelTopics.filter(_.startsWith(pnTopicPrefix)).foreach(t => {
-//      ConnektLogger(LogFile.WORKERS).info(s"Bootstrapping flow for topic: $t")
-//      RunnableGraph.fromGraph(g).run()
-//
-//      Source.fromGraph(new KafkaSource[ConnektRequest](consumerHelper, t))
-//        .via(new RateControl[ConnektRequest](2, 1, 2))
-//        .via(new RenderFlow)
-//        .via(new AndroidChannelFormatter)
-//        .via(httpDispatcher)
-//        .via(poolClientFlow)
-//        .via(new GCMResponseHandler)
-//        .via(new PNBigfootEventCreator)
-//        .runWith(new EventSenderSink)
-//    })
+    //    channelTopics.filter(_.startsWith(pnTopicPrefix)).foreach(t => {
+    //      ConnektLogger(LogFile.WORKERS).info(s"Bootstrapping flow for topic: $t")
+    //      RunnableGraph.fromGraph(g).run()
+    //
+    //      Source.fromGraph(new KafkaSource[ConnektRequest](consumerHelper, t))
+    //        .via(new RateControl[ConnektRequest](2, 1, 2))
+    //        .via(new RenderFlow)
+    //        .via(new AndroidChannelFormatter)
+    //        .via(httpDispatcher)
+    //        .via(poolClientFlow)
+    //        .via(new GCMResponseHandler)
+    //        .via(new PNBigfootEventCreator)
+    //        .runWith(new EventSenderSink)
+    //    })
   }
 
   def shutdown() = {

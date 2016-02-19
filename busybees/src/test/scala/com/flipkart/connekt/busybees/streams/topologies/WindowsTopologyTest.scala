@@ -2,15 +2,15 @@ package com.flipkart.connekt.busybees.streams.topologies
 
 import akka.http.scaladsl.Http
 import akka.stream.scaladsl.{Sink, Source}
-import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.WindowsChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHandler
 import com.flipkart.connekt.busybees.streams.sources.RateControl
+import com.flipkart.connekt.busybees.streams.{TopologyUTSpec, wnsResponse}
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
-import com.flipkart.connekt.commons.services.{KeyChainManager, DeviceDetailsService}
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -30,7 +30,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
         deviceId = deviceId,
         userId = "",
         token = "https://hk2.notify.windows.com/?token=AwYAAACgHkoOVVWGZKeRPzsjQFZQZkIlSVgGQmMJYml%2b4maOyhnwvG%2bKTrLGVkkLnRJ0SKzVHWOaQ9KKlUPFWfsG5yMi7rACONMp7w6Pko1x8H2nqZJlqzNhfQylhnXomv8DPxw%3d",
-        osName = "WINDOWS", osVersion = "8.0", appName = "UT", appVersion = "UT", brand = "UT", model = "UT"
+        osName = "windows", osVersion = "8.0", appName = "retailapp", appVersion = "UT", brand = "UT", model = "UT"
       )
     )
 
@@ -71,8 +71,8 @@ class WindowsTopologyTest extends TopologyUTSpec {
                       |	    "type" : "PN",
                       |	    "ackRequired": true,
                       |    	"delayWhileIdle": true,
-                      |      "platform" :  "ANDROID",
-                      |      "appName" : "UT",
+                      |      "platform" :  "windows",
+                      |      "appName" : "retailapp",
                       |      "deviceId" : ["$deviceId"]
                       |	},
                       |	"meta": {}
@@ -81,9 +81,9 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
 
 
-    val credentials = KeyChainManager.getMicrosoftCredential("RetailApp")
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[(String, String)]("hk2.notify.windows.com")
+
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[wnsResponse]("hk2.notify.windows.com")
 
 
     val result = Source.single(cRequest)
@@ -97,6 +97,18 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
 
   val response = Await.result(result, 1000.seconds)
+
+    val result1 = Source.single(cRequest)
+      .via(new RateControl[ConnektRequest](2, 1, 2))
+      .via(new RenderFlow)
+      .via(new WindowsChannelFormatter)
+      .via(new WNSDispatcher())
+      .via(poolClientFlow)
+      .via(new WNSResponseHandler)
+      .runWith(Sink.head)
+
+
+    val response1 = Await.result(result, 1000.seconds)
 
     println(response)
 

@@ -1,13 +1,12 @@
 package com.flipkart.connekt.busybees.streams.topologies
 
-import akka.http.scaladsl.Http
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.APNSDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
-import com.flipkart.connekt.commons.entities.{Credentials, DeviceDetails}
+import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.{KeyChainManager, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils
@@ -55,7 +54,7 @@ class iOSTopology extends TopologyUTSpec {
                      |    	"delayWhileIdle": true,
                      |      "platform" :  "ios",
                      |      "appName" : "UT",
-                     |      "deviceId" : "$deviceId"
+                     |      "deviceId" : ["$deviceId"]
                      |	},
                      |	"meta": {}
                      |}

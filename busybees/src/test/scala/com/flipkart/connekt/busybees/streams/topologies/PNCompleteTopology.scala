@@ -12,7 +12,7 @@ import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, HttpPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
-import com.flipkart.connekt.commons.entities.{Credentials, DeviceDetails}
+import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNRequestInfo}
 import com.flipkart.connekt.commons.services.{KeyChainManager,  DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._

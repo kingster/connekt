@@ -26,9 +26,9 @@ object WindowsTokenService {
 
   val cacheKey = "WINDOWS_TOKEN"
 
-  val secureId = "ms-app://s-1-15-2-2528958255-2029194746-749418806-697355668-3484495234-315031297-461998615"
-  val clientSecret = "0wYL2+lFYpHHD3nJS2Hoyh8gfpcmWFOV"
   val windowsURI = "https://login.live.com/accesstoken.srf"
+
+  val platform = "windows"
 
   val uri = new URI(windowsURI).toURL
   implicit val clientPoolFlow = getPoolClientFlow[String]("login.live.com", 443)
@@ -45,7 +45,7 @@ object WindowsTokenService {
   def getToken(appName: String): Option[Token] = {
     rwl.readLock().lock()
     try {
-      LocalCacheManager.getCache[Token](LocalCacheType.WNSACCESSTOKEN).get(appName)
+      LocalCacheManager.getCache[Token](LocalCacheType.WnsAccessToken).get(appName)
     } finally {
       rwl.readLock().unlock()
     }
@@ -57,30 +57,33 @@ object WindowsTokenService {
   }
 
   def requestNewToken(appName: String, requestTime: Long): Unit = {
-    if (rwl.writeLock().tryLock()) {
-      try {
-        println(s"${System.currentTimeMillis()}-WRITETOKEN_LOCK")
-        ConnektLogger(LogFile.CLIENTS).debug("Windows token request")
-        //      Thread.sleep(6000)
-        val postData = Map("grant_type" -> "client_credentials", "scope" -> "notify.windows.com", "client_id" -> secureId, "client_secret" -> clientSecret)
+    val credential = KeyChainManager.getMicrosoftCredential(appName)
+    credential match {
+      case Some(cred) =>
+        if (rwl.writeLock().tryLock()) {
+          try {
+            ConnektLogger(LogFile.CLIENTS).debug("Windows token request")
+            val postData = Map("grant_type" -> "client_credentials", "scope" -> "notify.windows.com", "client_id" -> cred.clientId, "client_secret" -> cred.clientSecret)
 
-        val httpRequest = new HttpRequest(
-          HttpMethods.POST,
-          "/accesstoken.srf",
-          scala.collection.immutable.Seq[HttpHeader](RawHeader("Content-Type", "application/x-www-form-urlencoded")),
-          FormData(postData).toEntity
-        )
-        val fExec = request[String](httpRequest, "req-1")
+            val httpRequest = new HttpRequest(
+              HttpMethods.POST,
+              "/accesstoken.srf",
+              scala.collection.immutable.Seq[HttpHeader](RawHeader("Content-Type", "application/x-www-form-urlencoded")),
+              FormData(postData).toEntity
+            )
+            val fExec = request[String](httpRequest, "req-1")
 
-        val responseBuilder = fExec.flatMap(r => r._1.map(_.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs})).get)
-        val r = Await.result(responseBuilder.map(_.result().decodeString("UTF-8").getObj[ObjectNode]), 5.seconds)
+            val responseBuilder = fExec.flatMap(r => r._1.map(_.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs})).get)
+            val r = Await.result(responseBuilder.map(_.result().decodeString("UTF-8").getObj[ObjectNode]), 5.seconds)
 
-        LocalCacheManager.getCache[Token](LocalCacheType.WNSACCESSTOKEN).put(appName, Token(r.get("access_token").asText(), r.get("expires_in").asLong * 1000 + requestTime))
+            LocalCacheManager.getCache[Token](LocalCacheType.WnsAccessToken).put(appName, Token(r.get("access_token").asText(), r.get("expires_in").asLong * 1000 + requestTime))
 
-      } finally {
-        rwl.writeLock().unlock()
-        println(s"${System.currentTimeMillis()}-WRITETOKEN_UNLOCK")
-      }
+          } finally {
+            rwl.writeLock().unlock()
+          }
+        }
+      case None =>
+        ConnektLogger(LogFile.SERVICE).info(s"Cannot Invalid appName $appName")
     }
   }
 }

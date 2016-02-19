@@ -6,6 +6,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
+import com.flipkart.connekt.busybees.streams.wnsResponse
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.WNSPNPayload
 import com.flipkart.connekt.commons.services.WindowsTokenService
@@ -14,9 +15,9 @@ import com.flipkart.connekt.commons.utils.StringUtils
 /**
  * @author aman.shrivastava on 08/02/16.
  */
-class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, (String, String))]] {
+class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, wnsResponse)]] {
   val in = Inlet[WNSPNPayload]("WNSDispatcher.In")
-  val out = Outlet[(HttpRequest, (String, String))]("WNSDispatcher.Out")
+  val out = Outlet[(HttpRequest, wnsResponse)]("WNSDispatcher.Out")
 
   override def shape = FlowShape.of(in, out)
 
@@ -29,7 +30,7 @@ class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, (St
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Received Message: $message")
         val uri = new URI(message.token).toURL
 
-        val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + WindowsTokenService.getToken(message.appName).get.token), RawHeader("Content-Length", "500"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
+        val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + WindowsTokenService.getToken(message.appName).map(_.token).getOrElse("INVALID")), RawHeader("Content-Length", "500"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
 
 
         val payload = HttpEntity(message.wnsPNType.getContentType, message.wnsPNType.getPayload)
@@ -39,7 +40,7 @@ class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, (St
         val requestId = StringUtils.generateRandomStr(10)
 
 
-      push(out, (request, (requestId, message.appName)))
+      push(out, (request, wnsResponse(message.appName, requestId)))
 
       } catch {
         case e: Throwable =>

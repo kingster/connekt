@@ -27,7 +27,8 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
         (appPlatform: MobilePlatform, appName: String) =>
           authorize(user, "MULTICAST_" + appName) {
             post {
-              entity(as[ConnektRequest]) { multicastRequest =>
+              entity(as[ConnektRequest]) { r =>
+                val multicastRequest = r.copy(channel = "push")
                 ConnektLogger(LogFile.SERVICE).debug(s"Received multicast PN request with payload: ${multicastRequest.toString}")
 
                 /* Find platform for each deviceId, group */
@@ -50,7 +51,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                     val failure = ListBuffer[String]()
                     val success = scala.collection.mutable.Map[String, List[String]]()
 
-                    val queueName = ServiceFactory.getPNMessageService.getRequestBucket(multicastRequest.copy(channel = "PN"), user)
+                    val queueName = ServiceFactory.getPNMessageService.getRequestBucket(multicastRequest, user)
 
                     groupedPlatformRequests.toList.foreach { p =>
                       /* enqueue multiple requests into kafka */
@@ -80,7 +81,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                   r.validate() match {
                     case true =>
                       val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase, platform = appPlatform.toString)
-                      val unicastRequest = r.copy(channelInfo = pnRequestInfo, channel = "PN")
+                      val unicastRequest = r.copy(channelInfo = pnRequestInfo, channel = "push")
 
                       ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
                       val queueName = ServiceFactory.getPNMessageService.getRequestBucket(unicastRequest, user)

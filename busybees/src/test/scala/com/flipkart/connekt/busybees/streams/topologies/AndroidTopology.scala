@@ -61,7 +61,7 @@ class AndroidTopology extends TopologyUTSpec {
                      |    	"delayWhileIdle": true,
                      |     "platform" :  "android",
                      |     "appName" : "ConnectSampleApp",
-                     |     "deviceId" : "513803e45cf1b344ef494a04c9fb650a"
+                     |     "deviceId" : ["513803e45cf1b344ef494a04c9fb650a"]
                      |	},
                      |	"meta": {}
                      |}
