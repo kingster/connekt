@@ -12,7 +12,7 @@ import akka.http.scaladsl.server.directives.{DebuggingDirectives, LogEntry}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.receptors.routes.{BaseHandler, RouteRegistry}
+import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 
 import scala.collection.immutable.Seq
 
@@ -22,7 +22,7 @@ import scala.collection.immutable.Seq
  * @author durga.s
  * @version 11/20/15
  */
-object ReceptorsServer extends BaseHandler {
+object ReceptorsServer extends BaseJsonHandler {
 
   implicit val system = ActorSystem("ckt-receptors")
   implicit val materializer = ActorMaterializer.create(system)

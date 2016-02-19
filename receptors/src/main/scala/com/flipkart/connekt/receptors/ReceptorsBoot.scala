@@ -18,7 +18,7 @@ import com.typesafe.config.ConfigFactory
  * @author durga.s
  * @version 11/20/15
  */
-object ReceptorsBoot  extends BaseApp{
+object ReceptorsBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
 
@@ -51,11 +51,12 @@ object ReceptorsBoot  extends BaseApp{
 
       val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
-      KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
+      val kafkaProducerHelper = KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
-      ServiceFactory.initMessageService(DaoFactory.getRequestInfoDao, KafkaProducerHelper, null)
-      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getRequestInfoDao, null)
+      ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, kafkaProducerHelper, null)
+      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
+      ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
 
       //Start up the receptors
       ReceptorsServer()

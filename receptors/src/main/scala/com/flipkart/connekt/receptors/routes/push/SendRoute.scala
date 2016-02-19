@@ -8,7 +8,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/26/15
  */
-class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   val route =
     pathPrefix("v1") {
@@ -31,36 +31,43 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
                 ConnektLogger(LogFile.SERVICE).debug(s"Received multicast PN request with payload: ${multicastRequest.toString}")
 
                 /* Find platform for each deviceId, group */
-                val pnRequestInfo = multicastRequest.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName)
-                val deviceIds = pnRequestInfo.deviceId
-                val groupedPlatformRequests = ListBuffer[ConnektRequest]()
+                multicastRequest.validate() match {
+                  case true =>
+                    val pnRequestInfo = multicastRequest.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
+                    val deviceIds = pnRequestInfo.deviceId
+                    val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
-                appPlatform match {
-                  case MobilePlatform.UNKNOWN =>
-                    val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
-                    groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                      platform -> multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
-                    }.values
-                  case _ =>
-                    groupedPlatformRequests += multicastRequest
+                    appPlatform match {
+                      case MobilePlatform.UNKNOWN =>
+                        val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
+                        groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                          platform -> multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                        }.values
+                      case _ =>
+                        groupedPlatformRequests += multicastRequest
+                    }
+
+                    val failure = ListBuffer[String]()
+                    val success = scala.collection.mutable.Map[String, List[String]]()
+
+                    val queueName = ServiceFactory.getPNMessageService.getRequestBucket(multicastRequest.copy(channel = "PN"), user)
+
+                    groupedPlatformRequests.toList.foreach { p =>
+                      /* enqueue multiple requests into kafka */
+                      ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
+                        case Success(id) =>
+                          success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                        case Failure(t) =>
+                          failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                      }
+                    }
+
+                    complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)))
+                  case false =>
+                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
+
                 }
 
-                val failure = ListBuffer[String]()
-                val success = scala.collection.mutable.Map[String, List[String]]()
-
-                val queueName = ServiceFactory.getMessageService.getRequestBucket(multicastRequest, user)
-
-                groupedPlatformRequests.toList.foreach { p =>
-                  /* enqueue multiple requests into kafka */
-                  ServiceFactory.getMessageService.persistRequest(p, queueName, isCrucial = true) match {
-                    case Success(id) =>
-                      success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
-                    case Failure(t) =>
-                      failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
-                  }
-                }
-
-                complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)))
               }
             }
           }
@@ -70,13 +77,18 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandl
             authorize(user, "UNICAST_" + appName) {
               post {
                 entity(as[ConnektRequest]) { r =>
-                  val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName, platform = appPlatform.toString)
-                  val unicastRequest = r.copy(channelInfo = pnRequestInfo)
+                  r.validate() match {
+                    case true =>
+                      val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase, platform = appPlatform.toString)
+                      val unicastRequest = r.copy(channelInfo = pnRequestInfo, channel = "PN")
 
-                  ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
-                  val queueName = ServiceFactory.getMessageService.getRequestBucket(unicastRequest, user)
-                  val requestId = ServiceFactory.getMessageService.persistRequest(unicastRequest, queueName, isCrucial = true).get
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
+                      ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
+                      val queueName = ServiceFactory.getPNMessageService.getRequestBucket(unicastRequest, user)
+                      val requestId = ServiceFactory.getPNMessageService.saveRequest(unicastRequest, queueName, isCrucial = true).get
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
+                    case false =>
+                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
+                  }
 
                 }
               }

@@ -1,21 +1,19 @@
 package com.flipkart.connekt.receptors.routes
 
 import akka.http.scaladsl.marshalling._
-import akka.http.scaladsl.model.{HttpHeader, _}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.unmarshalling.PredefinedFromEntityUnmarshallers
 import com.flipkart.connekt.commons.iomodels.GenericResponse
 import com.flipkart.connekt.receptors.directives.{AsyncDirectives, AuthenticationDirectives, AuthorizationDirectives, HeaderDirectives}
-import com.flipkart.connekt.receptors.wire.GenericJsonSupport
+import com.flipkart.connekt.receptors.wire.JsonToEntityMarshaller
 
 import scala.collection.immutable.Seq
 
 /**
- *
- *
- * @author durga.s
- * @version 11/21/15
+ * Created by kinshuk.bairagi on 19/02/16.
  */
-abstract class BaseHandler extends GenericJsonSupport with Directives with HeaderDirectives with AuthenticationDirectives with AuthorizationDirectives with AsyncDirectives {
+abstract class BaseHandler extends Directives with HeaderDirectives with AuthenticationDirectives with AuthorizationDirectives with AsyncDirectives with PredefinedFromEntityUnmarshallers with PredefinedToEntityMarshallers with JsonToEntityMarshaller {
 
   /**
    *
@@ -27,7 +25,7 @@ abstract class BaseHandler extends GenericJsonSupport with Directives with Heade
    * @return that can be serialized later to `HttpResponse`
    */
   def responseMarshallable[T](statusCode: StatusCode, httpHeaders: Seq[HttpHeader], responseObj: T)
-                (implicit m: ToEntityMarshaller[T]): ToResponseMarshallable = {
+                             (implicit m: ToEntityMarshaller[T]): ToResponseMarshallable = {
 
     def entity2HttpResponse(obj: MessageEntity): HttpResponse =
       HttpResponse(statusCode, httpHeaders, obj)
@@ -36,11 +34,12 @@ abstract class BaseHandler extends GenericJsonSupport with Directives with Heade
 
     ToResponseMarshallable(responseObj)
   }
-  
+
   implicit class RouteUtil(r: GenericResponse) {
     def respondWithHeaders(headers: Seq[HttpHeader]) = responseMarshallable[GenericResponse](r.status, headers, r)
   }
 
   implicit def GenericResponse2Marshallable(r: GenericResponse): ToResponseMarshallable = responseMarshallable[GenericResponse](r.status, Seq.empty[HttpHeader], r)
+
 
 }

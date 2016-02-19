@@ -8,11 +8,11 @@ import com.flipkart.phantom.client.sockets.{PhantomClientSocket, PhantomSocketFa
 import com.typesafe.config.Config
 
 /**
-  *
-  *
-  * @author durga.s
-  * @version 11/23/15
-  */
+ *
+ *
+ * @author durga.s
+ * @version 11/23/15
+ */
 object DaoFactory {
 
   var connectionProvider: TConnectionProvider = null
@@ -58,6 +58,7 @@ object DaoFactory {
     daoMap += DaoType.USER_CONFIG -> UserConfigurationDao("USER_CONFIG", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
     daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", "STENCIL_HISTORY_STORE", "BUCKET_REGISTRY", mysqlFactoryWrapper)
+    daoMap += DaoType.KEY_CHAIN -> KeyChainDao("DATA_STORE", mysqlFactoryWrapper)
   }
 
   def initCouchbaseCluster(config: Config) {
@@ -87,7 +88,7 @@ object DaoFactory {
 
   def getDeviceDetailsDao: DeviceDetailsDao = daoMap(DaoType.DEVICE_DETAILS).asInstanceOf[DeviceDetailsDao]
 
-  def getRequestInfoDao: PNRequestDao = daoMap(DaoType.PN_REQUEST_INFO).asInstanceOf[PNRequestDao]
+  def getPNRequestDao: PNRequestDao = daoMap(DaoType.PN_REQUEST_INFO).asInstanceOf[PNRequestDao]
 
   def getPNCallbackDao: PNCallbackDao = daoMap(DaoType.CALLBACK_PN).asInstanceOf[PNCallbackDao]
 
@@ -96,6 +97,8 @@ object DaoFactory {
   def getPrivDao: PrivDao = daoMap(DaoType.PRIVILEGE).asInstanceOf[PrivDao]
 
   def getUserInfoDao: TUserInfo = daoMap(DaoType.USER_INFO).asInstanceOf[UserInfoDao]
+
+  def getKeyChainDao: TKeyChainDao = daoMap(DaoType.KEY_CHAIN).asInstanceOf[KeyChainDao]
 
   def getUserConfigurationDao: TUserConfiguration = daoMap(DaoType.USER_CONFIG).asInstanceOf[UserConfigurationDao]
 
@@ -112,6 +115,7 @@ object DaoType extends Enumeration {
   PRIVILEGE,
   USER_INFO,
   USER_CONFIG,
-  STENCIL = Value
+  STENCIL,
+  KEY_CHAIN = Value
 }
 

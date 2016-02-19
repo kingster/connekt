@@ -7,7 +7,7 @@ import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.directives.ChannelSegment
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.immutable.Seq
 
@@ -17,7 +17,7 @@ import scala.collection.immutable.Seq
  * @author durga.s
  * @version 12/8/15
  */
-class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   val route = pathPrefix("v1" / "reports") {
 
@@ -41,7 +41,7 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHa
       (channel: Channel, appName: String, messageId: String) =>
         authorize(user, "REPORTS") {
           get {
-            val data = ServiceFactory.getMessageService.getRequestInfo(messageId).get
+            val data = ServiceFactory.getPNMessageService.getRequestInfo(messageId).get
             data match {
               case None =>
                 complete(GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No events found for messageId $messageId.", null)))

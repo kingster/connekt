@@ -6,7 +6,7 @@ import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success}
@@ -18,7 +18,7 @@ import com.flipkart.connekt.commons.entities.Channel
  * @author durga.s
  * @version 12/8/15
  */
-class CallbackRoute(implicit am: ActorMaterializer) extends BaseHandler {
+class CallbackRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val callback =
     pathPrefix("v1") {

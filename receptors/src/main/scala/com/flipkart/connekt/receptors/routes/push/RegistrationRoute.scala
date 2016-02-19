@@ -7,7 +7,7 @@ import com.flipkart.connekt.commons.entities.{AppUser, DeviceDetails}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success}
@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 11/20/15
  */
-class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   type Created = Boolean
   type Updated = Boolean

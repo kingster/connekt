@@ -9,14 +9,14 @@ import com.flipkart.connekt.commons.entities.{AppUser, Bucket, Stencil}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils
-import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.util.{Failure, Success}
 
 /**
  * @author aman.shrivastava on 19/01/16.
  */
-class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler {
+class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
   val stencils =
     pathPrefix("v1") {
       pathPrefix("stencils") {

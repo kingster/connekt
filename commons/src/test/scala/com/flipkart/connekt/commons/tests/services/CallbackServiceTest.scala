@@ -45,7 +45,7 @@ class CallbackServiceTest extends CommonsBaseTest {
   )
 
   "Callback Service" should "persist Callback Event" in {
-    mid = ServiceFactory.getMessageService.persistRequest(pnInfo, "fk-connekt-pn", true).get
+    mid = ServiceFactory.getPNMessageService.saveRequest(pnInfo, "fk-connekt-pn", true).get
     callBackEvent = callBackEvent.copy(messageId = mid)
     pnInfo = pnInfo.copy(id = mid)
 

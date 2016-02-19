@@ -22,6 +22,8 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
 
   validatePoolProps("kafka producer pool", globalContextConf)
 
+  var zkPath: String = producerFactoryConf.getString("zookeeper.connect")
+
   val kafkaProducerPool: GenericObjectPool[Producer[String, String]] = {
     try {
       createKafkaProducerPool(producerFactoryConf,
@@ -61,7 +63,12 @@ object KafkaProducerHelper extends KafkaProducer {
   private var instance: KafkaProducerHelper = null
 
   def init(consumerConfig: Config, globalContextConf: Config) = {
-    instance = new KafkaProducerHelper(consumerConfig, globalContextConf)
+    if(null == instance) {
+      this.synchronized {
+        instance = new KafkaProducerHelper(consumerConfig, globalContextConf)
+      }
+    }
+    instance
   }
   
   def writeMessages(topic: String, message: String*) = instance.writeMessages(topic, message:_*)
