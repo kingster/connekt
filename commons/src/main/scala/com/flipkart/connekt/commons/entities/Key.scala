@@ -6,12 +6,12 @@ import javax.persistence.Column
 /**
  * Created by nidhi.mehla on 17/02/16.
  */
-class DataStore {
+class Key {
   @Column(name = "key")
-  var key: String = _
+  var keyName: String = _
 
-  @Column(name = "type")
-  var `type`: String = _
+  @Column(name = "kind")
+  var kind: String = _
 
   @Column(name = "value")
   var value: Array[Byte] = _
@@ -19,39 +19,43 @@ class DataStore {
   @Column(name = "creationTS")
   var creationTS: Date = _
 
+  @Column(name = "expireTS")
+  var expireTS: Date = _
+
   @Column(name = "lastUpdatedTS")
   var lastUpdatedTS: Date = _
 
   def this(key: String,
-           `type`: String,
+           kind: String,
            value: Array[Byte],
            creationTS: Date,
-           lastUpdatedTS: Date
+           lastUpdatedTS: Date,
+           expireTS: Date
             ) {
     this()
-    this.key = key
-    this.`type` = `type`
+    this.keyName = key
+    this.kind = kind
     this.value = value
     this.creationTS = creationTS
     this.lastUpdatedTS = lastUpdatedTS
+    this.expireTS = expireTS
   }
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[AppUser]
 
   override def equals(other: Any): Boolean = other match {
-    case that: DataStore =>
+    case that: Key =>
       (that canEqual this) &&
-        key == that.key &&
+        keyName == that.keyName &&
         value == that.value &&
         creationTS == that.creationTS &&
-        lastUpdatedTS == that.lastUpdatedTS
+        lastUpdatedTS == that.lastUpdatedTS &&
+        expireTS == that.expireTS
     case _ => false
   }
 
   override def hashCode(): Int = {
-    val state = Seq(key, value, creationTS, lastUpdatedTS)
+    val state = Seq(keyName, value, creationTS, lastUpdatedTS)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
-
-
 }

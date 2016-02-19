@@ -58,7 +58,7 @@ object DaoFactory {
     daoMap += DaoType.USER_CONFIG -> UserConfigurationDao("USER_CONFIG", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
     daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", "STENCIL_HISTORY_STORE", "BUCKET_REGISTRY", mysqlFactoryWrapper)
-    daoMap += DaoType.STORAGE -> StorageDao("DATA_STORE", mysqlFactoryWrapper)
+    daoMap += DaoType.STORAGE -> KeyChainDao("DATA_STORE", mysqlFactoryWrapper)
   }
 
   def initCouchbaseCluster(config: Config) {
@@ -98,7 +98,7 @@ object DaoFactory {
 
   def getUserInfoDao: TUserInfo = daoMap(DaoType.USER_INFO).asInstanceOf[UserInfoDao]
 
-  def getStorageDao: TStorageDao = daoMap(DaoType.STORAGE).asInstanceOf[StorageDao]
+  def getKeyChainDao: TKeyChainDao = daoMap(DaoType.STORAGE).asInstanceOf[KeyChainDao]
 
   def getUserConfigurationDao: TUserConfiguration = daoMap(DaoType.USER_CONFIG).asInstanceOf[UserConfigurationDao]
 

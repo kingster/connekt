@@ -17,11 +17,15 @@ import scala.reflect.ClassTag
  * @version 12/10/15
  */
 trait MySQLDao extends Dao {
-  def update(statement: String, args: Object*)(implicit jdbcTemplate: JdbcTemplate): Int = {
-    jdbcTemplate.update(statement, args: _*)
+  def update(statement: String, args: Any*)(implicit jdbcTemplate: JdbcTemplate): Int = {
+    jdbcTemplate.update(statement, args.map(_.asInstanceOf[Object]): _*)
   }
-  def query[T](statement: String, args: Object*)(implicit cTag: reflect.ClassTag[T], jdbcTemplate: JdbcTemplate): Option[T] = {
-    jdbcTemplate.query(statement, getRowMapper[T], args:_*).asScala.headOption
+  def query[T](statement: String, args: Any*)(implicit cTag: reflect.ClassTag[T], jdbcTemplate: JdbcTemplate): Option[T] = {
+    jdbcTemplate.query(statement, getRowMapper[T], args.map(_.asInstanceOf[Object]):_*).asScala.headOption
+  }
+
+  def queryForList[T](statement: String, args: Any*)(implicit cTag: reflect.ClassTag[T], jdbcTemplate: JdbcTemplate): List[T] = {
+    jdbcTemplate.query(statement, getRowMapper[T], args.map(_.asInstanceOf[Object]):_*).asScala.toList
   }
 
   private def getRowMapper[T: ClassTag]: RowMapper[T] = {
