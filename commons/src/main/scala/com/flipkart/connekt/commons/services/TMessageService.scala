@@ -32,5 +32,5 @@ trait TMessageService extends TService {
 
   def partitionEstimate(qpsBound: Int): Int
 
-  def getTopicNames(channel: Channel): List[String]
+  def getTopicNames(channel: Channel): Try[Seq[String]]
 }
