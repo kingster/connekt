@@ -3,6 +3,7 @@ package com.flipkart.connekt.commons.services
 import java.util.UUID
 
 import com.flipkart.connekt.commons.entities.AppUser
+import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 
 import scala.util.Try
@@ -30,4 +31,6 @@ trait TMessageService extends TService {
   def addClientTopic(topicName: String, numPartitions: Int, replicationFactor: Int = 1): Try[Unit]
 
   def partitionEstimate(qpsBound: Int): Int
+
+  def getTopicNames(channel: Channel): List[String]
 }
