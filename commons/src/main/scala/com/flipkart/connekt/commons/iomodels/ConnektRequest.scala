@@ -22,17 +22,6 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
                           @JsonProperty(required = false) channelDataModel: ObjectNode = StringUtils.getObjectNode,
                           meta: Map[String, String]) {
   def validate() : Boolean = {
-    templateId match {
-      case Some(tId) =>
-        StencilService.get(tId) match {
-          case Some(stencil) => true
-          case None => false
-        }
-      case None =>
-        Option(channelData) match {
-          case Some(cD) => true
-          case None => false
-        }
-    }
+    templateId.map(StencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined)
   }
 }
