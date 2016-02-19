@@ -37,7 +37,7 @@ class UserConfigurationDao(table: String, mysqlFactory: MySQLFactory) extends TU
       """.stripMargin
 
     try {
-      update(q, ucfg.userId, ucfg.channel.toString, ucfg.queueName, ucfg.maxRate.toString, ucfg.errorThresholdRate.toString, ucfg.maxRate.toString, ucfg.errorThresholdRate.toString)
+      update(q, ucfg.userId, ucfg.channel.toString, ucfg.queueName, ucfg.maxRate, ucfg.errorThresholdRate, ucfg.maxRate, ucfg.errorThresholdRate)
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding UserConfiguration [${ucfg.getJson}] info: ${e.getMessage}", e)
