@@ -20,8 +20,8 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     Option(pnRequestInfo.deviceId).foreach(m += "deviceId" -> _.mkString(",").getUtf8Bytes)
     Option(pnRequestInfo.platform).foreach(m += "platform" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.appName).foreach(m += "appName" -> _.toString.getUtf8Bytes)
-    Option(pnRequestInfo.ackRequired).foreach(m += "ackRequired" -> _.toString.getUtf8Bytes)
-    Option(pnRequestInfo.delayWhileIdle).foreach(m += "delayWhileIdle" -> _.toString.getUtf8Bytes)
+    Option(pnRequestInfo.ackRequired).foreach(m += "ackRequired" -> _.getBytes)
+    Option(pnRequestInfo.delayWhileIdle).foreach(m += "delayWhileIdle" -> _.getBytes)
 
     m.toMap
   }

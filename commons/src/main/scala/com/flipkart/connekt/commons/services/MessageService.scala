@@ -27,8 +27,8 @@ class MessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProducer
   override def saveRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean): Try[String] = {
     try {
       val reqWithId = request.copy(id = generateId)
-      queueProducer.writeMessages(requestBucket, reqWithId.getJson)
       messageDao.saveRequest(reqWithId.id, reqWithId)
+      queueProducer.writeMessages(requestBucket, reqWithId.getJson)
       ConnektLogger(LogFile.SERVICE).info(s"Saved request ${reqWithId.id} to $requestBucket")
       Success(reqWithId.id)
     } catch {
