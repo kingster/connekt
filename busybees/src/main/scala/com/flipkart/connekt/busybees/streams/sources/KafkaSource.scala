@@ -28,7 +28,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
   override def shape: SourceShape[V] = SourceShape(out)
 
-  lazy val zk = new ZkClient(KafkaConsumerHelper.zkPath, 5000, 5000, ZKStringSerializer)
+  lazy val zk = new ZkClient(kafkaConsumerHelper.zkPath, 5000, 5000, ZKStringSerializer)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 

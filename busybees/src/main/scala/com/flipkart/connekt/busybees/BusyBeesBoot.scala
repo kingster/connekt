@@ -63,6 +63,7 @@ object BusyBeesBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConnConf.toString}")
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
+      ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
       Topology.bootstrap(kafkaHelper)
 

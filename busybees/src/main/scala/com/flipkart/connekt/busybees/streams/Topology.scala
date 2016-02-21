@@ -7,7 +7,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer, ClosedShape}
+import akka.stream.{ActorMaterializer, SinkShape, SourceShape}
 import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
@@ -16,13 +16,12 @@ import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventC
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.entities.Channel
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNCallbackEvent, PNRequestInfo}
-import com.flipkart.connekt.commons.services.{KeyChainManager, ConnektConfig}
+import com.flipkart.connekt.commons.services.{ConnektConfig, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import kafka.utils.{ZKStringSerializer, ZkUtils}
-import org.I0Itec.zkclient.ZkClient
 
 import scala.util.{Failure, Success, Try}
 
@@ -77,19 +76,33 @@ object Topology {
 
     //    lazy implicit val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[wnsResponse]("hk2.notify.windows.com")
 
+    /* Composite source of all kafka channel-specific topics */
+    val compositeSource = Source.fromGraph(GraphDSL.create(){ implicit b =>
+      /* Excluding the bitch who's spoiling the composite-source party since Friday */
+      val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filterNot(_.equalsIgnoreCase("push_ec06191e4ed41b85b45973652c659ad4704644a13975a088c731bf69375ac5c1"))
+      ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
+
+      val merge = b.add(Merge[ConnektRequest](topics.size))
+      for(portNum <- 0 to merge.n - 1) {
+        new KafkaSource[ConnektRequest](consumerHelper, topic = topics(portNum)) ~> merge.in(portNum)
+      }
+
+      SourceShape(merge.out)
+    })
+
     /* Start kafkaSource(s) for each topic */
     /* Attach rate-limiter flow for client sla */
     /* Wire PN dispatcher flows to sources */
-    val g = GraphDSL.create() { implicit b =>
+    val sink = Sink.fromGraph(GraphDSL.create(){ implicit b =>
 
-      val source = b.add(new KafkaSource[ConnektRequest](consumerHelper, "push_ec06191e4ed41b85b45973652c659ad4704644a13975a088c731bf69375ac5c1"))
+//      val source = b.add(new KafkaSource[ConnektRequest](consumerHelper, "PN_connekt"))
       //      val flowRate = b.add(new RateControl[ConnektRequest](2, 1, 2))
       val render = b.add(new RenderFlow)
       val fmtAndroid = b.add(new AndroidChannelFormatter)
       val fmtWindows = b.add(new WindowsChannelFormatter)
       val fmtIOS = b.add(new IOSChannelFormatter)
       val rHandlerGCM = b.add(new GCMResponseHandler)
-      val evtCreator = b.add(new PNBigfootEventCreator)
+      val evtCreator = b.add( new PNBigfootEventCreator)
       //      val evtSenderSink = b.add(new EventSenderSink)
       val platformPartition = b.add(new Partition[ConnektRequest](3, {
         case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
@@ -105,7 +118,7 @@ object Topology {
 
       val merger = b.add(Merge[PNCallbackEvent](3))
       val wnsDispatcher = b.add(new WNSDispatcher())
-      val apnsDispatcher = b.add(new APNSDispatcher(KeyChainManager.getAppleCredentials("RetailApp").get))
+      val apnsDispatcher = b.add(new APNSDispatcher(KeyChainManager.getAppleCredentials("retailapp").get))
       val wnsRHandler = b.add(new WNSResponseHandler)
       val gcmPoolFlow = b.add(gcmPoolClientFlow)
       val wnsPoolFlow = b.add(wnsPoolClientFlow)
@@ -119,25 +132,21 @@ object Topology {
           PNCallbackEvent("", "", x.getMessage, "IOS", "", "", "", System.currentTimeMillis())
       })
 
-      source ~> /*flowRate ~>*/ render ~> platformPartition.in
+      render.out ~> platformPartition.in
       platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> apnsEventCreator ~> merger.in(0)
       platformPartition.out(1) ~> fmtAndroid ~> httpDispatcher ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
       platformPartition.out(2) ~> fmtWindows ~> wnsDispatcher ~> wnsPoolFlow ~> wnsRHandler ~> merger.in(2)
       merger.out ~> evtCreator ~> Sink.ignore
 
-      ClosedShape
-    }
+      SinkShape(render.in)
+    })
 
-    RunnableGraph.fromGraph(g).run()
+    //Run the entire flow
+    compositeSource.runWith(sink)
+    ConnektLogger(LogFile.PROCESSORS).info(s"######## Started the runnable graph ########")
 
-    Thread.sleep(25000)
+    Thread.sleep(250000)
 
-    /* Fetch inlet / kafka message topic names */
-    //    val topics = ConnektConfig.getList[String]("allowedPNTopics")
-    val pnTopicPrefix = ConnektConfig.getOrElse("topicPrefix.PN", "PN_")
-    val emailTopicPrefix = ConnektConfig.getOrElse("topicPrefix.PN", "EM_")
-
-    val channelTopics = ZkUtils.getAllTopics(new ZkClient(KafkaConsumerHelper.zkPath, 5000, 5000, ZKStringSerializer))
 
     /* start all pn flows */
     //    channelTopics.filter(_.startsWith(pnTopicPrefix)).foreach(t => {
