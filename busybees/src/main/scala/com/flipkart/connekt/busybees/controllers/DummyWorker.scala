@@ -59,6 +59,8 @@ class DummyWorker extends Runnable with KafkaConnectionHelper {
     val consumerFactoryConf = ConfigFactory.parseProperties(consumerConnProps)
     createKafkaConsumerPool(consumerFactoryConf, Some(5), Some(1), Some(1000L * 60L * 30L), Some(-1), enableLifo = false)
   }
+
+  override def zkPath(): String = ""
 }
 
 object DummyWorker {

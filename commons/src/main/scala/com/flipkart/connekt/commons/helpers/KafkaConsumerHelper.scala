@@ -24,6 +24,8 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
 
   validatePoolProps("kafka consumer pool", globalContextConf)
 
+  override def zkPath(): String = consumerFactoryConf.getString("zookeeper.connect")
+
   val kafkaConsumerPool: GenericObjectPool[ConsumerConnector] = {
     try {
       createKafkaConsumerPool(consumerFactoryConf,
@@ -82,13 +84,11 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
 object KafkaConsumerHelper extends KafkaConsumer {
 
   var instance: KafkaConsumerHelper = null
-  var zkPath: String = null
 
   def apply(consumerConfig: Config, globalContextConf: Config) = {
     if (null == instance)
       this.synchronized {
         instance = new KafkaConsumerHelper(consumerConfig, globalContextConf)
-        zkPath = consumerConfig.getString("zookeeper.connect")
       }
     instance
   }
