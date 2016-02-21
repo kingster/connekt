@@ -2,16 +2,17 @@ package com.flipkart.connekt.commons.services
 
 import java.util.Properties
 
-import com.flipkart.connekt.commons.dao.TRequestDao
-import com.flipkart.connekt.commons.entities.AppUser
+import com.flipkart.connekt.commons.dao.{TRequestDao, TUserConfiguration}
 import com.flipkart.connekt.commons.entities.Channel.Channel
+import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.{KafkaConsumer, KafkaProducerHelper}
+import com.flipkart.connekt.commons.helpers.{KafkaConnectionHelper, KafkaConsumerHelper, KafkaProducerHelper}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.utils.StringUtils._
-import kafka.utils.{ZkUtils, ZKStringSerializer}
-import org.I0Itec.zkclient.ZkClient
 import com.roundeights.hasher.Implicits._
+import kafka.utils.{ZKStringSerializer, ZkUtils}
+import org.I0Itec.zkclient.ZkClient
+
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -20,7 +21,7 @@ import scala.util.{Failure, Success, Try}
  * @author durga.s
  * @version 12/8/15
  */
-class MessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumer) extends TMessageService {
+class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumerHelper) extends TMessageService {
 
   private val messageDao: TRequestDao = requestDao
   private val queueProducer: KafkaProducerHelper = queueProducerHelper
@@ -56,16 +57,17 @@ class MessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProducer
   }
 
   override def getRequestBucket(request: ConnektRequest, client: AppUser): String = {
-    getClientChannelTopic(request.channel, client.userId)
+    getClientChannelTopic(Channel.withName(request.channel), client.userId)
   }
 
-  override def getClientChannelTopic(channel: String, clientUserId: String): String = {
-    clientRequestTopics.getOrElseUpdate(s"$clientUserId#$channel", s"${channel}_${clientUserId.sha256.hash.hex}")
+  override def getClientChannelTopic(channel: Channel, clientUserId: String): String = {
+    clientRequestTopics.getOrElseUpdate(s"$clientUserId#$channel", userConfigurationDao.getUserConfiguration(clientUserId, channel).get.queueName)
   }
 
   //# ADMIN ACTIONS
   override def addClientTopic(topicName: String, numPartitions: Int, replicationFactor: Int = 1): Try[Unit] = Try {
-    val zkClient = new ZkClient(queueProducerHelper.zkPath, 5000, 5000, ZKStringSerializer)
+    val kafkaConnH: KafkaConnectionHelper = Option(queueProducerHelper).getOrElse(queueConsumerHelper)
+    val zkClient = new ZkClient(kafkaConnH.zkPath(), 5000, 5000, ZKStringSerializer)
     kafka.admin.AdminUtils.createTopic(zkClient, topicName, numPartitions, replicationFactor, new Properties())
     ConnektLogger(LogFile.SERVICE).info(s"Created topic $topicName with $numPartitions, replicationFactor $replicationFactor")
   }
@@ -75,6 +77,10 @@ class MessageService(requestDao: TRequestDao, queueProducerHelper: KafkaProducer
   }
 
   override def getTopicNames(channel: Channel): Try[Seq[String]] = Try {
-    ZkUtils.getAllTopics(new ZkClient(queueProducerHelper.zkPath, 5000, 5000, ZKStringSerializer)).filter(_.startsWith(channel.toString))
+    val kafkaConnH: KafkaConnectionHelper = Option(queueProducerHelper).getOrElse(queueConsumerHelper)
+    val allTopics = ZkUtils.getAllTopics(new ZkClient(kafkaConnH.zkPath(), 5000, 5000, ZKStringSerializer))
+    allTopics.filter(_.startsWith(channel.toString))
   }
+
+  override def assignClientChannelTopic(channel: Channel, clientUserId: String): String = s"${channel}_${clientUserId.sha256.hash.hex}"
 }

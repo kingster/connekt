@@ -16,6 +16,8 @@ import scala.util.Try
  */
 trait KafkaConnectionHelper {
 
+  def zkPath(): String
+
   def createKafkaConsumerPool(factoryConf: Config,
                               maxActive: Option[Int],
                               maxIdle: Option[Int],
