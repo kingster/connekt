@@ -28,19 +28,14 @@ class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, wns
 
         val message = grab(in)
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Received Message: $message")
-        val uri = new URI(message.token).toURL
 
+        val uri = new URI(message.token).toURL
         val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + WindowsTokenService.getToken(message.appName).map(_.token).getOrElse("INVALID")), RawHeader("Content-Length", "500"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
 
-
         val payload = HttpEntity(message.wnsPNType.getContentType, message.wnsPNType.getPayload)
-
-
         val request = new HttpRequest(HttpMethods.POST, uri.getFile, headers, payload)
-        val requestId = StringUtils.generateRandomStr(10)
 
-
-      push(out, (request, wnsResponse(message.appName, requestId)))
+      push(out, (request, wnsResponse(message.appName, message.messageId)))
 
       } catch {
         case e: Throwable =>

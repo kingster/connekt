@@ -92,7 +92,6 @@ class APNSDispatcher(credential: AppleCredential) extends GraphStage[FlowShape[A
     override def preStart(): Unit = {
       ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: preStart")
 
-      /*
       val connectFuture = apnsClient.connect(ApnsClient.PRODUCTION_APNS_HOST)
       connectFuture.await()
 
@@ -103,7 +102,6 @@ class APNSDispatcher(credential: AppleCredential) extends GraphStage[FlowShape[A
       }
 
       ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: preStart callback=" + callback)
-      */
 
       super.preStart()
     }

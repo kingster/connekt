@@ -29,7 +29,7 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
 
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
         val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None).map(_.token))
-        val wnsRequestPayloads = tokens.map(WNSPNPayload(_, message.channelInfo.asInstanceOf[PNRequestInfo].appName,message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSTypePayload]))
+        val wnsRequestPayloads = tokens.map(WNSPNPayload(message.id, _, message.channelInfo.asInstanceOf[PNRequestInfo].appName,message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSTypePayload]))
 
 //        push(out, wnsRequestPayloads.head)
         emitMultiple[WNSPNPayload](out, scala.collection.immutable.Iterable.concat(wnsRequestPayloads))
