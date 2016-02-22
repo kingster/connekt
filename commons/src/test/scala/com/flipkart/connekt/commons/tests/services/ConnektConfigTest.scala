@@ -3,7 +3,6 @@ package com.flipkart.connekt.commons.tests.services
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.flipkart.connekt.commons.utils.ConfigUtils
-import com.flipkart.connekt.receptors.ReceptorsBoot._
 
 /**
  *

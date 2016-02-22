@@ -1,12 +1,10 @@
 package com.flipkart.connekt.commons.tests
 
 import com.flipkart.connekt.commons.connections.ConnectionProvider
-import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.receptors.ReceptorsBoot._
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 
 /**

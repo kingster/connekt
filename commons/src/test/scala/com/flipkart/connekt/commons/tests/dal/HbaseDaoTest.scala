@@ -7,7 +7,6 @@ import com.flipkart.connekt.commons.dao.HbaseDao
 import com.flipkart.connekt.commons.factories.HTableFactoryWrapper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
-import com.flipkart.connekt.receptors.ReceptorsBoot._
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.CharEncoding
 
