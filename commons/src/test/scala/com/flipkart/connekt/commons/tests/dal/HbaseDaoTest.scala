@@ -7,6 +7,7 @@ import com.flipkart.connekt.commons.dao.HbaseDao
 import com.flipkart.connekt.commons.factories.HTableFactoryWrapper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
+import com.flipkart.connekt.receptors.ReceptorsBoot._
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.CharEncoding
 
@@ -29,7 +30,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
   def getHBaseConnHelper = {
 
-    ConnektConfig(configHost = "10.47.0.101", configPort = 80)()
+    ConnektConfig(configServiceHost, configServicePort)()
     val hConfProps = new Properties()
     hConfProps.setProperty("hbase.zookeeper.quorum", ConnektConfig.getString("hbase.zookeeper.quorum").getOrElse("usercrm-zookeeper-qa-0001.nm.flipkart.com"))
     hConfProps.setProperty("hbase.zookeeper.property.clientPort", "2181")
