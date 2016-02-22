@@ -48,7 +48,7 @@ class LocalCaches(val cacheName: LocalCacheType.Value, props: CacheProperty) ext
       cache.put(key, value.asInstanceOf[AnyRef])
       true
     } catch {
-      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Local cache write failure")
+      case e: Exception => ConnektLogger(LogFile.SERVICE).error("Local cache write failure",e)
         false
     }
   }

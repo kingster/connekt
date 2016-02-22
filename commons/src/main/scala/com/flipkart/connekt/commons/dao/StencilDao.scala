@@ -41,18 +41,18 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
     implicit val j = mysqlHelper.getJDBCInterface
     val q1 =
       s"""
-         |INSERT INTO $tableName (id, engine, engineFabric, createdBy, updatedBy, version, creationTS, lastUpdatedTS, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+         |INSERT INTO $tableName (id, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?)
          |ON DUPLICATE KEY UPDATE engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
       """.stripMargin
 
     val q2 =
       s"""
-        |INSERT INTO $historyTableName (id, engine, engineFabric, createdBy, updatedBy, version, creationTS, lastUpdatedTS, bucket) VALUES(?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ?), ?, ?, ?)
+        |INSERT INTO $historyTableName (id, engine, engineFabric, createdBy, version, bucket) VALUES(?, ?, ?, ?, (SELECT VERSION from $tableName where id = ?), ?)
       """.stripMargin
 
     try {
-      update(q1, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.creationTS, stencil.creationTS, stencil.bucket, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.id, stencil.creationTS, stencil.creationTS, stencil.bucket)
+      update(q1, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
+      update(q2, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.id, stencil.bucket)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)

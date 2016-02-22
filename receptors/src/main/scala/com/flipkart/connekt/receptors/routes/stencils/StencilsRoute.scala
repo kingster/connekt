@@ -94,9 +94,9 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                         stnc.id = id
                         stnc.updatedBy = user.userId
                         stnc.bucket = stencil.bucket.split(",").map(StencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "").mkString(",")
-                        StencilService.update(stencil) match {
+                        StencilService.update(stnc) match {
                           case Success(sten) =>
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil registered for id: $id", null)))
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil updated for id: $id", null)))
                           case _ =>
                             complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: ${stencil.id}", null)))
                         }

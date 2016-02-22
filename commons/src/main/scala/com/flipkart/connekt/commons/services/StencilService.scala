@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.fabric._
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ChannelRequestData
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
@@ -59,17 +60,13 @@ object StencilService extends Instrumented{
 
   @Timed("update")
   def update(stencil: Stencil): Try[Unit] = {
-    get(stencil.id) match {
-      case Some(stn) =>
-        checkStencil(stencil) match {
-          case Success(b) =>
-            DaoFactory.getStencilDao.writeStencil(stencil)
-            Success(Unit)
-          case Failure(e) =>
-            Failure(e)
-        }
-      case _ =>
-        Failure(throw new Exception(s"No stencil for id ${stencil.id}"))
+    checkStencil(stencil) match {
+      case Success(b) =>
+        DaoFactory.getStencilDao.writeStencil(stencil)
+        Success(Unit)
+      case Failure(e) =>
+        ConnektLogger(LogFile.SERVICE).error(s"Stencil update error for id: ${stencil.id}", e)
+        Failure(e)
     }
   }
 
