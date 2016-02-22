@@ -59,17 +59,12 @@ object StencilService extends Instrumented{
 
   @Timed("update")
   def update(stencil: Stencil): Try[Unit] = {
-    get(stencil.id) match {
-      case Some(stn) =>
-        checkStencil(stencil) match {
-          case Success(b) =>
-            DaoFactory.getStencilDao.writeStencil(stencil)
-            Success(Unit)
-          case Failure(e) =>
-            Failure(e)
-        }
-      case _ =>
-        Failure(throw new Exception(s"No stencil for id ${stencil.id}"))
+    checkStencil(stencil) match {
+      case Success(b) =>
+        DaoFactory.getStencilDao.writeStencil(stencil)
+        Success(Unit)
+      case Failure(e) =>
+        Failure(e)
     }
   }
 
