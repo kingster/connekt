@@ -11,7 +11,7 @@ import akka.stream.{ActorMaterializer, SinkShape, SourceShape}
 import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, HttpPrepare, WNSDispatcher}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, APNSDispatcher, HttpPrepare, WNSDispatcher}
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
@@ -19,7 +19,7 @@ import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
-import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload, PNCallbackEvent, PNRequestInfo}
+import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{ConnektConfig, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -48,11 +48,12 @@ object Topology {
     //this would need to change to dynamic based on which app this is being send for.
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
-    val httpDispatcher = new HttpPrepare[GCMPayload](
+    val httpDispatcher = new HttpPrepare[GCMPayloadEnvelope](
       new URL("https", "android.googleapis.com", 443, "/gcm/send"),
       HttpMethods.POST,
       scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
-      (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
+      (envelope: GCMPayloadEnvelope) => HttpEntity(ContentTypes.`application/json`, envelope.gcmPayload.getJson),
+      (envelope: GCMPayloadEnvelope) => RequestIdentifier(envelope.messageId, envelope.deviceId, envelope.appName)
     )
 
     val loggerSink = Sink.foreachParallel[(Try[HttpResponse], String)](10)(tR => {
@@ -70,7 +71,7 @@ object Topology {
       }
     })
 
-    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
+    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[RequestIdentifier]("android.googleapis.com", 443)
 
     val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[wnsResponse]("hk2.notify.windows.com")
 

@@ -13,10 +13,10 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * @author durga.s
  * @version 2/2/16
  */
-class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPayload]] {
+class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPayloadEnvelope]] {
 
   val in = Inlet[ConnektRequest]("AndroidChannelFormatter.In")
-  val out = Outlet[GCMPayload]("AndroidChannelFormatter.Out")
+  val out = Outlet[GCMPayloadEnvelope]("AndroidChannelFormatter.Out")
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -36,7 +36,7 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
           case "OPENWEB" => OpenWebGCMPayload(tokens)
         }
 
-        push(out, gcmPayload)
+        push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
       }catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
@@ -52,6 +52,6 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
 
   }
 
-  override def shape: FlowShape[ConnektRequest, GCMPayload] = FlowShape.of(in, out)
+  override def shape: FlowShape[ConnektRequest, GCMPayloadEnvelope] = FlowShape.of(in, out)
 
 }

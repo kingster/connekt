@@ -11,7 +11,7 @@ import scala.xml.Node
  * @author aman.shrivastava on 08/02/16.
  */
 
-case class WNSPNPayload(messageId: String, token: String, appName: String, wnsPNType: WNSTypePayload)
+case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, wnsPNType: WNSPayload)
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -24,7 +24,7 @@ case class WNSPNPayload(messageId: String, token: String, appName: String, wnsPN
   new Type(value = classOf[WNSBadgePayload], name = "badge"),
   new Type(value = classOf[WNSRawPayload], name = "raw")
 ))
-abstract class WNSTypePayload {
+abstract class WNSPayload {
   def getWnsType: String
 
   def getContentType: ContentType
@@ -32,7 +32,7 @@ abstract class WNSTypePayload {
   def getPayload: Array[Byte]
 }
 
-abstract class WNSXMLTypePayload extends WNSTypePayload {
+abstract class WNSXMLPayload extends WNSPayload {
   def toXML: Node
 
   def getPayload = toXML.toString.getBytes
@@ -41,7 +41,7 @@ abstract class WNSXMLTypePayload extends WNSTypePayload {
 
 }
 
-abstract class WNSNonXMLTypePayload extends WNSTypePayload {
+abstract class WNSBinaryPayload extends WNSPayload {
   def toOctetStream: String
 
   def getPayload = toOctetStream.toString.getBytes
@@ -49,7 +49,7 @@ abstract class WNSNonXMLTypePayload extends WNSTypePayload {
   def getContentType = ContentTypes.`application/octet-stream`
 }
 
-case class WNSToastPayload(title: String, message: String, actions: ObjectNode) extends WNSXMLTypePayload {
+case class WNSToastPayload(title: String, message: String, actions: ObjectNode) extends WNSXMLPayload {
 
   def toXML: Node =
     <toast launch={actions.toString}>
@@ -65,21 +65,21 @@ case class WNSToastPayload(title: String, message: String, actions: ObjectNode) 
 
 }
 
-case class WNSTilePayload(title: String, message: String, actions: ObjectNode) extends WNSXMLTypePayload {
+case class WNSTilePayload(title: String, message: String, actions: ObjectNode) extends WNSXMLPayload {
   def toXML: Node = ???
 
   override def getWnsType: String = "wns/tile"
 
 }
 
-case class WNSBadgePayload(title: String, message: String, actions: ObjectNode) extends WNSXMLTypePayload {
+case class WNSBadgePayload(title: String, message: String, actions: ObjectNode) extends WNSXMLPayload {
   def toXML: Node = ???
 
   override def getWnsType: String = "wns/badge"
 
 }
 
-case class WNSRawPayload(title: String, message: String, actions: ObjectNode) extends WNSNonXMLTypePayload {
+case class WNSRawPayload(title: String, message: String, actions: ObjectNode) extends WNSBinaryPayload {
   override def toOctetStream: String = ???
 
   override def getWnsType: String = "wns/raw"

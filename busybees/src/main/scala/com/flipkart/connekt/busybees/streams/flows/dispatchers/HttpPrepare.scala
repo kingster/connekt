@@ -15,13 +15,14 @@ import scala.reflect.ClassTag
 /**
  * Created by kinshuk.bairagi on 02/02/16.
  */
-class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.collection.immutable.Seq[HttpHeader], payloadCreator: (V) => RequestEntity)
-  extends GraphStage[FlowShape[V, (HttpRequest, String)]] {
+case class RequestIdentifier(messageId: String, deviceId: List[String], appName: String)
+class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.collection.immutable.Seq[HttpHeader], payloadCreator: (V) => RequestEntity, requestIdCreator: V => RequestIdentifier)
+  extends GraphStage[FlowShape[V, (HttpRequest, RequestIdentifier)]] {
 
   val in = Inlet[V]("HttpPrepare.In")
-  val out = Outlet[(HttpRequest, String)]("HttpPrepare.Out")
+  val out = Outlet[(HttpRequest, RequestIdentifier)]("HttpPrepare.Out")
 
-  override def shape: FlowShape[V, (HttpRequest, String)] = FlowShape.of(in, out)
+  override def shape: FlowShape[V, (HttpRequest, RequestIdentifier)] = FlowShape.of(in, out)
 
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
@@ -37,10 +38,10 @@ class HttpPrepare[V: ClassTag](uri: URL, method: HttpMethod, headers: scala.coll
         ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Received Message: ${message.toString}")
 
         val request = new HttpRequest(method, uri.getPath, headers, payloadCreator(message))
-        val requestId = StringUtils.generateRandomStr(10)
+        val requestId = requestIdCreator(message)
 
         ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Request Payload : ${request.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
-        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: $requestId")
+        ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: ${requestId.messageId}")
 
         push(out, (request, requestId))
       } catch {

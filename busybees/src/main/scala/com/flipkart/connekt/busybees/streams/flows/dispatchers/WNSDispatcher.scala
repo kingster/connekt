@@ -8,15 +8,15 @@ import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.busybees.streams.wnsResponse
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.WNSPNPayload
+import com.flipkart.connekt.commons.iomodels.WNSPayloadEnvelope
 import com.flipkart.connekt.commons.services.WindowsTokenService
 import com.flipkart.connekt.commons.utils.StringUtils
 
 /**
  * @author aman.shrivastava on 08/02/16.
  */
-class WNSDispatcher extends GraphStage[FlowShape[WNSPNPayload, (HttpRequest, wnsResponse)]] {
-  val in = Inlet[WNSPNPayload]("WNSDispatcher.In")
+class WNSDispatcher extends GraphStage[FlowShape[WNSPayloadEnvelope, (HttpRequest, wnsResponse)]] {
+  val in = Inlet[WNSPayloadEnvelope]("WNSDispatcher.In")
   val out = Outlet[(HttpRequest, wnsResponse)]("WNSDispatcher.Out")
 
   override def shape = FlowShape.of(in, out)

@@ -8,10 +8,10 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpPrepare
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, HttpPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
-import com.flipkart.connekt.commons.iomodels.{ConnektRequest, GCMPayload}
+import com.flipkart.connekt.commons.iomodels.{GCMPayloadEnvelope, ConnektRequest, GCMPayload}
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -27,15 +27,16 @@ class AndroidTopology extends TopologyUTSpec {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
-    val httpDispatcher = new HttpPrepare[GCMPayload](
+    val httpDispatcher = new HttpPrepare[GCMPayloadEnvelope](
       new URL("https", "android.googleapis.com", 443, "/gcm/send"),
       HttpMethods.POST,
       scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
-      (payload: GCMPayload) => HttpEntity(ContentTypes.`application/json`, payload.getJson)
+      (payload: GCMPayloadEnvelope) => HttpEntity(ContentTypes.`application/json`, payload.gcmPayload.getJson),
+      (envelope: GCMPayloadEnvelope) => RequestIdentifier(envelope.messageId, envelope.deviceId, envelope.appName)
     )
 
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[RequestIdentifier]("android.googleapis.com", 443)
 
     val cRequest = """
                      |{

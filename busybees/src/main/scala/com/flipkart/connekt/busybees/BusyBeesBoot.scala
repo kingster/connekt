@@ -57,6 +57,7 @@ object BusyBeesBoot extends BaseApp {
       DaoFactory.initCouchbaseCluster(couchbaseCf)
 
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
+      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
 
       val kafkaConnConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())

@@ -11,12 +11,12 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * @author aman.shrivastava on 08/02/16.
  */
 
-class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSPNPayload]] {
+class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSPayloadEnvelope]] {
 
   val in = Inlet[ConnektRequest]("WNSChannelFormatter.In")
-  val out = Outlet[WNSPNPayload]("WNSChannelFormatter.Out")
+  val out = Outlet[WNSPayloadEnvelope]("WNSChannelFormatter.Out")
 
-  override def shape: FlowShape[ConnektRequest, WNSPNPayload] = FlowShape.of(in, out)
+  override def shape: FlowShape[ConnektRequest, WNSPayloadEnvelope] = FlowShape.of(in, out)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -29,10 +29,10 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
 
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
         val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None).map(_.token))
-        val wnsRequestPayloads = tokens.map(WNSPNPayload(message.id, _, message.channelInfo.asInstanceOf[PNRequestInfo].appName,message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSTypePayload]))
+        val wnsRequestPayloads = tokens.map(WNSPayloadEnvelope(message.id, _, message.channelInfo.asInstanceOf[PNRequestInfo].appName,message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]))
 
 //        push(out, wnsRequestPayloads.head)
-        emitMultiple[WNSPNPayload](out, scala.collection.immutable.Iterable.concat(wnsRequestPayloads))
+        emitMultiple[WNSPayloadEnvelope](out, scala.collection.immutable.Iterable.concat(wnsRequestPayloads))
 
       } catch {
         case e: Throwable =>
