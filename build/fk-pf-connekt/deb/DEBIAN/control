@@ -3,6 +3,6 @@ Version: 1._VERSION_
 Architecture: all
 Section: flipkart/w3
 Priority: standard
-Depends: oracle-j2sdk1.8, logrotate, curl, unzip, cosmos-collectd, cosmos-jmx
+Depends: oracle-j2sdk1.8, logrotate, curl, unzip, cosmos-collectd, cosmos-jmx, fk-ops-hosts-populator
 Maintainer: Connekt Team <comm-svc-dev@flipkart.com>
 Description: Connekt Platform
