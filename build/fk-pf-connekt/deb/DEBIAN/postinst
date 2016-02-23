@@ -42,6 +42,11 @@ if [ "$1" == "configure" ] ; then
     else
         echo "[WARN] cosmox-jmx is not installed."
     fi
+
+    ## HostPopulator
+    if [ -x "/etc/init.d/fk-ops-hosts-populator" ]; then
+       /etc/init.d/fk-ops-hosts-populator restart || true
+    fi
 fi
 
 exit 0
