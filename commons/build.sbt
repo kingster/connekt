@@ -33,6 +33,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "org.slf4j" % "slf4j-api" % "1.7.7",
   /* logging dependency ends here */
+  "com.google.code.findbugs" % "jsr305" % "3.0.0",
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
@@ -98,7 +99,7 @@ libraryDependencies ++= Seq(
   "org.apache.curator" % "curator-recipes" % "2.9.1",
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" exclude ("com.flipkart" , "util-core"),
+  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" exclude("com.flipkart", "util-core"),
   "com.flipkart" %% "util-core" % "0.0.1",
   "com.flipkart" %% "espion" % "1.0.0"
 )

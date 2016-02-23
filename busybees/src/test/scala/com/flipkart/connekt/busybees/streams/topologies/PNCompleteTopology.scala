@@ -71,7 +71,7 @@ class PNCompleteTopology extends TopologyUTSpec {
         |		"delayWhileIdle": true,
         |		"platform": "ios",
         |		"appName": "UT",
-        |		"deviceId": "VM6DODCT7BEOO0LGMH1Q399O96LPMRYE"
+        |		"deviceId": [ "VM6DODCT7BEOO0LGMH1Q399O96LPMRYE" ]
         |	},
         |	"meta": {}
         |}
@@ -103,7 +103,7 @@ class PNCompleteTopology extends TopologyUTSpec {
         |		"delayWhileIdle": true,
         |		"platform": "android",
         |		"appName": "UT",
-        |		"deviceId": "EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97"
+        |		"deviceId": [ "EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97" ]
         |	},
         |	"meta": {}
         |}
@@ -111,7 +111,7 @@ class PNCompleteTopology extends TopologyUTSpec {
 
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
-    val appleCredentials = KeyChainManager.getAppleCredentials("ConnektSampleApp").get
+    val appleCredentials = KeyChainManager.getAppleCredentials("RetailApp").get
 
     val httpDispatcher = new HttpPrepare[GCMPayloadEnvelope](
       new URL("https", "android.googleapis.com", 443, "/gcm/send"),
