@@ -103,7 +103,7 @@ trait HbaseDao {
     val ri = resultScanner.iterator()
     while (ri.hasNext) {
       val riNext = ri.next()
-      val resultMap: RowData = getRowData(ri.next, colFamilies)
+      val resultMap: RowData = getRowData(riNext, colFamilies)
       rowMap += riNext.getRow.getString -> resultMap
     }
     resultScanner.close()

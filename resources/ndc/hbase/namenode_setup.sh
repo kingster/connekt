@@ -40,8 +40,8 @@ bash -c "echo 'session required  pam_limits.so' >> /etc/pam.d/common-session"
 apt-get install --yes --allow-unauthenticated fk-auto-zoo
 svc -d /etc/service/fk-ops-hosts-populator
 svc -u /etc/service/fk-ops-hosts-populator
-sudo apt-get install fk-hdfs-builder
-sudo apt-get install fk-hbase-builder
+apt-get install --yes --allow-unauthenticated fk-hdfs-builder
+apt-get install --yes --allow-unauthenticated  fk-hbase-builder
 
 #(first update config bucket then run these command)
 #Commands:
