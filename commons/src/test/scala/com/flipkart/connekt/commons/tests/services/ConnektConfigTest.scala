@@ -16,7 +16,8 @@ class ConnektConfigTest extends ConnektUTSpec {
     val currentAppEnv = ConfigUtils.getConfEnvironment
     System.setProperty("CONNEKT_ENV", "local")
 
-    val connektConfig = ConnektConfig("10.47.0.101", 80)()
+    val connektConfig = ConnektConfig(configServiceHost, configServicePort)()
+
     assert(null != connektConfig)
 
     val fetchedConfigs = connektConfig.bucketConfigs

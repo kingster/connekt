@@ -37,7 +37,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
       case None =>
         try {
           val accessPrivilege = privDao.getPrivileges(identifier, level)
-          LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[ResourcePriv](key, accessPrivilege.orNull)
+          accessPrivilege.foreach( p => LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[ResourcePriv](key, p))
           accessPrivilege
         } catch {
           case e: Exception =>

@@ -45,7 +45,7 @@ class CallbackServiceTest extends CommonsBaseTest {
   )
 
   "Callback Service" should "persist Callback Event" in {
-    mid = ServiceFactory.getPNMessageService.saveRequest(pnInfo, "fk-connekt-pn", true).get
+    mid = ServiceFactory.getPNMessageService.saveRequest(pnInfo, "fk-connekt-pn").get
     callBackEvent = callBackEvent.copy(messageId = mid)
     pnInfo = pnInfo.copy(id = mid)
 
@@ -58,10 +58,10 @@ class CallbackServiceTest extends CommonsBaseTest {
     callbackService.fetchCallbackEvent(callBackEvent.messageId, callBackEvent.deviceId, Channel.PUSH).isSuccess shouldEqual true
   }
 
+
   "Callback Service" should "fetch by contact id" in {
     val callbackService = ServiceFactory.getCallbackService
     val result = callbackService.fetchCallbackEventByContactId(callBackEvent.deviceId, Channel.PUSH, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
-    print(result.get.getJson)
     result.isSuccess shouldEqual true
     result.get.size should be > 0
   }
@@ -69,7 +69,6 @@ class CallbackServiceTest extends CommonsBaseTest {
   "Callback Service" should "fetch by message id" in {
     val callbackService = ServiceFactory.getCallbackService
     val result = callbackService.fetchCallbackEventByMId(callBackEvent.messageId, Channel.PUSH)
-    println(result.get.getJson)
     result.isSuccess shouldEqual true
     result.get.size should be > 0
   }
@@ -77,7 +76,6 @@ class CallbackServiceTest extends CommonsBaseTest {
   "Callback Service" should "fetch map by contact id" in {
     val callbackService = ServiceFactory.getCallbackService
     val result = callbackService.fetchEventsMapForContactId(callBackEvent.deviceId, Channel.PUSH, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
-    print(result.get.getJson)
     result.isSuccess shouldEqual true
     result.get.size should be > 0
   }

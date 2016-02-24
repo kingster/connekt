@@ -33,12 +33,15 @@ object ReceptorsServer extends BaseJsonHandler {
 
   var httpService: scala.concurrent.Future[akka.http.scaladsl.Http.ServerBinding] = null
 
-  private val logFormat = "%s %s %s %s"
+  /**
+   * reserving the last postion for response time. hard coding it 1 since I don't know how to capture that.
+   */
+  private val logFormat = "%s %s %s %s 1"
 
   // logs just the request method and response status at info level
   private def requestMethodAndResponseStatusAsInfo(req: HttpRequest): Any => Option[LogEntry] = {
     case Complete(res) =>
-      val remoteIp: String = req.headers.find(_.is("remote-address")).map(_.value()).getOrElse("")
+      val remoteIp: String = req.headers.find(_.is("fk-client-ip")).map(_.value()).getOrElse("0.0.0.0")
       Some(LogEntry(logFormat.format(remoteIp, req.method.value, req.uri, res.status.intValue()), akka.event.Logging.InfoLevel))
     case _ =>
       None // other kind of responses

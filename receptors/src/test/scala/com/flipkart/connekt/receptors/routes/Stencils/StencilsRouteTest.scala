@@ -1,14 +1,13 @@
 package com.flipkart.connekt.receptors.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
-import com.flipkart.connekt.commons.entities.{AppUser, Stencil, StencilEngine}
-import com.flipkart.connekt.commons.iomodels.{Response, GenericResponse}
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
+import com.flipkart.connekt.commons.iomodels.Response
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
-import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 import org.apache.commons.lang.StringEscapeUtils
-import org.scalatest.Ignore
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -16,9 +15,8 @@ import scala.concurrent.duration._
 /**
  * @author aman.shrivastava on 25/01/16.
  */
-@Ignore
-class StencilsRouteTest(implicit user: AppUser) extends BaseRouteTest {
-  val stencilRoute = new StencilsRoute().stencils
+
+class StencilsRouteTest extends BaseRouteTest {
   val engine = StencilEngine.GROOVY
   val engineFabric = """
                            |package com.flipkart.connekt.commons.entities.fabric;
@@ -94,7 +92,7 @@ class StencilsRouteTest(implicit user: AppUser) extends BaseRouteTest {
       stencilRoute ~>
         check {
           val responseString = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
-          val responseData = responseString.getObj[GenericResponse].response.asInstanceOf[Response]
+          val responseData = responseString.getObj[ObjectNode].get("response").asInstanceOf[ObjectNode].put("type", "RESPONSE").getJson.getObj[Response]
           stencilId = StringUtils.getDetail(responseData.data, "id").get.toString
           status shouldEqual StatusCodes.Created
         }

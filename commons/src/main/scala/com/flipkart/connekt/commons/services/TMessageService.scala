@@ -22,7 +22,9 @@ trait TMessageService extends TService {
 
   def getRequestBucket(request: ConnektRequest, client: AppUser): String
 
-  def getClientChannelTopic(channel: String, clientUserId: String): String
+  def assignClientChannelTopic(channel: Channel, clientUserId: String): String
+
+  def getClientChannelTopic(channel: Channel, clientUserId: String): String
 
   def enqueueRequest(request: ConnektRequest, requestBucket: String)
 

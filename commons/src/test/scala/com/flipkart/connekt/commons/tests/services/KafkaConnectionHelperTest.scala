@@ -4,7 +4,7 @@ import java.util.Properties
 
 import com.flipkart.connekt.commons.helpers.KafkaConnectionHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.commons.tests.{CommonsBaseTest, ConnektUTSpec}
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.typesafe.config.ConfigFactory
 import kafka.consumer.ConsumerConnector
 import kafka.producer.{KeyedMessage, Producer}
@@ -92,4 +92,6 @@ class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelp
     Option(kafkaProducerPool).foreach(_.close())
     println("cleanup successful")
   }
+
+  override def zkPath(): String = ""
 }

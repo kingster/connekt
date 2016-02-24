@@ -4,38 +4,67 @@
             <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
-    <appender name="FACTORY" class="ch.qos.logback.core.FileAppender">
+
+    <appender name="FACTORY" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-factory.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/receptors-factory.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
     </appender>
-    <appender name="DAO" class="ch.qos.logback.core.FileAppender">
+
+    <appender name="DAO" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-dao.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/receptors-dao.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
     </appender>
-    <appender name="SERVICE" class="ch.qos.logback.core.FileAppender">
+
+    <appender name="SERVICE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-service.log</file>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/receptors-service.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
     </appender>
 
     <appender name="AKKA" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-akka.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover with compression -->
-            <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/receptors-akka-%d{yyyy-MM-dd}.gz</fileNamePattern>
-            <!-- keep 1 week worth of history -->
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
         <encoder>
             <pattern>%date %level [%thread] %logger{10} %msg%n</pattern>
             <!-- this quadruples logging throughput -->
             <immediateFlush>false</immediateFlush>
         </encoder>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/receptors-akka.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
     </appender>
 
     <logger name="SERVICE" additivity="false">
