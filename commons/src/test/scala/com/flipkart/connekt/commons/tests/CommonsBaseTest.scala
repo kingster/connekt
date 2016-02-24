@@ -5,7 +5,6 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -23,10 +22,6 @@ class CommonsBaseTest extends ConnektUTSpec {
     ConnektConfig(configServiceHost, configServicePort)()
 
     ConnektLogger(LogFile.SERVICE).info("Test config initializing.")
-
-    val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-receptors.xml")
-    val logConfigFile = getClass.getClassLoader.getResourceAsStream(configFile)
-    ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
 
     DaoFactory.setUpConnectionProvider(new ConnectionProvider())
 
