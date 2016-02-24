@@ -21,11 +21,12 @@ class CommonsBaseTest extends ConnektUTSpec {
 
     ConnektConfig(configServiceHost, configServicePort)()
 
-    ConnektLogger(LogFile.SERVICE).info("Test config initializing.")
+    ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
 
     DaoFactory.setUpConnectionProvider(new ConnectionProvider())
 
     val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
+
     DaoFactory.initHTableDaoFactory(hConfig.get)
 
     val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
