@@ -9,7 +9,7 @@ libraryDependencies ++= Seq(
   "org.isomorphism" % "token-bucket" % "1.6",
 
   /** apns using pushy **/
-  "com.relayrides" % "pushy" % "0.5.1",
+  "com.relayrides" % "pushy" % "0.5.2",
   "io.netty" % "netty-tcnative-openssl102" % "1.1.33.Fork14" classifier "linux-x86_64",
   "io.netty" % "netty-tcnative" % "1.1.33.Fork14" classifier "osx-x86_64",
   "org.eclipse.jetty.alpn" % "alpn-api" % "1.1.2.v20150522"
