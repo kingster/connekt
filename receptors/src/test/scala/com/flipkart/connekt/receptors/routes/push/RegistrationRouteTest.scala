@@ -1,7 +1,6 @@
 package com.flipkart.connekt.receptors.routes.push
 
-import akka.http.scaladsl.model.{StatusCodes, MediaTypes, HttpEntity}
-import com.flipkart.connekt.commons.entities.AppUser
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
 import org.scalatest.Ignore
@@ -10,9 +9,8 @@ import org.scalatest.Ignore
  * @author aman.shrivastava on 10/12/15.
  */
 @Ignore
-class RegistrationRouteTest(implicit user: AppUser) extends BaseRouteTest {
+class RegistrationRouteTest extends BaseRouteTest {
 
-  val registrationRoute = new RegistrationRoute().register
   val appName = "RetailApp"
   val platform = "android"
   val deviceId =  "b3f979dd66b8226d98007cbf6867712" + StringUtils.generateRandomStr(4)
