@@ -25,7 +25,6 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.github.fernandospr" % "java-wns" % "1.3.1",
   /* logging using logback */
   "ch.qos.logback" % "logback-core" % "1.1.3",
   "ch.qos.logback" % "logback-classic" % "1.1.3",
@@ -55,8 +54,7 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "asm"),
     ExclusionRule(organization = "javax.xml.stream", name = "stax-api"),
     ExclusionRule(organization = "com.google.guava", name = "guava"),
-    ExclusionRule(organization = "jline", name = "jline"),
-    ExclusionRule(organization = "com.sun.jersey")
+    ExclusionRule(organization = "jline", name = "jline")
     ),
   "org.apache.hadoop" % "hadoop-client" % "2.0.0-mr1-cdh4.7.0" excludeAll(
     ExclusionRule(organization = "javax.servlet"),
@@ -73,11 +71,8 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "javax.xml.stream", name = "stax-api"),
     ExclusionRule(organization = "com.google.guava", name = "guava"),
     ExclusionRule(organization = "jline", name = "jline"),
-    ExclusionRule(organization = "commons-beanutils"),
-    ExclusionRule(organization = "com.sun.jersey")
+    ExclusionRule(organization = "commons-beanutils")
     ),
-  "org.glassfish.jersey.core" % "jersey-server" % "2.22.1",
-  "org.glassfish.jersey.media" % "jersey-media-json-jackson" % "2.22.1",
 
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",

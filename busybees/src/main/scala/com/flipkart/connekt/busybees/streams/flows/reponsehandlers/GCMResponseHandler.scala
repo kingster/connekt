@@ -1,13 +1,15 @@
 package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
+import java.util.concurrent.TimeUnit
+
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.{ByteStringBuilder, ByteString}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.RequestIdentifier
 import com.flipkart.connekt.commons.entities.Channel
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -15,6 +17,7 @@ import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success, Try}
 /**
  *
@@ -47,10 +50,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Received httpResponse for r: $id")
             r.status.intValue() match {
               case 200 =>
-                r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).onComplete {
+                val responseMessage = r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).onComplete {
                   case Success(b) =>
-                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: RESPONSE: ${b.result().decodeString("UTF-8")}")
                     val responseBody = b.result().decodeString("UTF-8").getObj[ObjectNode]
+                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: RESPONSE: $responseBody")
 
                     val deviceIdItr = deviceIds.listIterator()
                     responseBody.findValues("results").toList.foreach({
@@ -59,9 +62,9 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                     })
 
                     ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: ResponseBody:: $responseBody")
-                  case Failure(e1) =>
-                    events.addAll(deviceIds.map(PNCallbackEvent(id, _, "android", "GCM_RESPONSE_PARSE_ERROR", app, "", e1.getMessage, eventTS)))
-                    ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Error Processing ResponseBody for $id:: ${e1.getMessage}", e1)
+                  case Failure(e) =>
+                    ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Error Processing ResponseBody for $id:: ${e.getMessage}", e)
+                    events.addAll(deviceIds.map(PNCallbackEvent(id, _, "android", "GCM_RESPONSE_PARSE_ERROR", app, "", e.getMessage, eventTS)))
                 }
               case 400 =>
                 events.addAll(deviceIds.map(PNCallbackEvent(id, _, "android", "GCM_INVALID_JSON", app, "", "", eventTS)))
