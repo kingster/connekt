@@ -1,0 +1,5 @@
+application: connekt-receptors
+file: /var/log/flipkart/pf/fk-pf-connekt/receptors-akka.log
+statusCodePosition: 8
+responseTimePosition: 9
+multiplier: 1
