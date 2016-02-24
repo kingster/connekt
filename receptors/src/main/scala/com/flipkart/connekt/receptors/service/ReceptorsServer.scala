@@ -38,7 +38,7 @@ object ReceptorsServer extends BaseJsonHandler {
   // logs just the request method and response status at info level
   private def requestMethodAndResponseStatusAsInfo(req: HttpRequest): Any => Option[LogEntry] = {
     case Complete(res) =>
-      val remoteIp: String = req.headers.find(_.is("FK-Client-IP")).map(_.value()).getOrElse("")
+      val remoteIp: String = req.headers.find(_.is("fk-client-ip")).map(_.value()).getOrElse("0.0.0.0")
       Some(LogEntry(logFormat.format(remoteIp, req.method.value, req.uri, res.status.intValue()), akka.event.Logging.InfoLevel))
     case _ =>
       None // other kind of responses
