@@ -11,7 +11,7 @@ import akka.stream.{ActorMaterializer, SinkShape, SourceShape}
 import akka.util.{ByteString, ByteStringBuilder}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, APNSDispatcher, HttpPrepare, WNSDispatcher}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, HttpPrepare, RequestIdentifier, WNSDispatcher}
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
@@ -20,7 +20,7 @@ import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{ConnektConfig, KeyChainManager}
+import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.{Failure, Success, Try}
@@ -79,8 +79,8 @@ object Topology {
 
     /* Composite source of all kafka channel-specific topics */
     val compositeSource = Source.fromGraph(GraphDSL.create(){ implicit b =>
-      /* Excluding the bitch who's spoiling the composite-source party since Friday */
-      val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filterNot(_.equalsIgnoreCase("push_ec06191e4ed41b85b45973652c659ad4704644a13975a088c731bf69375ac5c1"))
+      /* Only sweet-child-of-ours is invited to party right now. */
+      val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filter(_.equalsIgnoreCase("push_86726ba26f92fbbc71480880b8fbaef0076ea5f39fad95a008a7d0211ca441d0"))
       ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
       val merge = b.add(Merge[ConnektRequest](topics.size))
@@ -145,9 +145,6 @@ object Topology {
     //Run the entire flow
     compositeSource.runWith(sink)
     ConnektLogger(LogFile.PROCESSORS).info(s"######## Started the runnable graph ########")
-
-    Thread.sleep(250000)
-
 
     /* start all pn flows */
     //    channelTopics.filter(_.startsWith(pnTopicPrefix)).foreach(t => {
