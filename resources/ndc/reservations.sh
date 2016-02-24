@@ -43,7 +43,9 @@ kloud-cli --endpoint 10.33.65.0 reservation --appId=fk-connekt create --type=c1.
 
 #fk-connekt* credentials
 Username: connekt-dev
-export MEGH_API_PASSWORD="c01^1^3\!<7"
+Password: c01^1^3!<7
+
+export MEGH_API_PASSWORD=$'c01^1^3\x21<7'
 
 
 
