@@ -33,6 +33,9 @@ object ReceptorsServer extends BaseJsonHandler {
 
   var httpService: scala.concurrent.Future[akka.http.scaladsl.Http.ServerBinding] = null
 
+  /**
+   * reserving the last postion for response time. hard coding it 1 since I don't know how to capture that.
+   */
   private val logFormat = "%s %s %s %s 1"
 
   // logs just the request method and response status at info level
