@@ -42,9 +42,10 @@ case class AppleCredential(certificate: Array[Byte], passkey: String) extends Cr
 
     if (certificateFile.isEmpty)
       certificateFile = {
-        val tempCertFile = File.createTempFile("apple_certificate", ".pem")
+        val tempCertFile = File.createTempFile("apple_certificate", ".p12")
         tempCertFile.deleteOnExit()
         tempCertFile.setReadable(true, false)
+        tempCertFile.setWritable(true, false)
         val output: OutputStream = new FileOutputStream(tempCertFile)
         IOUtils.write(certificate, output)
         Some(tempCertFile)
