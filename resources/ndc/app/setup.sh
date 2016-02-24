@@ -9,7 +9,7 @@ apt-get install --yes --allow-unauthenticated infra-cli
 #setup your package
 reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-app --appkey connekt > /etc/apt/sources.list.d/fk-connekt-app.list
 reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-commons --appkey connekt > /etc/apt/sources.list.d/fk-connekt-commons.list
-
+reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name openssl --appkey openssl > /etc/apt/sources.list.d/openssl.list
 
 sudo apt-get update
 
