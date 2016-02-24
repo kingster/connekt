@@ -33,7 +33,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "org.slf4j" % "slf4j-api" % "1.7.7",
   /* logging dependency ends here */
-  "com.google.code.findbugs" % "jsr305" % "3.0.0",
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
