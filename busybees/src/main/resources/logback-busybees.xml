@@ -1,43 +1,43 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
     <appender name="WORKERS" class="ch.qos.logback.core.FileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
     <appender name="CLIENTS" class="ch.qos.logback.core.FileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-clients.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
     <appender name="PROCESSORS" class="ch.qos.logback.core.FileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-processors.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
     <appender name="FACTORY" class="ch.qos.logback.core.FileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-factory.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
     <appender name="DAO" class="ch.qos.logback.core.FileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-dao.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
     <appender name="SERVICE" class="ch.qos.logback.core.FileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-service.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n%replace(%xException){"^", "  "}%nopex%n</pattern>
         </encoder>
     </appender>
     <logger name="WORKERS" level="DEBUG">
