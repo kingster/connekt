@@ -1,8 +1,7 @@
 package com.flipkart.connekt.receptors.routes.callbacks
 
-import akka.http.scaladsl.model.{StatusCodes, MediaTypes, HttpEntity}
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.flipkart.connekt.receptors.routes.BaseRouteTest
-import org.scalatest.Ignore
 
 /**
  * @author aman.shrivastava on 10/12/15.
@@ -25,7 +24,7 @@ class CallbackRouteTest extends BaseRouteTest {
     Post("/v1/push/callback/android/ConnectSampleApp/d7ae09474408d039ecad4534ed040f4a", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       callbackRoute ~>
       check {
-        status shouldEqual StatusCodes.Created
+        status shouldEqual StatusCodes.OK
       }
   }
 
