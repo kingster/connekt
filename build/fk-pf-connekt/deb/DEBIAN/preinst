@@ -1,4 +1,7 @@
 #!/bin/bash
 
-echo "deb http://10.47.2.22:80/repos/openssl102/1 /"  | sudo tee /etc/apt/sources.list.d/openssl.list
-sudo apt-get update
+if [ ! -f /etc/apt/sources.list.d/openssl.list ]; then
+    echo "[INFO] Adding OpenSSL 1.0.2 Repository"
+    echo "deb http://10.47.2.22:80/repos/openssl102/1 /" > /etc/apt/sources.list.d/openssl.list
+    apt-get update
+fi
