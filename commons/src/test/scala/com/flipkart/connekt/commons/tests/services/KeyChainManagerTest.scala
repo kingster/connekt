@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.tests.services
 
-import java.io.File
+import java.io.{PrintWriter, File}
 
 import com.flipkart.connekt.commons.entities.{AppleCredential, SimpleCredential}
 import com.flipkart.connekt.commons.services.KeyChainManager
@@ -13,7 +13,13 @@ class KeyChainManagerTest extends CommonsBaseTest {
   val simpleCredentials = SimpleCredential("username", "password")
 
   val appleName = "creds.apple." + StringUtils.generateRandomStr(6)
-  val appleCreds = AppleCredential(new File("/Users/kinshuk.bairagi/Documents/work/comm/connekt/velocity.log"), "passkey")
+
+  val fileName = StringUtils.generateRandomStr(7) + ".log"
+
+  val file = new PrintWriter(new File("/tmp/" + fileName ))
+  file.write(StringUtils.generateRandomStr(100))
+
+  val appleCreds = AppleCredential(new File("/tmp/" + fileName), "passkey")
 
   "CredentialManagerTest" should "add/get simple " in {
 
@@ -38,7 +44,8 @@ class KeyChainManagerTest extends CommonsBaseTest {
 
     println("Certificate FILE ======> "+  KeyChainManager.getAppleCredentials(appleName).get.getCertificateFile)
 
-    KeyChainManager.getAppleCredentials(appleName).get.getCertificateFile should not be appleCreds.getCertificateFile
+    val x = KeyChainManager.getAppleCredentials(appleName).get.getCertificateFile
+    x should not be appleCreds.getCertificateFile
 
   }
 

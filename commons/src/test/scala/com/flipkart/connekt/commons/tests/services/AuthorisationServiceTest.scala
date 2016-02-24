@@ -10,21 +10,21 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
 class AuthorisationServiceTest extends CommonsBaseTest {
   "AuthorisationService Test " should "return is Authorized " in {
     val auth = ServiceFactory.getAuthorisationService
-    val result = auth.isAuthorized( "aman.s","write")
+    val result = auth.isAuthorized( "aman.s","WRITE")
     result.isSuccess shouldEqual true
     result.get shouldEqual true
   }
 
   "AuthorisationService Test " should "add  authorisation" in {
     val auth = ServiceFactory.getAuthorisationService
-    auth.addAuthorization("aman.s", UserType.USER, List("r", "e", "f")).isSuccess shouldEqual true
-    auth.isAuthorized( "aman.s", "e").get shouldEqual true
+    auth.addAuthorization("aman.s", UserType.USER, List("R", "E", "F")).isSuccess shouldEqual true
+    auth.isAuthorized( "aman.s", "F").get shouldEqual true
   }
 
   "AuthorisationService Test " should "remove authorisation " in {
     val auth = ServiceFactory.getAuthorisationService
-    auth.removeAuthorization("aman.s", UserType.USER, List("e")).isSuccess shouldEqual true
-    auth.isAuthorized( "aman.s", "e").get shouldEqual false
+    auth.removeAuthorization("aman.s", UserType.USER, List("F")).isSuccess shouldEqual true
+    auth.isAuthorized( "aman.s", "F").get shouldEqual false
   }
 
 }

@@ -16,20 +16,17 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
   override def getStencil(id: String, version: Option[String] = None): Option[Stencil] = {
     implicit val j = mysqlHelper.getJDBCInterface
     try {
-      version match {
-        case Some(ver) =>
-          val q =
-            s"""
-               |SELECT * FROM $historyTableName WHERE id = ? and version = ?
+      val q1 =
+        s"""
+           |SELECT * FROM $historyTableName WHERE id = ? and version = ?
             """.stripMargin
-          query[Stencil](q, id, ver)
-        case _ =>
-          val q =
-            s"""
-               |SELECT * FROM $tableName WHERE id = ?
+
+      val q2 =
+        s"""
+           |SELECT * FROM $tableName WHERE id = ?
             """.stripMargin
-          query[Stencil](q, id)
-      }
+
+      version.map(query[Stencil](q1, id, _)).getOrElse(query[Stencil](q2, id))
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching stencil [$id] ${e.getMessage}", e)
@@ -47,12 +44,12 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
 
     val q2 =
       s"""
-        |INSERT INTO $historyTableName (id, engine, engineFabric, createdBy, version, bucket) VALUES(?, ?, ?, ?, (SELECT VERSION from $tableName where id = ?), ?)
+        |INSERT INTO $historyTableName (id, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ?), ?)
       """.stripMargin
 
     try {
       update(q1, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.id, stencil.bucket)
+      update(q2, stencil.id, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.bucket)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)
