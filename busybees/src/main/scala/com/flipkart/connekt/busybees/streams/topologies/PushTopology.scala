@@ -100,16 +100,15 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsHttpPrepare = b.add(new WNSDispatcherPrepare())
     val wnsPoolFlow = b.add(wnsPoolClientFlow)
 
-    val wnsPayloadMerge = b.add(Merge[WNSPayloadEnvelope](2))
+    val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
     val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request))
 
     val fmtWindows = b.add(new WindowsChannelFormatter)
     val wnsRHandler = b.add(new WNSResponseHandler)
 
-    platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge.in(0)
-    wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler.in
-
-    wnsRHandler.out1 ~> wnsRetryMapper ~> wnsPayloadMerge.in(1)
+    platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge
+                                                                  wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler.in
+                                                wnsPayloadMerge.preferred <~ wnsRetryMapper <~ wnsRHandler.out1
     wnsRHandler.out0 ~> merger.in(2)
 
     merger.out

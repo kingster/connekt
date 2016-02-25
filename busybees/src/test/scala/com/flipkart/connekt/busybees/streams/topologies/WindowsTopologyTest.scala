@@ -96,7 +96,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
         val formatter = b.add(new WindowsChannelFormatter)
         val dispatcher = b.add(new WNSDispatcherPrepare)
 
-        val pipeInletMerge = b.add(Merge[WNSPayloadEnvelope](2))
+        val pipeInletMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
 
         val pipe = b.add(poolClientFlow)
         val responseHandler = b.add(new WNSResponseHandler())
@@ -106,11 +106,11 @@ class WindowsTopologyTest extends TopologyUTSpec {
           t.request
         }))
 
-        Source(List(cRequest, cRequest)) ~> render ~> formatter ~>  pipeInletMerge.in(0)
+        Source(List(cRequest, cRequest)) ~> render ~> formatter ~>  pipeInletMerge
 
         pipeInletMerge.out ~> dispatcher  ~> pipe ~> responseHandler.in
 
-        responseHandler.out1 ~> retryMapper ~> pipeInletMerge.in(1)
+        responseHandler.out1 ~> retryMapper ~> pipeInletMerge.preferred
         responseHandler.out0 ~> out
 
         ClosedShape
