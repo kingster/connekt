@@ -92,8 +92,7 @@ libraryDependencies ++= Seq(
   "org.apache.curator" % "curator-recipes" % "2.9.1",
   "com.flipkart.specter" % "specter-client" % "1.1.4",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1-SNAPSHOT" exclude ("com.flipkart" , "util-core"),
-  "com.flipkart" %% "util-core" % "0.0.1",
+  "com.flipkart" %% "util-config" % "0.0.1",
   "com.flipkart" %% "espion" % "1.0.0"
 )
 
