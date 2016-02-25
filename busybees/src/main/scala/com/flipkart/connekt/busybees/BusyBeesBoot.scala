@@ -5,7 +5,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.flipkart.connekt.busybees.processors.PNProcessor
-import com.flipkart.connekt.busybees.streams.{KafkaMessageProcessFlow, PushTopology}
+import com.flipkart.connekt.busybees.streams.KafkaMessageProcessFlow
+import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory

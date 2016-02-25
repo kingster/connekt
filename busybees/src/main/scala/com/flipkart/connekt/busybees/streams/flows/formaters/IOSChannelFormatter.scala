@@ -15,38 +15,43 @@ import scala.collection.immutable
  * @author durga.s
  * @version 2/2/16
  */
-class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayload]] {
+class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloadEnvelope]] {
 
   val in = Inlet[ConnektRequest]("IOSChannelFormatter.In")
-  val out = Outlet[APSPayload]("IOSChannelFormatter.Out")
+  val out = Outlet[APSPayloadEnvelope]("IOSChannelFormatter.Out")
 
-  override def shape: FlowShape[ConnektRequest, APSPayload] = FlowShape.of(in, out)
+  override def shape: FlowShape[ConnektRequest, APSPayloadEnvelope] = FlowShape.of(in, out)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
       override def onPush(): Unit = try {
 
+        ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: onPush.")
         val message = grab(in)
 
-        ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: onPush:: Received Message: ${message.getJson}")
-
+        ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
         val tokens = pnInfo.deviceId.flatMap(DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, _)).map(_.token)
-        val iosRequestPayloads = tokens.map(iOSPNPayload(_, Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
+        val apnsPayloads = tokens.map(iOSPNPayload(_, Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
+        val apnsEnvelopes = apnsPayloads.map(APSPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
 
-        emitMultiple[APSPayload](out, immutable.Iterable.concat(iosRequestPayloads))
+        emitMultiple[APSPayloadEnvelope](out, immutable.Iterable.concat(apnsEnvelopes))
 
+        if(isAvailable(out) && !hasBeenPulled(in))
+          pull(in)
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: onPush :: Error", e)
+          if(!hasBeenPulled(in))
           pull(in)
       }
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
     })
 

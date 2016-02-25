@@ -10,7 +10,7 @@ import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, APNSDispatcher, HttpPrepare}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, APNSDispatcher, GCMDispatcher}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.{GCMPayloadEnvelope, ConnektRequest, GCMPayload, PNRequestInfo}
@@ -113,7 +113,7 @@ class PNCompleteTopology extends TopologyUTSpec {
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
     val appleCredentials = KeyChainManager.getAppleCredentials("RetailApp").get
 
-    val httpDispatcher = new HttpPrepare[GCMPayloadEnvelope](
+    val httpDispatcher = new GCMDispatcher[GCMPayloadEnvelope](
       new URL("https", "android.googleapis.com", 443, "/gcm/send"),
       HttpMethods.POST,
       scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),

@@ -31,13 +31,13 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
         val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None).map(_.token))
         val wnsRequestPayloads = tokens.map(WNSPayloadEnvelope(message.id, _, message.channelInfo.asInstanceOf[PNRequestInfo].appName, message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]))
 
-//        push(out, wnsRequestPayloads.head)
         emitMultiple[WNSPayloadEnvelope](out, scala.collection.immutable.Iterable.concat(wnsRequestPayloads))
 
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: onPush :: Error", e)
-          pull(in)
+          if(!hasBeenPulled(in))
+            pull(in)
       }
 
       override def onUpstreamFinish(): Unit = {
@@ -54,7 +54,8 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
 
       override def onDownstreamFinish(): Unit = {

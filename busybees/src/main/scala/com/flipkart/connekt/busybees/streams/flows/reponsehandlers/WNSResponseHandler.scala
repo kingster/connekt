@@ -3,7 +3,7 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
-import com.flipkart.connekt.busybees.streams.wnsResponse
+import com.flipkart.connekt.busybees.streams.topologies.wnsResponse
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.WindowsTokenService

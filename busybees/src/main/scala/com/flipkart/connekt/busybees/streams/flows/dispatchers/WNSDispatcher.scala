@@ -6,7 +6,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
-import com.flipkart.connekt.busybees.streams.wnsResponse
+import com.flipkart.connekt.busybees.streams.topologies.wnsResponse
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.WNSPayloadEnvelope
 import com.flipkart.connekt.commons.services.WindowsTokenService

@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, HttpPrepare}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, GCMDispatcher}
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.commons.iomodels.{GCMPayloadEnvelope, ConnektRequest, GCMPayload}
@@ -27,7 +27,7 @@ class AndroidTopology extends TopologyUTSpec {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
-    val httpDispatcher = new HttpPrepare[GCMPayloadEnvelope](
+    val httpDispatcher = new GCMDispatcher[GCMPayloadEnvelope](
       new URL("https", "android.googleapis.com", 443, "/gcm/send"),
       HttpMethods.POST,
       scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),

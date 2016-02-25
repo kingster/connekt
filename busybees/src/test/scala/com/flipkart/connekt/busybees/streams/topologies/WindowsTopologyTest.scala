@@ -7,7 +7,8 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.WindowsChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHandler
 import com.flipkart.connekt.busybees.streams.sources.RateControl
-import com.flipkart.connekt.busybees.streams.{TopologyUTSpec, wnsResponse}
+import com.flipkart.connekt.busybees.streams.TopologyUTSpec
+import com.flipkart.connekt.busybees.streams.topologies.wnsResponse
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.DeviceDetailsService
