@@ -6,6 +6,7 @@ import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, FlowShape, SinkShape, SourceShape}
 import com.flipkart.connekt.busybees.BusyBeesBoot
+import com.flipkart.connekt.busybees.models.{GCMRequestTrace, WNSRequestTracker}
 import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcher, WNSDispatcher}
@@ -18,14 +19,8 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 
-/**
- *
- *
- * @author durga.s
- * @version 2/2/16
- */
-case class wnsResponse(appName: String, requestId: String)
-case class HttpRequestTrace(messageId: String, deviceId: List[String], appName: String)
+
+
 class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] {
 
   implicit val system = BusyBeesBoot.system
@@ -45,15 +40,10 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   })
 
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
-    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[HttpRequestTrace]("android.googleapis.com", 443)
-    val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[wnsResponse]("hk2.notify.windows.com")
 
     val render = b.add(new RenderFlow)
-    val fmtAndroid = b.add(new AndroidChannelFormatter)
-    val fmtWindows = b.add(new WindowsChannelFormatter)
-    val fmtIOS = b.add(new IOSChannelFormatter)
-    val rHandlerGCM = b.add(new GCMResponseHandler)
-    val wnsRHandler = b.add(new WNSResponseHandler)
+    val merger = b.add(Merge[PNCallbackEvent](3)) //output-merger
+
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.WORKERS).debug(s"Routing IOS message: ${ios.id}")
@@ -66,17 +56,62 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
         2
     }))
 
-    val merger = b.add(Merge[PNCallbackEvent](3))
-    val wnsDispatcher = b.add(new WNSDispatcher())
-    val gcmHttpDispatcher = b.add(new GCMDispatcher())
+    render.out ~> platformPartition.in
+
+
+    /**
+     * Apple Topology
+     *
+     * iosRequest ~> iosFormatter ~> apnsDispatcher
+     */
+
+    val fmtIOS = b.add(new IOSChannelFormatter)
     val apnsDispatcher = b.add(new APNSDispatcher)
+
+    platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> merger.in(0)
+
+    /**
+     * Android Topology
+     */
+    val fmtAndroid = b.add(new AndroidChannelFormatter)
+    val gcmHttpDispatcher = b.add(new GCMDispatcher())
+
+    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTrace]("android.googleapis.com", 443)
     val gcmPoolFlow = b.add(gcmPoolClientFlow)
+
+    val rHandlerGCM = b.add(new GCMResponseHandler)
+
+    platformPartition.out(1) ~> fmtAndroid ~> gcmHttpDispatcher ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
+
+    /**
+     * Windows Topology
+     *
+     *                                          |----------|                                      |-----------|
+     *                                          |          |                                      |   WNS     | ~> out-merger
+     * windows request -> windows-formatter  -> |    wns   |  ~> wnsDispatcher ~> wnsPoolFlow ~>  |  RESPONSE |
+     *                                          | Payload  |                                      |  HANDLER  |
+     *                                      |~~>|   Merge  |                                      |           | ~~~~~~~|
+     *                                      |   |----------|                                      |-----------|        |
+     *                                      |                                                                          |
+     *                                      |~~~~~~~~~~~~~~~~~~~~~~~~~~~  wnsRetryMapper <~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
+     */
+
+    val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[WNSRequestTracker]("hk2.notify.windows.com")
+    val wnsDispatcher = b.add(new WNSDispatcher())
     val wnsPoolFlow = b.add(wnsPoolClientFlow)
 
-    render.out ~> platformPartition.in
-    platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> merger.in(0)
-    platformPartition.out(1) ~> fmtAndroid ~> gcmHttpDispatcher ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
-    platformPartition.out(2) ~> fmtWindows ~> wnsDispatcher ~> wnsPoolFlow ~> wnsRHandler ~> merger.in(2)
+    val wnsPayloadMerge = b.add(Merge[WNSPayloadEnvelope](2))
+    val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request))
+
+    val fmtWindows = b.add(new WindowsChannelFormatter)
+    val wnsRHandler = b.add(new WNSResponseHandler)
+
+    platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge.in(0)
+    wnsPayloadMerge.out ~> wnsDispatcher  ~> wnsPoolFlow ~> wnsRHandler.in
+
+    wnsRHandler.out1 ~> wnsRetryMapper ~> wnsPayloadMerge.in(1)
+    wnsRHandler.out0 ~> merger.in(2)
+
     merger.out
 
     FlowShape(render.in, merger.out)

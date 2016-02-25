@@ -9,7 +9,7 @@ Tech Stack
 * [Akka] - Akka 2.4.2!
 
 [Scala]:http://www.scala-lang.org
-[Akka]:http://doc.akka.io/docs/akka/2.4.2-RC2/scala.html
+[Akka]:http://doc.akka.io/docs/akka/2.4.2/scala.html
 
 
 Getting Started

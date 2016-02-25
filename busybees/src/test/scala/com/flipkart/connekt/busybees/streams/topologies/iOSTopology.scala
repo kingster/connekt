@@ -67,7 +67,7 @@ class iOSTopology extends TopologyUTSpec {
       .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
       .via(new IOSChannelFormatter)
-      .via(new APNSDispatcher(appleCreds))
+      .via(new APNSDispatcher())
       .runWith(Sink.head)
 
     val response = Await.result(result, 60.seconds)

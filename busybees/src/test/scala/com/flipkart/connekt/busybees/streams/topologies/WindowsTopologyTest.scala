@@ -1,22 +1,27 @@
 package com.flipkart.connekt.busybees.streams.topologies
 
 import akka.http.scaladsl.Http
-import akka.stream.scaladsl.{Sink, Source}
+import akka.http.scaladsl.model.HttpRequest
+import akka.stream.ClosedShape
+import akka.stream.scaladsl.{RunnableGraph, GraphDSL, Sink, Source}
+import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.WindowsChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHandler
 import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
-import com.flipkart.connekt.busybees.streams.topologies.wnsResponse
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.iomodels.ConnektRequest
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.iomodels.{WNSPayloadEnvelope, PNCallbackEvent, ConnektRequest}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import akka.stream.scaladsl.GraphDSL.Implicits._
+import akka.stream.scaladsl._
 
 /**
  * @author aman.shrivastava on 10/02/16.
@@ -84,38 +89,58 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
 
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[wnsResponse]("hk2.notify.windows.com")
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[WNSRequestTracker]("hk2.notify.windows.com")
+
+    //
+    //    val result = Source(List(cRequest, cRequest,cRequest))
+    //      .via(new RateControl[ConnektRequest](2, 1, 2))
+    //      .via(new RenderFlow)
+    //      .via(new WindowsChannelFormatter)
+    //      .via(new WNSDispatcher())
+    //      .via(poolClientFlow)
+    //      .via(new WNSResponseHandler())
+    //      .runWith(Sink.head)
+    //
 
 
-    val result = Source.single(cRequest)
-      .via(new RateControl[ConnektRequest](2, 1, 2))
-      .via(new RenderFlow)
-      .via(new WindowsChannelFormatter)
-      .via(new WNSDispatcher())
-      .via(poolClientFlow)
-      .via(new WNSResponseHandler)
-      .runWith(Sink.head)
+    lazy val graph = GraphDSL.create() {
+      implicit b ⇒
+
+        val out = Sink.foreach[PNCallbackEvent](println)
+
+        val render = b.add(new RenderFlow)
+        val formatter = b.add(new WindowsChannelFormatter)
+        val dispatcher = b.add(new WNSDispatcher)
+
+        val pipeInletMerge = b.add(Merge[WNSPayloadEnvelope](2))
+
+        val pipe = b.add(poolClientFlow)
+        val responseHandler = b.add(new WNSResponseHandler())
+
+        val retryMapper = b.add(Flow[WNSRequestTracker].map(t => {
+
+          ConnektLogger(LogFile.PROCESSORS).error("retryMapper" + t)
+          t.request
+        }))
+
+        Source(List(cRequest, cRequest)) ~> render ~> formatter ~>  pipeInletMerge.in(0)
+
+        pipeInletMerge.out ~> dispatcher  ~> pipe ~> responseHandler.in
+
+        responseHandler.out1 ~> retryMapper ~> pipeInletMerge.in(1)
+        responseHandler.out0 ~> out
+
+        ClosedShape
+    }
 
 
-  val response = Await.result(result, 1000.seconds)
 
-    val result1 = Source.single(cRequest)
-      .via(new RateControl[ConnektRequest](2, 1, 2))
-      .via(new RenderFlow)
-      .via(new WindowsChannelFormatter)
-      .via(new WNSDispatcher())
-      .via(poolClientFlow)
-      .via(new WNSResponseHandler)
-      .runWith(Sink.head)
+    RunnableGraph.fromGraph(graph).run()
 
 
-    val response1 = Await.result(result, 1000.seconds)
+    Thread.sleep(15000)
 
-    println(response)
-
-    Thread.sleep(2000)
-
-    assert(null != response)
+    assert(null != true)
 
 
   }

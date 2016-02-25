@@ -5,6 +5,7 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.tests.connections.MockConnectionProvider
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -23,7 +24,7 @@ class CommonsBaseTest extends ConnektUTSpec {
 
     ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
 
-    DaoFactory.setUpConnectionProvider(new ConnectionProvider())
+    DaoFactory.setUpConnectionProvider(new MockConnectionProvider())
 
     val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
 

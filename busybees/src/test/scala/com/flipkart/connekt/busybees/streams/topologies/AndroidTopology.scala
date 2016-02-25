@@ -1,17 +1,14 @@
 package com.flipkart.connekt.busybees.streams.topologies
 
-import java.net.URL
-
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.{Sink, Source}
+import com.flipkart.connekt.busybees.models.GCMRequestTrace
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, GCMDispatcher}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.GCMDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
-import com.flipkart.connekt.commons.iomodels.{GCMPayloadEnvelope, ConnektRequest, GCMPayload}
+import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -27,16 +24,10 @@ class AndroidTopology extends TopologyUTSpec {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
-    val httpDispatcher = new GCMDispatcher[GCMPayloadEnvelope](
-      new URL("https", "android.googleapis.com", 443, "/gcm/send"),
-      HttpMethods.POST,
-      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
-      (payload: GCMPayloadEnvelope) => HttpEntity(ContentTypes.`application/json`, payload.gcmPayload.getJson),
-      (envelope: GCMPayloadEnvelope) => RequestIdentifier(envelope.messageId, envelope.deviceId, envelope.appName)
-    )
+    val httpDispatcher = new GCMDispatcher
 
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[RequestIdentifier]("android.googleapis.com", 443)
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTrace]("android.googleapis.com", 443)
 
     val cRequest = """
                      |{

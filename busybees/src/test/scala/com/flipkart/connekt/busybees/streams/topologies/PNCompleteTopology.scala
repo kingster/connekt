@@ -10,10 +10,10 @@ import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{RequestIdentifier, APNSDispatcher, GCMDispatcher}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcher}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.iomodels.{GCMPayloadEnvelope, ConnektRequest, GCMPayload, PNRequestInfo}
+import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{KeyChainManager,  DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -113,14 +113,7 @@ class PNCompleteTopology extends TopologyUTSpec {
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
     val appleCredentials = KeyChainManager.getAppleCredentials("RetailApp").get
 
-    val httpDispatcher = new GCMDispatcher[GCMPayloadEnvelope](
-      new URL("https", "android.googleapis.com", 443, "/gcm/send"),
-      HttpMethods.POST,
-      scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + credentials.apiKey)),
-      (payload: GCMPayloadEnvelope) => HttpEntity(ContentTypes.`application/json`, payload.getJson),
-      (envelope: GCMPayloadEnvelope) => RequestIdentifier(envelope.messageId, envelope.deviceId, envelope.appName)
-    )
-
+    val httpDispatcher = new GCMDispatcher
 
     lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
 
@@ -145,7 +138,7 @@ class PNCompleteTopology extends TopologyUTSpec {
         val render = b.add(new RenderFlow)
 
         val iosFormat = b.add(new IOSChannelFormatter)
-        val iosDispatch = b.add(new APNSDispatcher(appleCredentials))
+        val iosDispatch = b.add(new APNSDispatcher)
 
         //        val androidFormat = b.add(new AndroidChannelFormatter)
         //        val httpPrepare = b.add(httpDispatcher)
@@ -163,10 +156,11 @@ class PNCompleteTopology extends TopologyUTSpec {
          */
         val proxy1 = b.add(Flow[Either[Throwable, String]].filter(_.isRight).map(_.toString))
         val proxy2 = b.add(Flow[ConnektRequest].map(_.toString))
+        val proxy3 = b.add(Flow[PNCallbackEvent].map(_.toString))
 
 
         Source(List(cRequest1, cRequest2)) ~> render ~> partition.in
-        partition.out(0) ~> iosFormat ~> iosDispatch ~> proxy1 ~> resultsMerge.in(0)
+        partition.out(0) ~> iosFormat ~> iosDispatch ~> proxy3 ~> resultsMerge.in(0)
         //        partition.out(0) ~> proxy1 ~> resultsMerge.in(0)
         //        partition.out(1) ~> new AndroidChannelFormatter  ~> httpDispatcher ~> poolClientFlow ~> hRead ~> resultsMerge.in(1)
         partition.out(1) ~> proxy2 ~> resultsMerge.in(1)

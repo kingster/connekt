@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream._
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.busybees.streams.topologies.HttpRequestTrace
+import com.flipkart.connekt.busybees.models.GCMRequestTrace
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.GCMPayloadEnvelope
 import com.flipkart.connekt.commons.services.KeyChainManager
@@ -18,12 +18,12 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * Created by kinshuk.bairagi on 02/02/16.
  */
 class GCMDispatcher(uri: URL = new URL("https", "android.googleapis.com", 443, "/gcm/send"))
-  extends GraphStage[FlowShape[GCMPayloadEnvelope, (HttpRequest, HttpRequestTrace)]] {
+  extends GraphStage[FlowShape[GCMPayloadEnvelope, (HttpRequest, GCMRequestTrace)]] {
 
   val in = Inlet[GCMPayloadEnvelope]("GCMDispatcher.In")
-  val out = Outlet[(HttpRequest, HttpRequestTrace)]("GCMDispatcher.Out")
+  val out = Outlet[(HttpRequest, GCMRequestTrace)]("GCMDispatcher.Out")
 
-  override def shape: FlowShape[GCMPayloadEnvelope, (HttpRequest, HttpRequestTrace)] = FlowShape.of(in, out)
+  override def shape: FlowShape[GCMPayloadEnvelope, (HttpRequest, GCMRequestTrace)] = FlowShape.of(in, out)
 
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
@@ -39,7 +39,7 @@ class GCMDispatcher(uri: URL = new URL("https", "android.googleapis.com", 443, "
         val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
         val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))
         val httpRequest = new HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
-        val requestTrace = HttpRequestTrace(message.messageId, message.deviceId, message.appName)
+        val requestTrace = GCMRequestTrace(message.messageId, message.deviceId, message.appName)
 
         ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Request Payload : ${httpRequest.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
         ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: ${requestTrace.messageId}")
