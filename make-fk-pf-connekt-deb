@@ -2,11 +2,27 @@
 
 set -x
 echo "Starting build"
+
 function die() {
     echo "ERROR: $1" >&2
     echo "Aborting." >&2
     exit 1
 }
+
+function replacePlaceHolders() {
+    file="$1"
+    sed -i -e "s/_PACKAGE_/$PACKAGE/g" $file
+    sed -i -e "s/_UID_/$PAC_UID/g" $file
+    sed -i -e "s/_GID_/$PAC_GID/g" $file
+    sed -i -e "s/_GROUP_/$PAC_GROUP/g" $file
+    sed -i -e "s/_USER_/$PAC_USER/g" $file
+}
+
+export PAC_UID=3107
+export PAC_GID=3000
+export PAC_GROUP="fk-w3"
+export PAC_USER="fk-pf-connekt"
+
 
 [ -n "$LOCAL_DIR" ]	|| die "No base dir specified."
 [ -n "$TARGET" ]	|| die "No target environment (eng, sb, nm etc.) specified."
@@ -25,20 +41,20 @@ case "$TARGET" in
 esac
 [ -z "$ENV" ] && die "Invalid target: $TARGET"
 
-export PAC_UID=3107
-export PAC_GID=3000
-export PAC_GROUP="fk-w3"
-export PAC_USER="fk-pf-connekt"
+##No Squeeze build on nm.
+if [ "$TARGET" == "nm" ]; then
+    ##check if Squeeze build
+    OS=$(lsb_release -c)
+    case ${OS} in
+        *squeeze* )
+            die "Unsupported build environment"
+            ;;
+        *)
+            ;;
+    esac
+fi
 
-replacePlaceHolders() {
-    file="$1"
-    sed -i -e "s/_PACKAGE_/$PACKAGE/g" $file
-    sed -i -e "s/_UID_/$PAC_UID/g" $file
-    sed -i -e "s/_GID_/$PAC_GID/g" $file
-    sed -i -e "s/_GROUP_/$PAC_GROUP/g" $file
-    sed -i -e "s/_USER_/$PAC_USER/g" $file
-}
-
+echo "Running Build on...  `hostname -f`"
 
 # Create base dir for debian packaging
 BASE_DIR="$LOCAL_DIR"
@@ -59,7 +75,6 @@ export PATH=${JAVA_HOME}/bin:${PATH}
 #export PATH="${LOCAL_DIR}/build/sbt:${PATH}"
 
 echo "Module directory : ${LOCAL_DIR}"
-echo "Running Build on...  `hostname -f`"
 
 CUR_SAVE_PWD=$(pwd)
 
