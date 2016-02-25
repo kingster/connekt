@@ -17,17 +17,13 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  * Created by kinshuk.bairagi on 02/02/16.
  */
-class GCMDispatcher(uri: URL = new URL("https", "android.googleapis.com", 443, "/gcm/send"))
+class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com", 443, "/gcm/send"))
   extends GraphStage[FlowShape[GCMPayloadEnvelope, (HttpRequest, GCMRequestTrace)]] {
 
   val in = Inlet[GCMPayloadEnvelope]("GCMDispatcher.In")
   val out = Outlet[(HttpRequest, GCMRequestTrace)]("GCMDispatcher.Out")
 
-  override def shape: FlowShape[GCMPayloadEnvelope, (HttpRequest, GCMRequestTrace)] = FlowShape.of(in, out)
-
-  implicit val system = BusyBeesBoot.system
-  implicit val ec = BusyBeesBoot.system.dispatcher
-  implicit val mat = BusyBeesBoot.mat
+  override def shape  = FlowShape.of(in, out)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 

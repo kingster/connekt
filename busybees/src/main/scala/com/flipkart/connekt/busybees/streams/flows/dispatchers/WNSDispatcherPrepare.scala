@@ -15,7 +15,7 @@ import com.flipkart.connekt.commons.utils.StringUtils
 /**
  * @author aman.shrivastava on 08/02/16.
  */
-class WNSDispatcher extends GraphStage[FlowShape[WNSPayloadEnvelope, (HttpRequest, WNSRequestTracker)]] {
+class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (HttpRequest, WNSRequestTracker)]] {
 
   val in = Inlet[WNSPayloadEnvelope]("WNSDispatcher.In")
   val out = Outlet[(HttpRequest, WNSRequestTracker)]("WNSDispatcher.Out")
@@ -61,11 +61,6 @@ class WNSDispatcher extends GraphStage[FlowShape[WNSPayloadEnvelope, (HttpReques
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPull")
         pull(in)
-      }
-
-      override def onDownstreamFinish(): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).info("WNSDispatcher:: onDownstreamFinish finish invoked")
-        super.onDownstreamFinish()
       }
     })
 

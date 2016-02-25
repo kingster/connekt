@@ -5,7 +5,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.models.GCMRequestTrace
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.GCMDispatcher
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.GCMDispatcherPrepare
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
@@ -24,7 +24,7 @@ class AndroidTopology extends TopologyUTSpec {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
-    val httpDispatcher = new GCMDispatcher
+    val httpDispatcher = new GCMDispatcherPrepare
 
 
     lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTrace]("android.googleapis.com", 443)

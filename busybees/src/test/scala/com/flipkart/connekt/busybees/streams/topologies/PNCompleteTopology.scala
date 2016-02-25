@@ -10,7 +10,7 @@ import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcher}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels._
@@ -113,7 +113,7 @@ class PNCompleteTopology extends TopologyUTSpec {
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
     val appleCredentials = KeyChainManager.getAppleCredentials("RetailApp").get
 
-    val httpDispatcher = new GCMDispatcher
+    val httpDispatcher = new GCMDispatcherPrepare
 
     lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
 

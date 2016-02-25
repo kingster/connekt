@@ -17,7 +17,7 @@ abstract class PNProviderResponseErrorHandler[I, O1] extends  GraphStage[FanOutS
 
 abstract class PNProviderResponseHandler[I] extends GraphStage[FlowShape[I, PNCallbackEvent]] with ProviderResponseHandler
 
-//abstract class EmailProviderResponseHandler[T] extends ProviderResponseHandler[T, EmailCallbackEvent]
+abstract class EmailProviderResponseHandler[I] extends GraphStage[FlowShape[I, EmailCallbackEvent]] with ProviderResponseHandler
 
 
 

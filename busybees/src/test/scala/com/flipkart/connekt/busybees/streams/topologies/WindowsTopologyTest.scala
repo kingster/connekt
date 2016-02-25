@@ -6,7 +6,7 @@ import akka.stream.ClosedShape
 import akka.stream.scaladsl.{RunnableGraph, GraphDSL, Sink, Source}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcher
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcherPrepare
 import com.flipkart.connekt.busybees.streams.flows.formaters.WindowsChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHandler
 import com.flipkart.connekt.busybees.streams.sources.RateControl
@@ -85,23 +85,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
                       |}
                    """.stripMargin.getObj[ConnektRequest]
 
-
-
-
-
     lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[WNSRequestTracker]("hk2.notify.windows.com")
-
-    //
-    //    val result = Source(List(cRequest, cRequest,cRequest))
-    //      .via(new RateControl[ConnektRequest](2, 1, 2))
-    //      .via(new RenderFlow)
-    //      .via(new WindowsChannelFormatter)
-    //      .via(new WNSDispatcher())
-    //      .via(poolClientFlow)
-    //      .via(new WNSResponseHandler())
-    //      .runWith(Sink.head)
-    //
-
 
     lazy val graph = GraphDSL.create() {
       implicit b ⇒
@@ -110,7 +94,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
         val render = b.add(new RenderFlow)
         val formatter = b.add(new WindowsChannelFormatter)
-        val dispatcher = b.add(new WNSDispatcher)
+        val dispatcher = b.add(new WNSDispatcherPrepare)
 
         val pipeInletMerge = b.add(Merge[WNSPayloadEnvelope](2))
 
@@ -118,7 +102,6 @@ class WindowsTopologyTest extends TopologyUTSpec {
         val responseHandler = b.add(new WNSResponseHandler())
 
         val retryMapper = b.add(Flow[WNSRequestTracker].map(t => {
-
           ConnektLogger(LogFile.PROCESSORS).error("retryMapper" + t)
           t.request
         }))
@@ -133,17 +116,11 @@ class WindowsTopologyTest extends TopologyUTSpec {
         ClosedShape
     }
 
-
-
     RunnableGraph.fromGraph(graph).run()
-
 
     Thread.sleep(15000)
 
     assert(null != true)
-
-
   }
-
 
 }

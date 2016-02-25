@@ -9,7 +9,7 @@ import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.models.{GCMRequestTrace, WNSRequestTracker}
 import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcher, WNSDispatcher}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, WNSDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
@@ -74,21 +74,21 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      * Android Topology
      */
     val fmtAndroid = b.add(new AndroidChannelFormatter)
-    val gcmHttpDispatcher = b.add(new GCMDispatcher())
+    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare())
 
     val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTrace]("android.googleapis.com", 443)
     val gcmPoolFlow = b.add(gcmPoolClientFlow)
 
     val rHandlerGCM = b.add(new GCMResponseHandler)
 
-    platformPartition.out(1) ~> fmtAndroid ~> gcmHttpDispatcher ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
+    platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
 
     /**
      * Windows Topology
      *
      *                                          |----------|                                      |-----------|
      *                                          |          |                                      |   WNS     | ~> out-merger
-     * windows request -> windows-formatter  -> |    wns   |  ~> wnsDispatcher ~> wnsPoolFlow ~>  |  RESPONSE |
+     * windows request -> windows-formatter  -> |    wns   |  ~> wnsHttpPrepare ~> wnsPoolFlow ~> |  RESPONSE |
      *                                          | Payload  |                                      |  HANDLER  |
      *                                      |~~>|   Merge  |                                      |           | ~~~~~~~|
      *                                      |   |----------|                                      |-----------|        |
@@ -97,7 +97,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      */
 
     val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[WNSRequestTracker]("hk2.notify.windows.com")
-    val wnsDispatcher = b.add(new WNSDispatcher())
+    val wnsHttpPrepare = b.add(new WNSDispatcherPrepare())
     val wnsPoolFlow = b.add(wnsPoolClientFlow)
 
     val wnsPayloadMerge = b.add(Merge[WNSPayloadEnvelope](2))
@@ -107,7 +107,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsRHandler = b.add(new WNSResponseHandler)
 
     platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge.in(0)
-    wnsPayloadMerge.out ~> wnsDispatcher  ~> wnsPoolFlow ~> wnsRHandler.in
+    wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler.in
 
     wnsRHandler.out1 ~> wnsRetryMapper ~> wnsPayloadMerge.in(1)
     wnsRHandler.out0 ~> merger.in(2)
