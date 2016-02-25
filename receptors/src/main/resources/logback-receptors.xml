@@ -1,14 +1,14 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern> %d{HH:mm:ss.SSS} [%thread] %highlight(%-5level) %logger{36} - %msg%n%xException%nopex%n</pattern>
+            <pattern>%n %d{HH:mm:ss.SSS} [%thread] %highlight(%-5level) %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="FACTORY" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-factory.log</file>
         <encoder>
-            <pattern>%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n%xException%nopex%n</pattern>
+            <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>100MB</maxFileSize>
@@ -23,7 +23,7 @@
     <appender name="DAO" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-dao.log</file>
         <encoder>
-            <pattern>%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n%xException%nopex%n</pattern>
+            <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>100MB</maxFileSize>
@@ -38,7 +38,7 @@
     <appender name="SERVICE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-service.log</file>
         <encoder>
-            <pattern>%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n%xException%nopex%n</pattern>
+            <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>100MB</maxFileSize>
