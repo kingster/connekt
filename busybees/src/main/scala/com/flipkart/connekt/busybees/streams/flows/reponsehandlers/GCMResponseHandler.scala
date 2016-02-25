@@ -16,8 +16,10 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{TimeoutException, Await, ExecutionContext}
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
+import java.util.concurrent.TimeUnit._
 import scala.util.{Failure, Success, Try}
 /**
  *
@@ -50,22 +52,23 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Received httpResponse for r: $id")
             r.status.intValue() match {
               case 200 =>
-                val responseMessage = r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).onComplete {
-                  case Success(b) =>
-                    val responseBody = b.result().decodeString("UTF-8").getObj[ObjectNode]
-                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: RESPONSE: $responseBody")
+                try {
+//                  val responseBuilder = Await.result(r.entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}), 5 seconds)
+                  val responseBuilder = Await.result(r.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")),10.seconds) //dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}), 5 seconds)
+                  ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Response: $responseBuilder")
+                  val responseBody = responseBuilder.getObj[ObjectNode]
+                  val deviceIdItr = deviceIds.listIterator()
 
-                    val deviceIdItr = deviceIds.listIterator()
-                    responseBody.findValues("results").toList.foreach({
-                      case s if s.has("message_id") => events += PNCallbackEvent(id, deviceId = deviceIdItr.next(), platform = "android", eventType = "GCM_RECEIVED", appName = app, contextId = "", cargo = s.get("message_id").asText(), timestamp = eventTS)
-                      case f if f.has("error") => events += PNCallbackEvent(id, deviceId = deviceIdItr.next(), platform = "android", eventType = "GCM_ERROR", appName = app, contextId = "", cargo = f.get("error").asText(), timestamp = eventTS)
-                    })
-
-                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: ResponseBody:: $responseBody")
-                  case Failure(e) =>
+                  responseBody.findValue("results").foreach({
+                    case s if s.has("message_id") => events += PNCallbackEvent(id, deviceId = deviceIdItr.next(), platform = "android", eventType = "GCM_RECEIVED", appName = app, contextId = "", cargo = s.get("message_id").asText(), timestamp = eventTS)
+                    case f if f.has("error") => events += PNCallbackEvent(id, deviceId = deviceIdItr.next(), platform = "android", eventType = "GCM_ERROR", appName = app, contextId = "", cargo = f.get("error").asText(), timestamp = eventTS)
+                  })
+                } catch {
+                  case e: Exception =>
                     ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Error Processing ResponseBody for $id:: ${e.getMessage}", e)
                     events.addAll(deviceIds.map(PNCallbackEvent(id, _, "android", "GCM_RESPONSE_PARSE_ERROR", app, "", e.getMessage, eventTS)))
                 }
+
               case 400 =>
                 events.addAll(deviceIds.map(PNCallbackEvent(id, _, "android", "GCM_INVALID_JSON", app, "", "", eventTS)))
                 ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Invalid JSON Sent for $id")
@@ -89,13 +92,15 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
       } catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush :: Error: ${e.getMessage}", e)
-          pull(in)
+          if(!hasBeenPulled(in))
+            pull(in)
       }
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
     })
 

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.flipkart.connekt.busybees.processors.PNProcessor
-import com.flipkart.connekt.busybees.streams.{KafkaMessageProcessFlow, Topology}
+import com.flipkart.connekt.busybees.streams.{KafkaMessageProcessFlow, PushTopology}
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
@@ -66,9 +66,7 @@ object BusyBeesBoot extends BaseApp {
 
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
-      Topology.bootstrap(kafkaHelper)
-
-
+      new PushTopology(kafkaHelper).run
     }
   }
 
