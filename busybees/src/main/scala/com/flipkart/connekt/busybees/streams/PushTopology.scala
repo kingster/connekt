@@ -68,7 +68,6 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val fmtWindows = b.add(new WindowsChannelFormatter)
     val fmtIOS = b.add(new IOSChannelFormatter)
     val rHandlerGCM = b.add(new GCMResponseHandler)
-    val evtCreator = b.add( new PNBigfootEventCreator)
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.WORKERS).debug(s"Routing IOS message: ${ios.id}")
