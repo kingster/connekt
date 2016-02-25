@@ -17,7 +17,6 @@ import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.KeyChainManager
 
 /**
  *
@@ -54,6 +53,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val fmtWindows = b.add(new WindowsChannelFormatter)
     val fmtIOS = b.add(new IOSChannelFormatter)
     val rHandlerGCM = b.add(new GCMResponseHandler)
+    val wnsRHandler = b.add(new WNSResponseHandler)
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.WORKERS).debug(s"Routing IOS message: ${ios.id}")
@@ -68,23 +68,13 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val merger = b.add(Merge[PNCallbackEvent](3))
     val wnsDispatcher = b.add(new WNSDispatcher())
+    val gcmHttpDispatcher = b.add(new GCMDispatcher())
     val apnsDispatcher = b.add(new APNSDispatcher)
-    val wnsRHandler = b.add(new WNSResponseHandler)
     val gcmPoolFlow = b.add(gcmPoolClientFlow)
     val wnsPoolFlow = b.add(wnsPoolClientFlow)
-    val gcmHttpDispatcher = b.add(new GCMDispatcher())
-
-    val apnsEventCreator = b.add(Flow[Either[Throwable, String]].map {
-      case Right(s) =>
-        ConnektLogger(LogFile.WORKERS).info(s"apns event creator: $s")
-        PNCallbackEvent("", "", s, "IOS", "", "", "", System.currentTimeMillis())
-      case Left(x) =>
-        ConnektLogger(LogFile.WORKERS).error(s"apns event creator: ${x.getMessage}")
-        PNCallbackEvent("", "", x.getMessage, "IOS", "", "", "", System.currentTimeMillis())
-    })
 
     render.out ~> platformPartition.in
-    platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> apnsEventCreator ~> merger.in(0)
+    platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> merger.in(0)
     platformPartition.out(1) ~> fmtAndroid ~> gcmHttpDispatcher ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
     platformPartition.out(2) ~> fmtWindows ~> wnsDispatcher ~> wnsPoolFlow ~> wnsRHandler ~> merger.in(2)
     merger.out
