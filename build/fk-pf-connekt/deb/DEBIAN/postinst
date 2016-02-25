@@ -47,6 +47,11 @@ if [ "$1" == "configure" ] ; then
     if [ -x "/etc/init.d/fk-ops-hosts-populator" ]; then
        /etc/init.d/fk-ops-hosts-populator restart || true
     fi
+
+    ## Cosmos tail..
+    if [ -x "/etc/init.d/cosmos-tail" ]; then
+       /etc/init.d/cosmos-tail restart || true
+    fi
 fi
 
 exit 0
