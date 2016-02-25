@@ -8,3 +8,5 @@ target/
 *.jar
 
 .DS_Store
+
+*.gz
