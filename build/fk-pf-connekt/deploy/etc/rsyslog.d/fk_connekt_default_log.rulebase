@@ -1,0 +1,3 @@
+rule=default_logs:%date:char-to: % %time:char-to: % %infolevel:char-to: % [%thread:char-to:]%] %event.tags:char-to: % [%filename:char-to:]%] %message:char-sep:\x25%
+# Error Logs with stacktrace
+rule=fk_connekt_error_logs:%exception-name:char-to::%:%error-message:char-to::%:%message:char-sep:\x25%
