@@ -29,10 +29,5 @@ object ConnektLogger {
 object LogFile extends Enumeration {
   type LogFile = Value
 
-  val FACTORY = Value("FACTORY")
-  val SERVICE = Value("SERVICE")
-  val DAO = Value("DAO")
-  val WORKERS = Value("WORKERS")
-  val CLIENTS = Value("CLIENTS")
-  val PROCESSORS = Value("PROCESSORS")
+  val ACCESS, FACTORY, SERVICE, DAO, WORKERS, CLIENTS, PROCESSORS = Value
 }

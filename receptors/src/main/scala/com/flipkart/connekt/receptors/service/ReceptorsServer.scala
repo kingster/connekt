@@ -4,14 +4,13 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest, StatusCodes}
-import akka.http.scaladsl.server.RouteResult.Complete
+import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.directives.{DebuggingDirectives, LogEntry}
+import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.receptors.directives.AccessLogDirective
 import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 
 import scala.collection.immutable.Seq
@@ -22,7 +21,7 @@ import scala.collection.immutable.Seq
  * @author durga.s
  * @version 11/20/15
  */
-object ReceptorsServer extends BaseJsonHandler {
+object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
 
   implicit val system = ActorSystem("ckt-receptors")
   implicit val materializer = ActorMaterializer.create(system)
@@ -32,20 +31,6 @@ object ReceptorsServer extends BaseJsonHandler {
   private val bindPort = ConnektConfig.getInt("receptors.bindPort").getOrElse(28000)
 
   var httpService: scala.concurrent.Future[akka.http.scaladsl.Http.ServerBinding] = null
-
-  /**
-   * reserving the last postion for response time. hard coding it 1 since I don't know how to capture that.
-   */
-  private val logFormat = "%s %s %s %s 1"
-
-  // logs just the request method and response status at info level
-  private def requestMethodAndResponseStatusAsInfo(req: HttpRequest): Any => Option[LogEntry] = {
-    case Complete(res) =>
-      val remoteIp: String = req.headers.find(_.is("fk-client-ip")).map(_.value()).getOrElse("0.0.0.0")
-      Some(LogEntry(logFormat.format(remoteIp, req.method.value, req.uri, res.status.intValue()), akka.event.Logging.InfoLevel))
-    case _ =>
-      None // other kind of responses
-  }
 
   def apply() = {
 
@@ -72,11 +57,11 @@ object ReceptorsServer extends BaseJsonHandler {
             )))
       }
         .handleNotFound {
-        complete(responseMarshallable[GenericResponse](
+          complete(responseMarshallable[GenericResponse](
           StatusCodes.NotFound, Seq.empty[HttpHeader],
           GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)
           )))
-      }
+        }
         .result()
 
     implicit def exceptionHandler =
@@ -95,8 +80,8 @@ object ReceptorsServer extends BaseJsonHandler {
     val allRoutes = new RouteRegistry().allRoutes
 
     def routeWithLogging = ConnektConfig.getString("http.request.log").getOrElse("true").toBoolean match {
-      case true => DebuggingDirectives.logRequestResult(requestMethodAndResponseStatusAsInfo _)(allRoutes)
-      case false =>  allRoutes
+      case true => logTimedRequestResult(allRoutes)
+      case false => allRoutes
     }
 
     httpService = Http().bindAndHandle(routeWithLogging, bindHost, bindPort)
@@ -106,9 +91,9 @@ object ReceptorsServer extends BaseJsonHandler {
   def shutdown() = {
     httpService.flatMap(_.unbind())
       .onComplete(_ => {
-      println("receptor server unbinding complete")
-      system.terminate()
-    })
+        println("receptor server unbinding complete")
+        system.terminate()
+      })
   }
 
 }

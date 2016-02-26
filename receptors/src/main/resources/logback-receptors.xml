@@ -1,14 +1,14 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%n%date [%thread] %highlight(%-5level) %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="FACTORY" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-factory.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>100MB</maxFileSize>
@@ -23,7 +23,7 @@
     <appender name="DAO" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-dao.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>100MB</maxFileSize>
@@ -38,7 +38,7 @@
     <appender name="SERVICE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-service.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>100MB</maxFileSize>
@@ -50,10 +50,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="AKKA" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-akka.log</file>
+    <appender name="ACCESS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/log/flipkart/pf/fk-pf-connekt/receptors-access.log</file>
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} %msg%n</pattern>
+            <pattern>%date %level [%thread] %msg%n</pattern>
             <!-- this quadruples logging throughput -->
             <immediateFlush>false</immediateFlush>
         </encoder>
@@ -61,7 +61,7 @@
             <maxFileSize>100MB</maxFileSize>
         </triggeringPolicy>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/receptors-akka.log.%i</fileNamePattern>
+            <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/receptors-access.log.%i</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>5</maxIndex>
         </rollingPolicy>
@@ -77,9 +77,8 @@
         <appender-ref ref="FACTORY" />
     </logger>
 
-    <!-- additivity=false ensures access log data only goes to the access log -->
-    <logger name="akka.actor.ActorSystemImpl" level="DEBUG" additivity="false">
-        <appender-ref ref="AKKA" />
+    <logger name="ACCESS" additivity="false">
+        <appender-ref ref="ACCESS" />
     </logger>
 
 
