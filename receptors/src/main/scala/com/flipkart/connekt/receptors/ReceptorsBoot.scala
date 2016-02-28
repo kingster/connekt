@@ -24,7 +24,7 @@ object ReceptorsBoot extends BaseApp {
 
 
   def start() {
-    if (!initialized.get()) {
+    if (!initialized.getAndSet(true)) {
 
       ConnektConfig(configServiceHost, configServicePort)()
 

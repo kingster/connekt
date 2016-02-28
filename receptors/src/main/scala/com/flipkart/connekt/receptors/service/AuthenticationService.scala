@@ -2,29 +2,40 @@ package com.flipkart.connekt.receptors.service
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.AppUser
+import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.connekt.commons.services.UserInfoService
 import com.flipkart.connekt.commons.utils.LdapService
 import com.flipkart.metrics.Timed
 
+import scala.util.Try
+
 /**
- *
- *
- * @author durga.s
- * @version 11/22/15
- */
+  *
+  *
+  * @author durga.s
+  * @version 11/22/15
+  */
 object AuthenticationService extends Instrumented {
+
+  val userService: UserInfoService = ServiceFactory.getUserInfoService
 
   @Timed("authenticateKey")
   def authenticateKey(apiKey: String): Option[AppUser] = {
-    //if transient token present
-    TokenService.get(apiKey) match {
-      case Some(userId) =>
-        DaoFactory.getUserInfoDao.getUserInfo(userId).orElse(Option(new AppUser(userId,apiKey,"","")))
-      case None =>
-        DaoFactory.getUserInfoDao.getUserByKey(apiKey)
-    }
+    //API Key test first, since that's local, hence faster
+    userService.getUserByKey(apiKey).orElse {
+      //else transient token if present
+      TokenService.get(apiKey).map {
+        case Some(userId) => userService.getUserInfo(userId).get.orElse {
+          //Now the user may not exist in our db, so that person should have access to global permissions only, so return a simple user.
+          Option(new AppUser(userId, apiKey, "", s"$userId@flipkart.com"))
+        }
+        case None => None
+      }
+    }.get
   }
 
+  @Timed("authenticateLdap")
   def authenticateLdap(username: String, password: String): Boolean = {
     LdapService.authenticate(username, password)
   }

@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.busybees.models.GCMRequestTrace
+import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
@@ -22,9 +22,9 @@ import scala.util.{Failure, Success, Try}
  * @author durga.s
  * @version 2/8/16
  */
-class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTrace)] {
+class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] {
 
-  val in = Inlet[(Try[HttpResponse], GCMRequestTrace)]("GCMResponseHandler.In")
+  val in = Inlet[(Try[HttpResponse], GCMRequestTracker)]("GCMResponseHandler.In")
   val out = Outlet[PNCallbackEvent]("GCMResponseHandler.Out")
 
   override def shape  = FlowShape.of(in, out)

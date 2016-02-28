@@ -2,7 +2,7 @@ package com.flipkart.connekt.busybees.streams.topologies
 
 import akka.http.scaladsl.Http
 import akka.stream.scaladsl.{Sink, Source}
-import com.flipkart.connekt.busybees.models.GCMRequestTrace
+import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GCMDispatcherPrepare
@@ -27,7 +27,7 @@ class AndroidTopology extends TopologyUTSpec {
     val httpDispatcher = new GCMDispatcherPrepare
 
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTrace]("android.googleapis.com", 443)
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("android.googleapis.com", 443)
 
     val cRequest = """
                      |{

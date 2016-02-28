@@ -16,6 +16,7 @@ object LocalCacheManager extends CacheManager {
   var cacheTTLMap: Map[LocalCacheType.Value, CacheProperty] = Map[LocalCacheType.Value, CacheProperty]()
 
   cacheTTLMap += LocalCacheType.Default -> CacheProperty(100, 1.hour)
+  cacheTTLMap += LocalCacheType.UserInfo -> CacheProperty(500, 10.hour)
   cacheTTLMap += LocalCacheType.ResourcePriv -> CacheProperty(500, 10.hour)
   cacheTTLMap += LocalCacheType.WnsAccessToken -> CacheProperty(500, 24.hour)
   cacheTTLMap += LocalCacheType.UserConfiguration -> CacheProperty(1000, 24.hour)

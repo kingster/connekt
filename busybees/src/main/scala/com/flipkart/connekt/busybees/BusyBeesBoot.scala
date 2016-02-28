@@ -4,15 +4,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
-import com.flipkart.connekt.busybees.processors.PNProcessor
-import com.flipkart.connekt.busybees.streams.KafkaMessageProcessFlow
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
-import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import com.typesafe.config.ConfigFactory
@@ -25,8 +22,7 @@ import com.typesafe.config.ConfigFactory
  */
 object BusyBeesBoot extends BaseApp {
 
-  val initialized = new AtomicBoolean(false)
-  var pnDispatchFlow: Option[KafkaMessageProcessFlow[ConnektRequest, PNProcessor]] = None
+  private val initialized = new AtomicBoolean(false)
 
   lazy implicit val system = ActorSystem("busyBees-system")
 
@@ -35,7 +31,7 @@ object BusyBeesBoot extends BaseApp {
 
   def start() {
 
-    if (!initialized.get()) {
+    if (!initialized.getAndSet(true)) {
       ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
 
       val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-busybees.xml")
@@ -66,6 +62,8 @@ object BusyBeesBoot extends BaseApp {
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
+
+      //TODO : Fix this, this is for bootstraping hbase connection.
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
       new PushTopology(kafkaHelper).run
     }
@@ -75,7 +73,6 @@ object BusyBeesBoot extends BaseApp {
     ConnektLogger(LogFile.SERVICE).info("BusyBees Shutting down.")
     if (initialized.get()) {
       DaoFactory.shutdownHTableDaoFactory()
-      pnDispatchFlow.foreach(_.shutdown())
     }
   }
 

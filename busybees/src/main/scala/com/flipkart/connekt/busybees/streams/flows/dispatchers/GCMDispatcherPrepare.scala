@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream._
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.busybees.models.GCMRequestTrace
+import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.GCMPayloadEnvelope
 import com.flipkart.connekt.commons.services.KeyChainManager
@@ -18,10 +18,10 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * Created by kinshuk.bairagi on 02/02/16.
  */
 class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com", 443, "/gcm/send"))
-  extends GraphStage[FlowShape[GCMPayloadEnvelope, (HttpRequest, GCMRequestTrace)]] {
+  extends GraphStage[FlowShape[GCMPayloadEnvelope, (HttpRequest, GCMRequestTracker)]] {
 
   val in = Inlet[GCMPayloadEnvelope]("GCMDispatcher.In")
-  val out = Outlet[(HttpRequest, GCMRequestTrace)]("GCMDispatcher.Out")
+  val out = Outlet[(HttpRequest, GCMRequestTracker)]("GCMDispatcher.Out")
 
   override def shape  = FlowShape.of(in, out)
 
@@ -35,7 +35,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
         val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
         val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))
         val httpRequest = new HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
-        val requestTrace = GCMRequestTrace(message.messageId, message.deviceId, message.appName)
+        val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName)
 
         ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Request Payload : ${httpRequest.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
         ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: ${requestTrace.messageId}")

@@ -21,7 +21,7 @@ class LdapAuthRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
             user =>
               AuthenticationService.authenticateLdap(user.username, user.password) match {
                 case true =>
-                  TokenService.set(user.username) match {
+                  TokenService.set(user.username).get match {
                     case Some(tokenId) =>
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Logged in successfully. Please note your tokenId.", Map("tokenId" -> tokenId))))
                     case None =>

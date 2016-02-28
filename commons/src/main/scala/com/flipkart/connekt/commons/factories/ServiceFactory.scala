@@ -24,6 +24,7 @@ object ServiceFactory {
 
   def initAuthorisationService(priv: PrivDao, userInfo: TUserInfo) = {
     serviceCache += ServiceType.AUTHORISATION -> new AuthorisationService(priv, userInfo)
+    serviceCache += ServiceType.USER_INFO -> new UserInfoService(userInfo)
   }
 
   def initStorageService(dao: TKeyChainDao) = {
@@ -36,10 +37,12 @@ object ServiceFactory {
 
   def getAuthorisationService = serviceCache(ServiceType.AUTHORISATION).asInstanceOf[TAuthorisationService]
 
+  def getUserInfoService  = serviceCache(ServiceType.USER_INFO).asInstanceOf[UserInfoService]
+
   def getKeyChainService = serviceCache(ServiceType.KEY_CHAIN).asInstanceOf[TStorageService]
 
 }
 
 object ServiceType extends Enumeration {
-  val PN_MESSAGE, TEMPLATE, CALLBACK, AUTHORISATION, KEY_CHAIN = Value
+  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN = Value
 }

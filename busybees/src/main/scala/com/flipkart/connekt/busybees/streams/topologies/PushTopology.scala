@@ -6,7 +6,7 @@ import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, FlowShape, SinkShape, SourceShape}
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.busybees.models.{GCMRequestTrace, WNSRequestTracker}
+import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
 import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, WNSDispatcherPrepare}
@@ -76,7 +76,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val fmtAndroid = b.add(new AndroidChannelFormatter)
     val gcmHttpPrepare = b.add(new GCMDispatcherPrepare())
 
-    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTrace]("android.googleapis.com", 443)
+    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("android.googleapis.com", 443)
     val gcmPoolFlow = b.add(gcmPoolClientFlow)
 
     val rHandlerGCM = b.add(new GCMResponseHandler)
