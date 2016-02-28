@@ -16,11 +16,11 @@ import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 import scala.collection.immutable.Seq
 
 /**
- *
- *
- * @author durga.s
- * @version 11/20/15
- */
+  *
+  *
+  * @author durga.s
+  * @version 11/20/15
+  */
 object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
 
   implicit val system = ActorSystem("ckt-receptors")
@@ -37,17 +37,17 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
     implicit def rejectionHandler =
       RejectionHandler.newBuilder()
         .handle {
-        case AuthorizationFailedRejection =>
-          complete(responseMarshallable[GenericResponse](
-            StatusCodes.Unauthorized, Seq.empty[HttpHeader],
-            GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)
-            )))
-        case MalformedRequestContentRejection(msg, _) =>
-          complete(responseMarshallable[GenericResponse](
-            StatusCodes.BadRequest, Seq.empty[HttpHeader],
-            GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> msg))
-            )))
-      }
+          case AuthorizationFailedRejection =>
+            complete(responseMarshallable[GenericResponse](
+              StatusCodes.Unauthorized, Seq.empty[HttpHeader],
+              GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)
+              )))
+          case MalformedRequestContentRejection(msg, _) =>
+            complete(responseMarshallable[GenericResponse](
+              StatusCodes.BadRequest, Seq.empty[HttpHeader],
+              GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> msg))
+              )))
+        }
         .handleAll[MethodRejection] {
         methodRejections =>
           val names = methodRejections.map(_.supported.name)
@@ -58,9 +58,9 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
       }
         .handleNotFound {
           complete(responseMarshallable[GenericResponse](
-          StatusCodes.NotFound, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)
-          )))
+            StatusCodes.NotFound, Seq.empty[HttpHeader],
+            GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)
+            )))
         }
         .result()
 
