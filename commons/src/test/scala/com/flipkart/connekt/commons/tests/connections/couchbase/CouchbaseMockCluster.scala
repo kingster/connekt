@@ -18,6 +18,8 @@ class CouchbaseMockCluster extends Cluster {
 
   private var buckets: Map[String, Bucket] = Map()
 
+  private val couchbaseEnvironment = DefaultCouchbaseEnvironment.create()
+
   override def disconnect(): Boolean = true
 
   override def disconnect(l: Long, timeUnit: TimeUnit): Boolean = true
@@ -32,7 +34,6 @@ class CouchbaseMockCluster extends Cluster {
     buckets.get(bucketName) match {
       case Some(x) => x
       case None =>
-        val couchbaseEnvironment = DefaultCouchbaseEnvironment.create()
         val bucket = new CouchbaseMockBucket(couchbaseEnvironment, new CouchbaseCore(couchbaseEnvironment), bucketName)
         buckets += bucketName -> bucket
         bucket
