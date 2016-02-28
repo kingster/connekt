@@ -18,8 +18,7 @@ trait AccessLogDirective extends BasicDirectives {
     case (routeResult: Complete, time: Long) =>
       val remoteIp: String = req.headers.find(_.is("fk-client-ip")).map(_.value()).getOrElse("0.0.0.0")
       ConnektLogger(LogFile.ACCESS).info(logFormat.format(remoteIp, req.method.value, req.uri, routeResult.response.status.intValue(), time))
-    case x: Any =>
-      println(x)
+    case _ =>
   }
 
   /**
