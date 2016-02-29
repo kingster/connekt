@@ -11,7 +11,7 @@ import org.scalatest.Ignore
 /**
  * Created by nidhi.mehla on 03/02/16.
  */
-@Ignore
+//@Ignore
 class BigFootServiceTest extends CommonsBaseTest {
 
   val deviceId = "UT-" + UUID.randomUUID().toString
