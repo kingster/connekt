@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.entities.bigfoot.{EntityBaseSchema, EventBaseSchema}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils._
@@ -8,6 +9,7 @@ import com.flipkart.metrics.Timed
 import com.flipkart.phantom.client.exceptions.PhantomClientException
 import com.flipkart.seraph.schema.BaseSchema
 import com.flipkart.specter.ingestion.IngestionMetadata
+import com.flipkart.specter.ingestion.entities.Entity
 import com.flipkart.specter.ingestion.events.Event
 import com.flipkart.specter.{SpecterClient, SpecterRequest}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -22,18 +24,8 @@ object BigfootService extends Instrumented {
 
   val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(false)
 
-  @Timed("ingest")
-  def ingest(obj: BaseSchema): Try[Boolean] = {
-
+  private def ingest(request: SpecterRequest): Try[Boolean] = {
     if (ingestionEnabled) {
-
-      val eventId = StringUtils.generateRandomStr(25)
-      val eventTime = System.currentTimeMillis()
-      val event = new Event(eventId, eventTime.toString, obj)
-      val ingestionMetadata: IngestionMetadata = new IngestionMetadata()
-      ingestionMetadata.setRequestId(eventId)
-      val request: SpecterRequest = new SpecterRequest(event, ingestionMetadata)
-
       try {
         SpecterClient.sendToSpecter(socketClient, request).getResponse match {
           case "SUCCESS" =>
@@ -55,8 +47,25 @@ object BigfootService extends Instrumented {
       }
     } else {
       // Ingestion disabled.
-      ConnektLogger(LogFile.SERVICE).warn(s"BF_SKIP_INGEST ${obj.getJson}")
+      ConnektLogger(LogFile.SERVICE).warn(s"BF_SKIP_INGEST ${request.getObject.getJson}")
       Success(true)
     }
+  }
+
+  @Timed("ingest")
+  def ingest(obj: EventBaseSchema): Try[Boolean] = {
+    val eventId = StringUtils.generateRandomStr(25)
+    val event = new Event(eventId, System.currentTimeMillis(), obj)
+    val ingestionMetadata: IngestionMetadata = new IngestionMetadata()
+    ingestionMetadata.setRequestId(eventId)
+    ingest(new SpecterRequest(event, ingestionMetadata))
+  }
+
+  @Timed("ingest")
+  def ingest(obj: EntityBaseSchema): Try[Boolean] = {
+    val entity = new Entity(obj.id, System.currentTimeMillis(), obj)
+    val ingestionMetadata: IngestionMetadata = new IngestionMetadata()
+    ingestionMetadata.setRequestId(obj.id)
+    ingest(new SpecterRequest(entity, ingestionMetadata))
   }
 }
