@@ -29,7 +29,7 @@ class UserInfoService( userInfoDao: TUserInfo) extends TService {
     LocalCacheManager.getCache(LocalCacheType.UserInfo).get[AppUser](key) match {
       case p: Some[AppUser] => p
       case None =>
-        val user = userInfoDao.getUserInfo(apiKey)
+        val user = userInfoDao.getUserByKey(apiKey)
         user.foreach( p => LocalCacheManager.getCache(LocalCacheType.UserInfo).put[AppUser](key, p))
         user
     }
