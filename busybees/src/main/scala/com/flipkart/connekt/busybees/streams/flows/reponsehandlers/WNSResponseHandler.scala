@@ -60,13 +60,13 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                 DeviceDetailsService.get(wnsResponse._2.request.appName, wnsResponse._2.request.deviceId).transform[PNCallbackEvent]({
                  case Some(dd) if dd.osName == "windows" =>
                             DeviceDetailsService.delete(wnsResponse._2.request.appName, wnsResponse._2.request.deviceId)
-                            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel URI is not valid or is not recognized by WNS. Deleting Device")
+                            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel URI is not valid or is not recognized by WNS. Deleting Device [${wnsResponse._2.request.deviceId}}]")
                             Success(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INVALID_CHANNEL_URI", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS))
                  case Some(dd)  =>
-                            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device Detail platform does not match with connekt Request platform")
+                            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${wnsResponse._2.request.deviceId}}] Detail platform does not match with connekt Request platform")
                             Success(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INVALID_DEVICE", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS))
                  case None =>
-                        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device is already deleted by another request")
+                        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${wnsResponse._2.request.deviceId}}] doesn't exist ")
                         Success(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_DELETED_DEVICE", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS))
                 }, Failure(_)).get
 
