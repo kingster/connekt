@@ -28,7 +28,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   implicit val mat = ActorMaterializer()
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
-    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filter(_.equalsIgnoreCase("push_test01"))
+    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
@@ -42,7 +42,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
 
     val render = b.add(new RenderFlow)
-    val merger = b.add(Merge[PNCallbackEvent](3)) //output-merger
+    val merger = b.add(Merge[PNCallbackEvent](3))
 
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
@@ -52,7 +52,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
         ConnektLogger(LogFile.PROCESSORS).debug(s"Routing ANDROID message: ${android.id}")
         1
       case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.WORKERS).debug(s"Routing WINDOWS message: ${windows.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing WINDOWS message: ${windows.id}")
         2
     }))
 
