@@ -34,5 +34,4 @@ class UserInfoService( userInfoDao: TUserInfo) extends TService {
         user
     }
   }
-
 }

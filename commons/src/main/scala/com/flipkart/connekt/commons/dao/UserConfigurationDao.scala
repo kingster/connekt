@@ -43,9 +43,23 @@ class UserConfigurationDao(table: String, mysqlFactory: MySQLFactory) extends TU
         ConnektLogger(LogFile.DAO).error(s"Error adding UserConfiguration [${ucfg.getJson}] info: ${e.getMessage}", e)
         throw e
     }
-
   }
 
+  override def getAllUserConfiguration(channel : Channel): List[AppUserConfiguration] = {
+    implicit val j = mysqlHelper.getJDBCInterface
+    val q =
+      s"""
+         |SELECT * FROM $table WHERE channel = ?
+      """.stripMargin
+
+    try {
+      queryForList[AppUserConfiguration](q, channel.toString)
+    } catch {
+      case e @ (_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
+        ConnektLogger(LogFile.DAO).error(s"Error fetching allUserConfiguration for channel [${channel.toString}}] info: ${e.getMessage}", e)
+        throw e
+    }
+  }
 }
 
 object UserConfigurationDao {
