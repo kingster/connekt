@@ -62,6 +62,9 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                   })
                 } catch {
                   case e: Exception =>
+                    if(!hasBeenPulled(in))
+                      pull(in)
+
                     ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Failed Processing HttpResponseBody for: $messageId:: ${e.getMessage}", e)
                     events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, "android", "GCM_RESPONSE_PARSE_ERROR", appName, "", e.getMessage, eventTS)))
                 }
@@ -85,10 +88,9 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, e.deviceId, Channel.PUSH, e))
         ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: Saved callback events for $messageId ${events.toList.toString()}")
 
-        emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(events))
+        if(isAvailable(out))
+          emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(events))
 
-        if(isAvailable(out) && !hasBeenPulled(in))
-          pull(in)
       } catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush Error: ${e.getMessage}", e)

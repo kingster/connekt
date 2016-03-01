@@ -34,18 +34,21 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
         val message = grab(in)
         tokenBucket.consume(1)
         ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPush:: Message ${message.toString}")
-        push(out, message)
+        if(isAvailable(out))
+          push(out, message)
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"RateControl:: onPush :: Error", e)
-          pull(in)
+          if(!hasBeenPulled(in))
+            pull(in)
       }
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"RateControl:: onPull.")
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
     })
 

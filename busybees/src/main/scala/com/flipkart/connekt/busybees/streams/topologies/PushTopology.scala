@@ -28,7 +28,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   implicit val mat = ActorMaterializer()
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
-    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filter(_.equalsIgnoreCase("push_86726ba26f92fbbc71480880b8fbaef0076ea5f39fad95a008a7d0211ca441d0"))
+    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filter(_.equalsIgnoreCase("push_test01"))
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
@@ -46,10 +46,10 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.WORKERS).debug(s"Routing IOS message: ${ios.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing IOS message: ${ios.id}")
         0
       case android if "android".equals(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.WORKERS).debug(s"Routing ANDROID message: ${android.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing ANDROID message: ${android.id}")
         1
       case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.WORKERS).debug(s"Routing WINDOWS message: ${windows.id}")

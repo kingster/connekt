@@ -81,15 +81,18 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
         maybePNCallbackEvent match {
           case Some(pnCallbackEvent ) =>
-            push[PNCallbackEvent](out, pnCallbackEvent)
+            if(isAvailable(out))
+              push[PNCallbackEvent](out, pnCallbackEvent)
           case None =>
-            push[WNSRequestTracker](error, wnsResponse._2)
+            if(isAvailable(error))
+              push[WNSRequestTracker](error, wnsResponse._2)
         }
 
       }catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler:: onPush :: Error", e)
-          pull(in)
+          if(!hasBeenPulled(in))
+            pull(in)
       }
     })
 

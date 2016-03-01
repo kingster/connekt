@@ -1,8 +1,9 @@
 package com.flipkart.connekt.busybees.streams
 
 import akka.NotUsed
-import akka.stream.Materializer
-import akka.stream.scaladsl.{Sink, Flow, Source}
+import akka.event.Logging
+import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.{Attributes, Materializer}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest}
 
 /**
@@ -17,6 +18,9 @@ trait ConnektTopology[E <:CallbackEvent] {
   def sink: Sink[E, NotUsed]
 
   def graph() = source.via(transform).to(sink)
+    /*.withAttributes(Attributes.inputBuffer(initial = 1, max = 1))*/
+    .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
+
   def run(implicit mat: Materializer) = graph().run()
   def shutdown()
 }

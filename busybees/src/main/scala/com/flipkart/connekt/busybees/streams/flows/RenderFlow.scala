@@ -37,18 +37,21 @@ class RenderFlow extends GraphStage[FlowShape[ConnektRequest, ConnektRequest]] {
             case None => cRD
           })
 
-          push(out, mRendered)
+          if(isAvailable(out))
+            push(out, mRendered)
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow:: onPush :: Error", e)
-            pull(in)
+            if(!hasBeenPulled(in))
+              pull(in)
         }
       })
 
       setHandler(out, new OutHandler {
         override def onPull(): Unit = {
           ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPull")
-          pull(in)
+          if(!hasBeenPulled(in))
+            pull(in)
         }
       })
     }

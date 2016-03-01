@@ -1,19 +1,19 @@
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
-import java.util.concurrent.{TimeUnit, ExecutionException}
+import java.util.concurrent.{ExecutionException, TimeUnit}
 
 import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
-import com.flipkart.connekt.commons.entities.{MobilePlatform, AppleCredential}
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{PNCallbackEvent, APSPayloadEnvelope, APSPayload, iOSPNPayload}
+import com.flipkart.connekt.commons.entities.MobilePlatform
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.iomodels.{APSPayloadEnvelope, PNCallbackEvent, iOSPNPayload}
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
-import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException}
-import scala.collection.mutable.ListBuffer
+
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
 /**
  * Created by kinshuk.bairagi on 05/02/16.
@@ -75,7 +75,8 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
             }
         }
 
-        push(out, events.head)
+        if(isAvailable(out))
+          push(out, events.head)
 
       } catch {
         case e: Throwable =>
@@ -88,8 +89,8 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: onPull")
-
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
     })
 

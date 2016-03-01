@@ -4,7 +4,6 @@ import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
-import com.flipkart.connekt.commons.utils.DateTimeUtils
 
 /**
  *
@@ -21,18 +20,25 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.
 
     setHandler(in, new InHandler {
       override def onPush(): Unit = try {
+        ConnektLogger(LogFile.PROCESSORS).info(s"PNBigfootEventCreator:: onPull")
+
         val event = grab(in)
-        push(out, event.toBigfootFormat)
+        if(isAvailable(out)) {
+          ConnektLogger(LogFile.PROCESSORS).info(s"PNBigfootEventCreator:: isAvailable, pushing -> ${event.toBigfootFormat.toString}")
+          push(out, event.toBigfootFormat)
+        }
       }catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator:: onPush :: Error", e)
-          pull(in)
+          if(!hasBeenPulled(in))
+            pull(in)
       }
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
     })
 
