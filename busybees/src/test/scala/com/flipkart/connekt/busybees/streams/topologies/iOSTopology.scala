@@ -29,7 +29,7 @@ class iOSTopology extends TopologyUTSpec {
         deviceId = deviceId,
         userId = "",
         token = "6b1e059bb2a51d03d37384d1493aaffbba4edc58f8e21eb2f80ad4851875ee25",
-        osName = "iOS", osVersion = "UT", appName = "UT", appVersion = "UT", brand = "UT", model = "UT"
+        osName = "ios", osVersion = "UT", appName = "RetailApp", appVersion = "UT", brand = "UT", model = "UT"
       )
     )
 
@@ -37,7 +37,6 @@ class iOSTopology extends TopologyUTSpec {
                      |{
                      |	"channel": "PN",
                      |	"sla": "H",
-                     |	"templateId": "retail-app-base-0x23",
                      |	"scheduleTs": 12312312321,
                      |	"expiryTs": 3243243224,
                      |	"channelData": {
@@ -53,15 +52,13 @@ class iOSTopology extends TopologyUTSpec {
                      |	    "ackRequired": true,
                      |    	"delayWhileIdle": true,
                      |      "platform" :  "ios",
-                     |      "appName" : "UT",
+                     |      "appName" : "RetailApp",
                      |      "deviceId" : ["$deviceId"]
                      |	},
                      |	"meta": {}
                      |}
                    """.stripMargin.getObj[ConnektRequest]
 
-
-    val appleCreds = KeyChainManager.getAppleCredentials("RetailApp").get
 
     val result = Source.single(cRequest)
       .via(new RateControl[ConnektRequest](2, 1, 2))
