@@ -22,7 +22,7 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.
     setHandler(in, new InHandler {
       override def onPush(): Unit = try {
         val event = grab(in)
-        push(out, event.toBigfootEntity)
+        push(out, event.toBigfootFormat)
       }catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator:: onPush :: Error", e)

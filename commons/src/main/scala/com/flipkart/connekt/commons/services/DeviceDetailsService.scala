@@ -20,7 +20,7 @@ object DeviceDetailsService extends Instrumented {
   def add(deviceDetails: DeviceDetails): Try[Unit] = Try_#(message = "DeviceDetailsService.add Failed") {
     dao.add(deviceDetails.appName, deviceDetails)
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
-    BigfootService.ingest(deviceDetails.toBigfootEntity)
+    BigfootService.ingest(deviceDetails.toBigfootFormat)
   }
 
   /**
@@ -39,7 +39,7 @@ object DeviceDetailsService extends Instrumented {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
 
           dao.update(deviceDetails.appName, deviceId, deviceDetails)
-          BigfootService.ingest(deviceDetails.toBigfootEntity)
+          BigfootService.ingest(deviceDetails.toBigfootFormat)
         }
       case None => Failure(new Throwable(s"No Device Detail found for id: [$deviceId] to update."))
     }
@@ -61,7 +61,7 @@ object DeviceDetailsService extends Instrumented {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
-          BigfootService.ingest(device.copy(active = false).toBigfootEntity)
+          BigfootService.ingest(device.copy(active = false).toBigfootFormat)
         }
       case None =>
         Failure(new Throwable(s"No Device Detail found for app: [$appName] id: [$deviceId] to delete."))
