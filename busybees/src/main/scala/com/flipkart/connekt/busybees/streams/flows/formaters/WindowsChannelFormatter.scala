@@ -28,10 +28,11 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
         ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: Received Message: ${message.getJson}")
 
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-        val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None).map(_.token))
-        val wnsRequestPayloads = tokens.map(WNSPayloadEnvelope(message.id, _, message.channelInfo.asInstanceOf[PNRequestInfo].appName, message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]))
+        val wnsPayload = message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]
+        val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
+        val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
 
-        emitMultiple[WNSPayloadEnvelope](out, scala.collection.immutable.Iterable.concat(wnsRequestPayloads))
+        emitMultiple[WNSPayloadEnvelope](out, scala.collection.immutable.Iterable.concat(wnsRequestEnvelopes))
 
       } catch {
         case e: Throwable =>
