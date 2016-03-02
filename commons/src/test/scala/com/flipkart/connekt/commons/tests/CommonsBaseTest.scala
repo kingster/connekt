@@ -5,6 +5,7 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.tests.connections.MockConnectionProvider
 import com.typesafe.config.ConfigFactory
 
@@ -20,9 +21,10 @@ class CommonsBaseTest extends ConnektUTSpec {
 
   private def bootstrapReceptors() = {
 
+    ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
     ConnektConfig(configServiceHost, configServicePort)()
 
-    ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
+    SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
     DaoFactory.setUpConnectionProvider(new MockConnectionProvider())
 
