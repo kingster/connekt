@@ -5,14 +5,17 @@ import com.flipkart.connekt.commons.dao.{TUserInfo, PrivDao}
 import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.entities.{ResourcePriv, UserType}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.sync.{SyncManager, SyncType, SyncDelegate}
 
 import scala.util.{Failure, Success, Try}
-
+import com.flipkart.connekt.commons.core.Wrappers._
 /**
  * @author aman.shrivastava on 12/12/15.
  */
 
-class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAuthorisationService {
+class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAuthorisationService with SyncDelegate {
+
+  SyncManager.get().addObserver(this, List(SyncType.AUTH_CHANGE))
 
   private lazy val globalPrivileges = {
     read("*", UserType.GLOBAL) match {
@@ -37,7 +40,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
       case None =>
         try {
           val accessPrivilege = privDao.getPrivileges(identifier, level)
-          accessPrivilege.foreach( p => LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[ResourcePriv](key, p))
+          accessPrivilege.foreach(p => LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[ResourcePriv](key, p))
           accessPrivilege
         } catch {
           case e: Exception =>
@@ -57,7 +60,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
   override def isAuthorized(username: String, resource: String*): Try[Boolean] = {
     try {
       val userPrivs = getUserPrivileges(username)
-      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).get.flatMap(getGroupPrivileges)
+      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',').map(_.trim)).get.flatMap(getGroupPrivileges)
       val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
 
       Success(allowedPrivileges.intersect(resource.toSet[String].map(_.toUpperCase)).nonEmpty)
@@ -87,6 +90,15 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
     } catch {
       case e: Exception =>
         Failure(e)
+    }
+  }
+
+  override def onUpdate(_type: SyncType, args: List[AnyRef]): Unit = {
+    _type match {
+      case SyncType.AUTH_CHANGE => Try_ {
+        removeCache(args.head.toString, UserType.withName(args.last.toString))
+      }
+      case _ =>
     }
   }
 }

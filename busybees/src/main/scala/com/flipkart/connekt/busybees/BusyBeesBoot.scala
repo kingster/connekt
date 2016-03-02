@@ -11,6 +11,7 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
+import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import com.typesafe.config.ConfigFactory
 
@@ -41,6 +42,8 @@ object BusyBeesBoot extends BaseApp {
       ConnektLogger.init(logConfigFile)
 
       ConnektConfig(configServiceHost, configServicePort)()
+
+      SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
