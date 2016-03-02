@@ -36,7 +36,7 @@ class LoggerFactoryConfiguratorTest extends ConnektUTSpec {
 object ConnektLogger {
 
   def init() = {
-    val confFilePath = System.getProperty("user.dir").concat("/commons/src/test/resources/logback-test.xml")
+    val confFilePath = System.getProperty("user.dir").concat("/commons/src/main/resources/logback-test.xml")
     val file = new File(confFilePath)
     LoggerFactoryConfigurator.configure(new FileInputStream(file))
   }

@@ -6,7 +6,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import rx.lang.scala.Observable
 
-import scala.Predef
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 
@@ -95,7 +94,8 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     try {
       cacheStorageBucket.remove(StringDocument.create(key))
     } catch {
-      case e: Exception =>
+      case e: Throwable =>
+        ConnektLogger(LogFile.SERVICE).error(s"Error removing $key for bucket ${cacheName.toString}", e)
     }
   }
 

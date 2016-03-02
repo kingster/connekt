@@ -82,6 +82,17 @@ class CacheTest extends CommonsBaseTest {
     result("a") shouldEqual "a"
   }
 
+  "Distributed CacheManager" should "delete element" in {
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[String]("x", "y")
+    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).remove("x")
+
+    val result = DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[String]("x")
+    println("result = " + result)
+
+    result shouldEqual None
+
+  }
+
   "LocalCacheManager" should "insert" in {
     LocalCacheManager.getCache(LocalCacheType.Default).put(keyName, data)
   }
