@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
+import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
@@ -11,7 +12,7 @@ import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsToken
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -31,68 +32,9 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     setHandler(in, new InHandler {
 
       override def onPush(): Unit = try {
-
+        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: OnPush")
         val wnsResponse = grab(in)
-
-        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Input ${wnsResponse}")
-
-        val eventTS = System.currentTimeMillis()
-
-        val requestId = wnsResponse._2.requestId
-
-        val maybePNCallbackEvent: Option[PNCallbackEvent] = wnsResponse._1 match {
-          case Success(r) =>
-            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Received httpResponse for r: ${wnsResponse._2}")
-            Option(r.status.intValue() match {
-              case 200 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Response:: $wnsResponse")
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_RECEIVED", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
-              case 400 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Invalid/Missing header send:: $wnsResponse")
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INVALID_HEADER", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
-              case 401 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The cloud service is not authorized to send a notification to this URI even though they are authenticated.")
-                WindowsTokenService.refreshToken(wnsResponse._2.appName)
-                null
-              case 403 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Invalid method (GET, CREATE); only POST (Windows or Windows Phone) or DELETE (Windows Phone only) is allowed.")
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "INVALID_METHOD", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
-              case 404 =>
-                DeviceDetailsService.get(wnsResponse._2.request.appName, wnsResponse._2.request.deviceId).transform[PNCallbackEvent]({
-                 case Some(dd) if dd.osName == MobilePlatform.WINDOWS.toString =>
-                            DeviceDetailsService.delete(wnsResponse._2.request.appName, wnsResponse._2.request.deviceId)
-                            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel URI is not valid or is not recognized by WNS. Deleting Device [${wnsResponse._2.request.deviceId}}]")
-                            Success(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INVALID_CHANNEL_URI", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS))
-                 case Some(dd)  =>
-                            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${wnsResponse._2.request.deviceId}}] Detail platform does not match with connekt Request platform")
-                            Success(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INVALID_DEVICE", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS))
-                 case None =>
-                        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${wnsResponse._2.request.deviceId}}] doesn't exist ")
-                        Success(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_DELETED_DEVICE", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS))
-                }, Failure(_)).get
-
-              case 405 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Invalid method (GET, CREATE); only POST (Windows or Windows Phone) or DELETE (Windows Phone only) is allowed.")
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INVALID_METHOD", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
-              case 406 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The cloud service exceeded its throttle limit.")
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_THROTTLE_LIMIT_EXCEEDED", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
-              case 410 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel expired.")
-                DeviceDetailsService.delete(wnsResponse._2.request.appName, wnsResponse._2.request.deviceId)
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_CHANNEL_EXPIRED", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
-              case 413 =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The notification payload exceeds the 5000 byte size limit.")
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_ENTITY_TOO_LARGE", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
-              case w if 5 == (w / 100) =>
-                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The wns server encountered an error while trying to process the request.")
-                PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INTERNAL_ERROR", appName = wnsResponse._2.appName, contextId = "", cargo = null, timestamp = eventTS)
-            })
-          case Failure(e) =>
-            Some(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_REQUEST_ERROR", appName = wnsResponse._2.appName, contextId = "", cargo = e.getMessage, timestamp = eventTS))
-        }
-
-        maybePNCallbackEvent match {
+        handleWNSResponse(wnsResponse._1, wnsResponse._2) match {
           case Some(pnCallbackEvent ) =>
             if(isAvailable(out))
               push[PNCallbackEvent](out, pnCallbackEvent)
@@ -117,7 +59,82 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         }
       })
     })
+  }
 
+  private def handleWNSResponse(tryResponse: Try[HttpResponse], requestTracker: WNSRequestTracker): Option[PNCallbackEvent] = {
 
+    val eventTS = System.currentTimeMillis()
+    val requestId = requestTracker.requestId
+    val appName = requestTracker.appName
+    val deviceId = requestTracker.request.deviceId
+
+    val maybePNCallbackEvent: Option[PNCallbackEvent] = tryResponse match {
+      case Success(r) =>
+        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Received httpResponse for r: $requestId")
+        Option(r.status.intValue() match {
+          case 200 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: 200")
+            PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.Received, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+          case 400 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Invalid/Missing header send:: $requestId")
+            PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidHeader, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+          case 401 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The cloud service is not authorized to send a notification to this URI even though they are authenticated. $requestId")
+            WindowsTokenService.refreshToken(appName)
+            null
+          case 403 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Invalid method (GET, CREATE); only POST (Windows or Windows Phone) or DELETE (Windows Phone only) is allowed. $requestId")
+            PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidMethod, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+          case 404 =>
+            DeviceDetailsService.get(appName, requestTracker.request.deviceId).transform[PNCallbackEvent]({
+              case Some(dd) if dd.osName == "windows" =>
+                DeviceDetailsService.delete(appName, requestTracker.request.deviceId)
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel URI is not valid or is not recognized by WNS. Deleting Device [${requestTracker.request.deviceId}}] $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidChannelUri, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+              case Some(dd)  =>
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${requestTracker.request.deviceId}}] platform does not match with connekt Request platform $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidDevice, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+              case None =>
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${requestTracker.request.deviceId}}] doesn't exist $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.DeletedDevice, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+            }, Failure(_)).get
+
+          case 405 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Invalid method (GET, CREATE); only POST (Windows or Windows Phone) or DELETE (Windows Phone only) is allowed.$requestId")
+            PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidMethod, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+          case 406 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The cloud service exceeded its throttle limit.")
+            PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.ThrottleLimitExceeded, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+          case 410 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel expired.")
+            DeviceDetailsService.delete(requestTracker.appName, requestTracker.request.deviceId)
+            PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.ChannelExpired, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+          case 413 =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The notification payload exceeds the 5000 byte size limit. $requestId")
+            PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.EntityTooLarge, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+          case w if 5 == (w / 100) =>
+            ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The wns server encountered an error while trying to process the request. $requestId")
+            PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.InternalError, appName, "", "", eventTS)
+        })
+      case Failure(e) =>
+        Some(PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.RequestError, appName, "", e.getMessage, eventTS))
+    }
+    maybePNCallbackEvent
+  }
+
+  object WNSResponseStatus extends Enumeration {
+    type WNSResponseStatus = Value
+    
+    val Received = Value("wns_received")
+    val InvalidHeader = Value("wns_invalid_header")
+    val InvalidMethod = Value("wns_invalid_method")
+    val InvalidChannelUri = Value("wns_invalid_channel_uri")
+    val InvalidDevice = Value("wns_invalid_device")
+    val DeletedDevice = Value("wns_deleted_device")
+    val ThrottleLimitExceeded = Value("wns_throttle_limit_exceeded")
+    val ChannelExpired = Value("wns_channel_expired")
+    val EntityTooLarge = Value("wns_entity_too_large")
+    val InternalError = Value("wns_internal_error")
+    val RequestError = Value("connekt_wns_send_error")
   }
 }
