@@ -85,6 +85,8 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: onPush :: ${e.getMessage}", e)
+          if(!hasBeenPulled(in))
+            pull(in)
       }
 
 
