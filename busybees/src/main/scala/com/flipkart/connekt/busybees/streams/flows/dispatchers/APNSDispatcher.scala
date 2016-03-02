@@ -73,6 +73,10 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
               client.getReconnectionFuture.await()
               ConnektLogger(LogFile.PROCESSORS).debug("APNSDispatcher:: onPush :: APNSClient Reconnected.")
             }
+
+          case e:Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: onPush :: Failed to send push notification : ${envelope.messageId}, ${e.getMessage}", e)
+            events.addAll(envelope.deviceId.map(PNCallbackEvent(envelope.messageId, _, MobilePlatform.IOS.toString, "APNS_UNKNOWN_FAILURE", envelope.appName, "", "", System.currentTimeMillis())))
         }
 
         if(isAvailable(out))
