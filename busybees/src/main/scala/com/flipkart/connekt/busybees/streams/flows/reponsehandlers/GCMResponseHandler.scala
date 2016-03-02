@@ -34,24 +34,33 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = try {
 
-        ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPush.")
-        val gcmResponse = grab(in)
-        val outEvents = handleGCMResponse(gcmResponse._1, gcmResponse._2)
+      override def onPush(): Unit = {
+        try {
 
-        if (isAvailable(out) && outEvents.nonEmpty)
-          emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(outEvents))
-        else if (!hasBeenPulled(in))
-          pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPush.")
+          val gcmResponse = grab(in)
+          val outEvents = handleGCMResponse(gcmResponse._1, gcmResponse._2)
 
-
-      } catch {
-        case e: Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush Error: ${e.getMessage}", e)
-          if (!hasBeenPulled(in))
+          if (isAvailable(out) && outEvents.nonEmpty)
+            emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(outEvents))
+          else if (!hasBeenPulled(in))
             pull(in)
+
+
+        } catch {
+          case e: Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush Error: ${e.getMessage}", e)
+            if (!hasBeenPulled(in))
+              pull(in)
+        }
       }
+
+      override def onUpstreamFailure(e: Throwable): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onUpstream failure: ${e.getMessage}", e)
+        super.onUpstreamFinish()
+      }
+
     })
 
     setHandler(out, new OutHandler {
