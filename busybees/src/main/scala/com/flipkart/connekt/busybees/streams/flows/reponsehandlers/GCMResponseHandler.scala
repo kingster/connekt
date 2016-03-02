@@ -5,7 +5,7 @@ import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.commons.entities.Channel
+import com.flipkart.connekt.commons.entities.{MobilePlatform, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
@@ -66,7 +66,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                           DeviceDetailsService.get(appName, rDeviceId).foreach(_.foreach(d => DeviceDetailsService.update(d.deviceId, d.copy(token = s.get("registration_id").asText.trim))))
                         events += PNCallbackEvent(messageId, deviceId = deviceIdItr.next(), platform = "android", eventType = "GCM_RECEIVED", appName = appName, contextId = "", cargo = s.get("message_id").asText(), timestamp = eventTS)
                       case f if f.has("error") && List("InvalidRegistration", "NotRegistered").contains(f.get("error").asText.trim) =>
-                        deviceIds.foreach(DeviceDetailsService.delete(appName, _))
+                        DeviceDetailsService.get(appName, rDeviceId)
+                          .foreach(_.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
+                            DeviceDetailsService.delete(appName, device.deviceId)
+                          }))
                         events += PNCallbackEvent(messageId, rDeviceId, platform = "android", eventType = "GCM_ERROR", appName = appName, contextId = "", cargo = f.get("error").asText, timestamp = eventTS)
                     }
                   })
