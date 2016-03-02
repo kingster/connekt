@@ -84,12 +84,16 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                 rBlock match {
                   case s if s.has("message_id") =>
                     if (s.has("registration_id"))
-                      DeviceDetailsService.get(appName, rDeviceId).foreach(_.foreach(d => DeviceDetailsService.update(d.deviceId, d.copy(token = s.get("registration_id").asText.trim))))
+                      DeviceDetailsService.get(appName, rDeviceId).foreach(_.foreach(d => {
+                        ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Device token update notified via. $messageId for $rDeviceId")
+                        DeviceDetailsService.update(d.deviceId, d.copy(token = s.get("registration_id").asText.trim))
+                      }))
 
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Received, appName, "", s.get("message_id").asText(), eventTS)
                   case f if f.has("error") && List("InvalidRegistration", "NotRegistered").contains(f.get("error").asText.trim) =>
                     DeviceDetailsService.get(appName, rDeviceId)
                       .foreach(_.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
+                      ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Device token invalid / not_found. Deleting device details for $rDeviceId.")
                       DeviceDetailsService.delete(appName, device.deviceId)
                     }))
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", f.get("error").asText, eventTS)
@@ -124,6 +128,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
   object GCMResponseStatus extends Enumeration {
     type GCMResponseStatus = Value
+
     val InvalidJsonError = Value("gcm_invalid_json_error")
     val AuthError = Value("gcm_auth_error")
     val Received = Value("gcm_received")
