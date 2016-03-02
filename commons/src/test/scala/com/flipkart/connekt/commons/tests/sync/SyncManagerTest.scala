@@ -3,6 +3,8 @@ package com.flipkart.connekt.commons.tests.sync
 import java.util.concurrent.{TimeUnit, CountDownLatch}
 
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.sync.SyncType
+import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncMessage, SyncManager, SyncType, SyncDelegate}
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 

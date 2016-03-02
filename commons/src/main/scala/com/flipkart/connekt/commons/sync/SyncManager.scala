@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.sync
 
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import org.apache.curator.framework.recipes.cache._

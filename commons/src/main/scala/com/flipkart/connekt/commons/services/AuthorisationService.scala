@@ -1,14 +1,15 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
-import com.flipkart.connekt.commons.dao.{TUserInfo, PrivDao}
+import com.flipkart.connekt.commons.core.Wrappers._
+import com.flipkart.connekt.commons.dao.{PrivDao, TUserInfo}
 import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.entities.{ResourcePriv, UserType}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.sync.{SyncManager, SyncType, SyncDelegate}
+import com.flipkart.connekt.commons.sync.SyncType.SyncType
+import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 
 import scala.util.{Failure, Success, Try}
-import com.flipkart.connekt.commons.core.Wrappers._
 /**
  * @author aman.shrivastava on 12/12/15.
  */
