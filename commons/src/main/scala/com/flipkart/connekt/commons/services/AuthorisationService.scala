@@ -60,7 +60,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
   override def isAuthorized(username: String, resource: String*): Try[Boolean] = {
     try {
       val userPrivs = getUserPrivileges(username)
-      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',')).get.flatMap(getGroupPrivileges)
+      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',').map(_.trim)).get.flatMap(getGroupPrivileges)
       val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
 
       Success(allowedPrivileges.intersect(resource.toSet[String].map(_.toUpperCase)).nonEmpty)
