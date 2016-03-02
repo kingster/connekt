@@ -4,7 +4,7 @@ import akka.NotUsed
 import akka.http.scaladsl.Http
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer, FlowShape, SinkShape, SourceShape}
+import akka.stream.{FlowShape, SinkShape, SourceShape}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
 import com.flipkart.connekt.busybees.streams.ConnektTopology
@@ -25,7 +25,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
-  implicit val mat = ActorMaterializer()
+  implicit val mat = BusyBeesBoot.mat
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
