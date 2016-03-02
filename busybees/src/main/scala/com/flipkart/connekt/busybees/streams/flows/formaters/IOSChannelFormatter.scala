@@ -36,7 +36,7 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
         val apnsPayloads = tokens.map(iOSPNPayload(_, Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
         val apnsEnvelopes = apnsPayloads.map(APSPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
 
-        if(apnsEnvelopes.nonEmpty)
+        if(isAvailable(out) && apnsEnvelopes.nonEmpty)
           emitMultiple[APSPayloadEnvelope](out, immutable.Iterable.concat(apnsEnvelopes))
         else if(!hasBeenPulled(in))
           pull(in)

@@ -11,7 +11,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * @author aman.shrivastava on 08/02/16.
  */
 
-class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSPayloadEnvelope]] {
+class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPayloadEnvelope]] {
 
   val in = Inlet[ConnektRequest]("WNSChannelFormatter.In")
   val out = Outlet[WNSPayloadEnvelope]("WNSChannelFormatter.Out")
@@ -32,12 +32,15 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
         val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
         val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
 
-        emitMultiple[WNSPayloadEnvelope](out, scala.collection.immutable.Iterable.concat(wnsRequestEnvelopes))
+        if (isAvailable(out) && wnsRequestEnvelopes.nonEmpty)
+          emitMultiple[WNSPayloadEnvelope](out, scala.collection.immutable.Iterable.concat(wnsRequestEnvelopes))
+        else if (!hasBeenPulled(in))
+          pull(in)
 
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: onPush :: Error", e)
-          if(!hasBeenPulled(in))
+          if (!hasBeenPulled(in))
             pull(in)
       }
 
@@ -55,7 +58,7 @@ class WindowsChannelFormatter  extends GraphStage[FlowShape[ConnektRequest, WNSP
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        if(!hasBeenPulled(in))
+        if (!hasBeenPulled(in))
           pull(in)
       }
 

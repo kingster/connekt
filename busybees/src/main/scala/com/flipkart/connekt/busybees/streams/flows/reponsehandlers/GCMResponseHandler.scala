@@ -40,8 +40,11 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         val gcmResponse = grab(in)
         val outEvents = handleGCMResponse(gcmResponse._1, gcmResponse._2)
 
-        if(isAvailable(out))
+        if (isAvailable(out) && outEvents.nonEmpty)
           emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(outEvents))
+        else if (!hasBeenPulled(in))
+          pull(in)
+
 
       } catch {
         case e: Throwable =>
@@ -90,8 +93,8 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                   case f if f.has("error") && List("InvalidRegistration", "NotRegistered").contains(f.get("error").asText.trim) =>
                     DeviceDetailsService.get(appName, rDeviceId)
                       .foreach(_.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
-                      DeviceDetailsService.delete(appName, device.deviceId)
-                    }))
+                        DeviceDetailsService.delete(appName, device.deviceId)
+                      }))
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", f.get("error").asText, eventTS)
                 }
               })
@@ -107,7 +110,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
           case 401 =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.AuthError, appName, "", "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - The sender account used to send a message couldn't be authenticated. for $messageId")
-          case w if 5 == (w/100) =>
+          case w if 5 == (w / 100) =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.InternalError, appName, "", "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - The gcm server encountered an error while trying to process the request for $messageId")
         }
@@ -132,4 +135,5 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     val SendError = Value("connekt_gcm_send_error")
     val ParseError = Value("connekt_gcm_response_parse_error")
   }
+
 }
