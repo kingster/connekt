@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
+import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsTokenService}
@@ -58,7 +59,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                 PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "INVALID_METHOD", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS)
               case 404 =>
                 DeviceDetailsService.get(wnsResponse._2.request.appName, wnsResponse._2.request.deviceId).transform[PNCallbackEvent]({
-                 case Some(dd) if dd.osName == "windows" =>
+                 case Some(dd) if dd.osName == MobilePlatform.WINDOWS.toString =>
                             DeviceDetailsService.delete(wnsResponse._2.request.appName, wnsResponse._2.request.deviceId)
                             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel URI is not valid or is not recognized by WNS. Deleting Device [${wnsResponse._2.request.deviceId}}]")
                             Success(PNCallbackEvent(messageId = requestId, deviceId = "", platform = "windows", eventType = "WNS_INVALID_CHANNEL_URI", appName = wnsResponse._2.appName, contextId = "", cargo = r.getHeader("X-WNS-MSG-ID").get.value(), timestamp = eventTS))
