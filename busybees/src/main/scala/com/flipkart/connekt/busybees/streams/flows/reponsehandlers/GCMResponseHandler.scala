@@ -52,7 +52,6 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             r.status.intValue() match {
               case 200 =>
                 try {
-                  val responseBuilder = Await.result(r.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
                   val stringResponse = r.entity.getString
                   ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: HttpResponseBody: $stringResponse")
 
