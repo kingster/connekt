@@ -37,7 +37,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
         val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName)
 
         ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Request Payload : ${httpRequest.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
-        ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: ${requestTrace.messageId}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Relayed (HttpRequest,requestTrace) to next stage for: ${requestTrace.messageId}")
 
         if(isAvailable(out))
           push(out, (httpRequest, requestTrace))
