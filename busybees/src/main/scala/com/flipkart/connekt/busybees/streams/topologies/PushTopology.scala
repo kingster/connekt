@@ -4,7 +4,7 @@ import akka.NotUsed
 import akka.http.scaladsl.Http
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer, FlowShape, SinkShape, SourceShape}
+import akka.stream.{FlowShape, SinkShape, SourceShape}
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
 import com.flipkart.connekt.busybees.streams.ConnektTopology
@@ -25,10 +25,10 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
-  implicit val mat = ActorMaterializer()
+  implicit val mat = BusyBeesBoot.mat
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
-    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filter(_.equalsIgnoreCase("push_86726ba26f92fbbc71480880b8fbaef0076ea5f39fad95a008a7d0211ca441d0"))
+    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
@@ -42,17 +42,17 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
 
     val render = b.add(new RenderFlow)
-    val merger = b.add(Merge[PNCallbackEvent](3)) //output-merger
+    val merger = b.add(Merge[PNCallbackEvent](3))
 
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.WORKERS).debug(s"Routing IOS message: ${ios.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing IOS message: ${ios.id}")
         0
       case android if "android".equals(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.WORKERS).debug(s"Routing ANDROID message: ${android.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing ANDROID message: ${android.id}")
         1
       case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.WORKERS).debug(s"Routing WINDOWS message: ${windows.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing WINDOWS message: ${windows.id}")
         2
     }))
 

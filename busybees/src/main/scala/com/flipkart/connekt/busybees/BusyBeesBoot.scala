@@ -24,9 +24,9 @@ object BusyBeesBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
 
-  lazy implicit val system = ActorSystem("busyBees-system")
+  implicit val system = ActorSystem("busyBees-system")
 
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher").withAutoFusing(false)
   lazy implicit val mat = ActorMaterializer(settings)
 
   def start() {

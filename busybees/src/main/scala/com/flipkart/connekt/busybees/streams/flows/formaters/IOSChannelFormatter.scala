@@ -38,8 +38,6 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
 
         emitMultiple[APSPayloadEnvelope](out, immutable.Iterable.concat(apnsEnvelopes))
 
-        if(isAvailable(out) && !hasBeenPulled(in))
-          pull(in)
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: onPush :: Error", e)

@@ -14,14 +14,14 @@ envKey := {
 
 
 /** all akka only **/
-val akkaVersion = "2.4.2-RC2"
+val akkaVersion = "2.4.2"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-stream" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-http-core" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion withSources(),
   "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion withSources() withJavadoc(),
-  "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaVersion % Test withSources() withJavadoc()
+  "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaVersion.concat("-RC2") % Test withSources() withJavadoc()
 )
 
 libraryDependencies ++= Seq(

@@ -36,7 +36,9 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
           case "OPENWEB" => OpenWebGCMPayload(tokens)
         }
 
-        push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
+        if(isAvailable(out))
+          push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
+
       }catch {
         case e:Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
