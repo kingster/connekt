@@ -51,7 +51,7 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
       } ~ path("touch" / Segment) {
         (clientName: String) =>
           post {
-            SyncManager.get().publish(new SyncMessage(SyncType.AUTH_CHANGE, List(clientName, UserType.USER)))
+            SyncManager.get().publish(new SyncMessage(SyncType.AUTH_CHANGE, List(clientName, UserType.USER.toString)))
             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $clientName", null)))
           }
       }
