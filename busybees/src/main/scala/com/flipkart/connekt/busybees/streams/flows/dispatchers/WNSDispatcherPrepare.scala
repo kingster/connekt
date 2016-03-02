@@ -10,7 +10,6 @@ import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.WNSPayloadEnvelope
 import com.flipkart.connekt.commons.services.WindowsTokenService
-import com.flipkart.connekt.commons.utils.StringUtils
 
 /**
  * @author aman.shrivastava on 08/02/16.
@@ -37,12 +36,14 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
         val payload = HttpEntity(message.wnsPNType.getContentType, message.wnsPNType.getPayload)
         val request = new HttpRequest(HttpMethods.POST, uri.getFile, headers, payload)
 
-      push(out, (request, WNSRequestTracker(message.appName, message.messageId, message)))
+        if(isAvailable(out))
+          push(out, (request, WNSRequestTracker(message.appName, message.messageId, message)))
 
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
-          pull(in)
+          if(!hasBeenPulled(in))
+            pull(in)
       }
 
       override def onUpstreamFinish(): Unit = {
@@ -60,7 +61,8 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPull")
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
     })
 

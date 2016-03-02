@@ -14,6 +14,7 @@ import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 
 import scala.util.{Failure, Success, Try}
+import com.flipkart.connekt.commons.core.Wrappers._
 
 /**
  *
@@ -65,7 +66,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
   }
 
   //# ADMIN ACTIONS
-  override def addClientTopic(topicName: String, numPartitions: Int, replicationFactor: Int = 1): Try[Unit] = Try {
+  override def addClientTopic(topicName: String, numPartitions: Int, replicationFactor: Int = 1): Try[Unit] = Try_ {
     val kafkaConnH: KafkaConnectionHelper = Option(queueProducerHelper).getOrElse(queueConsumerHelper)
     val zkClient = new ZkClient(kafkaConnH.zkPath(), 5000, 5000, ZKStringSerializer)
     kafka.admin.AdminUtils.createTopic(zkClient, topicName, numPartitions, replicationFactor, new Properties())
@@ -76,11 +77,15 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
     ConnektConfig.getInt("admin.partitionsPer5k").getOrElse(1) * Math.max(qpsBound / 5000, 1)
   }
 
-  override def getTopicNames(channel: Channel): Try[Seq[String]] = Try {
+  override def getTopicNames(channel: Channel): Try[Seq[String]] = Try_ {
+    userConfigurationDao.getAllUserConfiguration(channel).map(_.queueName).intersect(getKafkaTopicNames(channel).get)
+  }
+
+  override def assignClientChannelTopic(channel: Channel, clientUserId: String): String = s"${channel}_${clientUserId.sha256.hash.hex}"
+
+  override def getKafkaTopicNames(channel: Channel): Try[Seq[String]] = Try_ {
     val kafkaConnH: KafkaConnectionHelper = Option(queueProducerHelper).getOrElse(queueConsumerHelper)
     val allTopics = ZkUtils.getAllTopics(new ZkClient(kafkaConnH.zkPath(), 5000, 5000, ZKStringSerializer))
     allTopics.filter(_.startsWith(channel.toString))
   }
-
-  override def assignClientChannelTopic(channel: Channel, clientUserId: String): String = s"${channel}_${clientUserId.sha256.hash.hex}"
 }

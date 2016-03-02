@@ -3,11 +3,10 @@ package com.flipkart.connekt.busybees.streams.flows.dispatchers
 import java.net.URL
 
 import akka.http.scaladsl.model.HttpEntity.Strict
-import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.stream._
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
-import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.GCMPayloadEnvelope
@@ -40,9 +39,9 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
         ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Request Payload : ${httpRequest.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
         ConnektLogger(LogFile.PROCESSORS).debug(s"HttpDispatcher:: onPush:: Relayed Try[HttpResponse] to next stage for: ${requestTrace.messageId}")
 
-        push(out, (httpRequest, requestTrace))
-        if(isAvailable(out) && !hasBeenPulled(in))
-          pull(in)
+        if(isAvailable(out))
+          push(out, (httpRequest, requestTrace))
+
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"HttpDispatcher:: onPush :: ${e.getMessage}", e)
@@ -54,7 +53,8 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"HttpDispatcher:: onPull")
-        pull(in)
+        if(!hasBeenPulled(in))
+          pull(in)
       }
     })
 

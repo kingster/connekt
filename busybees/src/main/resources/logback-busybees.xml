@@ -101,10 +101,10 @@
     <logger name="CLIENTS" level="DEBUG" additivity="false">
         <appender-ref ref="CLIENTS"/>
     </logger>
-    <logger name="PROCESSORS" additivity="false">
+    <logger name="PROCESSORS" level="DEBUG" additivity="false">
         <appender-ref ref="PROCESSORS"/>
     </logger>
-    <logger name="SERVICE" additivity="false">
+    <logger name="SERVICE" level="DEBUG" additivity="false">
         <appender-ref ref="SERVICE"/>
     </logger>
     <logger name="DAO" additivity="false">

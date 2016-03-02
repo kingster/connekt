@@ -53,9 +53,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
               case 200 =>
                 try {
                   val responseBuilder = Await.result(r.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
+                  val stringResponse = r.entity.getString
+                  ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: HttpResponseBody: $stringResponse")
 
-                  ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: HttpResponseBody: $responseBuilder")
-                  val responseBody = responseBuilder.getObj[ObjectNode]
+                  val responseBody = stringResponse.getObj[ObjectNode]
                   val deviceIdItr = deviceIds.listIterator()
 
                   responseBody.findValue("results").foreach(rBlock => {
@@ -72,6 +73,9 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                   })
                 } catch {
                   case e: Exception =>
+                    if (!hasBeenPulled(in))
+                      pull(in)
+
                     ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Failed Processing HttpResponseBody for: $messageId:: ${e.getMessage}", e)
                     events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, "android", "GCM_RESPONSE_PARSE_ERROR", appName, "", e.getMessage, eventTS)))
                 }
@@ -95,10 +99,9 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, e.deviceId, Channel.PUSH, e))
         ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: Saved callback events for $messageId ${events.toList.toString()}")
 
-        emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(events))
+        if (isAvailable(out))
+          emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(events))
 
-        if (isAvailable(out) && !hasBeenPulled(in))
-          pull(in)
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush Error: ${e.getMessage}", e)
