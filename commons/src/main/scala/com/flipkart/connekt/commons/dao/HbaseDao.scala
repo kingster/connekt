@@ -120,9 +120,7 @@ trait HbaseDao {
     })
     val rowResults = hTableInterface.get(gets.toList.asJava)
     var rowMap = Map[String,RowData]()
-    for (result <- rowResults) {
-      rowMap += result.getRow.getString -> getRowData(result, colFamilies)
-    }
+    rowResults.filter(_.getRow != null).foreach(rowResult => rowMap += rowResult.getRow.getString -> getRowData(rowResult, colFamilies))
     rowMap
   }
 

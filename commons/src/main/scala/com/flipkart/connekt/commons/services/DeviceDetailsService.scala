@@ -97,7 +97,8 @@ object DeviceDetailsService extends Instrumented {
     val cacheMissedIds = deviceIds.diff(cacheHitsDevices.keySet.toList)
     val cacheMissDevices = dao.get(appName, cacheMissedIds)
 
-    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheMissDevices.map(device => (cacheKey(appName, device.deviceId), device)))
+    if(cacheMissDevices.nonEmpty)
+      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheMissDevices.map(device => (cacheKey(appName, device.deviceId), device)))
     cacheMissDevices ++ cacheHitsDevices.values
   }
 

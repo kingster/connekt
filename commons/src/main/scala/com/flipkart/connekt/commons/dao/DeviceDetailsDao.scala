@@ -103,7 +103,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("p", "a")
-      fetchMultiRows(deviceIds.map(getRowKey(appName, _)), colFamiliesReqd).values.map(extractDeviceDetails(_).get).toList
+      fetchMultiRows(deviceIds.map(getRowKey(appName, _)), colFamiliesReqd).values.flatMap(extractDeviceDetails).toList
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceIds, ${e.getMessage}")
