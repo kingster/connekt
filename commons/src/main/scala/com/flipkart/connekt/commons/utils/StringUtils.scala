@@ -24,13 +24,13 @@ import scala.reflect.{ClassTag, _}
  */
 object StringUtils {
 
+  implicit def enum2String(enumValue: Enumeration#Value): String = enumValue.toString
+
   implicit class StringHandyFunctions(val s: String) {
     def getUtf8Bytes = s.getBytes(CharEncoding.UTF_8)
 
     def getUtf8BytesNullWrapped = Option(s).map(_.getUtf8Bytes).orNull.wrap
-
   }
-
 
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
     def getString = new String(b, CharEncoding.UTF_8)
