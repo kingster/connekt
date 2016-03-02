@@ -298,7 +298,7 @@ public class CouchbaseMockBucket implements Bucket {
 
     @Override
     public <D extends Document<?>> D remove(D document) {
-        return null;
+        return Blocking.blockForSingle(asyncBucket.remove(document).single(), kvTimeout, TIMEOUT_UNIT);
     }
 
     @Override
