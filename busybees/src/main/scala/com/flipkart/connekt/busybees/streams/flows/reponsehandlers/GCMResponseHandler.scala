@@ -94,11 +94,12 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Received, appName, "", s.get("message_id").asText(), eventTS)
                   case f if f.has("error") && List("InvalidRegistration", "NotRegistered").contains(f.get("error").asText.trim) =>
-                    DeviceDetailsService.get(appName, rDeviceId)
-                      .foreach(_.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
-                      ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Device token invalid / not_found. Deleting device details for $rDeviceId.")
-                      DeviceDetailsService.delete(appName, device.deviceId)
-                    }))
+                    DeviceDetailsService.get(appName, rDeviceId).foreach {
+                      _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
+                        ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Device token invalid / not_found. Deleting device details for $rDeviceId.")
+                        DeviceDetailsService.delete(appName, device.deviceId)
+                      })
+                    }
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", f.get("error").asText, eventTS)
                 }
               })
