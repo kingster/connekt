@@ -32,8 +32,10 @@ class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPa
         val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
         val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
 
-        if (isAvailable(out) && wnsRequestEnvelopes.nonEmpty)
-          emitMultiple[WNSPayloadEnvelope](out, scala.collection.immutable.Iterable.concat(wnsRequestEnvelopes))
+        if (wnsRequestEnvelopes.nonEmpty)
+          emitMultiple[WNSPayloadEnvelope](out, wnsRequestEnvelopes.iterator, () => {
+              ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: emitMultiple :: Completed")
+          })
         else if (!hasBeenPulled(in))
           pull(in)
 
