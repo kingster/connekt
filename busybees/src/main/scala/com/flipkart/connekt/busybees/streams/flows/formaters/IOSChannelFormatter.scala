@@ -1,9 +1,11 @@
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import akka.stream.stage.{InHandler, OutHandler, GraphStage, GraphStageLogic}
-import akka.stream.{Outlet, Inlet, Attributes, FlowShape}
+import java.util.concurrent.TimeUnit
+
+import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -33,29 +35,33 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
         ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
         val tokens = pnInfo.deviceId.flatMap(DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, _)).map(_.token)
-        val apnsPayloads = tokens.map(iOSPNPayload(_, Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
+        val apnsPayloads = tokens.map(iOSPNPayload(_, getExpiry(message.expiryTs), Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
         val apnsEnvelopes = apnsPayloads.map(APSPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
 
-        if(isAvailable(out) && apnsEnvelopes.nonEmpty)
+        if (isAvailable(out) && apnsEnvelopes.nonEmpty)
           emitMultiple[APSPayloadEnvelope](out, immutable.Iterable.concat(apnsEnvelopes))
-        else if(!hasBeenPulled(in))
+        else if (!hasBeenPulled(in))
           pull(in)
 
       } catch {
         case e: Throwable =>
           ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: onPush :: Error", e)
-          if(!hasBeenPulled(in))
-          pull(in)
+          if (!hasBeenPulled(in))
+            pull(in)
       }
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        if(!hasBeenPulled(in))
+        if (!hasBeenPulled(in))
           pull(in)
       }
     })
 
+  }
+
+  private def getExpiry(ts: Option[Long]): Long = {
+    ts.getOrElse(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(6))
   }
 
 }

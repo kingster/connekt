@@ -28,7 +28,7 @@ class iOSTopology extends TopologyUTSpec {
       DeviceDetails(
         deviceId = deviceId,
         userId = "",
-        token = "6b1e059bb2a51d03d37384d1493aaffbba4edc58f8e21eb2f80ad4851875ee25",
+        token = "e27fff706bef4e958ebd4ae798fb6517fdfdd9ccc3e899caf8cfcfee31716da4",
         osName = "ios", osVersion = "UT", appName = "RetailApp", appVersion = "UT", brand = "UT", model = "UT"
       )
     )
