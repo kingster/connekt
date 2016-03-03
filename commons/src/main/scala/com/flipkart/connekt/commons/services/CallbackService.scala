@@ -49,7 +49,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   @Timed("fetchCallbackEventByContactId")
   def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
     Try {
-      channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(math.max(minTimestamp-1, Long.MinValue), math.min(maxTimestamp+1, Long.MaxValue))))
+      channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(math.max(minTimestamp-1, 0L), math.min(maxTimestamp+1, Long.MaxValue))))
     }
   }
 
