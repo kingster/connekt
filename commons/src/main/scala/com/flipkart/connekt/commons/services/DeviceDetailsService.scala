@@ -110,6 +110,6 @@ object DeviceDetailsService extends Instrumented {
     }
   }
 
-  private def cacheKey(appName: String, id: String): String = appName + "_" + id
+  private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id
 
 }

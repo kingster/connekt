@@ -31,7 +31,7 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
 
         val uri = new URI(message.token).toURL
         val bearerToken = WindowsTokenService.getToken(message.appName).map(_.token).getOrElse("INVALID")
-        val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken), RawHeader("Content-Length", "500"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
+        val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken),RawHeader("Content-Type", "text/xml"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
 
         val payload = HttpEntity(message.wnsPNType.getContentType, message.wnsPNType.getPayload)
         val request = new HttpRequest(HttpMethods.POST, uri.getFile, headers, payload)

@@ -30,6 +30,8 @@ class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPa
         val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
         val wnsPayload = message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]
         val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
+        ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: devices: ${devices.getJson}")
+
         val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
 
         if (wnsRequestEnvelopes.nonEmpty)

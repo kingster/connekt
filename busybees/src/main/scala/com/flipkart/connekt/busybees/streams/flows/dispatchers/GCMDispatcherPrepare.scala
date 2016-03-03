@@ -34,7 +34,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
           ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: onPush:: Received Message: ${message.toString}")
 
           val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
-          val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))
+          val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey), RawHeader("Content-Type", "application/json;charset=utf-8"))
           val httpRequest = new HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
           val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName)
 
@@ -58,7 +58,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
       }
 
 
-      
+
     })
 
     setHandler(out, new OutHandler {
@@ -69,7 +69,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
       }
 
       override def onDownstreamFinish(): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare:: onDownstreamFinish")
+        ConnektLogger(LogFile.PROCESSORS).info(s"GCMDispatcherPrepare:: onDownstreamFinish")
         super.onDownstreamFinish()
       }
 

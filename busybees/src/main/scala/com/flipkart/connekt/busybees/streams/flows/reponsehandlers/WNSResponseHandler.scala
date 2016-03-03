@@ -107,7 +107,18 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.ThrottleLimitExceeded, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
           case 410 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel expired.")
-            DeviceDetailsService.delete(requestTracker.appName, requestTracker.request.deviceId)
+            DeviceDetailsService.get(appName, requestTracker.request.deviceId).transform[PNCallbackEvent]({
+              case Some(dd) if dd.osName == "windows" =>
+                DeviceDetailsService.delete(appName, requestTracker.request.deviceId)
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel expired. Deleting Device [${requestTracker.request.deviceId}}] $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidChannelUri, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+              case Some(dd)  =>
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${requestTracker.request.deviceId}}] platform does not match with connekt Request platform $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidDevice, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+              case None =>
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${requestTracker.request.deviceId}}] doesn't exist $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.DeletedDevice, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+            }, Failure(_)).get
             PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.ChannelExpired, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
           case 413 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The notification payload exceeds the 5000 byte size limit. $requestId")

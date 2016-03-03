@@ -1,15 +1,14 @@
 package com.flipkart.connekt.busybees.streams.topologies
 
 import akka.NotUsed
-import akka.http.scaladsl.Http
+import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
-import akka.stream.{FlowShape, SinkShape, SourceShape}
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
+import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, WNSDispatcherPrepare}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, HttpDispatcher, WNSDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
@@ -76,12 +75,11 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val fmtAndroid = b.add(new AndroidChannelFormatter)
     val gcmHttpPrepare = b.add(new GCMDispatcherPrepare())
 
-    val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("android.googleapis.com", 443)
-    val gcmPoolFlow = b.add(gcmPoolClientFlow)
+    val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
 
-    val rHandlerGCM = b.add(new GCMResponseHandler)
+    val gcmResponseHandle = b.add(new GCMResponseHandler)
 
-    platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> rHandlerGCM ~> merger.in(1)
+    platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle ~> merger.in(1)
 
     /**
      * Windows Topology
@@ -96,9 +94,8 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      *                                      |~~~~~~~~~~~~~~~~~~~~~~~~~~~  wnsRetryMapper <~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
      */
 
-    val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[WNSRequestTracker]("hk2.notify.windows.com")
     val wnsHttpPrepare = b.add(new WNSDispatcherPrepare())
-    val wnsPoolFlow = b.add(wnsPoolClientFlow)
+    val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow)
 
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
     val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request))
