@@ -24,7 +24,7 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.
         ConnektLogger(LogFile.PROCESSORS).debug(s"PNBigfootEventCreator:: ON_PUSH for ${event.messageId}")
         try {
           if(isAvailable(out)) {
-            ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator:: PUSHED downstream for ${event.messageId}")
+            ConnektLogger(LogFile.PROCESSORS).debug(s"PNBigfootEventCreator:: PUSHED downstream for ${event.messageId}")
             push(out, event.toBigfootFormat)
           }
         }catch {
@@ -33,7 +33,7 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.
         } finally {
           if(!hasBeenPulled(in)) {
             pull(in)
-            ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator:: PULLED upstream for ${event.messageId}")
+            ConnektLogger(LogFile.PROCESSORS).debug(s"PNBigfootEventCreator:: PULLED upstream for ${event.messageId}")
           }
         }
       }
