@@ -1,5 +1,6 @@
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
+import java.util.Date
 import java.util.concurrent.{ExecutionException, TimeUnit}
 
 import akka.stream.stage._
@@ -42,7 +43,7 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
           ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: onPush:: Received Message: $envelope")
 
           ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: onPush:: Send Payload: " + message.data.asInstanceOf[AnyRef].getJson)
-          val pushNotification = new SimpleApnsPushNotification(message.token, null, message.data.asInstanceOf[AnyRef].getJson)
+          val pushNotification = new SimpleApnsPushNotification(message.token, null, message.data.asInstanceOf[AnyRef].getJson, new Date(message.expiryInMillis))
           val client = clients.getOrElseUpdate(envelope.appName, getAPNSClient(envelope.appName))
 
           try {
