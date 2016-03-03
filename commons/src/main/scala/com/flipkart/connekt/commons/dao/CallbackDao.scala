@@ -19,18 +19,18 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
 
-  val columnFamily:String = "e"
+  val columnFamily: String = "e"
 
   def channelEventPropsMap(channelCallbackEvent: CallbackEvent): ColumnData
 
   def mapToChannelEvent(channelEventPropsMap: Map[String, Array[Byte]]): CallbackEvent
 
-  override def saveCallbackEvent(requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String] = {
+  override def saveCallbackEvent(appName: String, requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val channelEventProps = channelEventPropsMap(callbackEvent)
       val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
-      val rowKey = s"$forContact:$requestId:$eventId"
+      val rowKey = s"$appName:$forContact:$requestId:$eventId"
       addRow(rowKey, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Event details persisted for $requestId")
@@ -44,12 +44,12 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(requestId: String, contactId: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent] = {
+  def fetchCallbackEvents(appName: String, requestId: String, contactId: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent] = {
     val colFamiliesReqd = List(columnFamily)
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
 
-      val rawDataList = fetchRows( s"$contactId:$requestId", s"$contactId:$requestId{", colFamiliesReqd, timestampRange)
+      val rawDataList = fetchRows(s"$appName:$contactId:$requestId", s"$appName:$contactId:$requestId{", colFamiliesReqd, timestampRange)
       rawDataList.values.flatMap(rowData => {
         val eventProps = rowData.get(columnFamily)
         eventProps.map(mapToChannelEvent)
@@ -64,6 +64,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]]
+  def fetchCallbackEvents(appName: String, requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]]
+
   def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]]
 }

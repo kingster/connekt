@@ -173,13 +173,13 @@ object HbaseDao {
   }
 
   implicit class mapKVHandyFunctions(val m: Map[String, Array[Byte]]) {
-    def getS(key: String):String = m.get(key).map(_.getString).orNull
+    def getS(key: String): String = m.get(key).map(_.getString).orNull
 
-    def getB(key: String):Boolean = m.get(key).exists(_.getBoolean)
+    def getB(key: String): Boolean = m.get(key).exists(_.getBoolean)
 
     def getL(key: String) = m.get(key).map(Bytes.toLong).getOrElse(null)
 
-    def getKV(key: String):ObjectNode = m.get(key).map(_.getString).map(objMapper.readValue[ObjectNode]).orNull
+    def getKV(key: String): ObjectNode = m.get(key).map(_.getString).map(objMapper.readValue[ObjectNode]).orNull
   }
 
 }

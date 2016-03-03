@@ -16,5 +16,5 @@ class EmailCallbackDao(tableName: String, hTableFactory: HTableFactory) extends 
 
   override def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]] = ???
 
-  override def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]] = ???
+  override def fetchCallbackEvents(appName: String, requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]] = ???
 }
