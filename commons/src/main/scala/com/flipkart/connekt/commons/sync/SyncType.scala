@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer,
  * Created by kinshuk.bairagi on 02/03/16.
  */
 object SyncType extends Enumeration {
-  type SyncType = Value
-  val CLIENT_ADD, TEMPLATE_CHANGE, AUTH_CHANGE = Value
+   type SyncType = Value
+   val CLIENT_ADD, TEMPLATE_CHANGE, AUTH_CHANGE, STENCIL_CHANGE, STENCIL_BUCKET_CHANGE = Value
 }
 
 

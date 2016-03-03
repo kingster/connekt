@@ -65,6 +65,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
 
                     complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)))
                   case false =>
+                    ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                     complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
 
                 }
@@ -88,6 +89,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                       val requestId = ServiceFactory.getPNMessageService.saveRequest(unicastRequest, queueName, isCrucial = true).get
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
                     case false =>
+                      ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
                   }
 
