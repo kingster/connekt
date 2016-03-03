@@ -12,7 +12,7 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -45,7 +45,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                           platform -> multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
                         }.values
                       case _ =>
-                        groupedPlatformRequests += multicastRequest
+                        groupedPlatformRequests += multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
                     }
 
                     val failure = ListBuffer[String]()

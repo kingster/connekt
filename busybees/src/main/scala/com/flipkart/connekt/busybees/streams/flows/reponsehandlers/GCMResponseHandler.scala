@@ -5,17 +5,15 @@ import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.commons.entities.{MobilePlatform, Channel}
+import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -34,28 +32,40 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = try {
 
-        ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPush.")
-        val gcmResponse = grab(in)
-        val outEvents = handleGCMResponse(gcmResponse._1, gcmResponse._2)
+      override def onPush(): Unit = {
+        try {
 
-        if (isAvailable(out) && outEvents.nonEmpty)
-          emitMultiple[PNCallbackEvent](out,immutable.Iterable.concat(outEvents))
-        else if (!hasBeenPulled(in))
-          pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPush.")
+          val gcmResponse = grab(in)
+          val outEvents = handleGCMResponse(gcmResponse._1, gcmResponse._2)
 
-
-      } catch {
-        case e: Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush Error: ${e.getMessage}", e)
-          if (!hasBeenPulled(in))
+          if (outEvents.nonEmpty)
+            emitMultiple[PNCallbackEvent](out,outEvents.iterator,() => {
+              ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: emitMultiple :: Completed")
+          })
+          else if (!hasBeenPulled(in))
             pull(in)
+
+
+        } catch {
+          case e: Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush Error: ${e.getMessage}", e)
+            if (!hasBeenPulled(in))
+              pull(in)
+        }
       }
+
+      override def onUpstreamFailure(e: Throwable): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onUpstream failure: ${e.getMessage}", e)
+        super.onUpstreamFinish()
+      }
+
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
+        ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPull.")
         if (!hasBeenPulled(in))
           pull(in)
       }
@@ -118,6 +128,9 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
           case w if 5 == (w / 100) =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.InternalError, appName, "", "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - The gcm server encountered an error while trying to process the request for $messageId")
+          case _ =>
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", "", eventTS)))
+            ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - GCM Response Unhandled for $messageId")
         }
 
       case Failure(e2) =>
