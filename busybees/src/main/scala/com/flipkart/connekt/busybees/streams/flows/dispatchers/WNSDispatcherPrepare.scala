@@ -2,7 +2,8 @@ package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import java.net.URI
 
-import akka.http.scaladsl.model._
+
+import akka.http.scaladsl.model.{HttpMethods, HttpEntity, HttpHeader, HttpRequest}
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
