@@ -24,26 +24,34 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = try {
-
+      override def onPush(): Unit = {
         val message = grab(in)
-        ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Received Message: $message")
 
-        val uri = new URI(message.token).toURL
-        val bearerToken = WindowsTokenService.getToken(message.appName).map(_.token).getOrElse("INVALID")
-        val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken),RawHeader("Content-Type", "text/xml"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
+        try {
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: ON_PUSH for ${message.messageId}")
+          ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Received Message: $message")
 
-        val payload = HttpEntity(message.wnsPNType.getContentType, message.wnsPNType.getPayload)
-        val request = new HttpRequest(HttpMethods.POST, uri.getFile, headers, payload)
+          val uri = new URI(message.token).toURL
+          val bearerToken = WindowsTokenService.getToken(message.appName).map(_.token).getOrElse("INVALID")
+          val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken),RawHeader("Content-Type", "text/xml"), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
 
-        if(isAvailable(out))
-          push(out, (request, WNSRequestTracker(message.appName, message.messageId, message)))
+          val payload = HttpEntity(message.wnsPNType.getContentType, message.wnsPNType.getPayload)
+          val request = new HttpRequest(HttpMethods.POST, uri.getFile, headers, payload)
 
-      } catch {
-        case e: Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
-          if(!hasBeenPulled(in))
+          if(isAvailable(out)) {
+            push(out, (request, WNSRequestTracker(message.appName, message.messageId, message)))
+            ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PUSHED downstream for ${message.messageId}")
+          }
+
+        } catch {
+          case e: Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
+        } finally {
+          if(!hasBeenPulled(in)) {
+            ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PUSHED downstream for ${message.messageId}")
             pull(in)
+          }
+        }
       }
 
       override def onUpstreamFinish(): Unit = {
@@ -61,8 +69,10 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPull")
-        if(!hasBeenPulled(in))
+        if(!hasBeenPulled(in)) {
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PULLED upstream on downstream pull")
           pull(in)
+        }
       }
     })
 

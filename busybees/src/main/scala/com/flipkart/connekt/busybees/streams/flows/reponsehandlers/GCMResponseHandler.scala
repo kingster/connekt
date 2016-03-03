@@ -34,25 +34,24 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     setHandler(in, new InHandler {
 
       override def onPush(): Unit = {
+        val gcmResponse = grab(in)
+        ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: ON_PUSH for ${gcmResponse._2.messageId}")
         try {
-
-          ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPush.")
-          val gcmResponse = grab(in)
           val outEvents = handleGCMResponse(gcmResponse._1, gcmResponse._2)
 
           if (outEvents.nonEmpty)
             emitMultiple[PNCallbackEvent](out,outEvents.iterator,() => {
-              ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: emitMultiple :: Completed")
+              ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PUSHED downstream for ${gcmResponse._2.messageId}")
           })
-          else if (!hasBeenPulled(in))
-            pull(in)
-
 
         } catch {
           case e: Throwable =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onPush Error: ${e.getMessage}", e)
-            if (!hasBeenPulled(in))
-              pull(in)
+            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: ON_PUSH error: ${e.getMessage}", e)
+        } finally {
+          if (!hasBeenPulled(in)) {
+            pull(in)
+            ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream for ${gcmResponse._2.messageId}")
+          }
         }
       }
 
@@ -66,8 +65,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPull.")
-        if (!hasBeenPulled(in))
+        if (!hasBeenPulled(in)) {
           pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream on downstream pull.")
+        }
       }
     })
   }

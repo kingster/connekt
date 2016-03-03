@@ -23,35 +23,42 @@ class RenderFlow extends GraphStage[FlowShape[ConnektRequest, ConnektRequest]] {
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = {
     new GraphStageLogic(shape) {
       setHandler(in, new InHandler {
-        override def onPush(): Unit = try {
-          ConnektLogger(LogFile.PROCESSORS).info("RenderFlow:: onPush")
+        override def onPush(): Unit = {
           val m = grab(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow:: ON_PUSH for ${m.id}")
 
-          ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPush:: Received Message: ${m.getJson}")
-          lazy val cRD = m.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, m.channelDataModel)).get
+          try {
+            ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPush:: Received Message: ${m.getJson}")
+            lazy val cRD = m.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, m.channelDataModel)).get
 
-//          val mRendered = m.copy(channelData = Some(m.channelData).getOrElse(cRD))
+            val mRendered = m.copy(channelData = Option(m.channelData) match {
+              case Some(cD) => cD
+              case None => cRD
+            })
 
-          val mRendered = m.copy(channelData = Option(m.channelData) match {
-            case Some(cD) => cD
-            case None => cRD
-          })
-
-          if(isAvailable(out))
-            push(out, mRendered)
-        } catch {
-          case e: Throwable =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow:: onPush :: Error", e)
-            if(!hasBeenPulled(in))
+            if(isAvailable(out)) {
+              push(out, mRendered)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow:: PUSHED downstream for ${m.id}")
+            }
+          } catch {
+            case e: Throwable =>
+              ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow:: onPush :: Error", e)
+          } finally {
+            if(!hasBeenPulled(in)) {
               pull(in)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow:: PULLED upstream for ${m.id}")
+            }
+          }
         }
       })
 
       setHandler(out, new OutHandler {
         override def onPull(): Unit = {
           ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPull")
-          if(!hasBeenPulled(in))
+          if(!hasBeenPulled(in)) {
             pull(in)
+            ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow:: PULLED upstream on downstream pull.")
+          }
         }
       })
     }

@@ -31,33 +31,50 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
     setHandler(in, new InHandler {
 
-      override def onPush(): Unit = try {
-        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: OnPush")
+      override def onPush(): Unit = {
         val wnsResponse = grab(in)
-        handleWNSResponse(wnsResponse._1, wnsResponse._2) match {
-          case Some(pnCallbackEvent ) =>
-            if(isAvailable(out))
-              push[PNCallbackEvent](out, pnCallbackEvent)
-          case None =>
-            if(isAvailable(error))
-              push[WNSRequestTracker](error, wnsResponse._2)
-        }
+        ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: ON_PUSH for ${wnsResponse._2.requestId}")
 
-      } catch {
-        case e: Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler:: onPush :: Error", e)
-          if(!hasBeenPulled(in))
+        try {
+          handleWNSResponse(wnsResponse._1, wnsResponse._2) match {
+            case Some(pnCallbackEvent ) =>
+              if(isAvailable(out)) {
+                push[PNCallbackEvent](out, pnCallbackEvent)
+                ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PUSHED downstream for ${wnsResponse._2.requestId}")
+              }
+            case None =>
+              if(isAvailable(error))
+                push[WNSRequestTracker](error, wnsResponse._2)
+          }
+
+        } catch {
+          case e: Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler:: onPush :: Error", e)
+        } finally {
+          if(!hasBeenPulled(in)) {
             pull(in)
+            ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream for ${wnsResponse._2.requestId}")
+          }
+        }
       }
     })
 
-    Seq(out, error).foreach(o => {
-      setHandler(o, new OutHandler {
-        override def onPull(): Unit = {
-          if (!hasBeenPulled(in))
-            pull(in)
+    setHandler(out, new OutHandler {
+      override def onPull(): Unit = {
+        if (!hasBeenPulled(in)) {
+          pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream on downstream.out pull.")
         }
-      })
+      }
+    })
+
+    setHandler(error, new OutHandler {
+      override def onPull(): Unit = {
+        if (!hasBeenPulled(in)) {
+          pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream on downstream.error pull.")
+        }
+      }
     })
   }
 

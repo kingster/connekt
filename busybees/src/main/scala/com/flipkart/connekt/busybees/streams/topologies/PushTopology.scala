@@ -27,7 +27,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   implicit val mat = BusyBeesBoot.mat
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
-    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
+    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filter(_.equalsIgnoreCase("push_4825dc7d9193469cbc4408ece260b9ff"))
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
