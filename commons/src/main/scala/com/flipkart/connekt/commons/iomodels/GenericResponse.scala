@@ -18,10 +18,10 @@ property = "type"
 )
 @JsonSubTypes(Array(
 new Type(value = classOf[Response], name = "RESPONSE"),
-new Type(value = classOf[MulticastResponse], name = "MULTICAST_RESPONSE")
+new Type(value = classOf[SendResponse], name = "SEND_RESPONSE")
 ))
 abstract class ResponseBody
 
 case class Response(message: String, data: Any) extends ResponseBody
 
-case class MulticastResponse(message: String, success: Map[String, List[String]], failure: List[String]) extends ResponseBody
+case class SendResponse(message: String, success: Map[String, List[String]], failure: List[String]) extends ResponseBody
