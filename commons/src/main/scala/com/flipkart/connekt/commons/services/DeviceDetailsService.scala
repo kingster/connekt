@@ -8,6 +8,7 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Try}
+import com.roundeights.hasher.Implicits._
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
@@ -19,7 +20,8 @@ object DeviceDetailsService extends Instrumented {
   @Timed("add")
   def add(deviceDetails: DeviceDetails): Try[Unit] = Try_#(message = "DeviceDetailsService.add Failed") {
     dao.add(deviceDetails.appName, deviceDetails)
-    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
+    if (deviceDetails.userId != null)
+      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
     BigfootService.ingest(deviceDetails.toBigfootFormat)
   }
 
@@ -33,10 +35,12 @@ object DeviceDetailsService extends Instrumented {
     get(deviceDetails.appName, deviceId) flatMap {
       case Some(device) =>
         Try_ {
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
+          if (device.userId != null)
+            DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
+          if (deviceDetails.userId != null)
+            DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
 
           dao.update(deviceDetails.appName, deviceId, deviceDetails)
           BigfootService.ingest(deviceDetails.toBigfootFormat)
@@ -58,7 +62,8 @@ object DeviceDetailsService extends Instrumented {
       case Some(device) =>
         Try_ {
           dao.delete(appName, deviceId)
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
+          if (device.userId != null)
+            DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
           BigfootService.ingest(device.copy(active = false).toBigfootFormat)
@@ -95,7 +100,7 @@ object DeviceDetailsService extends Instrumented {
     val cacheMissedIds = deviceIds.diff(cacheHitsDevices.keySet.toList)
     val cacheMissDevices = dao.get(appName, cacheMissedIds)
 
-    if(cacheMissDevices.nonEmpty)
+    if (cacheMissDevices.nonEmpty)
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheMissDevices.map(device => (cacheKey(appName, device.deviceId), device)))
     cacheMissDevices ++ cacheHitsDevices.values
   }
@@ -110,6 +115,6 @@ object DeviceDetailsService extends Instrumented {
     }
   }
 
-  private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id
+  private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id.sha256.hash.hex
 
 }

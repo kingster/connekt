@@ -26,11 +26,11 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
   val hUserIndexTableName = tableName + "-user-index"
   val hTokenIndexTableName = tableName + "-token-index"
 
-  private def getRowKey(appName: String, deviceId: String) = appName.toLowerCase + "_" + deviceId
+  private def getRowKey(appName: String, deviceId: String) = appName.toLowerCase + "_" + deviceId.sha256.hash.hex
 
-  private def getUserIndexRowKey(appName: String, deviceId: String, userId: String) = appName.toLowerCase + "_" + userId + "_" + deviceId
+  private def getUserIndexRowKey(appName: String, deviceId: String, userId: String) = appName.toLowerCase + "_" + userId.sha256.hash.hex + "_" + deviceId
 
-  private def getUserIndexRowPrefix(appName: String, userId: String) = appName.toLowerCase + "_" + userId + "_"
+  private def getUserIndexRowPrefix(appName: String, userId: String) = appName.toLowerCase + "_" + userId.sha256.hash.hex + "_"
 
   private def getTokenIndexRowKey(appName: String, deviceId: String, tokenId: String) = appName.toLowerCase + "_" + tokenId.sha256.hash.hex + "_" + deviceId
 
