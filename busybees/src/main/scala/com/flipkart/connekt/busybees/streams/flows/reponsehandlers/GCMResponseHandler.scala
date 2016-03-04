@@ -84,10 +84,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     tryResponse match {
       case Success(r) =>
         ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: HttpResponse: $messageId")
+        val stringResponse = r.entity.getString
         r.status.intValue() match {
           case 200 =>
             try {
-              val stringResponse = r.entity.getString
               ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: HttpResponseBody: $stringResponse")
 
               val responseBody = stringResponse.getObj[ObjectNode]

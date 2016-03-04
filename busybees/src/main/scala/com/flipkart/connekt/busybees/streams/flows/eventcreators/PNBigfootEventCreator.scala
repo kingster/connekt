@@ -43,7 +43,7 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.
       override def onPull(): Unit = {
         if(!hasBeenPulled(in)) {
           pull(in)
-          ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator:: PULLED upstream on downstream pull.")
+          ConnektLogger(LogFile.PROCESSORS).info(s"PNBigfootEventCreator:: PULLED upstream on downstream pull.")
         }
       }
     })

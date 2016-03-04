@@ -2,17 +2,17 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
+import akka.stream.scaladsl.Sink
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
-import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsTokenService}
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
-import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -87,6 +87,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
     val maybePNCallbackEvent: Option[PNCallbackEvent] = tryResponse match {
       case Success(r) =>
+        r.entity.dataBytes.to(Sink.ignore)
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Received httpResponse for r: $requestId")
         Option(r.status.intValue() match {
           case 200 =>
