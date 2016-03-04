@@ -8,6 +8,7 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Try}
+import com.roundeights.hasher.Implicits._
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
@@ -114,6 +115,6 @@ object DeviceDetailsService extends Instrumented {
     }
   }
 
-  private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id
+  private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id.sha256.hash.hex
 
 }

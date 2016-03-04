@@ -13,6 +13,7 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 import com.flipkart.connekt.commons.utils.StringUtils._
+
 /**
  *
  *
@@ -28,13 +29,13 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
           authorize(user, "SEND_" + appName) {
             post {
               entity(as[ConnektRequest]) { r =>
-                val multicastRequest = r.copy(channel = "push")
-                ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${multicastRequest.toString}")
+                val request = r.copy(channel = "push")
+                ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
 
                 /* Find platform for each deviceId, group */
-                multicastRequest.validate() match {
+                request.validate() match {
                   case true =>
-                    val pnRequestInfo = multicastRequest.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
+                    val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
                     val deviceIds = pnRequestInfo.deviceId
                     val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
@@ -42,16 +43,16 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                       case MobilePlatform.UNKNOWN =>
                         val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
                         groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                          platform -> multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                          platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
                         }.values
                       case _ =>
-                        groupedPlatformRequests += multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
+                        groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
                     }
 
                     val failure = ListBuffer[String]()
                     val success = scala.collection.mutable.Map[String, List[String]]()
 
-                    val queueName = ServiceFactory.getPNMessageService.getRequestBucket(multicastRequest, user)
+                    val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
 
                     groupedPlatformRequests.toList.foreach { p =>
                       /* enqueue multiple requests into kafka */
@@ -74,4 +75,5 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
             }
           }
       }
+    }
 }
