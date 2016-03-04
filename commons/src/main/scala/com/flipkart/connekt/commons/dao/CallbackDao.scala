@@ -6,7 +6,7 @@ import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao.ColumnData
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
-
+import com.roundeights.hasher.Implicits._
 import scala.util.{Success, Try}
 
 /**
@@ -30,7 +30,8 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     try {
       val channelEventProps = channelEventPropsMap(callbackEvent)
       val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
-      val rowKey = s"$appName:$forContact:$requestId:$eventId"
+      val appContact = getHash(appName, forContact)
+      val rowKey = s"$appContact:$requestId:$eventId"
       addRow(rowKey, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Event details persisted for $requestId")
@@ -48,8 +49,8 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     val colFamiliesReqd = List(columnFamily)
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-
-      val rawDataList = fetchRows(s"$appName:$contactId:$requestId", s"$appName:$contactId:$requestId{", colFamiliesReqd, timestampRange)
+      val appContact = getHash(appName, contactId)
+      val rawDataList = fetchRows(s"$appContact:$requestId", s"$appContact:$requestId{", colFamiliesReqd, timestampRange)
       rawDataList.values.flatMap(rowData => {
         val eventProps = rowData.get(columnFamily)
         eventProps.map(mapToChannelEvent)
@@ -67,4 +68,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
   def fetchCallbackEvents(appName: String, requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]]
 
   def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]]
+
+  private def getHash(id: String*) = id.toSet[String].mkString.sha256.hash.hex
+
 }
