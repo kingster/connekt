@@ -39,9 +39,9 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJs
               val data = ServiceFactory.getPNMessageService.getRequestInfo(messageId).get
               data match {
                 case None =>
-                  complete(GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No events found for messageId $messageId.", null)))
+                  complete(GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No Message found for messageId $messageId.", null)))
                 case Some(x) =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Events fetched for messageId: $messageId.", data)))
+                  complete(GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Message info fetched for messageId: $messageId.", data)))
               }
             }
         }
@@ -63,9 +63,9 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJs
             val data = ServiceFactory.getPNMessageService.getRequestInfo(messageId).get // Not sure why this is getPNMessageService
             data match {
               case None =>
-                complete(GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No events found for messageId $messageId.", null)))
+                complete(GenericResponse(StatusCodes.NotFound.intValue, Map("messageId" -> messageId), Response(s"No Message found for messageId $messageId.", null)))
               case Some(x) =>
-                complete(GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Events fetched for messageId: $messageId.", data)))
+                complete(GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Message info fetched for messageId: $messageId.", data)))
             }
           }
 
