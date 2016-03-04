@@ -1,15 +1,13 @@
 package com.flipkart.connekt.commons.services
 
-import com.flipkart.connekt.commons.cache.{DistributedCacheType, DistributedCacheManager}
+import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedCacheType}
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
 
-import scala.collection.mutable.ListBuffer
-import scala.util.{Try, Failure, Success}
-
-import com.flipkart.connekt.commons.core.Wrappers._
+import scala.util.{Failure, Try}
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
@@ -22,7 +20,7 @@ object DeviceDetailsService extends Instrumented {
   def add(deviceDetails: DeviceDetails): Try[Unit] = Try_#(message = "DeviceDetailsService.add Failed") {
     dao.add(deviceDetails.appName, deviceDetails)
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
-    BigfootService.ingest(deviceDetails.toBigfootEntity)
+    BigfootService.ingest(deviceDetails.toBigfootFormat)
   }
 
   /**
@@ -41,7 +39,7 @@ object DeviceDetailsService extends Instrumented {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
 
           dao.update(deviceDetails.appName, deviceId, deviceDetails)
-          BigfootService.ingest(deviceDetails.toBigfootEntity)
+          BigfootService.ingest(deviceDetails.toBigfootFormat)
         }
       case None => Failure(new Throwable(s"No Device Detail found for id: [$deviceId] to update."))
     }
@@ -63,7 +61,7 @@ object DeviceDetailsService extends Instrumented {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
-          BigfootService.ingest(device.copy(active = false).toBigfootEntity)
+          BigfootService.ingest(device.copy(active = false).toBigfootFormat)
         }
       case None =>
         Failure(new Throwable(s"No Device Detail found for app: [$appName] id: [$deviceId] to delete."))
@@ -112,6 +110,6 @@ object DeviceDetailsService extends Instrumented {
     }
   }
 
-  private def cacheKey(appName: String, id: String): String = appName + "_" + id
+  private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id
 
 }

@@ -22,7 +22,7 @@ object BigfootService extends Instrumented {
 
   val socketClient = DaoFactory.phantomClientSocket
 
-  val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(true)
+  val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(false)
 
   private def ingest(request: SpecterRequest): Try[Boolean] = {
     if (ingestionEnabled) {
@@ -36,13 +36,13 @@ object BigfootService extends Instrumented {
         }
       } catch {
         case e: PhantomClientException =>
-          ConnektLogger(LogFile.SERVICE).error("Specter connection Error, FAILED_TO_INGEST", e)
+          ConnektLogger(LogFile.SERVICE).error(s"Specter connection Error, FAILED_TO_INGEST [${request.getObject.getJson}]", e)
           Failure(e)
         case ie: InterruptedException =>
-          ConnektLogger(LogFile.SERVICE).error("Interrupt Exception , FAILED_TO_INGEST", ie)
+          ConnektLogger(LogFile.SERVICE).error(s"Interrupt Exception , FAILED_TO_INGEST [${request.getObject.getJson}]", ie)
           Failure(ie)
         case e: Exception =>
-          ConnektLogger(LogFile.SERVICE).error("Unknown ERROR, FAILED_TO_INGEST", e)
+          ConnektLogger(LogFile.SERVICE).error(s"Unknown ERROR, FAILED_TO_INGEST [${request.getObject.getJson}]", e)
           Failure(e)
       }
     } else {

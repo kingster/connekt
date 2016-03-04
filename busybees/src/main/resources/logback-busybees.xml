@@ -4,7 +4,7 @@
             <pattern>%n%date [%thread] %highlight(%-5level) %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    
+
     <appender name="WORKERS" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</file>
         <encoder>
@@ -101,10 +101,10 @@
     <logger name="CLIENTS" level="DEBUG" additivity="false">
         <appender-ref ref="CLIENTS"/>
     </logger>
-    <logger name="PROCESSORS" additivity="false">
+    <logger name="PROCESSORS" level="DEBUG" additivity="false">
         <appender-ref ref="PROCESSORS"/>
     </logger>
-    <logger name="SERVICE" additivity="false">
+    <logger name="SERVICE" level="DEBUG" additivity="false">
         <appender-ref ref="SERVICE"/>
     </logger>
     <logger name="DAO" additivity="false">
@@ -123,7 +123,7 @@
     <logger name="com.flipkart" level="ALL"  />
     <logger name="com.flipkart.kloud.config" level="ERROR"/>
 
-    <root level="ALL">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 

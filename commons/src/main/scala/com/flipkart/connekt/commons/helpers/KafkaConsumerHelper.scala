@@ -20,7 +20,7 @@ trait KafkaConsumer {
   def readMessage(topic: String): Option[String]
 }
 
-class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: Config) extends KafkaConnectionHelper with GenericObjectPoolHelper {
+class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Config) extends KafkaConnectionHelper with GenericObjectPoolHelper {
 
   validatePoolProps("kafka consumer pool", globalContextConf)
 
@@ -73,9 +73,9 @@ class KafkaConsumerHelper (val consumerFactoryConf: Config, globalContextConf: C
       s
     })
 
-    if(consumerStream.isDefined) {
+    if (consumerStream.isDefined) {
       val i = consumerStream.get.iterator()
-      if(i.hasNext()) Some(new String(i.next.message))
+      if (i.hasNext()) Some(new String(i.next.message))
     }
     None
   }
@@ -96,4 +96,5 @@ object KafkaConsumerHelper extends KafkaConsumer {
   def shutdown() = instance.shutdown()
 
   def readMessage(topic: String): Option[String] = instance.readMessage(topic)
+
 }

@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.entities
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
 import com.flipkart.connekt.commons.utils.DateTimeUtils
 
 /**
@@ -19,9 +20,9 @@ case class DeviceDetails(deviceId: String,
                          brand: String,
                          model: String,
                          state: String = "",
-                         active: Boolean = true) {
+                         active: Boolean = true) extends BigfootSupport[fkint.mp.connekt.DeviceDetails] {
 
-  def toBigfootEntity: fkint.mp.connekt.DeviceDetails = {
+  def toBigfootFormat: fkint.mp.connekt.DeviceDetails = {
     fkint.mp.connekt.DeviceDetails(
       deviceId = deviceId, userId = userId, token = token, osName = osName, osVersion = osVersion,
       appName = appName, appVersion = appVersion, brand = brand, model = model, state = state,

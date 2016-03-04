@@ -14,14 +14,14 @@ envKey := {
 
 
 /** all akka only **/
-val akkaVersion = "2.4.2-RC2"
+val akkaVersion = "2.4.2"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-stream" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-http-core" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion withSources(),
   "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion withSources() withJavadoc(),
-  "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaVersion % Test withSources() withJavadoc()
+  "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaVersion.concat("-RC2") % Test withSources() withJavadoc()
 )
 
 libraryDependencies ++= Seq(
@@ -73,6 +73,7 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "jline", name = "jline"),
     ExclusionRule(organization = "commons-beanutils")
     ),
+
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
   "com.lmax" % "disruptor" % "3.3.2",
@@ -90,10 +91,11 @@ libraryDependencies ++= Seq(
   "com.couchbase.client" % "java-client" % "2.1.3",
   "io.reactivex" %% "rxscala" % "0.26.0",
   "org.apache.curator" % "curator-recipes" % "2.9.1",
-  "com.flipkart.specter" % "specter-client" % "1.1.4",
+  "com.flipkart.specter" % "specter-client" % "1.4.0-SNAPSHOT",
   "joda-time" % "joda-time" % "2.3",
   "com.flipkart" %% "util-config" % "0.0.1",
-  "com.flipkart" %% "espion" % "1.0.0"
+  "com.flipkart" %% "espion" % "1.0.0",
+  "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT"
 )
 
 

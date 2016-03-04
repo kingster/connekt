@@ -22,9 +22,8 @@ class KeyChainRouteTest extends BaseRouteTest {
   implicit val uu = new AppUser(userId = "connekt-genesis",
     apiKey = "connekt-genesis",
     groups = "revbnt",
-    contact = "",
-    lastUpdatedTs = new Date(),
-    updatedBy = "@#!45y")
+    contact = ""
+  )
   val appName = StringUtils.generateRandomStr(6)
   val os = "windows"
 

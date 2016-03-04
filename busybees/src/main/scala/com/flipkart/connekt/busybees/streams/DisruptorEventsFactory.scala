@@ -1,4 +1,4 @@
-package com.flipkart.connekt.busybees.flows
+package com.flipkart.connekt.busybees.streams
 
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.lmax.disruptor.EventFactory

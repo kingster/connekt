@@ -12,7 +12,7 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -27,7 +27,8 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
         (appPlatform: MobilePlatform, appName: String) =>
           authorize(user, "MULTICAST_" + appName) {
             post {
-              entity(as[ConnektRequest]) { multicastRequest =>
+              entity(as[ConnektRequest]) { r =>
+                val multicastRequest = r.copy(channel = "push")
                 ConnektLogger(LogFile.SERVICE).debug(s"Received multicast PN request with payload: ${multicastRequest.toString}")
 
                 /* Find platform for each deviceId, group */
@@ -44,13 +45,13 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                           platform -> multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
                         }.values
                       case _ =>
-                        groupedPlatformRequests += multicastRequest
+                        groupedPlatformRequests += multicastRequest.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
                     }
 
                     val failure = ListBuffer[String]()
                     val success = scala.collection.mutable.Map[String, List[String]]()
 
-                    val queueName = ServiceFactory.getPNMessageService.getRequestBucket(multicastRequest.copy(channel = "push"), user)
+                    val queueName = ServiceFactory.getPNMessageService.getRequestBucket(multicastRequest, user)
 
                     groupedPlatformRequests.toList.foreach { p =>
                       /* enqueue multiple requests into kafka */
@@ -64,6 +65,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
 
                     complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)))
                   case false =>
+                    ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                     complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
 
                 }
@@ -87,6 +89,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                       val requestId = ServiceFactory.getPNMessageService.saveRequest(unicastRequest, queueName, isCrucial = true).get
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
                     case false =>
+                      ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
                   }
 

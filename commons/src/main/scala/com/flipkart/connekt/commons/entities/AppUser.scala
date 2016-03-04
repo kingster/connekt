@@ -34,16 +34,13 @@ class AppUser {
   def this(userId: String,
            apiKey: String,
            groups: String,
-           contact: String,
-           lastUpdatedTs: Date,
-           updatedBy: String) {
+           contact: String
+           ) {
     this()
     this.userId = userId
     this.apiKey = apiKey
     this.groups = groups
     this.contact = contact
-    this.lastUpdatedTs = lastUpdatedTs
-    this.updatedBy = updatedBy
   }
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[AppUser]

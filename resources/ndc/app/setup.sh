@@ -9,9 +9,12 @@ apt-get install --yes --allow-unauthenticated infra-cli
 #setup your package
 reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-app --appkey connekt > /etc/apt/sources.list.d/fk-connekt-app.list
 reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-commons --appkey connekt > /etc/apt/sources.list.d/fk-connekt-commons.list
-
+reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name openssl102 --appkey openssl102 > /etc/apt/sources.list.d/openssl.list
 
 sudo apt-get update
+
+export DEBIAN_FRONTEND=noninteractive
+echo 'libc6 libraries/restart-without-asking boolean true' | sudo debconf-set-selections
 
 sudo apt-get install --yes --allow-unauthenticated fk-pf-connekt
 sudo /etc/init.d/fk-pf-connekt set-env ndc

@@ -8,6 +8,8 @@ trait TUserConfiguration {
 
   def getUserConfiguration(userId: String, channel: Channel): Option[AppUserConfiguration]
 
+  def getAllUserConfiguration(channel: Channel): List[AppUserConfiguration]
+
   def addUserConfiguration(config: AppUserConfiguration)
 
 }

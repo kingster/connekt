@@ -22,9 +22,6 @@ CONNEKT_API_JAR=${CONNEKT_API_BASE_DIR}/${PACKAGE}.jar
 CONNEKT_API_PID_PATH=/var/run/${PACKAGE}
 CONNEKT_API_PID_FILE=${CONNEKT_API_PID_PATH}/${PACKAGE}.pid
 
-# Set umask for all files created by this process
-umask 0777
-
 source /etc/default/${PACKAGE}
 
 if [  -f /etc/profile.d/kenv.sh ]; then

@@ -1,3 +1,5 @@
+import sbt.Keys._
+
 /** Project */
 organization := "com.flipkart.marketing"
 
@@ -18,7 +20,7 @@ publishTo := {
 }
 
 libraryDependencies ++= Seq(
-  "org.scala-lang" % "scala-library" % "2.10.4",
+  "org.scala-lang" % "scala-library" % scalaVersion.value,
   "junit" % "junit" % "4.8.1" % Test,
   "org.scala-tools.testing" % "specs_2.10" % "1.6.9" % Test,
   "org.apache.hbase" % "hbase" % "0.94.15-cdh4.7.0"

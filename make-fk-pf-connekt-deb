@@ -41,6 +41,8 @@ case "$TARGET" in
 esac
 [ -z "$ENV" ] && die "Invalid target: $TARGET"
 
+echo "Running Build on...  `hostname -f`"
+
 ##No Squeeze build on nm.
 if [ "$TARGET" == "nm" ]; then
     ##check if Squeeze build
@@ -53,8 +55,6 @@ if [ "$TARGET" == "nm" ]; then
             ;;
     esac
 fi
-
-echo "Running Build on...  `hostname -f`"
 
 # Create base dir for debian packaging
 BASE_DIR="$LOCAL_DIR"

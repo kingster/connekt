@@ -56,5 +56,4 @@ object KeyChainManager {
     storage.get(getNameSpacedKey(MobilePlatform.ANDROID, name)).get.map(KryoSerializer.deserialize[GoogleCredential])
   }
 
-
 }

@@ -10,11 +10,12 @@
     <logger name="org.apache" level="ERROR"/>
     <logger name="io.netty" level="ERROR"/>
     <logger name="com.couchbase.client" level="ERROR"/>
-    <logger name="com.flipkart" level="ALL"  />
+
+    <logger name="com.flipkart" level="DEBUG"  />
     <logger name="com.flipkart.kloud.config" level="ERROR"/>
 
 
-    <root level="INFO" additivity="false">
+    <root level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT" />
     </root>
 

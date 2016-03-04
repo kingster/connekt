@@ -42,7 +42,7 @@ class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                   messageIds.filterNot(skipMessageIds.contains).flatMap(mId => messageService.getRequestInfo(mId).getOrElse(None))
                 })
 
-                val pushRequests = messages.get.map(r => r.id -> r.channelData.asInstanceOf[PNRequestData]).toMap
+                val pushRequests = messages.get.map(r => r.id -> r.channelData.asInstanceOf[PNRequestData].data).toMap
 
                 complete(
                   GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))

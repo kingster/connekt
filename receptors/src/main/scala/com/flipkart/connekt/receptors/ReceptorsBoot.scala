@@ -8,6 +8,7 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.connekt.receptors.service.ReceptorsServer
 import com.typesafe.config.ConfigFactory
@@ -24,16 +25,19 @@ object ReceptorsBoot extends BaseApp {
 
 
   def start() {
-    if (!initialized.get()) {
-
-      ConnektConfig(configServiceHost, configServicePort)()
+    if (!initialized.getAndSet(true)) {
 
       ConnektLogger(LogFile.SERVICE).info("Receptors initializing.")
 
       val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-receptors.xml")
       val logConfigFile = getClass.getClassLoader.getResourceAsStream(configFile)
-      ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
+
+      ConnektLogger(LogFile.SERVICE).info(s"Receptors Logging using $configFile")
       ConnektLogger.init(logConfigFile)
+
+      ConnektConfig(configServiceHost, configServicePort)()
+
+      SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider())
 

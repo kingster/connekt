@@ -17,6 +17,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
 
     val m = scala.collection.mutable.Map[String, Array[Byte]]()
+
     Option(pnRequestInfo.deviceId).foreach(m += "deviceId" -> _.mkString(",").getUtf8Bytes)
     Option(pnRequestInfo.platform).foreach(m += "platform" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.appName).foreach(m += "appName" -> _.toString.getUtf8Bytes)

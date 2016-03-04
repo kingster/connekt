@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.{AppUser, Bucket, Stencil}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.StencilService
+import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
@@ -45,6 +46,12 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                 }
               }
             }
+        } ~ path("bucket" / "touch" / Segment) {
+          (name: String) =>
+            post {
+              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(name)))
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $name", null)))
+            }
         } ~ pathPrefix(Segment) {
           (id: String) =>
             StencilService.get(id) match {
@@ -54,12 +61,8 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                   post {
                     entity(as[ObjectNode]) { entity =>
                       authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
-                        StencilService.render(stencil, entity) match {
-                          case Some(channelRequest) =>
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))))
-                          case None =>
-                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils cannot be render for id: $id", null)))
-                        }
+                        val channelReqData = StencilService.render(stencil, entity)
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelReqData))))
                       }
                     }
                   }
@@ -70,13 +73,9 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                         entity(as[ObjectNode]) { entity =>
                           authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
                             StencilService.get(id, Some(version)) match {
-                              case Some(stnc) =>
-                                StencilService.render(stnc, entity) match {
-                                  case Some(channelRequest) =>
-                                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))))
-                                  case None =>
-                                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils cannot be render for id: $id", null)))
-                                }
+                              case Some(stn) =>
+                                val channelRequest = StencilService.render(stn, entity)
+                                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("channelRequest" -> channelRequest))))
                               case None =>
                                 complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils Not found for id: $id", null)))
                             }
@@ -90,7 +89,7 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                             case Some(stnc) =>
                               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencil))))
                             case None =>
-                              complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Stencil not found for name: $id with version: $version", null)))
+                              complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id with version: $version", null)))
                           }
                         }
                       }
@@ -117,8 +116,14 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                   }
                 }
               case None =>
-                complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Stencil not found for name: $id", null)))
+                complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id", null)))
 
+            }
+        } ~ path("touch" / Segment) {
+          (stencilId: String) =>
+            post {
+              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(stencilId)))
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $stencilId", null)))
             }
         } ~ pathEndOrSingleSlash {
           post {
@@ -126,7 +131,6 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
               val bucketIds = stencil.bucket.split(",").map(StencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "")
               val resources = bucketIds.map("STENCIL_UPDATE_" + _)
               authorize(user, resources: _*) {
-
                 stencil.bucket = bucketIds.mkString(",")
                 stencil.id = "STNC" + StringUtils.generateRandomStr(4)
                 stencil.createdBy = user.userId
@@ -134,9 +138,12 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                 stencil.version = 1
                 stencil.creationTS = new Date(System.currentTimeMillis())
 
-                StencilService.add(stencil).get
-                complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: ${stencil.id}", Map("id" -> stencil.id))))
-
+                StencilService.add(stencil) match {
+                  case Success(sten) =>
+                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: ${stencil.id}", Map("id" -> stencil.id))))
+                  case Failure(e) =>
+                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: ${stencil.id}, e: ${e.getMessage}", null)))
+                }
               }
             }
           }
