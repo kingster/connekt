@@ -1,6 +1,7 @@
 package com.flipkart.connekt.commons.cache
 
 import com.couchbase.client.java.document.StringDocument
+import com.couchbase.client.java.error.DocumentDoesNotExistException
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -94,6 +95,8 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     try {
       cacheStorageBucket.remove(StringDocument.create(key))
     } catch {
+      case nonExisting: DocumentDoesNotExistException =>
+        ConnektLogger(LogFile.SERVICE).warn(s"No Document for ${cacheName.toString} / $key to Delete")
       case e: Throwable =>
         ConnektLogger(LogFile.SERVICE).error(s"Error removing $key for bucket ${cacheName.toString}", e)
     }

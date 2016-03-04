@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.{AppUser, Bucket, Stencil}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.StencilService
+import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
@@ -44,6 +45,12 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                     complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"StencilBucket not found for name: $name}", null)))
                 }
               }
+            }
+        } ~ path("bucket" / "touch" / Segment) {
+          (name: String) =>
+            post {
+              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(name)))
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $name", null)))
             }
         } ~ pathPrefix(Segment) {
           (id: String) =>
@@ -111,6 +118,12 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
               case None =>
                 complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id", null)))
 
+            }
+        } ~ path("touch" / Segment) {
+          (stencilId: String) =>
+            post {
+              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(stencilId)))
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $stencilId", null)))
             }
         } ~ pathEndOrSingleSlash {
           post {

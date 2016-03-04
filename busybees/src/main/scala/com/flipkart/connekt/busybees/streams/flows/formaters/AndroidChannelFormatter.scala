@@ -21,36 +21,44 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = try {
-
+      override def onPush(): Unit = {
         val message = grab(in)
+        ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: ON_PUSH for ${message.id}")
+        try {
+          ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelFormatter:: onPush:: Received Message: ${message.getJson}")
 
-        ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelFormatter:: onPush:: Received Message: ${message.getJson}")
+          val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
+          val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(_.token)
 
-        val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-        val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(_.token)
+          val appDataWithId = message.channelData.asInstanceOf[PNRequestData].data.put("messageId", message.id)
+          val gcmPayload = pnInfo.platform.toUpperCase match {
+            case "ANDROID" => GCMPNPayload(tokens, pnInfo.delayWhileIdle, appDataWithId)
+            case "OPENWEB" => OpenWebGCMPayload(tokens)
+          }
 
-        val appDataWithId = message.channelData.asInstanceOf[PNRequestData].data.put("messageId", message.id)
-        val gcmPayload = pnInfo.platform.toUpperCase match {
-          case "ANDROID" => GCMPNPayload(tokens, pnInfo.delayWhileIdle, appDataWithId)
-          case "OPENWEB" => OpenWebGCMPayload(tokens)
-        }
+          if(isAvailable(out)) {
+            push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
+            ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PUSHED downstream for ${message.id}")
+          }
 
-        if(isAvailable(out))
-          push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
-
-      }catch {
-        case e:Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
-          if(!hasBeenPulled(in))
+        } catch {
+          case e:Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
+        } finally {
+          if(!hasBeenPulled(in)) {
             pull(in)
+            ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PULLED upstream for ${message.id}")
+          }
+        }
       }
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        if(!hasBeenPulled(in))
+        if(!hasBeenPulled(in)) {
           pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PULLED upstream on downstream pull.")
+        }
       }
     })
 

@@ -1,9 +1,11 @@
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import akka.stream.stage.{InHandler, OutHandler, GraphStage, GraphStageLogic}
-import akka.stream.{Outlet, Inlet, Attributes, FlowShape}
+import java.util.concurrent.TimeUnit
+
+import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -25,37 +27,47 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = try {
+      override def onPush(): Unit = {
 
-        ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: onPush.")
         val message = grab(in)
+        ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: ON_PUSH for ${message.id}")
 
-        ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
-        val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-        val tokens = pnInfo.deviceId.flatMap(DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, _)).map(_.token)
-        val apnsPayloads = tokens.map(iOSPNPayload(_, Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
-        val apnsEnvelopes = apnsPayloads.map(APSPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
+        try {
+          ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
+          val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
+          val tokens = pnInfo.deviceId.flatMap(DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, _)).map(_.token)
+          val apnsPayloads = tokens.map(iOSPNPayload(_, getExpiry(message.expiryTs), Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
+          val apnsEnvelopes = apnsPayloads.map(APSPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
 
-        if(apnsEnvelopes.nonEmpty)
-          emitMultiple[APSPayloadEnvelope](out, apnsEnvelopes.iterator)
-        else if(!hasBeenPulled(in))
-          pull(in)
+          if (apnsEnvelopes.nonEmpty)
+            emitMultiple[APSPayloadEnvelope](out, apnsEnvelopes.iterator, () => {
+              ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
+            })
 
-      } catch {
-        case e: Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: onPush :: Error", e)
-          if(!hasBeenPulled(in))
-          pull(in)
+        } catch {
+          case e: Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: onPush :: Error", e)
+        } finally {
+          if (!hasBeenPulled(in)) {
+            pull(in)
+            ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PULLED upstream for ${message.id}")
+          }
+        }
       }
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        if(!hasBeenPulled(in))
+        if (!hasBeenPulled(in))
           pull(in)
+        ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PULLED upstream on downstream pull.")
       }
     })
 
+  }
+
+  private def getExpiry(ts: Option[Long]): Long = {
+    ts.getOrElse(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(6))
   }
 
 }

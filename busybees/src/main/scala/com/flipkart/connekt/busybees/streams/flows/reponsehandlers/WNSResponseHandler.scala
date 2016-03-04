@@ -2,17 +2,17 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
+import akka.stream.scaladsl.Sink
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
-import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsTokenService}
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
-import com.flipkart.connekt.commons.utils.StringUtils._
 /**
  *
  *
@@ -31,33 +31,50 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
     setHandler(in, new InHandler {
 
-      override def onPush(): Unit = try {
-        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: OnPush")
+      override def onPush(): Unit = {
         val wnsResponse = grab(in)
-        handleWNSResponse(wnsResponse._1, wnsResponse._2) match {
-          case Some(pnCallbackEvent ) =>
-            if(isAvailable(out))
-              push[PNCallbackEvent](out, pnCallbackEvent)
-          case None =>
-            if(isAvailable(error))
-              push[WNSRequestTracker](error, wnsResponse._2)
-        }
+        ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: ON_PUSH for ${wnsResponse._2.requestId}")
 
-      } catch {
-        case e: Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler:: onPush :: Error", e)
-          if(!hasBeenPulled(in))
+        try {
+          handleWNSResponse(wnsResponse._1, wnsResponse._2) match {
+            case Some(pnCallbackEvent ) =>
+              if(isAvailable(out)) {
+                push[PNCallbackEvent](out, pnCallbackEvent)
+                ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PUSHED downstream for ${wnsResponse._2.requestId}")
+              }
+            case None =>
+              if(isAvailable(error))
+                push[WNSRequestTracker](error, wnsResponse._2)
+          }
+
+        } catch {
+          case e: Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler:: onPush :: Error", e)
+        } finally {
+          if(!hasBeenPulled(in)) {
             pull(in)
+            ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream for ${wnsResponse._2.requestId}")
+          }
+        }
       }
     })
 
-    Seq(out, error).foreach(o => {
-      setHandler(o, new OutHandler {
-        override def onPull(): Unit = {
-          if (!hasBeenPulled(in))
-            pull(in)
+    setHandler(out, new OutHandler {
+      override def onPull(): Unit = {
+        if (!hasBeenPulled(in)) {
+          pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream on downstream.out pull.")
         }
-      })
+      }
+    })
+
+    setHandler(error, new OutHandler {
+      override def onPull(): Unit = {
+        if (!hasBeenPulled(in)) {
+          pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream on downstream.error pull.")
+        }
+      }
     })
   }
 
@@ -70,6 +87,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
     val maybePNCallbackEvent: Option[PNCallbackEvent] = tryResponse match {
       case Success(r) =>
+        r.entity.dataBytes.to(Sink.ignore)
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Received httpResponse for r: $requestId")
         Option(r.status.intValue() match {
           case 200 =>
@@ -107,7 +125,18 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.ThrottleLimitExceeded, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
           case 410 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel expired.")
-            DeviceDetailsService.delete(requestTracker.appName, requestTracker.request.deviceId)
+            DeviceDetailsService.get(appName, requestTracker.request.deviceId).transform[PNCallbackEvent]({
+              case Some(dd) if dd.osName == "windows" =>
+                DeviceDetailsService.delete(appName, requestTracker.request.deviceId)
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The channel expired. Deleting Device [${requestTracker.request.deviceId}}] $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidChannelUri, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+              case Some(dd)  =>
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${requestTracker.request.deviceId}}] platform does not match with connekt Request platform $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.InvalidDevice, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+              case None =>
+                ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${requestTracker.request.deviceId}}] doesn't exist $requestId")
+                Success(PNCallbackEvent(requestId, deviceId, MobilePlatform.WINDOWS, WNSResponseStatus.DeletedDevice, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
+            }, Failure(_)).get
             PNCallbackEvent(requestId, deviceId = "", MobilePlatform.WINDOWS, WNSResponseStatus.ChannelExpired, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
           case 413 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The notification payload exceeds the 5000 byte size limit. $requestId")

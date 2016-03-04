@@ -21,29 +21,34 @@ class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPa
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
-      override def onPush(): Unit = try {
-
+      override def onPush(): Unit = {
         val message = grab(in)
+        ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: ON_PUSH for ${message.id}")
 
-        ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: Received Message: ${message.getJson}")
+        try {
+          ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: Received Message: ${message.getJson}")
 
-        val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-        val wnsPayload = message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]
-        val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
-        val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
+          val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
+          val wnsPayload = message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]
+          val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
+          ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: devices: ${devices.getJson}")
 
-        if (wnsRequestEnvelopes.nonEmpty)
-          emitMultiple[WNSPayloadEnvelope](out, wnsRequestEnvelopes.iterator, () => {
-              ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: emitMultiple :: Completed")
-          })
-        else if (!hasBeenPulled(in))
-          pull(in)
+          val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
 
-      } catch {
-        case e: Throwable =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: onPush :: Error", e)
-          if (!hasBeenPulled(in))
+          if (wnsRequestEnvelopes.nonEmpty)
+            emitMultiple[WNSPayloadEnvelope](out, wnsRequestEnvelopes.iterator, () => {
+              ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: PUSHED downstream for ${message.id}")
+            })
+
+        } catch {
+          case e: Throwable =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: onPush :: Error", e)
+        } finally {
+          if (!hasBeenPulled(in)) {
+            ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: PULLED upstream for ${message.id}")
             pull(in)
+          }
+        }
       }
 
       override def onUpstreamFinish(): Unit = {
@@ -60,8 +65,10 @@ class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPa
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        if (!hasBeenPulled(in))
+        if (!hasBeenPulled(in)) {
           pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: PULLED upstream on downstream pull.")
+        }
       }
 
       override def onDownstreamFinish(): Unit = {

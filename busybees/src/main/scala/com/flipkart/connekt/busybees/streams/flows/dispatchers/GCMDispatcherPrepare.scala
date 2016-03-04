@@ -29,26 +29,32 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
     setHandler(in, new InHandler {
 
       override def onPush(): Unit = {
+        val message = grab(in)
         try {
-          val message = grab(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: ON_PUSH for ${message.messageId}")
           ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: onPush:: Received Message: ${message.toString}")
 
           val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
-          val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))
+          val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey), RawHeader("Content-Type", "application/json;charset=utf-8"))
           val httpRequest = new HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
           val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName)
 
           ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: onPush:: Request Payload : ${httpRequest.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
           ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: onPush:: Relayed (HttpRequest,requestTrace) to next stage for: ${requestTrace.messageId}")
 
-          if(isAvailable(out))
+          if(isAvailable(out)) {
             push(out, (httpRequest, requestTrace))
+            ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: PUSHED downstream for ${message.messageId}")
+          }
 
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare:: onPush :: ${e.getMessage}", e)
-            if(!hasBeenPulled(in))
-              pull(in)
+        } finally {
+          if(!hasBeenPulled(in)) {
+            pull(in)
+            ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: PULLED upstream for ${message.messageId}")
+          }
         }
       }
 
@@ -58,18 +64,20 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
       }
 
 
-      
+
     })
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"GCMDispatcherPrepare:: onPull")
-        if(!hasBeenPulled(in))
+        if(!hasBeenPulled(in)) {
           pull(in)
+          ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: PULLED upstream on downstream pull.")
+        }
       }
 
       override def onDownstreamFinish(): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare:: onDownstreamFinish")
+        ConnektLogger(LogFile.PROCESSORS).info(s"GCMDispatcherPrepare:: onDownstreamFinish")
         super.onDownstreamFinish()
       }
 
