@@ -26,15 +26,15 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
   val hUserIndexTableName = tableName + "-user-index"
   val hTokenIndexTableName = tableName + "-token-index"
 
-  private def getRowKey(appName: String, deviceId: String) = appName.toLowerCase + "_" + deviceId.sha256.hash.hex
+  private def getRowKey(appName: String, deviceId: String) = deviceId.sha256.hash.hex + "_" + appName.toLowerCase
 
-  private def getUserIndexRowKey(appName: String, deviceId: String, userId: String) = appName.toLowerCase + "_" + userId.sha256.hash.hex + "_" + deviceId
+  private def getUserIndexRowKey(appName: String, deviceId: String, userId: String) = userId.sha256.hash.hex + "_" + appName.toLowerCase + "_" + deviceId
 
-  private def getUserIndexRowPrefix(appName: String, userId: String) = appName.toLowerCase + "_" + userId.sha256.hash.hex + "_"
+  private def getUserIndexRowPrefix(appName: String, userId: String) = userId.sha256.hash.hex + "_" + appName.toLowerCase + "_"
 
-  private def getTokenIndexRowKey(appName: String, deviceId: String, tokenId: String) = appName.toLowerCase + "_" + tokenId.sha256.hash.hex + "_" + deviceId
+  private def getTokenIndexRowKey(appName: String, deviceId: String, tokenId: String) = tokenId.sha256.hash.hex + "_" + appName.toLowerCase + "_" + deviceId
 
-  private def getTokenIndexRowPrefix(appName: String, tokenId: String) = appName.toLowerCase + "_" + tokenId.sha256.hash.hex + "_"
+  private def getTokenIndexRowPrefix(appName: String, tokenId: String) = tokenId.sha256.hash.hex + "_" + appName.toLowerCase + "_"
 
   @Timed("add")
   def add(appName: String, deviceDetails: DeviceDetails) = {
