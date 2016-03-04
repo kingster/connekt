@@ -36,10 +36,10 @@ class CallbackServiceTest extends CommonsBaseTest {
     scheduleTs = Some(System.currentTimeMillis()),
     expiryTs = Some(System.currentTimeMillis()),
     channelInfo = PNRequestInfo(platform = callBackEvent.platform,
-                      appName = callBackEvent.appName,
-                      deviceId = List[String](callBackEvent.deviceId),
-                      ackRequired = true,
-                      delayWhileIdle = true),
+      appName = callBackEvent.appName,
+      deviceId = List[String](callBackEvent.deviceId),
+      ackRequired = true,
+      delayWhileIdle = true),
     channelData = PNRequestData(data.getObj[ObjectNode]),
     meta = Map()
   )
@@ -50,12 +50,12 @@ class CallbackServiceTest extends CommonsBaseTest {
     pnInfo = pnInfo.copy(id = mid)
 
     val callbackService = ServiceFactory.getCallbackService
-    callbackService.persistCallbackEvent(callBackEvent.appName, callBackEvent.messageId, callBackEvent.deviceId, Channel.PUSH, callBackEvent).isSuccess shouldEqual true
+    callbackService.persistCallbackEvent(callBackEvent.messageId, s"${callBackEvent.appName}${callBackEvent.deviceId}", Channel.PUSH, callBackEvent).isSuccess shouldEqual true
   }
 
   "Callback Service" should "fetchCallbackEvent" in {
     val callbackService = ServiceFactory.getCallbackService
-    val fetchCallBacks = callbackService.fetchCallbackEvent(callBackEvent.appName, callBackEvent.messageId, callBackEvent.deviceId, Channel.PUSH)
+    val fetchCallBacks = callbackService.fetchCallbackEvent(callBackEvent.messageId, s"${callBackEvent.appName}${callBackEvent.deviceId}", Channel.PUSH)
     fetchCallBacks.isSuccess shouldEqual true
     fetchCallBacks.get.length shouldEqual 1
   }
@@ -63,21 +63,21 @@ class CallbackServiceTest extends CommonsBaseTest {
 
   "Callback Service" should "fetch by contact id" in {
     val callbackService = ServiceFactory.getCallbackService
-    val result = callbackService.fetchCallbackEventByContactId(callBackEvent.appName, callBackEvent.deviceId, Channel.PUSH, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
+    val result = callbackService.fetchCallbackEventByContactId(s"${callBackEvent.appName}${callBackEvent.deviceId}", Channel.PUSH, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
     result.isSuccess shouldEqual true
     result.get.size should be > 0
   }
 
   "Callback Service" should "fetch by message id" in {
     val callbackService = ServiceFactory.getCallbackService
-    val result = callbackService.fetchCallbackEventByMId(callBackEvent.appName, callBackEvent.messageId, Channel.PUSH)
+    val result = callbackService.fetchCallbackEventByMId(callBackEvent.messageId, Channel.PUSH)
     result.isSuccess shouldEqual true
     result.get.size should be > 0
   }
 
   "Callback Service" should "fetch map by contact id" in {
     val callbackService = ServiceFactory.getCallbackService
-    val result = callbackService.fetchEventsMapForContactId(callBackEvent.appName, callBackEvent.deviceId, Channel.PUSH, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
+    val result = callbackService.fetchEventsMapForContactId(s"${callBackEvent.appName}${callBackEvent.deviceId}", Channel.PUSH, System.currentTimeMillis() - 24 * 3600 * 1000, System.currentTimeMillis())
     result.isSuccess shouldEqual true
     result.get.size should be > 0
   }

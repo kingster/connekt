@@ -11,6 +11,7 @@ import scala.util.Try
  * @version 12/9/15
  */
 trait TCallbackDao extends Dao {
-  def saveCallbackEvent(appName:String, requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String]
-  def fetchCallbackEvents(appName: String, requestId: String, forContact: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent]
+  def saveCallbackEvent(requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String]
+
+  def fetchCallbackEvents(requestId: String, forContact: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent]
 }

@@ -29,27 +29,27 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   }
 
   @Timed("persistCallbackEvent")
-  override def persistCallbackEvent(appName: String, requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
+  override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
     Try {
-      channelEventsDao(channel).saveCallbackEvent(appName, requestId, forContact, nextEventId(), callbackEvent)
+      channelEventsDao(channel).saveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
       requestId
     }
   }
 
   @Timed("fetchCallbackEvent")
-  override def fetchCallbackEvent(appName: String, requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
+  override def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
     Try {
-      channelEventsDao(channel).fetchCallbackEvents(appName, requestId, contactId, None)
+      channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None)
     }
   }
 
   private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 
   @Timed("fetchCallbackEventByContactId")
-  def fetchCallbackEventByContactId(appName: String, contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
+  def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
     Try {
-      channelEventsDao(channel).fetchCallbackEvents(appName, "", contactId, Some(Tuple2(minTimestamp, maxTimestamp)))
+      channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(minTimestamp, maxTimestamp)))
     }
   }
 
@@ -60,12 +60,12 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
    * @return Map ( DeviceId -> List[Events] )
    */
   @Timed("fetchCallbackEventByMId")
-  def fetchCallbackEventByMId(appName: String, messageId: String, channel: Channel.Value): Try[Map[String, List[CallbackEvent]]] = {
+  def fetchCallbackEventByMId(messageId: String, channel: Channel.Value): Try[Map[String, List[CallbackEvent]]] = {
     Try {
       val events = requestDao(channel).fetchRequestInfo(messageId)
       events.isDefined match {
         case true =>
-          channelEventsDao(channel).fetchCallbackEvents(appName, messageId, events.get, None)
+          channelEventsDao(channel).fetchCallbackEvents(messageId, events.get, None)
         case false =>
           Map()
       }
@@ -73,9 +73,9 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   }
 
   @Timed("fetchEventsMapForContactId")
-  override def fetchEventsMapForContactId(appName: String, contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]] = {
+  override def fetchEventsMapForContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]] = {
     Try {
-      val eventList = fetchCallbackEventByContactId(appName, contactId, channel, minTimestamp, maxTimestamp)
+      val eventList = fetchCallbackEventByContactId(contactId, channel, minTimestamp, maxTimestamp)
       channelEventsDao(channel).fetchEventMapFromList(eventList.get)
     }
   }

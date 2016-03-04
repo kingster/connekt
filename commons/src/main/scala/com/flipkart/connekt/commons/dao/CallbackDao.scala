@@ -25,13 +25,12 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
 
   def mapToChannelEvent(channelEventPropsMap: Map[String, Array[Byte]]): CallbackEvent
 
-  override def saveCallbackEvent(appName: String, requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String] = {
+  override def saveCallbackEvent(requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val channelEventProps = channelEventPropsMap(callbackEvent)
       val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
-      val appContact = getHash(appName, forContact)
-      val rowKey = s"$appContact:$requestId:$eventId"
+      val rowKey = s"${getHash(forContact)}:$requestId:$eventId"
       addRow(rowKey, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Event details persisted for $requestId")
@@ -45,12 +44,11 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(appName: String, requestId: String, contactId: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent] = {
+  def fetchCallbackEvents(requestId: String, contactId: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent] = {
     val colFamiliesReqd = List(columnFamily)
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val appContact = getHash(appName, contactId)
-      val rawDataList = fetchRows(s"$appContact:$requestId", s"$appContact:$requestId{", colFamiliesReqd, timestampRange)
+      val rawDataList = fetchRows(s"${getHash(contactId)}:$requestId", s"${getHash(contactId)}:$requestId{", colFamiliesReqd, timestampRange)
       rawDataList.values.flatMap(rowData => {
         val eventProps = rowData.get(columnFamily)
         eventProps.map(mapToChannelEvent)
@@ -65,7 +63,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(appName: String, requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]]
+  def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]]
 
   def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]]
 

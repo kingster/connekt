@@ -31,7 +31,7 @@ class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
             get {
               parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis(), 'skipIds.*) { (startTs, endTs, skipIds) =>
 
-                val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(app, instanceId, Channel.PUSH, startTs, endTs)
+                val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"$app$instanceId", Channel.PUSH, startTs, endTs)
                 val messageService = ServiceFactory.getPNMessageService
 
                 //Skip all messages which are either read/dismissed or passed in skipIds
