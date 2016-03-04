@@ -23,13 +23,13 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
 
   val route =
     pathPrefix("v1") {
-      path("send" / "push" / "multicast" / MPlatformSegment / Segment) {
+      path("send" / "push" / MPlatformSegment / Segment) {
         (appPlatform: MobilePlatform, appName: String) =>
-          authorize(user, "MULTICAST_" + appName) {
+          authorize(user, "SEND_" + appName) {
             post {
               entity(as[ConnektRequest]) { r =>
                 val multicastRequest = r.copy(channel = "push")
-                ConnektLogger(LogFile.SERVICE).debug(s"Received multicast PN request with payload: ${multicastRequest.toString}")
+                ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${multicastRequest.toString}")
 
                 /* Find platform for each deviceId, group */
                 multicastRequest.validate() match {
@@ -63,7 +63,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                       }
                     }
 
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("Multicast PN request processed.", success.toMap, failure.toList)))
+                    complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("PN request processed.", success.toMap, failure.toList)))
                   case false =>
                     ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                     complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
@@ -73,29 +73,5 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
               }
             }
           }
-      } ~
-        path("send" / "push" / "unicast" / MPlatformSegment / Segment) {
-          (appPlatform: MobilePlatform, appName: String) =>
-            authorize(user, "UNICAST_" + appName) {
-              post {
-                entity(as[ConnektRequest]) { r =>
-                  r.validate() match {
-                    case true =>
-                      val pnRequestInfo = r.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase, platform = appPlatform.toString)
-                      val unicastRequest = r.copy(channelInfo = pnRequestInfo, channel = "push")
-
-                      ConnektLogger(LogFile.SERVICE).debug(s"Received unicast PN request with payload: ${r.toString}")
-                      val queueName = ServiceFactory.getPNMessageService.getRequestBucket(unicastRequest, user)
-                      val requestId = ServiceFactory.getPNMessageService.saveRequest(unicastRequest, queueName, isCrucial = true).get
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Unicast PN request enqueued for requestId: $requestId", null)))
-                    case false =>
-                      ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
-                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
-                  }
-
-                }
-              }
-            }
-        }
-    }
+      }
 }
