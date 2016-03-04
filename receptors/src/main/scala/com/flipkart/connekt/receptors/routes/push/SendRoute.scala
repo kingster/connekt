@@ -64,7 +64,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                       }
                     }
 
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, MulticastResponse("PN request processed.", success.toMap, failure.toList)))
+                    complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN request processed.", success.toMap, failure.toList)))
                   case false =>
                     ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                     complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
