@@ -48,7 +48,7 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJs
       } ~ path(ChannelSegment / "messages" / Segment / Segment / "events") {
         (channel: Channel, contactId: String, messageId: String) =>
           get {
-            val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"$appName$contactId", channel).get
+            val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"$contactId", channel).get
             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $contactId fetched.", Map(contactId -> events))))
           }
       } ~ path(ChannelSegment / "messages" / Segment / "events") {
