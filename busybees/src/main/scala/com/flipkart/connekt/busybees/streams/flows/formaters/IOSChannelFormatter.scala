@@ -43,6 +43,8 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
             emitMultiple[APSPayloadEnvelope](out, apnsEnvelopes.iterator, () => {
               ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
             })
+          else
+            ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
 
         } catch {
           case e: Throwable =>

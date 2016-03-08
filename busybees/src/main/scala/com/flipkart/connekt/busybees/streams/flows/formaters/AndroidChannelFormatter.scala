@@ -36,9 +36,11 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
             case "OPENWEB" => OpenWebGCMPayload(tokens)
           }
 
-          if(isAvailable(out)) {
+          if(tokens.nonEmpty && isAvailable(out)) {
             push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
             ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PUSHED downstream for ${message.id}")
+          } else {
+            ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
           }
 
         } catch {
