@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.services.ConnektConfig
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter}
@@ -23,6 +24,7 @@ import scala.collection.mutable.ListBuffer
  */
 trait HbaseDao {
 
+  val MAX_RECORD_SCANNED = ConnektConfig.getOrElse("busybees.common.dao.scan.maxresults", 100)
 
   @throws[IOException]
   def addRow(rowKey: String, data: RowData)(implicit hTableInterface: HTableInterface) = {
@@ -101,13 +103,15 @@ trait HbaseDao {
     var rowMap = Map[String,RowData]()
 
     val ri = resultScanner.iterator()
-    while (ri.hasNext) {
+    var count = MAX_RECORD_SCANNED
+    while (ri.hasNext && count > 0) {
       val riNext = ri.next()
       val resultMap: RowData = getRowData(riNext, colFamilies)
       rowMap += riNext.getRow.getString -> resultMap
+      count -= 1
     }
     resultScanner.close()
-    rowMap
+     rowMap
   }
 
   @throws[IOException]
