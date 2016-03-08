@@ -112,10 +112,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                         DeviceDetailsService.delete(appName, device.deviceId)
                       })
                     }
-                    events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", f.get("error").asText, eventTS)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, "", f.get("error").asText, eventTS)
                   case e: JsonNode =>
                     ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Unknown Error [${e.toString}}] via. $messageId for $rDeviceId")
-                    events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", e.toString, eventTS)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, "", e.toString, eventTS)
                 }
               })
             } catch {
