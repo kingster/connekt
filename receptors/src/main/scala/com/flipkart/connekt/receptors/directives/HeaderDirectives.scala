@@ -15,4 +15,7 @@ trait HeaderDirectives  {
   def sniffHeaders: Directive1[Seq[HttpHeader]] = BasicDirectives.extract[Seq[HttpHeader]](_.request.headers)
 
   def sniffXHeaders = BasicDirectives.extract[Seq[HttpHeader]](_.request.headers.filter(_.name().toUpperCase.startsWith("X-")))
+
+  def getXHeaders = sniffHeaders.map(httpHeaders =>  httpHeaders.map(h => h.name() -> h.value()).toMap)
+
 }
