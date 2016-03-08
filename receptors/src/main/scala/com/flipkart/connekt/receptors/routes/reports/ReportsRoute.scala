@@ -19,26 +19,23 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJs
 
   val route =
     pathPrefix("v1" / "reports") {
-      pathPrefix("push") {
-        path(Segment / "messages" / Segment / Segment / "events") {
-          (appName: String, contactId: String, messageId: String) =>
-            authorize(user, "REPORTS") {
+      authorize(user, "REPORTS") {
+        pathPrefix("push") {
+          path(Segment / "messages" / Segment / Segment / "events") {
+            (appName: String, contactId: String, messageId: String) =>
+
               get {
                 val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, Channel.PUSH).get
                 complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $contactId fetched.", Map(contactId -> events))))
               }
-            }
-        } ~ path(Segment / "messages" / Segment / "events") {
-          (appName: String, messageId: String) =>
-            authorize(user, "REPORTS") {
+          } ~ path(Segment / "messages" / Segment / "events") {
+            (appName: String, messageId: String) =>
               get {
                 val events = ServiceFactory.getCallbackService.fetchCallbackEventByMId(messageId, Channel.PUSH).get
                 complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId fetched.", events)))
               }
-            }
-        } ~ path(Segment / "messages" / Segment) {
-          (appName: String, messageId: String) =>
-            authorize(user, "REPORTS") {
+          } ~ path(Segment / "messages" / Segment) {
+            (appName: String, messageId: String) =>
               get {
                 val data = ServiceFactory.getPNMessageService.getRequestInfo(messageId).get
                 data match {
@@ -48,27 +45,21 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJs
                     complete(GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Message info fetched for messageId: $messageId.", data)))
                 }
               }
-            }
-        }
-      } ~ path(ChannelSegment / "messages" / Segment / Segment / "events") {
-        (channel: Channel, contactId: String, messageId: String) =>
-          authorize(user, "REPORTS") {
+          }
+        } ~ path(ChannelSegment / "messages" / Segment / Segment / "events") {
+          (channel: Channel, contactId: String, messageId: String) =>
             get {
               val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"$contactId", channel).get
               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $contactId fetched.", Map(contactId -> events))))
             }
-          }
-      } ~ path(ChannelSegment / "messages" / Segment / "events") {
-        (channel: Channel, messageId: String) =>
-          authorize(user, "REPORTS") {
+        } ~ path(ChannelSegment / "messages" / Segment / "events") {
+          (channel: Channel, messageId: String) =>
             get {
               val events = ServiceFactory.getCallbackService.fetchCallbackEventByMId(messageId, Channel.PUSH).get
               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events for $messageId fetched.", events)))
             }
-          }
-      } ~ path(ChannelSegment / "messages" / Segment) {
-        (channel: Channel, messageId: String) =>
-          authorize(user, "REPORTS") {
+        } ~ path(ChannelSegment / "messages" / Segment) {
+          (channel: Channel, messageId: String) =>
             get {
               val data = ServiceFactory.getPNMessageService.getRequestInfo(messageId).get // Not sure why this is getPNMessageService
               data match {
@@ -78,7 +69,7 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJs
                   complete(GenericResponse(StatusCodes.OK.intValue, Map("messageId" -> messageId), Response(s"Message info fetched for messageId: $messageId.", data)))
               }
             }
-          }
+        }
       }
     }
 }
