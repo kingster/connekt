@@ -34,7 +34,7 @@ class GCMClient {
     ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequestInfo.appName} ${pnRequestInfo.deviceId} [${pnRequestInfo.getJson}]")
     val tokens = pnRequestInfo.deviceId.map(deviceDetailsDao.get(pnRequestInfo.appName, _).get.token)
 
-    val gcmRequestPayload = GCMPNPayload(tokens, pnRequestInfo.delayWhileIdle, pnRequestData.data)
+    val gcmRequestPayload = GCMPNPayload(tokens,Option( pnRequestInfo.delayWhileIdle), pnRequestData.data)
     ConnektLogger(LogFile.SERVICE).info(s"GCM Request payload ${gcmRequestPayload.getJson}")
 
     val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmRequestPayload.getJson.getBytes("UTF-8"))
