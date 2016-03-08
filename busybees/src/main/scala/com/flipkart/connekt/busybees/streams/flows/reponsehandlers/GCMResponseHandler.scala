@@ -3,6 +3,7 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
@@ -112,6 +113,9 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                       })
                     }
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", f.get("error").asText, eventTS)
+                  case e: JsonNode =>
+                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Unknown Error [${e.toString}}] via. $messageId for $rDeviceId")
+                    events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", e.toString, eventTS)
                 }
               })
             } catch {
