@@ -12,15 +12,18 @@ import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 
 import scala.collection.JavaConversions._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
+
 /**
  *
  *
  * @author durga.s
  * @version 1/28/16
  */
-class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String) extends GraphStage[SourceShape[V]] {
+class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] {
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
@@ -64,6 +67,13 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     override def preStart(): Unit = {
       createKafkaConsumer()
+      val handle = getAsyncCallback[String]{(r: String) => completeStage()}
+
+      shutdownTrigger onComplete {t =>
+        ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
+        handle.invoke(t.getOrElse("_external topology shutdown signal_"))
+      }
+
       super.preStart()
     }
   }
