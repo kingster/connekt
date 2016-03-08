@@ -37,7 +37,6 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
             case "OPENWEB" => OpenWebGCMPayload(tokens, dry_run = None)
           }
 
-
           if (tokens.nonEmpty && isAvailable(out)) {
             push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
             ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PUSHED downstream for ${message.id}")

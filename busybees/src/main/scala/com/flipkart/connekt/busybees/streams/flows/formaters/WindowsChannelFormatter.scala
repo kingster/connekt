@@ -35,10 +35,16 @@ class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPa
 
           val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
 
-          if (wnsRequestEnvelopes.nonEmpty)
-            emitMultiple[WNSPayloadEnvelope](out, wnsRequestEnvelopes.iterator, () => {
-              ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: PUSHED downstream for ${message.id}")
-            })
+          if (wnsRequestEnvelopes.nonEmpty){
+            val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
+            if (!dryRun) {
+              emitMultiple[WNSPayloadEnvelope](out, wnsRequestEnvelopes.iterator, () => {
+                ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: PUSHED downstream for ${message.id}")
+              })
+            } else {
+              ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: Dry Run Dropping msgId: ${message.id}")
+            }
+          }
           else
             ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
 

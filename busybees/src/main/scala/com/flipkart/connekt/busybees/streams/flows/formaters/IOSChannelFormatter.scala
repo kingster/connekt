@@ -41,10 +41,16 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
             APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
           })
 
-          if (apnsEnvelopes.nonEmpty)
-            emitMultiple[APSPayloadEnvelope](out, apnsEnvelopes.iterator, () => {
-              ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
-            })
+          if (apnsEnvelopes.nonEmpty) {
+            val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
+            if (!dryRun) {
+              emitMultiple[APSPayloadEnvelope](out, apnsEnvelopes.iterator, () => {
+                ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
+             })
+            }
+            else
+              ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: Dry Run Dropping msgId: ${message.id}")
+          }
           else
             ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
 
