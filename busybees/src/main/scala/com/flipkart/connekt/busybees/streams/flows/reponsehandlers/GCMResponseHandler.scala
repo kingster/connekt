@@ -114,7 +114,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                     }
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", f.get("error").asText, eventTS)
                   case e: JsonNode =>
-                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Unknown Error [${e.toString}}] via. $messageId for $rDeviceId")
+                    ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Unknown Error [${e.toString}}] via. $messageId for $rDeviceId")
                     events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", e.toString, eventTS)
                 }
               })
@@ -126,16 +126,16 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
           case 400 =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.InvalidJsonError, appName, "", "", eventTS)))
-            ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - Invalid json sent for $messageId")
+            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - Invalid json sent for $messageId")
           case 401 =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.AuthError, appName, "", "", eventTS)))
-            ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - The sender account used to send a message couldn't be authenticated. for $messageId")
+            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - The sender account used to send a message couldn't be authenticated. for $messageId")
           case w if 5 == (w / 100) =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.InternalError, appName, "", "", eventTS)))
-            ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - The gcm server encountered an error while trying to process the request for $messageId")
+            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - The gcm server encountered an error while trying to process the request for $messageId")
           case _ =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", "", eventTS)))
-            ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: HttpResponse - GCM Response Unhandled for $messageId")
+            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - GCM Response Unhandled for $messageId")
         }
 
       case Failure(e2) =>
