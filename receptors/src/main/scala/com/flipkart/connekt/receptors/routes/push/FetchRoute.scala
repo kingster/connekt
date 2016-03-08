@@ -35,7 +35,7 @@ class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                 //return if startTs is older than 7 days
                 System.currentTimeMillis() - 7.days.toMillis > startTs match {
                   case false =>
-                    val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"$app$instanceId", Channel.PUSH, startTs, endTs)
+                    val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${app.toLowerCase}$instanceId.toLowerCase", Channel.PUSH, startTs, endTs)
                     val messageService = ServiceFactory.getPNMessageService
 
                     //Skip all messages which are either read/dismissed or passed in skipIds

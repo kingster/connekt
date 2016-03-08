@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.commons.dao.HbaseDao._
-import com.flipkart.connekt.commons.services.ConnektConfig
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter}
@@ -23,8 +22,6 @@ import scala.collection.mutable.ListBuffer
  * @version 11/18/15
  */
 trait HbaseDao {
-
-  val MAX_RECORD_SCANNED = ConnektConfig.getOrElse("busybees.common.dao.scan.maxresults", 100)
 
   @throws[IOException]
   def addRow(rowKey: String, data: RowData)(implicit hTableInterface: HTableInterface) = {
@@ -90,7 +87,7 @@ trait HbaseDao {
    * @return Map [Row ]
    */
   @throws[IOException]
-  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
+  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
 
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -102,16 +99,18 @@ trait HbaseDao {
     val resultScanner = hTableInterface.getScanner(scan)
     var rowMap = Map[String,RowData]()
 
+    var count = if (maxRowLimit.isDefined) maxRowLimit.get else Int.MinValue
+
     val ri = resultScanner.iterator()
-    var count = MAX_RECORD_SCANNED
-    while (ri.hasNext && count > 0) {
+
+    while (ri.hasNext && (count > 0 || count == Int.MinValue)) {
       val riNext = ri.next()
       val resultMap: RowData = getRowData(riNext, colFamilies)
       rowMap += riNext.getRow.getString -> resultMap
-      count -= 1
+      count = if (count == Int.MinValue) Int.MinValue else count - 1
     }
     resultScanner.close()
-     rowMap
+    rowMap
   }
 
   @throws[IOException]
