@@ -28,15 +28,16 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
         (appPlatform: MobilePlatform, appName: String) =>
           authorize(user, "SEND_" + appName) {
             post {
-              entity(as[ConnektRequest]) { r =>
-                val request = r.copy(channel = "push")
-                ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
+              getXHeaders { headers =>
+                entity(as[ConnektRequest]) { r =>
 
-                /* Find platform for each deviceId, group */
-                request.validate() match {
-                  case true =>
+                  val request = r.copy(channel = "push", meta = headers)
+                  ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
+
+                  /* Find platform for each deviceId, group */
+                  if (request.validate()) {
+
                     val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
-                    val deviceIds = pnRequestInfo.deviceId
                     val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
                     appPlatform match {
@@ -65,12 +66,12 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                     }
 
                     complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN request processed.", success.toMap, failure.toList)))
-                  case false =>
+
+                  } else {
                     ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                     complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
-
+                  }
                 }
-
               }
             }
           }
