@@ -32,6 +32,7 @@ object BusyBeesBoot extends BaseApp {
     .withAutoFusing(enable = false)
 
   lazy implicit val mat = ActorMaterializer(settings)
+  var pushTopology: PushTopology = _
 
   def start() {
 
@@ -71,7 +72,8 @@ object BusyBeesBoot extends BaseApp {
 
       //TODO : Fix this, this is for bootstraping hbase connection.
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
-      new PushTopology(kafkaHelper).run
+      pushTopology = new PushTopology(kafkaHelper)
+      pushTopology.run
     }
   }
 
@@ -79,6 +81,8 @@ object BusyBeesBoot extends BaseApp {
     ConnektLogger(LogFile.SERVICE).info("BusyBees Shutting down.")
     if (initialized.get()) {
       DaoFactory.shutdownHTableDaoFactory()
+
+      pushTopology.shutdown()
     }
   }
 

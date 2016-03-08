@@ -18,6 +18,8 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.Promise
 
 
 class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] {
@@ -26,14 +28,22 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   implicit val ec = BusyBeesBoot.system.dispatcher
   implicit val mat = BusyBeesBoot.mat
 
+  var sourceSwitches: List[Promise[String]] = _
+
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
+    val handles = ListBuffer[Promise[String]]()
+
     for(portNum <- 0 to merge.n - 1) {
-      new KafkaSource[ConnektRequest](consumer, topic = topics(portNum)) ~> merge.in(portNum)
+      val p = Promise[String]()
+      new KafkaSource[ConnektRequest](consumer, topic = topics(portNum))(p.future) ~> merge.in(portNum)
+      handles += p
     }
+
+    sourceSwitches = handles.toList
 
     SourceShape(merge.out)
   })
@@ -123,5 +133,6 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def shutdown() = {
     /* terminate in top-down approach from all Source(s) */
+    sourceSwitches.foreach(_.success("PushTopology:: signal source shutdown."))
   }
 }
