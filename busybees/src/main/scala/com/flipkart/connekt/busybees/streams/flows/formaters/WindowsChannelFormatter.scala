@@ -39,6 +39,9 @@ class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPa
             emitMultiple[WNSPayloadEnvelope](out, wnsRequestEnvelopes.iterator, () => {
               ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: PUSHED downstream for ${message.id}")
             })
+          else
+            ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
+
 
         } catch {
           case e: Throwable =>

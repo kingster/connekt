@@ -3,6 +3,7 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
@@ -111,7 +112,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                         DeviceDetailsService.delete(appName, device.deviceId)
                       })
                     }
-                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, "", f.get("error").asText, eventTS)
+                    events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", f.get("error").asText, eventTS)
+                  case e: JsonNode =>
+                    ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler:: Unknown Error [${e.toString}}] via. $messageId for $rDeviceId")
+                    events += PNCallbackEvent(messageId, rDeviceId, MobilePlatform.ANDROID, GCMResponseStatus.Error, appName, "", e.toString, eventTS)
                 }
               })
             } catch {
@@ -139,7 +143,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: GCM send failure for r: $messageId, e: ${e2.getMessage}", e2)
     }
 
-    events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, e.deviceId, Channel.PUSH, e))
+    events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
     ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: Saved callback events for $messageId ${events.toList.toString()}")
     events.toList
   }

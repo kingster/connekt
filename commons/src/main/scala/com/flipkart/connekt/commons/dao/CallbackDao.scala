@@ -6,7 +6,7 @@ import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao.ColumnData
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
-
+import com.roundeights.hasher.Implicits._
 import scala.util.{Success, Try}
 
 /**
@@ -19,7 +19,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
 
-  val columnFamily:String = "e"
+  val columnFamily: String = "e"
 
   def channelEventPropsMap(channelCallbackEvent: CallbackEvent): ColumnData
 
@@ -30,7 +30,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     try {
       val channelEventProps = channelEventPropsMap(callbackEvent)
       val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
-      val rowKey = s"$forContact:$requestId:$eventId"
+      val rowKey = s"${forContact.sha256.hash.hex}:$requestId:$eventId"
       addRow(rowKey, rawData)
 
       ConnektLogger(LogFile.DAO).info(s"Event details persisted for $requestId")
@@ -48,12 +48,11 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     val colFamiliesReqd = List(columnFamily)
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-
-      val rawDataList = fetchRows( s"$contactId:$requestId", s"$contactId:$requestId{", colFamiliesReqd, timestampRange)
+      val rawDataList = fetchRows(s"${contactId.sha256.hash.hex}:$requestId", s"${contactId.sha256.hash.hex}:$requestId{", colFamiliesReqd, timestampRange)
       rawDataList.values.flatMap(rowData => {
         val eventProps = rowData.get(columnFamily)
         eventProps.map(mapToChannelEvent)
-      }).toList
+      } ).toList
 
     } catch {
       case e: IOException =>
@@ -65,5 +64,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
   }
 
   def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[CallbackEvent]]
+
   def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[CallbackEvent]]
+
 }
