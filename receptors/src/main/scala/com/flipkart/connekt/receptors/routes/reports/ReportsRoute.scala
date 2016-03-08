@@ -25,7 +25,7 @@ class ReportsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJs
       (channel: Channel, appName: String, contactId: String, messageId: String) =>
         authorize(user, "REPORTS") {
           get {
-            val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, contactId, channel).get
+            val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"$appName$contactId", channel).get
             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $contactId fetched.", Map(contactId -> events))))
           }
         }

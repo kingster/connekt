@@ -41,7 +41,8 @@ class PNCallbackDao(tableName: String, hTableFactory: HTableFactory) extends Cal
   }
 
   override def fetchCallbackEvents(requestId: String, event: ChannelRequestInfo, fetchRange: Option[(Long, Long)]): Map[String, List[PNCallbackEvent]] = {
-    event.asInstanceOf[PNRequestInfo].deviceId.map(fetchCallbackEvents(requestId, _, fetchRange)).flatten.asInstanceOf[List[PNCallbackEvent]].groupBy(_.deviceId)
+    val pnEvent = event.asInstanceOf[PNRequestInfo]
+    pnEvent.deviceId.map(pnEvent.appName + _).map(fetchCallbackEvents(requestId, _, fetchRange)).flatten.asInstanceOf[List[PNCallbackEvent]].groupBy(_.deviceId)
   }
 
   override def fetchEventMapFromList(event: List[CallbackEvent]): Map[String, List[PNCallbackEvent]] = {
