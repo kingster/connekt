@@ -35,9 +35,11 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
         try {
           ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
           val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-          val tokens = pnInfo.deviceId.flatMap(DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, _)).map(_.token)
-          val apnsPayloads = tokens.map(iOSPNPayload(_, getExpiry(message.expiryTs), Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data)))
-          val apnsEnvelopes = apnsPayloads.map(APSPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
+          val listOfTokenDeviceId = pnInfo.deviceId.flatMap(DaoFactory.getDeviceDetailsDao.get(pnInfo.appName, _)).map(r => (r.token, r.deviceId))
+          val apnsEnvelopes = listOfTokenDeviceId.map(td => {
+            val apnsPayload = iOSPNPayload(td._1, getExpiry(message.expiryTs), Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data))
+            APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
+          })
 
           if (apnsEnvelopes.nonEmpty)
             emitMultiple[APSPayloadEnvelope](out, apnsEnvelopes.iterator, () => {

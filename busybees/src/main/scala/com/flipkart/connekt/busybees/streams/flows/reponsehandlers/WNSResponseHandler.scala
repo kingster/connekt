@@ -5,8 +5,8 @@ import akka.stream._
 import akka.stream.scaladsl.Sink
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
-import com.flipkart.connekt.commons.entities.MobilePlatform
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
+import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsTokenService}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -137,17 +137,19 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                 ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Device [${requestTracker.request.deviceId}}] doesn't exist $requestId")
                 Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.DeletedDevice, MobilePlatform.WINDOWS, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS))
             }, Failure(_)).get
-            PNCallbackEvent(requestId, deviceId = "", WNSResponseStatus.ChannelExpired, MobilePlatform.WINDOWS, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.ChannelExpired, MobilePlatform.WINDOWS, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
           case 413 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The notification payload exceeds the 5000 byte size limit. $requestId")
-            PNCallbackEvent(requestId, deviceId = "", WNSResponseStatus.EntityTooLarge, MobilePlatform.WINDOWS, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.EntityTooLarge, MobilePlatform.WINDOWS, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
           case w if 5 == (w / 100) =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The wns server encountered an error while trying to process the request. $requestId")
-            PNCallbackEvent(requestId, deviceId = "", WNSResponseStatus.InternalError, MobilePlatform.WINDOWS, appName, "", "", eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InternalError, MobilePlatform.WINDOWS, appName, "", "", eventTS)
         })
       case Failure(e) =>
-        Some(PNCallbackEvent(requestId, deviceId = "", WNSResponseStatus.RequestError, MobilePlatform.WINDOWS, appName, "", e.getMessage, eventTS))
+        Some(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.RequestError, MobilePlatform.WINDOWS, appName, "", e.getMessage, eventTS))
     }
+
+    maybePNCallbackEvent.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
     maybePNCallbackEvent
   }
 
