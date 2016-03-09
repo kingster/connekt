@@ -104,17 +104,6 @@ object StringUtils {
 
   def getArrayNode = objMapper.createArrayNode()
 
-  def md5(s: String): String = {
-    val md5 = MessageDigest.getInstance("MD5")
-    md5.reset()
-    md5.update(s.getBytes)
-    md5.digest().map(0xFF & _).map {
-      "%02x".format(_)
-    }.foldLeft("") {
-      _ + _
-    }
-  }
-
   def generateRandomStr(len: Int): String = {
     val ZERO = Character.valueOf('0')
     val A = Character.valueOf('A')
