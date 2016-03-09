@@ -7,20 +7,21 @@ import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.ConnektTopology
-import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, HttpDispatcher, WNSDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
+import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
-import com.flipkart.connekt.commons.entities.{MobilePlatform, Channel}
+import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
-import com.flipkart.connekt.commons.utils.StringUtils._
 
 
 class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] {
@@ -33,6 +34,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
+    val partitionFactor = ConnektConfig.getInt("busybees.connections.kafka.topic.partitionFactor").get
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
@@ -40,7 +42,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     for(portNum <- 0 to merge.n - 1) {
       val p = Promise[String]()
-      new KafkaSource[ConnektRequest](consumer, topic = topics(portNum))(p.future) ~> merge.in(portNum)
+      new KafkaSource[ConnektRequest](consumer, topic = topics(portNum), partitionFactor)(p.future) ~> merge.in(portNum)
       handles += p
     }
 
