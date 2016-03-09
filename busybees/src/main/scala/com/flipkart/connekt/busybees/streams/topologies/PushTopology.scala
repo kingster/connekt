@@ -7,19 +7,20 @@ import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.ConnektTopology
-import com.flipkart.connekt.busybees.streams.flows.RenderFlow
+import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, HttpDispatcher, WNSDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
-import com.flipkart.connekt.commons.entities.Channel
+import com.flipkart.connekt.commons.entities.{MobilePlatform, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 
 class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] {
@@ -126,7 +127,8 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create(){ implicit b =>
 
     val evtCreator = b.add(new PNBigfootEventCreator)
-    evtCreator.out ~> Sink.ignore
+    val metrics = b.add(new FlowMetrics(Channel.PUSH))
+    evtCreator.out ~> metrics ~> Sink.ignore
 
     SinkShape(evtCreator.in)
   })
