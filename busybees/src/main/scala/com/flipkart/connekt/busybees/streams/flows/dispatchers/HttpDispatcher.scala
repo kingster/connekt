@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream._
 import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContextExecutor
@@ -27,7 +28,10 @@ object HttpDispatcher {
   private var instance: Option[HttpDispatcher] = None
 
   def init(actorSystemConf: Config) = {
-    if(instance.isEmpty) instance = Some(new HttpDispatcher(actorSystemConf))
+    if(instance.isEmpty) {
+      ConnektLogger(LogFile.SERVICE).info(s"Creating HttpDispatcher actor-system with conf: ${actorSystemConf.toString}")
+      instance = Some(new HttpDispatcher(actorSystemConf))
+    }
   }
 
   def gcmPoolClientFlow = instance.map(_.gcmPoolClientFlow).get
