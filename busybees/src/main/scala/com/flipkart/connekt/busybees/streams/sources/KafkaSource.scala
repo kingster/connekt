@@ -23,7 +23,7 @@ import scala.util.{Failure, Success}
  * @author durga.s
  * @version 1/28/16
  */
-class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] {
+class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String, partitionFactor: Int)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] {
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
@@ -83,7 +83,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
   var iterator: Iterator[MessageAndMetadata[Array[Byte], V]] = Iterator.empty
 
   private def getTopicPartitionCount(topic: String): Int = try {
-    ZkUtils.getPartitionsForTopics(zk, Seq(topic)).get(topic).map(_.size).getOrElse(1)
+    ZkUtils.getPartitionsForTopics(zk, Seq(topic)).get(topic).map(_.size / partitionFactor).getOrElse(1)
   } catch {
     case e: Exception =>
       ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource ZK Error", e)
@@ -92,8 +92,8 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
   private def initIterator(kafkaConnector: ConsumerConnector): Iterator[MessageAndMetadata[Array[Byte], V]] = {
 
-    val threadCount = getTopicPartitionCount(topic) // TODO : Change this factor based on number of readers
-    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Readers[$threadCount]")
+    val threadCount = getTopicPartitionCount(topic)
+    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Streams[$threadCount]")
 
     kafkaConsumerConnector.commitOffsets
     val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> threadCount), new DefaultDecoder(), new MessageDecoder[V]())
