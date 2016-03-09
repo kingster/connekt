@@ -83,16 +83,16 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
   var iterator: Iterator[MessageAndMetadata[Array[Byte], V]] = Iterator.empty
 
   private def getTopicPartitionCount(topic: String): Int = try {
-    ZkUtils.getPartitionsForTopics(zk, Seq(topic)).get(topic).size
+    ZkUtils.getPartitionsForTopics(zk, Seq(topic)).get(topic).map(_.size).getOrElse(1)
   } catch {
     case e: Exception =>
       ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource ZK Error", e)
-      6
+      1
   }
 
   private def initIterator(kafkaConnector: ConsumerConnector): Iterator[MessageAndMetadata[Array[Byte], V]] = {
 
-    val threadCount = Math.max(1, getTopicPartitionCount(topic)) // TODO : Change this factor based on number of readers
+    val threadCount = getTopicPartitionCount(topic) // TODO : Change this factor based on number of readers
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Readers[$threadCount]")
 
     kafkaConsumerConnector.commitOffsets
