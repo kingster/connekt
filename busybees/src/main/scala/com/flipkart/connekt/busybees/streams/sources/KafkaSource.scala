@@ -92,7 +92,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
   private def initIterator(kafkaConnector: ConsumerConnector): Iterator[MessageAndMetadata[Array[Byte], V]] = {
 
-    val threadCount = Math.max(1, getTopicPartitionCount(topic) / 4) // TODO : Change this factor based on number of readers
+    val threadCount = Math.max(1, getTopicPartitionCount(topic)) // TODO : Change this factor based on number of readers
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Readers[$threadCount]")
 
     kafkaConsumerConnector.commitOffsets
