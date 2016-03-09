@@ -31,12 +31,13 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
           val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(_.token)
 
           val appDataWithId = message.channelData.asInstanceOf[PNRequestData].data.put("messageId", message.id)
+          val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
           val gcmPayload = pnInfo.platform.toUpperCase match {
-            case "ANDROID" => GCMPNPayload(tokens, pnInfo.delayWhileIdle, appDataWithId)
-            case "OPENWEB" => OpenWebGCMPayload(tokens)
+            case "ANDROID" => GCMPNPayload(tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = None, dry_run = dryRun)
+            case "OPENWEB" => OpenWebGCMPayload(tokens, dry_run = None)
           }
 
-          if(tokens.nonEmpty && isAvailable(out)) {
+          if (tokens.nonEmpty && isAvailable(out)) {
             push(out, GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, gcmPayload))
             ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PUSHED downstream for ${message.id}")
           } else {
@@ -44,10 +45,10 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
           }
 
         } catch {
-          case e:Throwable =>
+          case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: onPush :: Error", e)
         } finally {
-          if(!hasBeenPulled(in)) {
+          if (!hasBeenPulled(in)) {
             pull(in)
             ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PULLED upstream for ${message.id}")
           }
@@ -57,7 +58,7 @@ class AndroidChannelFormatter extends GraphStage[FlowShape[ConnektRequest, GCMPa
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
-        if(!hasBeenPulled(in)) {
+        if (!hasBeenPulled(in)) {
           pull(in)
           ConnektLogger(LogFile.PROCESSORS).debug(s"AndroidChannelFormatter:: PULLED upstream on downstream pull.")
         }
