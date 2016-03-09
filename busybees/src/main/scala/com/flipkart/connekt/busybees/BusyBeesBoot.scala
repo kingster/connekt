@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
@@ -45,7 +46,7 @@ object BusyBeesBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
       ConnektLogger.init(logConfigFile)
 
-      ConnektConfig(configServiceHost, configServicePort)()
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-busybees-akka"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
@@ -72,6 +73,9 @@ object BusyBeesBoot extends BaseApp {
 
       //TODO : Fix this, this is for bootstraping hbase connection.
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
+
+      HttpDispatcher.init(ConnektConfig.getConfig("busybees.akka.http").get)
+
       pushTopology = new PushTopology(kafkaHelper)
       pushTopology.run
     }
