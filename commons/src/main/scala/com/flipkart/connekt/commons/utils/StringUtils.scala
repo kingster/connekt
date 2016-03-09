@@ -1,11 +1,13 @@
 package com.flipkart.connekt.commons.utils
 
+import java.lang.reflect.{ParameterizedType, Type => JType}
 import java.math.BigInteger
 import java.security.{MessageDigest, SecureRandom}
 
 import akka.http.scaladsl.model.HttpEntity
 import akka.stream.Materializer
 import akka.util.{ByteString, ByteStringBuilder}
+import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
@@ -15,7 +17,9 @@ import org.apache.commons.codec.CharEncoding
 import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.reflect.runtime.universe._
 import scala.reflect.{ClassTag, _}
+
 /**
  *
  *
@@ -23,6 +27,8 @@ import scala.reflect.{ClassTag, _}
  * @version 11/23/15
  */
 object StringUtils {
+
+  val currentMirror = runtimeMirror(getClass.getClassLoader)
 
   implicit def enum2String(enumValue: Enumeration#Value): String = enumValue.toString
 
@@ -43,20 +49,45 @@ object StringUtils {
   }
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper
-  objMapper.registerModules(Seq(DefaultScalaModule):_*)
+  objMapper.registerModules(Seq(DefaultScalaModule): _*)
 
   implicit class JSONMarshallFunctions(val o: AnyRef) {
     def getJson = objMapper.writeValueAsString(o)
   }
-  
+
   implicit class JSONUnMarshallFunctions(val s: String) {
+
     def getObj[T: ClassTag] = objMapper.readValue(s, classTag[T].runtimeClass).asInstanceOf[T]
+
     def getObj(implicit cType: Class[_]) = objMapper.readValue(s, cType)
+
+    def getObj[T](tTag: TypeTag[T]) = objMapper.readValue(s, typeReference[T](tTag)).asInstanceOf[T]
+
+    private def typeReference[T](tag: TypeTag[T]): TypeReference[_] = new TypeReference[T] {
+      override val getType = jTypeFromType(tag.tpe)
+    }
+
+    private def jTypeFromType(tpe: Type): JType = {
+      val typeArgs = tpe match {
+        case TypeRef(_, _, args) => args
+      }
+      val runtimeClass = currentMirror.runtimeClass(tpe)
+      if (typeArgs.isEmpty) {
+        runtimeClass
+      }
+      else new ParameterizedType {
+        def getRawType = runtimeClass
+
+        def getActualTypeArguments = typeArgs.map(jTypeFromType).toArray
+
+        def getOwnerType = runtimeClass.getEnclosingClass
+      }
+    }
   }
 
-  implicit  class HttpEntity2String(val entity:HttpEntity){
-    def getString(implicit materializer: Materializer,  ec:scala.concurrent.ExecutionContext):String = {
-      Await.result(entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).map( bb => new String(bb.result().toArray)), 30.seconds)
+  implicit class HttpEntity2String(val entity: HttpEntity) {
+    def getString(implicit materializer: Materializer, ec: scala.concurrent.ExecutionContext): String = {
+      Await.result(entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).map(bb => new String(bb.result().toArray)), 30.seconds)
     }
   }
 
@@ -73,11 +104,15 @@ object StringUtils {
 
   def getArrayNode = objMapper.createArrayNode()
 
-  def md5(s: String) : String = {
+  def md5(s: String): String = {
     val md5 = MessageDigest.getInstance("MD5")
     md5.reset()
     md5.update(s.getBytes)
-    md5.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
+    md5.digest().map(0xFF & _).map {
+      "%02x".format(_)
+    }.foldLeft("") {
+      _ + _
+    }
   }
 
   def generateRandomStr(len: Int): String = {
@@ -95,11 +130,11 @@ object StringUtils {
       }
       sb.append(new Character(n.asInstanceOf[Char]))
     }
-    return new String(sb)
+    new String(sb)
   }
 
-  def generateSecureRandom:String = {
-    val random:SecureRandom = new SecureRandom()
+  def generateSecureRandom: String = {
+    val random: SecureRandom = new SecureRandom()
     new BigInteger(130, random).toString(32)
   }
 

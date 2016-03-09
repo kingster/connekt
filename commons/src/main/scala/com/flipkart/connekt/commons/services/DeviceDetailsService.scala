@@ -9,6 +9,7 @@ import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Try}
 import com.roundeights.hasher.Implicits._
+import reflect.runtime.universe._
 
 /**
  * Created by kinshuk.bairagi on 16/01/16.
@@ -86,7 +87,7 @@ object DeviceDetailsService extends Instrumented {
 
   @Timed("getByUserId")
   def getByUserId(appName: String, userId: String): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getByUserId Failed") {
-    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId)).getOrElse {
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId), typeTag[List[DeviceDetails]]).getOrElse {
       val deviceList = dao.getByUserId(appName, userId)
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
       deviceList
