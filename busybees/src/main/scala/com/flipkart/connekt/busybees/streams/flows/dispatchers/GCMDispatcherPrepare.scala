@@ -50,11 +50,10 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare:: onPush :: ${e.getMessage}", e)
-        } finally {
-          if(!hasBeenPulled(in)) {
-            pull(in)
-            ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: PULLED upstream for ${message.messageId}")
-          }
+            if(!hasBeenPulled(in)) {
+              pull(in)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: PULLED upstream for ${message.messageId}")
+            }
         }
       }
 
@@ -62,9 +61,6 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare:: onUpstream failure: ${e.getMessage}", e)
         super.onUpstreamFinish()
       }
-
-
-
     })
 
     setHandler(out, new OutHandler {

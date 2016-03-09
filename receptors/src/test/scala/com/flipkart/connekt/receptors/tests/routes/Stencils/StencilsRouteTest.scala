@@ -1,4 +1,4 @@
-package com.flipkart.connekt.receptors.routes.Stencils
+package com.flipkart.connekt.receptors.tests.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -6,7 +6,7 @@ import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.Response
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.connekt.receptors.routes.BaseRouteTest
+import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 import org.apache.commons.lang.StringEscapeUtils
 
 import scala.concurrent.Await

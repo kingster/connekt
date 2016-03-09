@@ -50,11 +50,10 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler:: onPush :: Error", e)
-        } finally {
-          if(!hasBeenPulled(in)) {
-            pull(in)
-            ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream for ${wnsResponse._2.requestId}")
-          }
+            if(!hasBeenPulled(in)) {
+              pull(in)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream for ${wnsResponse._2.requestId}")
+            }
         }
       }
     })

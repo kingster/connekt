@@ -48,11 +48,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: ON_PUSH error: ${e.getMessage}", e)
-        } finally {
-          if (!hasBeenPulled(in)) {
-            pull(in)
-            ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream for ${gcmResponse._2.messageId}")
-          }
+            if (!hasBeenPulled(in)) {
+              pull(in)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream for ${gcmResponse._2.messageId}")
+            }
         }
       }
 

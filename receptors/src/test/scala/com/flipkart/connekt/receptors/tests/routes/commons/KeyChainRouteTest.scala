@@ -1,13 +1,11 @@
-package com.flipkart.connekt.receptors.routes.commons
-
-import java.util.Date
+package com.flipkart.connekt.receptors.tests.routes.commons
 
 import akka.http.javadsl.server.values.FormFields
 import akka.http.scaladsl.model._
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.utils.StringUtils
-import com.flipkart.connekt.receptors.routes.BaseRouteTest
 import com.flipkart.connekt.receptors.routes.common.KeyChainRoute
+import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 import org.scalatest.Ignore
 
 /**

@@ -52,11 +52,10 @@ class WindowsChannelFormatter extends GraphStage[FlowShape[ConnektRequest, WNSPa
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: onPush :: Error", e)
-        } finally {
-          if (!hasBeenPulled(in)) {
-            ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: PULLED upstream for ${message.id}")
-            pull(in)
-          }
+            if (!hasBeenPulled(in)) {
+              ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: PULLED upstream for ${message.id}")
+              pull(in)
+            }
         }
       }
 

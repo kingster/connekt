@@ -97,12 +97,13 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
             push(out, event)
             ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher:: PUSHED downstream for ${envelope.messageId}")
           }
-
-        } finally {
-          if (!hasBeenPulled(in)) {
-            ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher:: PULLED upstream for ${envelope.messageId}")
-            pull(in)
-          }
+        } catch {
+          case e: Exception =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: Error ${envelope.messageId}", e)
+            if (!hasBeenPulled(in)) {
+              ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher:: PULLED upstream for ${envelope.messageId}")
+              pull(in)
+            }
         }
       }
     })

@@ -29,7 +29,6 @@ object HostConnectionHelper {
 
   def request[T](request: HttpRequest, requestIdentity: T)
                 (implicit clientPoolFlow: Flow[(HttpRequest, T), (Try[HttpResponse], T), Http.HostConnectionPool]): Future[(Try[HttpResponse], T)] = {
-    println("received request %s".format(request.toString))
     Source.single(request -> requestIdentity)
       .via(clientPoolFlow)
       .runWith(Sink.head)
