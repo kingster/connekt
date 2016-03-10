@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.stream.Attributes
 import akka.stream.scaladsl.{Sink, Source}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
@@ -12,7 +13,7 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.Channel
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger, ServiceFactory}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNRequestData, PNRequestInfo}
 import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -40,7 +41,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec {
   "Kafka2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
 
     val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.head
-    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 4)(Promise[String]().future)
+    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 1)(Promise[String]().future)
 
     val requestExecutor = HttpDispatcher.gcmPoolClientFlow.map(rT => {
       rT._1.foreach(_.entity.getString.getObj[ObjectNode])
@@ -49,15 +50,15 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec {
     })
 
     //Run the benchmark topology
-    val rF = Source.fromGraph(kSource).map(transform2GCMRequest).via(requestExecutor).runWith(Sink.ignore)
+    val rF = Source.fromGraph(kSource).map(transform2GCMRequest).withAttributes(Attributes.asyncBoundary).via(requestExecutor).runWith(Sink.ignore)
 
     Await.result(rF, 120.seconds)
   }
 
   private def transform2GCMRequest(request: ConnektRequest): (HttpRequest, GCMRequestTracker) = {
-    val deviceId = List[String]("fdb4d2071b8f53ad8f877774f0c38d07")
     val messageId = UUID.randomUUID().toString
     val pNRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo]
+    val deviceId = List[String](pNRequestInfo.deviceId.head)
     val gcmPayload =
       s"""
           |{
