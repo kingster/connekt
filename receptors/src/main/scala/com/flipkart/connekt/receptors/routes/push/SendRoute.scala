@@ -76,55 +76,55 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                 }
               }
             }
-        } ~ path(MPlatformSegment / Segment / "accountId" / Segment) {
-          (appPlatform: MobilePlatform, appName: String, accountId: String) =>
+        } ~ path(MPlatformSegment / Segment / "users" / Segment) {
+          (appPlatform: MobilePlatform, appName: String, users: String) =>
             authorize(user, "SEND_" + appName) {
               post {
-                entity(as[ConnektRequest]) { r =>
-                  val request = r.copy(channel = "push")
-                  ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for accountId id: ${accountId} with payload: ${request.toString}")
+                getXHeaders { headers =>
+                  entity(as[ConnektRequest]) { r =>
+                    val request = r.copy(channel = "push")
+                    ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : ${users} with payload: ${request.toString}")
 
-                  /* Find platform for each deviceId, group */
-                  request.validate() match {
-                    case true =>
-                      val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
-                      val groupedPlatformRequests = ListBuffer[ConnektRequest]()
+                    /* Find platform for each deviceId, group */
+                    if (request.validate()) {
+                        val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
+                        val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
-                      appPlatform match {
-                        case MobilePlatform.UNKNOWN =>
-                          val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, accountId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
-                          groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                            platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
-                          }.values
-                        case _ =>
-                          val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, accountId).get.filter(p => p.osName == appPlatform.toLowerCase).groupBy(_.osName).mapValues(_.map(_.deviceId))
-                          groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                            platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
-                          }.values
-                      }
-
-                      val failure = ListBuffer[String]()
-                      val success = scala.collection.mutable.Map[String, List[String]]()
-
-                      val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
-
-                      groupedPlatformRequests.toList.foreach { p =>
-                        /* enqueue multiple requests into kafka */
-                        ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
-                          case Success(id) =>
-                            success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
-                          case Failure(t) =>
-                            failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                        appPlatform match {
+                          case MobilePlatform.UNKNOWN =>
+                            val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, users).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
+                            groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                              platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                            }.values
+                          case _ =>
+                            val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, users).get.filter(p => p.osName == appPlatform.toLowerCase).groupBy(_.osName).mapValues(_.map(_.deviceId))
+                            groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                              platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                            }.values
                         }
-                      }
 
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, SendResponse(s"PN request processed for accountId ${accountId}.", success.toMap, failure.toList)))
-                    case false =>
+                        val failure = ListBuffer[String]()
+                        val success = scala.collection.mutable.Map[String, List[String]]()
+
+                        val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
+
+                        groupedPlatformRequests.toList.foreach { p =>
+                          /* enqueue multiple requests into kafka */
+                          ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
+                            case Success(id) =>
+                              success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                            case Failure(t) =>
+                              failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                          }
+                        }
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, SendResponse(s"PN request processed for user ${users}.", success.toMap, failure.toList)))
+
+                    } else {
                       ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
+                    }
 
                   }
-
                 }
               }
             }
