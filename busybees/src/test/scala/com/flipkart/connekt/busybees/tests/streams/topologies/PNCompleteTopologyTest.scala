@@ -1,21 +1,17 @@
 package com.flipkart.connekt.busybees.tests.streams.topologies
 
-import java.net.URL
-
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ClosedShape
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
-import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{KeyChainManager,  DeviceDetailsService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.Try
