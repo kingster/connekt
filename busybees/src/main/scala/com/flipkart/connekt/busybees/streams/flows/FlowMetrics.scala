@@ -33,12 +33,13 @@ class FlowMetrics(category: String) extends GraphStage[FlowShape[PNCallbackEvent
             ConnektLogger(LogFile.PROCESSORS).debug(s"FlowMetrics:: PUSHED downstream for ${event.messageId}")
             push(out, event)
           }
-
-        } finally {
-          if (!hasBeenPulled(in)) {
-            pull(in)
-            ConnektLogger(LogFile.PROCESSORS).debug(s"FlowMetrics:: PULLED upstream for ${event.messageId}")
-          }
+        } catch {
+          case e: Exception =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"FlowMetrics:: Error ${event.messageId}", e)
+            if (!hasBeenPulled(in)) {
+              pull(in)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"FlowMetrics:: PULLED upstream for ${event.messageId}")
+            }
         }
       }
     })

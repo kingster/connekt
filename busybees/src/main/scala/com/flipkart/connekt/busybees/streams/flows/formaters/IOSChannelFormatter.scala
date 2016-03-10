@@ -57,11 +57,10 @@ class IOSChannelFormatter extends GraphStage[FlowShape[ConnektRequest, APSPayloa
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: onPush :: Error", e)
-        } finally {
-          if (!hasBeenPulled(in)) {
-            pull(in)
-            ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PULLED upstream for ${message.id}")
-          }
+            if (!hasBeenPulled(in)) {
+              pull(in)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PULLED upstream for ${message.id}")
+            }
         }
       }
     })

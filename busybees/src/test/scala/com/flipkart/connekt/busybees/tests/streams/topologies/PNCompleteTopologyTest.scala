@@ -1,4 +1,4 @@
-package com.flipkart.connekt.busybees.streams.topologies
+package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import java.net.URL
 
@@ -12,6 +12,7 @@ import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
+import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{KeyChainManager,  DeviceDetailsService}
@@ -22,7 +23,7 @@ import scala.util.Try
 /**
  * Created by kinshuk.bairagi on 05/02/16.
  */
-class PNCompleteTopology extends TopologyUTSpec {
+class PNCompleteTopologyTest extends TopologyUTSpec {
 
   "PNCompleteTopology Test" should "run" in {
 

@@ -47,11 +47,10 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
-        } finally {
-          if(!hasBeenPulled(in)) {
-            ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PUSHED downstream for ${message.messageId}")
-            pull(in)
-          }
+            if(!hasBeenPulled(in)) {
+              ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PUSHED downstream for ${message.messageId}")
+              pull(in)
+            }
         }
       }
 

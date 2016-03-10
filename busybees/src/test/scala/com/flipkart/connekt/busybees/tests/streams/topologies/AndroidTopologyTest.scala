@@ -1,13 +1,13 @@
-package com.flipkart.connekt.busybees.streams.topologies
+package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import akka.http.scaladsl.Http
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GCMDispatcherPrepare
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
+import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 /**
  * Created by kinshuk.bairagi on 05/02/16.
  */
-class AndroidTopology extends TopologyUTSpec {
+class AndroidTopologyTest extends TopologyUTSpec {
 
   "AndroidTopology Test" should "run" in {
 

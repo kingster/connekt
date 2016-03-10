@@ -91,7 +91,7 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
   def shutdown() = {
     httpService.flatMap(_.unbind())
       .onComplete(_ => {
-        println("receptor server unbinding complete")
+        ConnektLogger(LogFile.SERVICE).info("receptor server unbinding complete")
         system.terminate()
       })
   }

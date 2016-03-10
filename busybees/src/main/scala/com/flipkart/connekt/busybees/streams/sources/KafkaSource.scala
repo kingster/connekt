@@ -1,9 +1,10 @@
 package com.flipkart.connekt.busybees.streams.sources
 
-import akka.stream.stage.{TimerGraphStageLogic, GraphStage, GraphStageLogic, OutHandler}
+import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler, TimerGraphStageLogic}
 import akka.stream.{Attributes, Outlet, SourceShape}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
+import com.flipkart.connekt.commons.utils.CollectionUtils._
 import com.flipkart.connekt.commons.utils.StringUtils._
 import kafka.consumer.ConsumerConnector
 import kafka.message.MessageAndMetadata
@@ -11,12 +12,10 @@ import kafka.serializer.{Decoder, DefaultDecoder}
 import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 
-import scala.collection.JavaConversions._
+import scala.collection.Iterator
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
-import scala.concurrent.duration._
-import scala.util.{Failure, Success}
-
 /**
  *
  *
@@ -36,6 +35,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new TimerGraphStageLogic(shape) {
 
     case object TimerPollTrigger
+
     val timerDelayInMs = 10.milliseconds
 
     override protected def onTimer(timerKey: Any): Unit = {
@@ -44,32 +44,34 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
     }
 
     private def pushElement() = {
-      if(iterator.hasNext) {
+      if (iterator.hasNext) {
         val m = iterator.next()
         commitOffset(m.offset)
         push(out, m.message())
       } else {
+        ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource:: pushElement no-data")
         scheduleOnce(TimerPollTrigger, timerDelayInMs)
       }
     }
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = try {
+        ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource:: OnPull")
         pushElement()
       } catch {
         case e: Exception =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"Kafka iteration error: ${e.getMessage}", e)
+          ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource:: iteration error: ${e.getMessage}", e)
           kafkaConsumerHelper.returnConnector(kafkaConsumerConnector)
           createKafkaConsumer()
-          /*failStage(e)*/
+        /*failStage(e)*/
       }
     })
 
     override def preStart(): Unit = {
       createKafkaConsumer()
-      val handle = getAsyncCallback[String]{(r: String) => completeStage()}
+      val handle = getAsyncCallback[String] { (r: String) => completeStage()}
 
-      shutdownTrigger onComplete {t =>
+      shutdownTrigger onComplete { t =>
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
         handle.invoke(t.getOrElse("_external topology shutdown signal_"))
       }
@@ -97,13 +99,8 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     kafkaConsumerConnector.commitOffsets
     val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> threadCount), new DefaultDecoder(), new MessageDecoder[V]())
-    val streams = consumerStreams.get(topic)
-    streams match {
-      case Some(s) =>
-        s.map(_.iterator().asInstanceOf[java.util.Iterator[MessageAndMetadata[Array[Byte], V]]].toIterator).foldLeft(Iterator.empty.asInstanceOf[Iterator[MessageAndMetadata[Array[Byte], V]]])(_ ++ _)
-      case None =>
-        throw new Exception(s"No KafkaStreams for topic: $topic")
-    }
+    val streams = consumerStreams.getOrElse(topic,throw new Exception(s"No KafkaStreams for topic: $topic"))
+    streams.map(_.iterator()).merge
   }
 
   private def createKafkaConsumer(): Unit = {
