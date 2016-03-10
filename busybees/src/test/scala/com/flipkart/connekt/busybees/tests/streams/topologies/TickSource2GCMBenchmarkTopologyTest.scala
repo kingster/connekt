@@ -7,15 +7,19 @@ import java.util.concurrent.atomic.AtomicLong
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.{Sink, Source}
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
+import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.{ConnektConfig, KeyChainManager}
+import com.flipkart.connekt.commons.utils.StringUtils._
 import org.scalatest.Ignore
 
-import scala.concurrent.Await
 import scala.concurrent.duration.{FiniteDuration, _}
-import com.flipkart.connekt.commons.utils.StringUtils._
+import scala.concurrent.{Await, Promise}
 /**
  *
  *
@@ -23,7 +27,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
  * @version 3/10/16
  */
 @Ignore
-class GCMBenchmarkTopologyTest extends TopologyUTSpec {
+class TickSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
 
   override def beforeAll() = {
     super.beforeAll()
@@ -31,7 +35,7 @@ class GCMBenchmarkTopologyTest extends TopologyUTSpec {
   }
 
   val counter: AtomicLong = new AtomicLong(0)
-  "GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
+  "TickSource2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
     val source = Source.tick(FiniteDuration(0, TimeUnit.SECONDS), FiniteDuration(1, TimeUnit.MILLISECONDS), {
       val appName = "ConnektSampleApp"
       val deviceId = List[String]("b25f2cdce678c67707228818e64fb4a0")
@@ -53,8 +57,6 @@ class GCMBenchmarkTopologyTest extends TopologyUTSpec {
           |}
         """.stripMargin
 
-      println(s"JSON: $gcmPayload")
-
       val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(appName).get.apiKey))
       val httpRequest = new HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
@@ -62,14 +64,18 @@ class GCMBenchmarkTopologyTest extends TopologyUTSpec {
       (httpRequest, requestTrace)
     })
 
+    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, "push_connekt_insomnia_d346b56a260f1a", 4)(Promise[String]().future)
+
     val requestExecutor = HttpDispatcher.gcmPoolClientFlow.map(rT => {
-      rT._1.foreach(_.entity.getString)
+      rT._1.foreach(_.entity.getString.getObj[ObjectNode])
       if(0 == (counter.incrementAndGet() % 1000))
-        println(s"Processed ${counter.get()} messages by ${System.currentTimeMillis()}")
+        ConnektLogger(LogFile.SERVICE).info(s"######## Processed ${counter.get()} messages by ${System.currentTimeMillis()}")
     })
 
+    //Run the benchmark topology
     val rF = source.via(requestExecutor).runWith(Sink.ignore)
 
     Await.result(rF, 120.seconds)
   }
+
 }
