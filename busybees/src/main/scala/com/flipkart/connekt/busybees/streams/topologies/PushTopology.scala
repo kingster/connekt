@@ -80,6 +80,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val fmtIOS = b.add(new IOSChannelFormatter)
     val apnsDispatcher = b.add(new APNSDispatcher)
 
+
     platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> merger.in(0)
 
     /**
@@ -90,7 +91,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
 
-    val gcmResponseHandle = b.add(new GCMResponseHandler)
+    val gcmResponseHandle = b.add(new GCMResponseHandler().withAttributes(ActorAttributes.dispatcher("akka.stream.default-blocking-io-dispatcher")))
 
     platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle ~> merger.in(1)
 
@@ -111,7 +112,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow)
 
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
-    val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request))
+    val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request)/*.buffer(10, OverflowStrategy.backpressure)*/)
 
     val fmtWindows = b.add(new WindowsChannelFormatter)
     val wnsRHandler = b.add(new WNSResponseHandler)
