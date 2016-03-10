@@ -10,7 +10,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.receptors.directives.AccessLogDirective
+import com.flipkart.connekt.receptors.directives.{CORSDirectives, AccessLogDirective}
 import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 
 import scala.collection.immutable.Seq
@@ -21,7 +21,7 @@ import scala.collection.immutable.Seq
   * @author durga.s
   * @version 11/20/15
   */
-object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
+object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORSDirectives {
 
   implicit val system = ActorSystem("ckt-receptors")
   implicit val materializer = ActorMaterializer.create(system)
@@ -76,8 +76,9 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
           ))
       }
 
-    //TODO : Wrap this route inside CORS
-    val allRoutes = new RouteRegistry().allRoutes
+    val allRoutes = cors {
+      new RouteRegistry().allRoutes
+    }
 
     def routeWithLogging = ConnektConfig.getString("http.request.log").getOrElse("true").toBoolean match {
       case true => logTimedRequestResult(allRoutes)

@@ -3,7 +3,7 @@ info:
   title: Connekt API
   description: Fast Forward Communications with the Connekt API
   version: 1.0.0
-host: 10.47.0.120
+host: umap23.nm.flipkart.com:28000
 schemes:
   - http
 basePath: /v1
@@ -16,7 +16,13 @@ paths:
       description: |
         Registrion of a new device. The token from this registration data would be used sending pn..
       parameters:
-
+        - name: x-api-key
+          in: header
+          description: API key
+          required: true
+          type: string
+          format: string
+          default: "connekt-genesis"
         - name: MPlatform
           in: path
           description: Platform (ios/android/windows/openweb).
@@ -38,6 +44,7 @@ paths:
         - name: deviceData
           in: body  
           description: deviceData Defination.
+          required: true
           schema:
             $ref: '#/definitions/DeviceDetails'
       tags:
@@ -66,14 +73,12 @@ definitions:
       token:
         type: string
         description: Token.
-        required: true
       brand:
         type: string
         description: brand of Device
       appVersion:
         type: string
         description: appVersion of Device
-        required: true
       osVersion:
         type: string
         description: osVersion of Device.

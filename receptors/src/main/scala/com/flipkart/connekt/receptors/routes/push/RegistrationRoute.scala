@@ -26,7 +26,7 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
 
   val register =
     pathPrefix("v1") {
-      pathPrefix("registration" / "push") {
+        pathPrefix("registration" / "push") {
         path(MPlatformSegment / Segment / Segment) {
           (platform: MobilePlatform, appName: String, deviceId: String) =>
             put {

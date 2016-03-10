@@ -1,10 +1,12 @@
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.server.Directive1
+import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsRejected, CredentialsMissing}
+import akka.http.scaladsl.server.{AuthenticationFailedRejection, Directive1}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.{BasicDirectives, RouteDirectives}
 import com.flipkart.connekt.commons.entities.AppUser
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.receptors.service.AuthenticationService
 
 /**
@@ -20,7 +22,6 @@ trait AuthenticationDirectives {
 
   def authenticate: Directive1[AppUser] = {
 
-
     BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap { headers =>
       getHeader(X_API_KEY_HEADER, headers) match {
         case Some(apiKey) =>
@@ -28,10 +29,12 @@ trait AuthenticationDirectives {
             case Some(user) =>
               provide(user)
             case None =>
-              RouteDirectives.failWith(new Exception(s"authentication failure for apiKey: [$apiKey]"))
+              ConnektLogger(LogFile.SERVICE).warn(s"authentication failure for apiKey: [$apiKey]")
+              RouteDirectives.reject(AuthenticationFailedRejection(CredentialsRejected,null))
           }
         case None =>
-          RouteDirectives.failWith(new Exception("Authentication Required"))
+
+          RouteDirectives.reject(AuthenticationFailedRejection(CredentialsMissing,null))
       }
 
     }
