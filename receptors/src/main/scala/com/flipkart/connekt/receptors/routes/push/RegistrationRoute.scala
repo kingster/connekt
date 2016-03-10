@@ -30,7 +30,7 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
         path(MPlatformSegment / Segment / Segment) {
           (platform: MobilePlatform, appName: String, deviceId: String) =>
             put {
-              authorize(user, "REGISTRATION") {
+              authorize(user, "REGISTRATION_" + appName) {
                 entity(as[DeviceDetails]) { d =>
                   val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId)
 
@@ -48,7 +48,7 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
                 }
               }
             } ~ delete {
-              authorize(user, "REGISTRATION") {
+              authorize(user, "REGISTRATION_" + appName) {
                 DeviceDetailsService.delete(appName, deviceId).get
                 complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for $deviceId", null)))
               }
