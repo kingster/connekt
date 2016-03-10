@@ -1,0 +1,97 @@
+swagger: '2.0'
+info:
+  title: Connekt API
+  description: Fast Forward Communications with the Connekt API
+  version: 1.0.0
+host: 10.47.0.120
+schemes:
+  - http
+basePath: /v1
+produces:
+  - application/json
+paths:
+  /registration/push/{MPlatform}/{appName}/{deviceId}:
+    put:
+      summary: Register New Device
+      description: |
+        Registrion of a new device. The token from this registration data would be used sending pn..
+      parameters:
+
+        - name: MPlatform
+          in: path
+          description: Platform (ios/android/windows/openweb).
+          required: true
+          type: string
+          format: string
+        - name: appName
+          in: path
+          description: AppName.
+          required: true
+          type: string
+          format: string
+        - name: deviceId
+          in: path
+          description: DeviceId.
+          required: true
+          type: string
+          format: string
+        - name: deviceData
+          in: body  
+          description: deviceData Defination.
+          schema:
+            $ref: '#/definitions/DeviceDetails'
+      tags:
+        - Registration
+      responses:
+        '201':
+          description:  Device details created
+        '200':
+          description: Device details update
+          
+            
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  DeviceDetails:
+    type: object
+    properties:
+      state:
+        type: string
+        description: An app specific state when this request was triggered.
+      model:
+        type: string
+        description: model of Device
+      token:
+        type: string
+        description: Token.
+        required: true
+      brand:
+        type: string
+        description: brand of Device
+      appVersion:
+        type: string
+        description: appVersion of Device
+        required: true
+      osVersion:
+        type: string
+        description: osVersion of Device.
+      userId:
+        type: string
+        description: UserId 
+  Error:
+    type: object
+    properties:
+      status:
+        type: integer
+        format: int32
+      request:
+        type: object
+      response:
+        type: object
+        properties:
+          message:
+            type: string
+            description: Error Message
+
