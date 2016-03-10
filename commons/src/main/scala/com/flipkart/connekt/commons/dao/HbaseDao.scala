@@ -125,7 +125,7 @@ trait HbaseDao {
   }
 
 
-  private def getRowData(result: Result, colFamilies: List[String]): RowData = {
+  protected def getRowData(result: Result, colFamilies: List[String]): RowData = {
     colFamilies.flatMap { cF =>
       val optResult = result.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
       Option(optResult).map(cFResult => {

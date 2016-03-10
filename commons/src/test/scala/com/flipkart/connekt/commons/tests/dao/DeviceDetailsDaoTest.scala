@@ -64,4 +64,8 @@ class DeviceDetailsDaoTest extends CommonsBaseTest {
     println(DaoFactory.getDeviceDetailsDao.getByTokenId(appName, updatedTokenId).get)
     DaoFactory.getDeviceDetailsDao.getByTokenId(appName, updatedTokenId).get shouldEqual updatedDeviceDetails
   }
+
+  "Device Dao" should "Get all" in {
+    noException should be thrownBy DaoFactory.getDeviceDetailsDao.getAll(appName).foreach( println)
+  }
 }
