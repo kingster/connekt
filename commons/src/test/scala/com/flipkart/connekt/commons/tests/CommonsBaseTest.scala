@@ -1,12 +1,12 @@
 package com.flipkart.connekt.commons.tests
 
-import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.tests.connections.MockConnectionProvider
+import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -22,7 +22,7 @@ class CommonsBaseTest extends ConnektUTSpec {
   private def bootstrapReceptors() = {
 
     ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
-    ConnektConfig(configServiceHost, configServicePort)()
+    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-busybees-akka"))
 
     SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
