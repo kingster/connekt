@@ -2,8 +2,9 @@ package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import java.util.concurrent.atomic.AtomicLong
 
-import akka.stream.{FlowShape, Attributes}
-import akka.stream.scaladsl.{GraphDSL, Flow, Sink, Source}
+import akka.stream.scaladsl.GraphDSL.Implicits._
+import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source}
+import akka.stream.{Attributes, FlowShape}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{GCMDispatcherPrepare, HttpDispatcher}
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
@@ -13,15 +14,15 @@ import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.Channel
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger, ServiceFactory}
+import com.flipkart.connekt.commons.factories.{LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent}
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.tests.factories.ConnektLogger
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.scalatest.Ignore
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
-import akka.stream.scaladsl.GraphDSL.Implicits._
 
 
 /**
@@ -53,7 +54,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
 
     val gWithRHandler = kSource.via(render).via(gcmFmt).via(gcmPrepare).withAttributes(Attributes.asyncBoundary).via(HttpDispatcher.gcmPoolClientFlow).via(gcmRHandler).to(Sink.foreach(e => {
       if(0 == (counter.incrementAndGet() % 1000))
-        ConnektLogger(LogFile.PROCESSORS).info(s"FlatAndroidBenchmarkTopology:: Processed ${counter.get()} messages by ${System.currentTimeMillis()}")
+        println(s"FlatAndroidBenchmarkTopology:: Processed ${counter.get()} messages by ${System.currentTimeMillis()}")
     }))
 
     gWithRHandler.run()
@@ -89,6 +90,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
 
   "FlatAndroidBenchmarkTopology created with GraphDSL builder" should "log throughput rates" in {
     val counter: AtomicLong = new AtomicLong(0)
+    val prevTime = new AtomicLong(System.currentTimeMillis())
 
     val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.head
     val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 5)(Promise[String]().future))
@@ -108,11 +110,14 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
 
       start ~> b.add(gcmFmt) ~> b.add(gcmPrepare) ~> b.add(HttpDispatcher.gcmPoolClientFlow.map(rT => {
         rT._1.foreach(_.entity.getString.getObj[ObjectNode])
-        if (0 == (counter.incrementAndGet() % 1000))
-          ConnektLogger(LogFile.PROCESSORS).info(s"NotSoCoolProcessor ${counter.get()} messages by ${System.currentTimeMillis()}")
+        if (0 == (counter.incrementAndGet() % 1000)) {
+          val currentTime = System.currentTimeMillis()
+          val rate = 1000000/(currentTime - prevTime.getAndSet(currentTime))
+          println(s"FlatAndroidBenchmarkTopology #Rate: [$rate] upto ${counter.get()} messages by $currentTime")
+        }
 
-        PNCallbackEvent("", "", "", "", "", "", "", 0)
-      })) ~> b.add(eventCreator) ~> end
+        rT
+      })) ~> b.add(gcmRHandler) ~> b.add(eventCreator) ~> end
 
 
       FlowShape(start.in, end.out)
@@ -122,6 +127,6 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
 
     val g = vanillaSource.via(complexFlow).runWith(vanillaSink)
 
-    Await.result(g, 400.seconds)
+    Await.result(g, 600.seconds)
   }
 }
