@@ -1,5 +1,7 @@
 package com.flipkart.connekt.commons.utils
 
+import kafka.consumer.ConsumerTimeoutException
+
 import scala.collection.{AbstractIterator, Iterator}
 
 /**
@@ -16,22 +18,25 @@ object CollectionUtils {
       private var inUseItrIndex = 0
 
       override def hasNext: Boolean = {
-        val result = if (iterators.nonEmpty) {
+        if (iterators.nonEmpty) {
           inUseItrIndex = (1 + inUseItrIndex) % iterators.size
-          iterators(inUseItrIndex).hasNext || {
+
+          def doesHaveNext(index: Int) = try { iterators(index).hasNext } catch { case e: ConsumerTimeoutException => false }
+
+          def doOthersHaveNext() = {
             def r(stopIdx: Int): Boolean = {
               inUseItrIndex = (1 + inUseItrIndex) % iterators.size
 
               if (stopIdx != inUseItrIndex) {
-                iterators(inUseItrIndex).hasNext || r(stopIdx)
+                doesHaveNext(inUseItrIndex) || r(stopIdx)
               } else false
             }
 
             r(inUseItrIndex)
           }
-        } else false
 
-        result
+          doesHaveNext(inUseItrIndex) || doOthersHaveNext
+        } else false
       }
 
       override def next(): T = {
