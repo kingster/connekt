@@ -130,7 +130,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create(){ implicit b =>
 
     val evtCreator = b.add(new PNBigfootEventCreator)
-    val metrics = b.add(new FlowMetrics(Channel.PUSH))
+    val metrics = b.add(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH))
     evtCreator.out ~> metrics ~> Sink.ignore
 
     SinkShape(evtCreator.in)
