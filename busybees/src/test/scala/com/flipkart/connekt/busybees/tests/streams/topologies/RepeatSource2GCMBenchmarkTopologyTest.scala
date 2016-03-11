@@ -26,8 +26,8 @@ import scala.concurrent.{Await, Promise}
  * @author durga.s
  * @version 3/10/16
  */
-@Ignore
-class TickSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
+//@Ignore
+class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
 
   override def beforeAll() = {
     super.beforeAll()
@@ -35,8 +35,8 @@ class TickSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
   }
 
   val counter: AtomicLong = new AtomicLong(0)
-  "TickSource2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
-    val source = Source.tick(FiniteDuration(0, TimeUnit.SECONDS), FiniteDuration(1, TimeUnit.MILLISECONDS), {
+  "RepeatSource2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
+    val source = Source.repeat({
       val appName = "ConnektSampleApp"
       val deviceId = List[String]("b25f2cdce678c67707228818e64fb4a0")
       val messageId = UUID.randomUUID().toString
@@ -64,7 +64,6 @@ class TickSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
       (httpRequest, requestTrace)
     })
 
-    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, "push_connekt_insomnia_d346b56a260f1a", 4)(Promise[String]().future)
 
     val requestExecutor = HttpDispatcher.gcmPoolClientFlow.map(rT => {
       rT._1.foreach(_.entity.getString.getObj[ObjectNode])
