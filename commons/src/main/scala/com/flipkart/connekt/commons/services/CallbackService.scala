@@ -8,7 +8,7 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
 import org.apache.commons.lang.RandomStringUtils
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 /**
  *
@@ -17,6 +17,8 @@ import scala.util.{Failure, Success, Try}
  * @version 12/9/15
  */
 class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService with Instrumented {
+
+  val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
@@ -40,7 +42,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   @Timed("fetchCallbackEvent")
   override def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
     Try {
-      channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None)
+      channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None, MAX_FETCH_EVENTS)
     }
   }
 
@@ -49,7 +51,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   @Timed("fetchCallbackEventByContactId")
   def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
     Try {
-      channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(minTimestamp, maxTimestamp)))
+      channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(minTimestamp, maxTimestamp)), MAX_FETCH_EVENTS)
     }
   }
 
