@@ -37,7 +37,12 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
     implicit def rejectionHandler =
       RejectionHandler.newBuilder()
         .handle {
-          case AuthorizationFailedRejection =>
+          case AuthenticationFailedRejection(cause, _ ) =>
+            complete(responseMarshallable[GenericResponse](
+              StatusCodes.Unauthorized, Seq.empty[HttpHeader],
+              GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Authentication Failed, Please Contact connekt-dev@flipkart.com", null)
+              )))
+         case AuthorizationFailedRejection =>
             complete(responseMarshallable[GenericResponse](
               StatusCodes.Unauthorized, Seq.empty[HttpHeader],
               GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)
