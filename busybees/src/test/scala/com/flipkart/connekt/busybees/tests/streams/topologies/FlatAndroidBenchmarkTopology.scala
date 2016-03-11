@@ -17,6 +17,7 @@ import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger, ServiceFa
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
+import org.scalatest.Ignore
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
@@ -29,6 +30,7 @@ import akka.stream.scaladsl.GraphDSL.Implicits._
  * @author durga.s
  * @version 3/11/16
  */
+@Ignore
 class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
 
   override def beforeAll() = {
