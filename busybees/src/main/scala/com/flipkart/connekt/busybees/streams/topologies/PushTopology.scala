@@ -30,10 +30,13 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   implicit val ec = BusyBeesBoot.system.dispatcher
   implicit val mat = BusyBeesBoot.mat
 
+  val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
+
   var sourceSwitches: List[Promise[String]] = _
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
+
     val partitionFactor = ConnektConfig.getInt("busybees.connections.kafka.topic.partitionFactor").get
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
@@ -53,7 +56,6 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
 
-    val ioDispatcher = system.dispatchers.lookup("akka.stream.default-blocking-io-dispatcher")
     val render = b.add(new RenderFlow)
     val merger = b.add(Merge[PNCallbackEvent](3))
 
@@ -93,7 +95,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
 
-    val gcmResponseHandle = b.add(new GCMResponseHandler().withAttributes(ActorAttributes.dispatcher("akka.stream.default-blocking-io-dispatcher")))
+    val gcmResponseHandle = b.add(new GCMResponseHandler())
 
     platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle ~> merger.in(1)
 
