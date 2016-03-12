@@ -53,6 +53,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
 
+    val ioDispatcher = system.dispatchers.lookup("akka.stream.default-blocking-io-dispatcher")
     val render = b.add(new RenderFlow)
     val merger = b.add(Merge[PNCallbackEvent](3))
 
@@ -77,16 +78,17 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      * iosRequest ~> iosFormatter ~> apnsDispatcher
      */
 
-    val fmtIOS = b.add(new IOSChannelFormatter)
+    val fmtIOSParallelism = ConnektConfig.getInt("busybees.topology.push.iosFormatter.parallelism").get
+    val fmtIOS = b.add(new IOSChannelFormatter(fmtIOSParallelism)(ioDispatcher).flow)
     val apnsDispatcher = b.add(new APNSDispatcher)
-
 
     platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> merger.in(0)
 
     /**
      * Android Topology
      */
-    val fmtAndroid = b.add(new AndroidChannelFormatter)
+    val fmtAndroidParallelism = ConnektConfig.getInt("busybees.topology.push.androidFormatter.parallelism").get
+    val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
     val gcmHttpPrepare = b.add(new GCMDispatcherPrepare())
 
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
@@ -114,7 +116,8 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
     val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request)/*.buffer(10, OverflowStrategy.backpressure)*/)
 
-    val fmtWindows = b.add(new WindowsChannelFormatter)
+    val fmtWindowsParallelism = ConnektConfig.getInt("busybees.topology.push.windowsFormatter.parallelism").get
+    val fmtWindows = b.add(new WindowsChannelFormatter(fmtWindowsParallelism)(ioDispatcher).flow)
     val wnsRHandler = b.add(new WNSResponseHandler)
 
     platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge
