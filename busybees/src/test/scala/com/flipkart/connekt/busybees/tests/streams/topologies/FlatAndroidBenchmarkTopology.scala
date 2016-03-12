@@ -39,6 +39,9 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
     HttpDispatcher.init(ConnektConfig.getConfig("busybees.akka.http").get)
   }
 
+  val ioDispatcher = system.dispatchers.lookup("akka.stream.default-blocking-io-dispatcher")
+  val fmtAndroidParallelism = ConnektConfig.getInt("busybees.topology.push.androidFormatter.parallelism").get
+
   "FlatAndroidBenchmarkTopology with responseHandler" should "log throughput rates" in {
     val counter: AtomicLong = new AtomicLong(0)
 
@@ -46,7 +49,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
     val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 5)(Promise[String]().future))
 
     val render = Flow.fromGraph(new RenderFlow)
-    val gcmFmt = Flow.fromGraph(new AndroidChannelFormatter)
+    val gcmFmt = Flow.fromGraph(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
     val gcmPrepare = Flow.fromGraph(new GCMDispatcherPrepare)
     val gcmRHandler = Flow.fromGraph(new GCMResponseHandler)
     val meter = Flow.fromGraph(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH))
@@ -69,7 +72,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
     val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 5)(Promise[String]().future))
 
     val render = Flow.fromGraph(new RenderFlow)
-    val gcmFmt = Flow.fromGraph(new AndroidChannelFormatter)
+    val gcmFmt = Flow.fromGraph(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
     val gcmPrepare = Flow.fromGraph(new GCMDispatcherPrepare)
     val gcmRHandler = Flow.fromGraph(new GCMResponseHandler)
     val meter = Flow.fromGraph(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH))
@@ -96,7 +99,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec {
     val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 5)(Promise[String]().future))
 
     val render = Flow.fromGraph(new RenderFlow)
-    val gcmFmt = Flow.fromGraph(new AndroidChannelFormatter)
+    val gcmFmt = Flow.fromGraph(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
     val gcmPrepare = Flow.fromGraph(new GCMDispatcherPrepare)
     val gcmRHandler = Flow.fromGraph(new GCMResponseHandler)
     val meter = Flow.fromGraph(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH))
