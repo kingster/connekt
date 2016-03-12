@@ -21,11 +21,11 @@ import scala.concurrent.ExecutionContextExecutor
  */
 class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
 
-  override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
+  def getExpiry(ts: Option[Long]): Long = {
+    ts.getOrElse(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(6))
+  }
 
-    def getExpiry(ts: Option[Long]): Long = {
-      ts.getOrElse(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(6))
-    }
+  override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
 
     try {
 
