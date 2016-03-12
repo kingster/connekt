@@ -63,7 +63,7 @@ class AndroidTopologyTest extends TopologyUTSpec {
     val result = Source.single(cRequest)
       .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
-      .via(new AndroidChannelFormatter)
+      .via(new AndroidChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
       .via(httpDispatcher)
       .via(poolClientFlow)
       .runWith(Sink.head)

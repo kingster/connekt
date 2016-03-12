@@ -93,7 +93,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
         val out = Sink.foreach[PNCallbackEvent](println)
 
         val render = b.add(new RenderFlow)
-        val formatter = b.add(new WindowsChannelFormatter)
+        val formatter = b.add(new WindowsChannelFormatter(1)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
         val dispatcher = b.add(new WNSDispatcherPrepare)
 
         val pipeInletMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))

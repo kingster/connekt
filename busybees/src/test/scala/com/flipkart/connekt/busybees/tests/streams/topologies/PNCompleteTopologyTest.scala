@@ -134,7 +134,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
 
         val render = b.add(new RenderFlow)
 
-        val iosFormat = b.add(new IOSChannelFormatter)
+        val iosFormat = b.add(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
         val iosDispatch = b.add(new APNSDispatcher)
 
         //        val androidFormat = b.add(new AndroidChannelFormatter)

@@ -63,7 +63,7 @@ class iOSTopologyTest extends TopologyUTSpec {
     val result = Source.single(cRequest)
       .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
-      .via(new IOSChannelFormatter)
+      .via(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
       .via(new APNSDispatcher())
       .runWith(Sink.head)
 
