@@ -13,4 +13,6 @@ class TopologyUTSpec extends CommonsBaseTest {
   implicit val ec = system.dispatcher
   implicit val mat = ActorMaterializer()
 
+  System.setProperty("CONNEKT_ENV", "ndc")
+
 }
