@@ -56,7 +56,6 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = try {
-        ConnektLogger(LogFile.PROCESSORS).debug(s"KafkaSource:: OnPull")
         pushElement()
       } catch {
         case e: Exception =>
