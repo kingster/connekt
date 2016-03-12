@@ -10,11 +10,11 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
  * @author durga.s
  * @version 3/12/16
  */
-abstract class NIOFlow[I, O](parallelism: Int)(ec: ExecutionContextExecutor) {
+abstract class NIOFlow[In, Out](parallelism: Int)(ec: ExecutionContextExecutor) {
 
-  def map: I => List[O]
+  def map: In => List[Out]
 
-  val flow = Flow[I].map(identity).mapAsync(parallelism){
+  val flow = Flow[In].map(identity).mapAsync(parallelism){
     i => Future(map(i))(ec)
   }.mapConcat(identity)
 }
