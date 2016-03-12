@@ -108,6 +108,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     kafkaConsumerConnector = kafkaConsumerHelper.getConnector
     iterator = initIterator(kafkaConsumerConnector)
+    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource::initIterator Complete")
   }
 }
 

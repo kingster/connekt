@@ -31,6 +31,7 @@ trait KafkaConnectionHelper {
     factoryProps.setProperty("zookeeper.session.timeout.ms", factoryConf.getString("zookeeper.session.timeout.ms"))
     factoryProps.setProperty("zookeeper.sync.time.ms", factoryConf.getString("zookeeper.sync.time.ms"))
     factoryProps.setProperty("auto.commit.interval.ms", factoryConf.getString("auto.commit.interval.ms"))
+    factoryProps.setProperty("consumer.timeout.ms", factoryConf.getString("consumer.timeout.ms"))
 
     val kafkaConsumerFactory = new KafkaConsumerFactory(factoryProps)
 
