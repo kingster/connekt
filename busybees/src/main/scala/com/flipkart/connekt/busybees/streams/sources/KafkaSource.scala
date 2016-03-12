@@ -4,8 +4,10 @@ import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler, TimerGraphSta
 import akka.stream.{Attributes, Outlet, SourceShape}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.CollectionUtils._
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.metrics.Timed
 import kafka.consumer.ConsumerConnector
 import kafka.message.MessageAndMetadata
 import kafka.serializer.{Decoder, DefaultDecoder}
@@ -22,7 +24,7 @@ import scala.reflect.ClassTag
  * @author durga.s
  * @version 1/28/16
  */
-class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String, partitionFactor: Int)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] {
+class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String, partitionFactor: Int)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented{
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
@@ -43,6 +45,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
         pushElement()
     }
 
+    @Timed("pushElement")
     private def pushElement() = {
       if (iterator.hasNext) {
         val m = iterator.next()
