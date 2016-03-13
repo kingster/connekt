@@ -1,80 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" strict="true" name="log4j2BusyBeesConfig">
+<Configuration status="DEBUG" name="log4j2BusyBees">
+
   <Properties>
-    <Property name="defaultLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-default.log</Property>
-    <Property name="workersLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</Property>
-    <Property name="clientsLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-clients.log</Property>
-    <Property name="processorLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-processors.log</Property>
-    <Property name="factoryLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-factory.log</Property>
-    <Property name="daoLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-dao.log</Property>
-    <Property name="serviceLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-service.log</Property>
+    <Property name="defaultLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-default.log</Property>
+    <Property name="workersLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</Property>
+    <Property name="clientsLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-clients.log</Property>
+    <Property name="processorLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-processors.log</Property>
+    <Property name="factoryLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-factory.log</Property>
+    <Property name="daoLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-dao.log</Property>
+    <Property name="serviceLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-service.log</Property>
   </Properties>
-  <Filter type="ThresholdFilter" level="trace"/>
 
   <Appenders>
-    <RollingFileAppender bufferSize="1048576" name="DEFAULT" fileName="${defaultLog}" filePattern="${defaultLog}.%i">
-      <Layout type="PatternLayout">
+
+    <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i"
+                             immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="WORKERS" fileName="${workersLog}" filePattern="${workersLog}.%i">
-      <Layout type="PatternLayout">
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i"
+                             immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="CLIENTS" fileName="${clientsLog}" filePattern="${clientsLog}.%i">
-      <Layout type="PatternLayout">
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="CLIENTS" fileName="${clientsLogFile}" filePattern="${clientsLogFile}.%i"
+                             immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="PROCESSORS" fileName="${processorLog}" filePattern="${processorLog}.%i">
-      <Layout type="PatternLayout">
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i"
+                             immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="FACTORY" fileName="${factoryLog}" filePattern="${factoryLog}.%i">
-      <Layout type="PatternLayout">
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i"
+                             immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="DAO" fileName="${daoLog}" filePattern="${daoLog}.%i">
-      <Layout type="PatternLayout">
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false"
+                             bufferSize="1048576">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="SERVICE" fileName="${serviceLog}" filePattern="${serviceLog}.%i">
-      <Layout type="PatternLayout">
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i"
+                             immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
+    </RollingRandomAccessFile>
+
   </Appenders>
 
   <!--  BusyBees loggers -->
@@ -102,16 +117,17 @@
     </Logger>
 
     <!-- Used Library loggers -->
-    <Logger name="kafka" level="error"/>
-    <Logger name="org.apache" level="error"/>
-    <Logger name="com.couchbase.client" level="error"/>
+    <Logger name="kafka" level="ERROR"/>
+    <Logger name="org.apache" level="ERROR"/>
+    <Logger name="com.couchbase.client" level="ERROR"/>
 
-    <Logger name="com.flipkart" level="error"/>
-    <Logger name="com.flipkart.kloud.config" level="error"/>
+    <Logger name="com.flipkart" level="ERROR"/>
+    <Logger name="com.flipkart.kloud.config" level="ERROR"/>
 
-    <Root level="trace">
+    <Root level="INFO">
       <AppenderRef ref="DEFAULT"/>
     </Root>
+
   </Loggers>
 
 </Configuration>

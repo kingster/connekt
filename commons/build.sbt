@@ -25,16 +25,16 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  /* logging using logback */
-/*
-  "ch.qos.logback" % "logback-core" % "1.1.3",
-  "ch.qos.logback" % "logback-classic" % "1.1.3",
-*/
+  /* Logging Dependencies.Since we want to use log4j2 */
   "com.lmax" % "disruptor" % "3.3.4",
-  "org.apache.logging.log4j" % "log4j-core" % "2.5",
-  "org.apache.logging.log4j" % "log4j-api" % "2.5",
-  "org.slf4j" % "slf4j-api" % "1.7.7",
-  /* logging dependency ends here */
+  "org.apache.logging.log4j" 			% "log4j-api" 			  % "2.5",
+  "org.slf4j"                     % "slf4j-api"         % "1.7.13",
+  "org.apache.logging.log4j" 			% "log4j-core" 			  % "2.5",
+  "org.apache.logging.log4j" 			% "log4j-1.2-api"		  % "2.5",    /* For Log4j 1.x API Bridge*/
+  "org.apache.logging.log4j" 			% "log4j-jcl"	    	  % "2.5",    /* For Apache Commons Logging Bridge */
+  "org.apache.logging.log4j" 			% "log4j-slf4j-impl"  % "2.5",    /* For SLF4J Bridge */
+  "org.slf4j" 	             	 	  % "log4j-over-slf4j"  % "1.7.13", /* For SLF4J Bridge */
+  /* End of Logging Libraries dependency */
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
@@ -79,7 +79,6 @@ libraryDependencies ++= Seq(
 
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
-  "com.lmax" % "disruptor" % "3.3.2",
   "commons-lang" % "commons-lang" % "2.6",
   "commons-pool" % "commons-pool" % "1.6",
   "org.springframework" % "spring-jdbc" % "4.2.3.RELEASE",
