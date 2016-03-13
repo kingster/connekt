@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" strict="true" name="log4j2BusyBeesConfig">
+  <Properties>
+    <Property name="defaultLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-default.log</Property>
+    <Property name="workersLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</Property>
+    <Property name="clientsLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-clients.log</Property>
+    <Property name="processorLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-processors.log</Property>
+    <Property name="factoryLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-factory.log</Property>
+    <Property name="daoLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-dao.log</Property>
+    <Property name="serviceLog">/var/log/flipkart/pf/fk-pf-connekt/busybees-service.log</Property>
+  </Properties>
+  <Filter type="ThresholdFilter" level="trace"/>
+
+  <Appenders>
+    <RollingFileAppender bufferSize="1048576" name="DEFAULT" fileName="${defaultLog}" filePattern="${defaultLog}.%i">
+      <Layout type="PatternLayout">
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <SizeBasedTriggerPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingFileAppender>
+    <RollingFileAppender bufferSize="1048576" name="WORKERS" fileName="${workersLog}" filePattern="${workersLog}.%i">
+      <Layout type="PatternLayout">
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <SizeBasedTriggerPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingFileAppender>
+    <RollingFileAppender bufferSize="1048576" name="CLIENTS" fileName="${clientsLog}" filePattern="${clientsLog}.%i">
+      <Layout type="PatternLayout">
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <SizeBasedTriggerPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingFileAppender>
+    <RollingFileAppender bufferSize="1048576" name="PROCESSORS" fileName="${processorLog}" filePattern="${processorLog}.%i">
+      <Layout type="PatternLayout">
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <SizeBasedTriggerPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingFileAppender>
+    <RollingFileAppender bufferSize="1048576" name="FACTORY" fileName="${factoryLog}" filePattern="${factoryLog}.%i">
+      <Layout type="PatternLayout">
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <SizeBasedTriggerPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingFileAppender>
+    <RollingFileAppender bufferSize="1048576" name="DAO" fileName="${daoLog}" filePattern="${daoLog}.%i">
+      <Layout type="PatternLayout">
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <SizeBasedTriggerPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingFileAppender>
+    <RollingFileAppender bufferSize="1048576" name="SERVICE" fileName="${serviceLog}" filePattern="${serviceLog}.%i">
+      <Layout type="PatternLayout">
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <SizeBasedTriggerPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingFileAppender>
+  </Appenders>
+
+  <!--  BusyBees loggers -->
+  <Loggers>
+    <Logger name="DEFAULT" level="trace" additivity="false">
+      <AppenderRef ref="DEFAULT"/>
+    </Logger>
+    <Logger name="WORKERS" level="debug" additivity="false">
+      <AppenderRef ref="WORKERS"/>
+    </Logger>
+    <Logger name="CLIENTS" level="debug" additivity="false">
+      <AppenderRef ref="CLIENTS"/>
+    </Logger>
+    <Logger name="PROCESSORS" level="debug" additivity="false">
+      <AppenderRef ref="PROCESSORS"/>
+    </Logger>
+    <Logger name="FACTORY" level="debug" additivity="false">
+      <AppenderRef ref="FACTORY"/>
+    </Logger>
+    <Logger name="DAO" level="debug" additivity="false">
+      <AppenderRef ref="DAO"/>
+    </Logger>
+    <Logger name="SERVICE" level="debug" additivity="false">
+      <AppenderRef ref="SERVICE"/>
+    </Logger>
+
+    <!-- Used Library loggers -->
+    <Logger name="kafka" level="error"/>
+    <Logger name="org.apache" level="error"/>
+    <Logger name="com.couchbase.client" level="error"/>
+
+    <Logger name="com.flipkart" level="error"/>
+    <Logger name="com.flipkart.kloud.config" level="error"/>
+
+    <Root level="trace">
+      <AppenderRef ref="DEFAULT"/>
+    </Root>
+  </Loggers>
+
+</Configuration>

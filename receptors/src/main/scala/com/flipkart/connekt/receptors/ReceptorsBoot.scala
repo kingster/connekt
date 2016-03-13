@@ -29,11 +29,10 @@ object ReceptorsBoot extends BaseApp {
 
       ConnektLogger(LogFile.SERVICE).info("Receptors initializing.")
 
-      val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-receptors.xml")
-      val logConfigFile = getClass.getClassLoader.getResourceAsStream(configFile)
+      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-receptors.xml")
 
       ConnektLogger(LogFile.SERVICE).info(s"Receptors Logging using $configFile")
-      ConnektLogger.init(logConfigFile)
+      ConnektLogger.init(configFile)
 
       ConnektConfig(configServiceHost, configServicePort)()
 
@@ -78,7 +77,7 @@ object ReceptorsBoot extends BaseApp {
   }
 
   def main(args: Array[String]) {
-    System.setProperty("logback.config", "logback-test.xml")
+    System.setProperty("log4j.configurationFile", "log4j2-test.xml")
     start()
   }
 }
