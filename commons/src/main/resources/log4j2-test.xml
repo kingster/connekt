@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" strict="true" name="log4j2ReceptorsConfig">
-  <Filter type="ThresholdFilter" level="trace"/>
+<Configuration status="debug" name="log4j2ReceptorsConfig">
 
   <Appenders>
-    <Appender type="Console" name="STDOUT">
-      <Layout type="PatternLayout" pattern="%m MDC%X%n"/>
+    <Appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+      <PatternLayout>
+        <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
     </Appender>
+
   </Appenders>
 
   <Loggers>
     <!-- Used Library loggers -->
-    <Logger name="kafka" level="error" />
-    <Logger name="org.apache" level="error" />
-    <Logger name="com.couchbase.client" level="error" />
+    <Logger name="kafka" level="ERROR" />
+    <Logger name="org.apache" level="ERROR" />
+    <Logger name="com.couchbase.client" level="ERROR" />
 
-    <Logger name="com.flipkart" level="info"  />
-    <Logger name="com.flipkart.kloud.config" level="error"/>
+    <Logger name="com.flipkart" level="DEBUG"  />
+    <Logger name="com.flipkart.kloud.config" level="ERROR"/>
 
-    <Root level="trace">
+    <Root level="ALL">
       <AppenderRef ref="STDOUT"/>
     </Root>
   </Loggers>
