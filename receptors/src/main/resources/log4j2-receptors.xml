@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" strict="true" name="log4j2ReceptorsConfig">
+<Configuration status="debug" name="log4j2ReceptorsConfig">
   <Properties>
     <Property name="defaultLog">/var/log/flipkart/pf/fk-pf-connekt/receptors-default.log</Property>
     <Property name="accessLog">/var/log/flipkart/pf/fk-pf-connekt/receptors-access.log</Property>
@@ -10,7 +10,7 @@
   <Filter type="ThresholdFilter" level="trace"/>
 
   <Appenders>
-    <RollingFileAppender bufferSize="1048576" name="DEFAULT" fileName="${defaultLog}" filePattern="${defaultLog}.%i">
+    <RollingFile bufferSize="1048576" name="DEFAULT" fileName="${defaultLog}" filePattern="${defaultLog}.%i">
       <Layout type="PatternLayout">
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </Layout>
@@ -18,8 +18,8 @@
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="PROCESSORS" fileName="${processorLog}" filePattern="${processorLog}.%i">
+    </RollingFile>
+    <RollingFile bufferSize="1048576" name="PROCESSORS" fileName="${processorLog}" filePattern="${processorLog}.%i">
       <Layout type="PatternLayout">
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </Layout>
@@ -27,8 +27,8 @@
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="FACTORY" fileName="${factoryLog}" filePattern="${factoryLog}.%i">
+    </RollingFile>
+    <RollingFile bufferSize="1048576" name="FACTORY" fileName="${factoryLog}" filePattern="${factoryLog}.%i">
       <Layout type="PatternLayout">
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </Layout>
@@ -36,8 +36,8 @@
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="DAO" fileName="${daoLog}" filePattern="${daoLog}.%i">
+    </RollingFile>
+    <RollingFile bufferSize="1048576" name="DAO" fileName="${daoLog}" filePattern="${daoLog}.%i">
       <Layout type="PatternLayout">
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </Layout>
@@ -45,8 +45,8 @@
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
-    <RollingFileAppender bufferSize="1048576" name="SERVICE" fileName="${serviceLog}" filePattern="${serviceLog}.%i">
+    </RollingFile>
+    <RollingFile bufferSize="1048576" name="SERVICE" fileName="${serviceLog}" filePattern="${serviceLog}.%i">
       <Layout type="PatternLayout">
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </Layout>
@@ -54,7 +54,7 @@
         <SizeBasedTriggerPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
-    </RollingFileAppender>
+    </RollingFile>
   </Appenders>
 
   <!-- Receptors loggers -->
