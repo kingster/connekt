@@ -19,7 +19,7 @@
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
@@ -30,7 +30,7 @@
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
@@ -41,7 +41,7 @@
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
@@ -52,7 +52,7 @@
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
@@ -63,7 +63,7 @@
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
@@ -74,7 +74,7 @@
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
@@ -85,7 +85,7 @@
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
@@ -121,7 +121,7 @@
     <Logger name="org.apache" level="ERROR"/>
     <Logger name="com.couchbase.client" level="ERROR"/>
 
-    <Logger name="com.flipkart" level="ERROR"/>
+    <Logger name="com.flipkart" level="DEBUG"/>
     <Logger name="com.flipkart.kloud.config" level="ERROR"/>
 
     <Root level="INFO">
