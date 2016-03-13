@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" name="log4j2TestConfig">
+<Configuration status="WARN">
 
   <Appenders>
-    <Appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-      <PatternLayout>
-        <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
-      </PatternLayout>
-    </Appender>
-
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d [%thread] %-5level %logger{36} – %m%n"/>
+    </Console>
   </Appenders>
 
   <Loggers>
-    <!-- Used Library loggers -->
-    <Logger name="kafka" level="ERROR" />
-    <Logger name="org.apache" level="ERROR" />
-    <Logger name="com.couchbase.client" level="ERROR" />
+    <Logger name="org" level="INFO"/>
+    <Logger name="io" level="INFO"/>
+    <Logger name="com" level="INFO"/>
+    <Logger name="kafka" level="WARN"/>
 
-    <Logger name="com.flipkart" level="DEBUG"  />
-    <Logger name="com.flipkart.kloud.config" level="ERROR"/>
+    <Logger name="com.flipkart" level="ALL"/>
 
     <Root level="ALL">
       <AppenderRef ref="STDOUT"/>

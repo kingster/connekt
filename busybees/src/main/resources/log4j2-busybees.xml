@@ -13,6 +13,10 @@
 
   <Appenders>
 
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d %p %c{1.} [%t] %m%n"/>
+    </Console>
+
     <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
