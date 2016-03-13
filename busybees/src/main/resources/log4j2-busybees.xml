@@ -14,7 +14,7 @@
   <Appenders>
 
     <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d %p %c{1.} [%t] %m%n"/>
+      <PatternLayout pattern="%d %p [%t] %m%n"/>
     </Console>
 
     <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">

@@ -3,7 +3,7 @@
 
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d [%thread] %-5level %logger{36} – %m%n"/>
+      <PatternLayout pattern="%d %p [%t] %m%n"/>
     </Console>
   </Appenders>
 
