@@ -9,7 +9,7 @@ LOG_DIR=/var/log/flipkart/pf/fk-pf-connekt
 
 #### JAVA_OPTS ####
 
-JAVA_OPTS=""
+JAVA_OPTS="${JAVA_OPTS:-}"
 
 ## SSL Settings
 JAVA_OPTS="$JAVA_OPTS -Djavax.net.ssl.trustStore=/var/lib/fk-pf-connekt/keystore"
@@ -21,10 +21,10 @@ JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
 JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC"
 
 ## Memory settings
-JAVA_OPTS="$JAVA_OPTS -Xmn512M -Xms1g -Xmx8g -XX:PermSize=256M -XX:MaxPermSize=256M"
+JAVA_OPTS="$JAVA_OPTS -Xms1g -Xmx8g"
 
 #Flight Recording
-JAVA_OPTS="${JAVA_OPTS} -XX:+UnlockCommercialFeatures  -XX:+FlightRecorder"
+JAVA_OPTS="$JAVA_OPTS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
 
 ## Encoding
 JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8"
