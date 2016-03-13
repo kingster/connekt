@@ -14,7 +14,7 @@ abstract class ConnektUTSpec extends FlatSpec  with Matchers with OptionValues w
 
   override def beforeAll() = {
 
-    val logConfigFile = getClass.getClassLoader.getResourceAsStream("logback-test.xml")
+    val logConfigFile = System.getProperty("user.dir").concat("/commons/src/main/resources/log4j2-test.xml")
     ConnektLogger.init(logConfigFile)
 
   }

@@ -1,9 +1,10 @@
 package com.flipkart.connekt.commons.tests.factories
 
-import java.io.{FileInputStream, File}
-import ch.qos.logback.classic.LoggerContext
-import com.flipkart.connekt.commons.factories.LoggerFactoryConfigurator
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.LoggerContext
+import org.apache.logging.log4j.core.config.xml.XmlConfiguration
+import org.apache.logging.log4j.core.config.{ConfigurationSource, Configurator}
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -36,12 +37,17 @@ class LoggerFactoryConfiguratorTest extends ConnektUTSpec {
 object ConnektLogger {
 
   def init() = {
-    val confFilePath = System.getProperty("user.dir").concat("/commons/src/main/resources/logback-test.xml")
-    val file = new File(confFilePath)
-    LoggerFactoryConfigurator.configure(new FileInputStream(file))
+    System.setProperty("Log4jContextSelector", "org.apache.logging.log4j.core.async.AsyncLoggerContextSelector")
+
+    val context: LoggerContext = LogManager.getContext(false).asInstanceOf[LoggerContext]
+    val config = new XmlConfiguration(new ConfigurationSource(ClassLoader.getSystemResourceAsStream("log4j2-test.xml")))
+    context.start(config)
   }
 
-  def stop() = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext].stop()
+  def stop() = {
+    val context: LoggerContext = LogManager.getContext.asInstanceOf[LoggerContext]
+    Configurator.shutdown(context)
+  }
 
   def apply(implicit fileName: String): Logger = LoggerFactory.getLogger(fileName)
 

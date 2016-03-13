@@ -40,11 +40,10 @@ object BusyBeesBoot extends BaseApp {
     if (!initialized.getAndSet(true)) {
       ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
 
-      val configFile = ConfigUtils.getSystemProperty("logback.config").getOrElse("logback-busybees.xml")
-      val logConfigFile = getClass.getClassLoader.getResourceAsStream(configFile)
+      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-busybees.xml")
 
       ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
-      ConnektLogger.init(logConfigFile)
+      ConnektLogger.init(configFile)
 
       ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-busybees-akka"))
 
@@ -91,7 +90,7 @@ object BusyBeesBoot extends BaseApp {
   }
 
   def main(args: Array[String]) {
-    System.setProperty("logback.config", "logback-test.xml")
+    System.setProperty("log4j.configurationFile", "log4j2-test.xml")
     start()
   }
 }

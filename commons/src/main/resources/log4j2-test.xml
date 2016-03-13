@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" strict="true" name="log4j2ReceptorsConfig">
+  <Filter type="ThresholdFilter" level="trace"/>
+
+  <Appenders>
+    <Appender type="Console" name="STDOUT">
+      <Layout type="PatternLayout" pattern="%m MDC%X%n"/>
+    </Appender>
+  </Appenders>
+
+  <Loggers>
+    <!-- Used Library loggers -->
+    <Logger name="kafka" level="error" />
+    <Logger name="org.apache" level="error" />
+    <Logger name="com.couchbase.client" level="error" />
+
+    <Logger name="com.flipkart" level="info"  />
+    <Logger name="com.flipkart.kloud.config" level="error"/>
+
+    <Root level="trace">
+      <AppenderRef ref="STDOUT"/>
+    </Root>
+  </Loggers>
+
+</Configuration>
