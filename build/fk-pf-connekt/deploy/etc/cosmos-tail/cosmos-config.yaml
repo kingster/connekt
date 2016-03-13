@@ -1,5 +1,5 @@
 application: connekt-receptors
 file: /var/log/flipkart/pf/fk-pf-connekt/receptors-access.log
-statusCodePosition: 7
-responseTimePosition: 8
+statusCodePosition: 6
+responseTimePosition: 7
 multiplier: 1
