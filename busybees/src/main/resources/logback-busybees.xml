@@ -101,10 +101,29 @@
     </rollingPolicy>
   </appender>
 
-  <logger name="WORKERS" additivity="false">
+  <appender name="ASYNC_WORKERS" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="WORKERS" />
+  </appender>
+  <appender name="ASYNC_CLIENTS" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="CLIENTS" />
+  </appender>
+  <appender name="ASYNC_PROCESSORS" class="ch.qos.logback.classic.AsyncAppender" queueSize="1024">
+    <appender-ref ref="PROCESSORS" />
+  </appender>
+  <appender name="ASYNC_FACTORY" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="FACTORY" />
+  </appender>
+  <appender name="ASYNC_DAO" class="ch.qos.logback.classic.AsyncAppender" queueSize="1024">
+    <appender-ref ref="DAO" />
+  </appender>
+  <appender name="ASYNC_SERVICE" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="SERVICE" />
+  </appender>
+
+  <logger name="WORKERS" level="INFO" additivity="false">
     <appender-ref ref="WORKERS"/>
   </logger>
-  <logger name="CLIENTS" level="DEBUG" additivity="false">
+  <logger name="CLIENTS" level="INFO" additivity="false">
     <appender-ref ref="CLIENTS"/>
   </logger>
   <logger name="PROCESSORS" level="DEBUG" additivity="false">
@@ -113,14 +132,12 @@
   <logger name="SERVICE" level="DEBUG" additivity="false">
     <appender-ref ref="SERVICE"/>
   </logger>
-  <logger name="DAO" additivity="false">
+  <logger name="DAO" level="INFO" additivity="false">
     <appender-ref ref="DAO"/>
   </logger>
-
-  <logger name="FACTORY" additivity="false">
+  <logger name="FACTORY" level="INFO" additivity="false">
     <appender-ref ref="FACTORY"/>
   </logger>
-
 
   <logger name="kafka" level="ERROR"/>
   <logger name="org.apache" level="ERROR"/>

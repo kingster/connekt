@@ -3,7 +3,7 @@ package com.flipkart.connekt.busybees.streams
 import akka.NotUsed
 import akka.event.Logging
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import akka.stream.{Attributes, Materializer}
+import akka.stream.{ActorAttributes, Attributes, Materializer}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest}
 
 /**
@@ -17,7 +17,7 @@ trait ConnektTopology[E <:CallbackEvent] {
   def transform: Flow[ConnektRequest, E, NotUsed]
   def sink: Sink[E, NotUsed]
 
-  def graph() = source.via(transform).to(sink)
+  def graph() = source.withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(transform).to(sink)
     .withAttributes(Attributes.inputBuffer(initial = 16, max = 64))
     .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
 
