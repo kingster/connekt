@@ -13,65 +13,65 @@
 
   <Appenders>
     <RollingFile bufferSize="1048576" name="DEFAULT" fileName="${defaultLog}" filePattern="${defaultLog}.%i">
-      <Layout type="PatternLayout">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingFile>
     <RollingFile bufferSize="1048576" name="WORKERS" fileName="${workersLog}" filePattern="${workersLog}.%i">
-      <Layout type="PatternLayout">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingFile>
     <RollingFile bufferSize="1048576" name="CLIENTS" fileName="${clientsLog}" filePattern="${clientsLog}.%i">
-      <Layout type="PatternLayout">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingFile>
     <RollingFile bufferSize="1048576" name="PROCESSORS" fileName="${processorLog}" filePattern="${processorLog}.%i">
-      <Layout type="PatternLayout">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingFile>
     <RollingFile bufferSize="1048576" name="FACTORY" fileName="${factoryLog}" filePattern="${factoryLog}.%i">
-      <Layout type="PatternLayout">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingFile>
     <RollingFile bufferSize="1048576" name="DAO" fileName="${daoLog}" filePattern="${daoLog}.%i">
-      <Layout type="PatternLayout">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingFile>
     <RollingFile bufferSize="1048576" name="SERVICE" fileName="${serviceLog}" filePattern="${serviceLog}.%i">
-      <Layout type="PatternLayout">
+      <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </Layout>
+      </PatternLayout>
       <Policies>
-        <SizeBasedTriggerPolicy size="100 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingFile>
