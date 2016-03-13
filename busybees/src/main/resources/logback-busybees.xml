@@ -5,100 +5,52 @@
     </encoder>
   </appender>
 
-  <appender name="WORKERS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="WORKERS" class="ch.qos.logback.core.FileAppender">
     <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</file>
     <encoder>
       <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
       <immediateFlush>false</immediateFlush>
     </encoder>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>100MB</maxFileSize>
-    </triggeringPolicy>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log.%i</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>5</maxIndex>
-    </rollingPolicy>
   </appender>
 
-  <appender name="CLIENTS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="CLIENTS" class="ch.qos.logback.core.FileAppender">
     <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-clients.log</file>
     <encoder>
       <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
       <immediateFlush>false</immediateFlush>
     </encoder>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>100MB</maxFileSize>
-    </triggeringPolicy>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/busybees-clients.log.%i</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>5</maxIndex>
-    </rollingPolicy>
   </appender>
 
-  <appender name="PROCESSORS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="PROCESSORS" class="ch.qos.logback.core.FileAppender">
     <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-processors.log</file>
     <encoder>
       <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
       <immediateFlush>false</immediateFlush>
     </encoder>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>100MB</maxFileSize>
-    </triggeringPolicy>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/busybees-processors.log.%i</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>5</maxIndex>
-    </rollingPolicy>
   </appender>
 
-  <appender name="FACTORY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="FACTORY" class="ch.qos.logback.core.FileAppender">
     <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-factory.log</file>
     <encoder>
       <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
       <immediateFlush>false</immediateFlush>
     </encoder>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>100MB</maxFileSize>
-    </triggeringPolicy>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/busybees-factory.log.%i</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>5</maxIndex>
-    </rollingPolicy>
   </appender>
 
-  <appender name="DAO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="DAO" class="ch.qos.logback.core.FileAppender">
     <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-dao.log</file>
     <encoder>
       <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
       <immediateFlush>false</immediateFlush>
     </encoder>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>100MB</maxFileSize>
-    </triggeringPolicy>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/busybees-dao.log.%i</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>5</maxIndex>
-    </rollingPolicy>
   </appender>
 
-  <appender name="SERVICE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="SERVICE" class="ch.qos.logback.core.FileAppender">
     <file>/var/log/flipkart/pf/fk-pf-connekt/busybees-service.log</file>
     <encoder>
       <pattern>%n%date %highlight(%level) [%thread] %logger{10} [%file:%line] %msg%n</pattern>
       <immediateFlush>false</immediateFlush>
     </encoder>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>100MB</maxFileSize>
-    </triggeringPolicy>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>/var/log/flipkart/pf/fk-pf-connekt/busybees-service.log.%i</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>5</maxIndex>
-    </rollingPolicy>
   </appender>
 
   <appender name="ASYNC_WORKERS" class="ch.qos.logback.classic.AsyncAppender">
