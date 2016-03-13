@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="DEBUG" name="log4j2BusyBees">
+<Configuration status="WARN" name="log4j2BusyBees">
 
   <Properties>
     <Property name="defaultLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-default.log</Property>
@@ -13,8 +13,7 @@
 
   <Appenders>
 
-    <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i"
-                             immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -24,8 +23,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i"
-                             immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -35,8 +33,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="CLIENTS" fileName="${clientsLogFile}" filePattern="${clientsLogFile}.%i"
-                             immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="CLIENTS" fileName="${clientsLogFile}" filePattern="${clientsLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -46,8 +43,17 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i"
-                             immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %C{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -57,8 +63,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i"
-                             immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -68,19 +73,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false"
-                             bufferSize="1048576">
-      <PatternLayout>
-        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
-      </PatternLayout>
-      <Policies>
-        <SizeBasedTriggeringPolicy size="1024 MB"/>
-      </Policies>
-      <DefaultRolloverStrategy max="4"/>
-    </RollingRandomAccessFile>
-
-    <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i"
-                             immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
