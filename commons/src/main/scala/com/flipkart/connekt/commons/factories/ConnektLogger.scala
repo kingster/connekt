@@ -4,7 +4,6 @@ import java.io.{FileInputStream, File, InputStream}
 
 import ch.qos.logback.classic.LoggerContext
 import org.slf4j.LoggerFactory
-import com.typesafe.scalalogging.Logger
 
 /**
  *
@@ -23,7 +22,7 @@ object ConnektLogger {
 
   def stop() = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext].stop()
 
-  def apply(logFile: LogFile.Value) = Logger(LoggerFactory.getLogger(logFile.toString))
+  def apply(logFile: LogFile.Value) = LoggerFactory.getLogger(logFile.toString)
 }
 
 object LogFile extends Enumeration {
