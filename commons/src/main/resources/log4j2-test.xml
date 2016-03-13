@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" name="log4j2ReceptorsConfig">
+<Configuration status="WARN" name="log4j2TestConfig">
 
   <Appenders>
     <Appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
