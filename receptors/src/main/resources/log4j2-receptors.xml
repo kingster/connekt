@@ -9,6 +9,11 @@
   </Properties>
 
   <Appenders>
+
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d %p [%t] %m%n"/>
+    </Console>
+
     <RollingRandomAccessFile name="ACCESS" fileName="${accessLog}" filePattern="${accessLog}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
@@ -18,6 +23,7 @@
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
+
     <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLog}" filePattern="${defaultLog}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
@@ -27,6 +33,7 @@
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
+
     <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLog}" filePattern="${processorLog}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
@@ -36,6 +43,7 @@
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
+
     <RollingRandomAccessFile name="FACTORY" fileName="${factoryLog}" filePattern="${factoryLog}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
@@ -45,6 +53,7 @@
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
+
     <RollingRandomAccessFile name="DAO" fileName="${daoLog}" filePattern="${daoLog}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
@@ -54,6 +63,7 @@
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
+
     <RollingRandomAccessFile name="SERVICE" fileName="${serviceLog}" filePattern="${serviceLog}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
@@ -63,6 +73,7 @@
       </Policies>
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
+
   </Appenders>
 
   <!-- Receptors loggers -->
@@ -91,7 +102,7 @@
     <Logger name="com.flipkart" level="debug"  />
     <Logger name="com.flipkart.kloud.config" level="error"/>
 
-    <Root level="info">
+    <Root level="INFO">
       <AppenderRef ref="DEFAULT"/>
     </Root>
   </Loggers>
