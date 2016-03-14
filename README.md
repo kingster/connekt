@@ -46,7 +46,7 @@ Contributing
 
 1. Create a branch for all feature developments.
 2. Ensure, your changes have corresponding UTs, so that functional correctness can be readily verified.
-2. Create a pull request when you feel that the code is production ready and ready for review and merge.
+3. Create a pull request when you feel that the code is production ready and ready for review and merge. ![Warning](http://icons.iconarchive.com/icons/paomedia/small-n-flat/16/sign-warning-icon.png) Please ensure that you do both sanity testing and perf testing before you raise any request! _Even a single line change may lead to deterioration of the entire flow_.
 
 
 
