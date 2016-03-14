@@ -2,14 +2,14 @@ package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import java.util.concurrent.atomic.AtomicLong
 
-import akka.stream.ActorAttributes
 import akka.stream.scaladsl.{Sink, Source}
-import com.flipkart.connekt.busybees.streams.sources.KafkaSource
+import com.flipkart.connekt.busybees.streams.sources.{KafkaSource, MessageDecoder}
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.softwaremill.react.kafka.{ConsumerProperties, ReactiveKafka}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
@@ -62,8 +62,20 @@ class KafkaBenchmarkTest extends TopologyUTSpec with Instrumented {
       """.stripMargin.getObj[ConnektRequest]
     }
 
+
+    val rKafka = new ReactiveKafka()
+    val publisher = rKafka.consume(ConsumerProperties(
+      brokerList = "10.84.174.216:9092",
+      zooKeeperHost = "10.84.174.225:2181,10.84.174.222:2181/bro/kafka-nm-qa",
+      topic = "push_connekt_insomnia_d346b56a260f1a",
+      groupId = "ckt",
+      decoder = new MessageDecoder[ConnektRequest]()
+    ))
+
+    val reactiveSource = Source.fromPublisher(publisher).map(_.message())
+
     //Run the benchmark topology
-    val rF = Source.fromGraph(kSource).runWith(Sink.foreach( r => {
+    val rF = reactiveSource.runWith(Sink.foreach( r => {
       qps.mark()
       if(0 == (counter.incrementAndGet() % 1000)) {
         ConnektLogger(LogFile.SERVICE).info(s">>> MR[${qps.getMeanRate}], 1MR[${qps.getOneMinuteRate}], 5MR[${qps.getFiveMinuteRate}]")
