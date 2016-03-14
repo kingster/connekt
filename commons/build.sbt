@@ -33,7 +33,6 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" 			% "log4j-1.2-api"		  % "2.5",    /* For Log4j 1.x API Bridge*/
   "org.apache.logging.log4j" 			% "log4j-jcl"	    	  % "2.5",    /* For Apache Commons Logging Bridge */
   "org.apache.logging.log4j" 			% "log4j-slf4j-impl"  % "2.5",    /* For SLF4J Bridge */
-  "org.slf4j" 	             	 	  % "log4j-over-slf4j"  % "1.7.13", /* For SLF4J Bridge */
   /* End of Logging Libraries dependency */
   "commons-pool" % "commons-pool" % "1.6",
   "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
