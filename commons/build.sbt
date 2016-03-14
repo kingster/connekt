@@ -35,8 +35,10 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" 			% "log4j-slf4j-impl"  % "2.5",    /* For SLF4J Bridge */
   /* End of Logging Libraries dependency */
   "commons-pool" % "commons-pool" % "1.6",
-  "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll
+  "org.apache.kafka" % "kafka_2.11" % "0.8.2.2" excludeAll(
     ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
+    ExclusionRule(organization = "log4j")
+    ),
   "com.typesafe" % "config" % "1.3.0",
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
@@ -91,7 +93,10 @@ libraryDependencies ++= Seq(
   "com.roundeights" %% "hasher" % "1.2.0",
   "com.couchbase.client" % "java-client" % "2.1.3",
   "io.reactivex" %% "rxscala" % "0.26.0",
-  "org.apache.curator" % "curator-recipes" % "2.9.1",
+  "org.apache.curator" % "curator-recipes" % "2.9.1" excludeAll(
+    ExclusionRule(organization = "log4j"),
+    ExclusionRule(organization = "org.slf4j")
+    ),
   "com.flipkart.specter" % "specter-client" % "1.4.0-SNAPSHOT",
   "joda-time" % "joda-time" % "2.3",
   "com.flipkart" %% "util-config" % "0.0.1",
