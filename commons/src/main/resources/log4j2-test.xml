@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+  <Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d %p [%t] %m%n"/>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="org" level="INFO"/>
+    <Logger name="io" level="INFO"/>
+    <Logger name="com" level="INFO"/>
+    <Logger name="kafka" level="WARN"/>
+
+    <Logger name="com.flipkart" level="ALL"/>
+
+    <Root level="ALL">
+      <AppenderRef ref="STDOUT"/>
+    </Root>
+  </Loggers>
+
+</Configuration>

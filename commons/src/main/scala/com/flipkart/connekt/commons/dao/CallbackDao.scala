@@ -44,11 +44,11 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
     }
   }
 
-  def fetchCallbackEvents(requestId: String, contactId: String, timestampRange: Option[(Long, Long)]): List[CallbackEvent] = {
+  def fetchCallbackEvents(requestId: String, contactId: String, timestampRange: Option[(Long, Long)], maxRowsLimit: Option[Int]): List[CallbackEvent] = {
     val colFamiliesReqd = List(columnFamily)
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val rawDataList = fetchRows(s"${contactId.sha256.hash.hex}:$requestId", s"${contactId.sha256.hash.hex}:$requestId{", colFamiliesReqd, timestampRange)
+      val rawDataList = fetchRows(s"${contactId.sha256.hash.hex}:$requestId", s"${contactId.sha256.hash.hex}:$requestId{", colFamiliesReqd, timestampRange, maxRowsLimit)
       rawDataList.values.flatMap(rowData => {
         val eventProps = rowData.get(columnFamily)
         eventProps.map(mapToChannelEvent)

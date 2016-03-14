@@ -1,20 +1,17 @@
-package com.flipkart.connekt.busybees.streams.topologies
-
-import java.net.URL
+package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ClosedShape
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
-import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
+import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{KeyChainManager,  DeviceDetailsService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.Try
@@ -22,7 +19,7 @@ import scala.util.Try
 /**
  * Created by kinshuk.bairagi on 05/02/16.
  */
-class PNCompleteTopology extends TopologyUTSpec {
+class PNCompleteTopologyTest extends TopologyUTSpec {
 
   "PNCompleteTopology Test" should "run" in {
 
@@ -137,7 +134,7 @@ class PNCompleteTopology extends TopologyUTSpec {
 
         val render = b.add(new RenderFlow)
 
-        val iosFormat = b.add(new IOSChannelFormatter)
+        val iosFormat = b.add(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
         val iosDispatch = b.add(new APNSDispatcher)
 
         //        val androidFormat = b.add(new AndroidChannelFormatter)

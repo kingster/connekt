@@ -1,4 +1,4 @@
-package com.flipkart.connekt.busybees.streams.topologies
+package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
@@ -10,7 +10,7 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcherPrep
 import com.flipkart.connekt.busybees.streams.flows.formaters.WindowsChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHandler
 import com.flipkart.connekt.busybees.streams.sources.RateControl
-import com.flipkart.connekt.busybees.streams.TopologyUTSpec
+import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels.{WNSPayloadEnvelope, PNCallbackEvent, ConnektRequest}
@@ -93,7 +93,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
         val out = Sink.foreach[PNCallbackEvent](println)
 
         val render = b.add(new RenderFlow)
-        val formatter = b.add(new WindowsChannelFormatter)
+        val formatter = b.add(new WindowsChannelFormatter(1)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
         val dispatcher = b.add(new WNSDispatcherPrepare)
 
         val pipeInletMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))

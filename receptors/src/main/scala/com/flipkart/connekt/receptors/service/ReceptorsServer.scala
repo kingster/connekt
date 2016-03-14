@@ -10,7 +10,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.receptors.directives.AccessLogDirective
+import com.flipkart.connekt.receptors.directives.{CORSDirectives, AccessLogDirective}
 import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 
 import scala.collection.immutable.Seq
@@ -21,7 +21,7 @@ import scala.collection.immutable.Seq
   * @author durga.s
   * @version 11/20/15
   */
-object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
+object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORSDirectives {
 
   implicit val system = ActorSystem("ckt-receptors")
   implicit val materializer = ActorMaterializer.create(system)
@@ -37,7 +37,12 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
     implicit def rejectionHandler =
       RejectionHandler.newBuilder()
         .handle {
-          case AuthorizationFailedRejection =>
+          case AuthenticationFailedRejection(cause, _ ) =>
+            complete(responseMarshallable[GenericResponse](
+              StatusCodes.Unauthorized, Seq.empty[HttpHeader],
+              GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Authentication Failed, Please Contact connekt-dev@flipkart.com", null)
+              )))
+         case AuthorizationFailedRejection =>
             complete(responseMarshallable[GenericResponse](
               StatusCodes.Unauthorized, Seq.empty[HttpHeader],
               GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)
@@ -76,8 +81,9 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
           ))
       }
 
-    //TODO : Wrap this route inside CORS
-    val allRoutes = new RouteRegistry().allRoutes
+    val allRoutes = cors {
+      new RouteRegistry().allRoutes
+    }
 
     def routeWithLogging = ConnektConfig.getString("http.request.log").getOrElse("true").toBoolean match {
       case true => logTimedRequestResult(allRoutes)
@@ -91,7 +97,7 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective {
   def shutdown() = {
     httpService.flatMap(_.unbind())
       .onComplete(_ => {
-        println("receptor server unbinding complete")
+        ConnektLogger(LogFile.SERVICE).info("receptor server unbinding complete")
         system.terminate()
       })
   }

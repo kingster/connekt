@@ -9,6 +9,7 @@ import rx.lang.scala.Observable
 
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
+import scala.reflect.runtime.universe._
 
 /**
  * Created by nidhi.mehla on 19/01/16.
@@ -67,7 +68,7 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     }
   }
 
-  def put[T](kv: List[(String, T)])(implicit cTag: reflect.ClassTag[T]): Boolean = {
+  override def put[T](kv: List[(String, T)])(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
       val documents = kv.map(doc => StringDocument.create(doc._1, props.ttl.toSeconds.toInt, doc._2.asInstanceOf[AnyRef].getJson))
       Observable.from(documents).flatMap(doc => {
@@ -82,7 +83,7 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     }
   }
 
-  def get[T](key: String)(implicit cTag: reflect.ClassTag[T]): Option[T] = {
+  override def get[T](key: String)(implicit cTag: reflect.ClassTag[T]): Option[T] = {
     cacheStorageBucket.get(StringDocument.create(key)) match {
       case null => None
       case x: StringDocument =>
@@ -90,8 +91,15 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
     }
   }
 
+  override def get[T](key: String, tt: TypeTag[T])(implicit tTag: TypeTag[T]): Option[T] = {
+    cacheStorageBucket.get(StringDocument.create(key)) match {
+      case null => None
+      case x: StringDocument =>
+        Option(x.content().getObj[T](tt))
+    }
+  }
 
-  def remove(key: String) {
+  override def remove(key: String) {
     try {
       cacheStorageBucket.remove(StringDocument.create(key))
     } catch {
@@ -117,4 +125,18 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
         Predef.Map[String, T]()
     }
   }
+
+  override def get[T](keys: List[String], tt: TypeTag[T])(implicit tTag: TypeTag[T]): Predef.Map[Predef.String, T] = {
+    try {
+      Observable.from(keys).flatMap(key => {
+        rx.lang.scala.JavaConversions.toScalaObservable(cacheStorageBucket.async().get(StringDocument.create(key))).filter(_ != null).map(d => key -> d.content().getObj(tt))
+      }).toList.toBlocking.single.toMap
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error("DistributedCache multi get Failure", e)
+        Predef.Map[String, T]()
+    }
+  }
+
+
 }

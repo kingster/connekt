@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="log4j2BusyBees">
+
+  <Properties>
+    <Property name="defaultLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-default.log</Property>
+    <Property name="workersLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-workers.log</Property>
+    <Property name="clientsLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-clients.log</Property>
+    <Property name="processorLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-processors.log</Property>
+    <Property name="factoryLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-factory.log</Property>
+    <Property name="daoLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-dao.log</Property>
+    <Property name="serviceLogFile">/var/log/flipkart/pf/fk-pf-connekt/busybees-service.log</Property>
+  </Properties>
+
+  <Appenders>
+
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d %p [%t] %m%n"/>
+    </Console>
+
+    <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="CLIENTS" fileName="${clientsLogFile}" filePattern="${clientsLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %C{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+  </Appenders>
+
+  <!--  BusyBees loggers -->
+  <Loggers>
+    <Logger name="DEFAULT" level="trace" additivity="false">
+      <AppenderRef ref="DEFAULT"/>
+    </Logger>
+    <Logger name="WORKERS" level="debug" additivity="false">
+      <AppenderRef ref="WORKERS"/>
+    </Logger>
+    <Logger name="CLIENTS" level="debug" additivity="false">
+      <AppenderRef ref="CLIENTS"/>
+    </Logger>
+    <Logger name="PROCESSORS" level="debug" additivity="false">
+      <AppenderRef ref="PROCESSORS"/>
+    </Logger>
+    <Logger name="FACTORY" level="debug" additivity="false">
+      <AppenderRef ref="FACTORY"/>
+    </Logger>
+    <Logger name="DAO" level="debug" additivity="false">
+      <AppenderRef ref="DAO"/>
+    </Logger>
+    <Logger name="SERVICE" level="debug" additivity="false">
+      <AppenderRef ref="SERVICE"/>
+    </Logger>
+
+    <!-- Used Library loggers -->
+    <Logger name="kafka" level="ERROR"/>
+    <Logger name="org.apache" level="ERROR"/>
+    <Logger name="com.couchbase.client" level="ERROR"/>
+
+    <Logger name="com.flipkart" level="DEBUG"/>
+    <Logger name="com.flipkart.kloud.config" level="ERROR"/>
+
+    <Root level="INFO">
+      <AppenderRef ref="DEFAULT"/>
+    </Root>
+
+  </Loggers>
+
+</Configuration>

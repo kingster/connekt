@@ -3,10 +3,12 @@ package com.flipkart.connekt.commons.cache
 import java.util.concurrent.TimeUnit
 
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.utils.GenericUtils
 import com.google.common.cache.{CacheBuilder, CacheStats}
 
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
+import scala.reflect.runtime.universe._
 
 /**
  * Created by nidhi.mehla on 27/01/16.
@@ -22,6 +24,7 @@ object LocalCacheManager extends CacheManager {
   cacheTTLMap += LocalCacheType.UserConfiguration -> CacheProperty(1000, 24.hour)
   cacheTTLMap += LocalCacheType.Stencils -> CacheProperty(1000, 24.hour)
   cacheTTLMap += LocalCacheType.StencilsBucket -> CacheProperty(100, 24.hour)
+  cacheTTLMap += LocalCacheType.AppCredential -> CacheProperty(100, 2.hour)
 
   private var cacheStorage = concurrent.TrieMap[LocalCacheType.Value, Caches]()
 
@@ -91,5 +94,14 @@ class LocalCaches(val cacheName: LocalCacheType.Value, props: CacheProperty) ext
   override def get[T](keys: List[String])(implicit cTag: reflect.ClassTag[T]): Predef.Map[String, T] = ???
 
   override def put[T](kv: List[(String, T)])(implicit cTag: reflect.ClassTag[T]): Boolean = ???
+
+  override def get[T](keys: List[String], tt: TypeTag[T])(implicit tTag: TypeTag[T]): Predef.Map[String, T] = {
+    get(keys)(GenericUtils.typeToClassTag[T])
+  }
+
+  override def get[T](key: String, tt: TypeTag[T])(implicit tTag: TypeTag[T]): Option[T] = {
+    get(key)(GenericUtils.typeToClassTag[T])
+  }
+
 }
 

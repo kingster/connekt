@@ -1,5 +1,6 @@
 package com.flipkart.connekt.commons.services
 
+import com.flipkart.connekt.commons.cache.{LocalCacheType, LocalCacheManager}
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.factories.ServiceFactory
@@ -23,7 +24,11 @@ object KeyChainManager {
 
   @throws[Exception]
   def getSimpleCredential(name: String): Option[SimpleCredential] = {
-    storage.get(name).get.map(KryoSerializer.deserialize[SimpleCredential])
+    LocalCacheManager.getCache(LocalCacheType.AppCredential).get[SimpleCredential](name).orElse{
+      val credential = storage.get(name).get.map(KryoSerializer.deserialize[SimpleCredential])
+      credential.foreach(LocalCacheManager.getCache(LocalCacheType.AppCredential).put[SimpleCredential](name, _))
+      credential
+    }
   }
 
   def addAppleCredentials(name: String, credential: AppleCredential) = {
@@ -33,7 +38,13 @@ object KeyChainManager {
 
   @throws[Exception]
   def getAppleCredentials(name: String): Option[AppleCredential] = {
-    storage.get(getNameSpacedKey(MobilePlatform.IOS, name)).get.map(KryoSerializer.deserialize[AppleCredential])
+    val key = getNameSpacedKey(MobilePlatform.IOS, name)
+
+    LocalCacheManager.getCache(LocalCacheType.AppCredential).get[AppleCredential](key).orElse{
+      val credential = storage.get(key).get.map(KryoSerializer.deserialize[AppleCredential])
+      credential.foreach(LocalCacheManager.getCache(LocalCacheType.AppCredential).put[AppleCredential](key, _))
+      credential
+    }
   }
 
   def addMicrosoftCredential(name: String, credential: MicrosoftCredential) = {
@@ -43,7 +54,13 @@ object KeyChainManager {
 
   @throws[Exception]
   def getMicrosoftCredential(name: String): Option[MicrosoftCredential] = {
-    storage.get(getNameSpacedKey(MobilePlatform.WINDOWS, name)).get.map(KryoSerializer.deserialize[MicrosoftCredential])
+    val key = getNameSpacedKey(MobilePlatform.WINDOWS, name)
+
+    LocalCacheManager.getCache(LocalCacheType.AppCredential).get[MicrosoftCredential](key).orElse{
+      val credential = storage.get(key).get.map(KryoSerializer.deserialize[MicrosoftCredential])
+      credential.foreach(LocalCacheManager.getCache(LocalCacheType.AppCredential).put[MicrosoftCredential](key, _))
+      credential
+    }
   }
 
   def addGoogleCredential(name: String, credential: GoogleCredential) = {
@@ -53,7 +70,13 @@ object KeyChainManager {
 
   @throws[Exception]
   def getGoogleCredential(name: String): Option[GoogleCredential] = {
-    storage.get(getNameSpacedKey(MobilePlatform.ANDROID, name)).get.map(KryoSerializer.deserialize[GoogleCredential])
+    val key = getNameSpacedKey(MobilePlatform.ANDROID, name)
+
+    LocalCacheManager.getCache(LocalCacheType.AppCredential).get[GoogleCredential](key).orElse{
+      val credential = storage.get(key).get.map(KryoSerializer.deserialize[GoogleCredential])
+      credential.foreach(LocalCacheManager.getCache(LocalCacheType.AppCredential).put[GoogleCredential](key, _))
+      credential
+    }
   }
 
 }

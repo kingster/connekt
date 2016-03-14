@@ -5,12 +5,17 @@ import java.io.IOException
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao.RowData
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
 import com.roundeights.hasher.Implicits._
+import org.apache.hadoop.hbase.client.Scan
+import org.apache.hadoop.hbase.filter.{BinaryComparator, CompareFilter, FilterList, SingleColumnValueFilter}
+import org.apache.hadoop.hbase.util.Bytes
+
+import scala.collection.JavaConversions._
 
 
 /**
@@ -25,6 +30,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
   val hTableName = tableName
   val hUserIndexTableName = tableName + "-user-index"
   val hTokenIndexTableName = tableName + "-token-index"
+
+  val dataColFamilies = List("p", "a")
 
   private def getRowKey(appName: String, deviceId: String) = deviceId.sha256.hash.hex + "_" + appName.toLowerCase
 
@@ -86,8 +93,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
   def get(appName: String, deviceId: String): Option[DeviceDetails] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val colFamiliesReqd = List("p", "a")
-      val rawData = fetchRow(getRowKey(appName, deviceId), colFamiliesReqd)
+      val rawData = fetchRow(getRowKey(appName, deviceId), dataColFamilies)
       extractDeviceDetails(rawData)
     } catch {
       case e: IOException =>
@@ -102,14 +108,42 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
   def get(appName: String, deviceIds: List[String]): List[DeviceDetails] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val colFamiliesReqd = List("p", "a")
-      fetchMultiRows(deviceIds.map(getRowKey(appName, _)), colFamiliesReqd).values.flatMap(extractDeviceDetails).toList
+      fetchMultiRows(deviceIds.map(getRowKey(appName, _)), dataColFamilies).values.flatMap(extractDeviceDetails).toList
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceIds, ${e.getMessage}")
         throw new IOException("Fetching DeviceDetails failed for %s".format(deviceIds), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
+    }
+  }
+
+  @Timed("getAll")
+  def getAll(appName: String): Iterator[DeviceDetails] = {
+    implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
+    try {
+      val scan = new Scan()
+      val filters = new FilterList()
+
+      val appNameFilter = new SingleColumnValueFilter(Bytes.toBytes("p"), Bytes.toBytes("appName"),
+        CompareFilter.CompareOp.EQUAL, new BinaryComparator(Bytes.toBytes(appName)))
+      filters.addFilter(appNameFilter)
+      scan.setFilter(filters)
+
+      val resultScanner = hTableInterface.getScanner(scan)
+
+      resultScanner.iterator().toIterator.map( rI => {
+        val resultMap: RowData = getRowData(rI, dataColFamilies)
+        extractDeviceDetails(resultMap).get
+      })
+
+    } catch {
+      case e: IOException =>
+        ConnektLogger(LogFile.DAO).error(s"Error Fetching All DeviceDetails failed for $appName, ${e.getMessage}")
+        throw e;
+    } finally {
+      hTableConnFactory.releaseTableInterface(hTableInterface)
+
     }
   }
 

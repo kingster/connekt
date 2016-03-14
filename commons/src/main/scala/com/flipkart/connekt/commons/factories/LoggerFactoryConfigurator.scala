@@ -1,11 +1,9 @@
 package com.flipkart.connekt.commons.factories
 
-import java.io.{InputStream, File}
-
-import ch.qos.logback.classic.LoggerContext
-import ch.qos.logback.classic.joran.JoranConfigurator
-import ch.qos.logback.core.util.StatusPrinter
-import org.slf4j.LoggerFactory
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.LoggerContext
+import org.apache.logging.log4j.core.config.xml.XmlConfiguration
+import org.apache.logging.log4j.core.config.{ConfigurationSource, Configurator}
 
 /**
  *
@@ -15,13 +13,18 @@ import org.slf4j.LoggerFactory
  */
 object LoggerFactoryConfigurator {
 
-  @throws[Exception]
-  def configure(stream: InputStream) = {
-    val context = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
-    val configurator = new JoranConfigurator()
-    configurator.setContext(context)
+  def configureLog4j2(log4j2ConfigFile: String, async: Boolean = true) = {
+    if(async)
+      System.setProperty("Log4jContextSelector", "org.apache.logging.log4j.core.async.AsyncLoggerContextSelector")
 
-    configurator.doConfigure(stream)
-    StatusPrinter.printInCaseOfErrorsOrWarnings(context)
+    val context: LoggerContext = LogManager.getContext(false).asInstanceOf[LoggerContext]
+    val configStream = getClass.getClassLoader.getResourceAsStream(log4j2ConfigFile)
+    val config = new XmlConfiguration(new ConfigurationSource(configStream))
+    context.start(config)
+  }
+
+  def shutdownLog4j2() = {
+    val context: LoggerContext = LogManager.getContext.asInstanceOf[LoggerContext]
+    Configurator.shutdown(context)
   }
 }

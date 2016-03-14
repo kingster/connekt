@@ -43,11 +43,10 @@ class RenderFlow extends GraphStage[FlowShape[ConnektRequest, ConnektRequest]] {
           } catch {
             case e: Throwable =>
               ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow:: onPush :: Error", e)
-          } finally {
-            if(!hasBeenPulled(in)) {
-              pull(in)
-              ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow:: PULLED upstream for ${m.id}")
-            }
+              if(!hasBeenPulled(in)) {
+                pull(in)
+                ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow:: PULLED upstream for ${m.id}")
+              }
           }
         }
       })

@@ -2,6 +2,7 @@ package com.flipkart.connekt.commons.entities.fabric
 
 import com.flipkart.connekt.commons.utils.StringUtils._
 import groovy.lang.GroovyClassLoader
+import com.roundeights.hasher.Implicits._
 
 /**
  *
@@ -20,7 +21,7 @@ object FabricMaker {
    * @return groovy class instance created
    */
   def create[T <: GroovyFabric](stencilId: String, groovyFabric: String)(implicit cTag: reflect.ClassTag[T]): T = {
-    val groovyFabricKey = s"""G${md5(groovyFabric)}"""
+    val groovyFabricKey = s"""G${groovyFabric.md5.hash.hex}"""
     val gcl: GroovyClassLoader = new GroovyClassLoader()
     gcl.parseClass(groovyFabric, groovyFabricKey).newInstance().asInstanceOf[T]
 

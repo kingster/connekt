@@ -48,11 +48,10 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: ON_PUSH error: ${e.getMessage}", e)
-        } finally {
-          if (!hasBeenPulled(in)) {
-            pull(in)
-            ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream for ${gcmResponse._2.messageId}")
-          }
+            if (!hasBeenPulled(in)) {
+              pull(in)
+              ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream for ${gcmResponse._2.messageId}")
+            }
         }
       }
 
@@ -143,7 +142,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: GCM send failure for r: $messageId, e: ${e2.getMessage}", e2)
     }
 
-    events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
+    //events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
     ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: Saved callback events for $messageId ${events.toList.toString()}")
     events.toList
   }

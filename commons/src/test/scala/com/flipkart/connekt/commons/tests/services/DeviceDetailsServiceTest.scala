@@ -30,12 +30,13 @@ class DeviceDetailsServiceTest extends CommonsBaseTest {
 
   "DeviceDetails Service" should "get list of devices by userId" in {
     val deviceList = DeviceDetailsService.getByUserId(appName, accountId)
+    println(deviceList)
     deviceList.get.length shouldEqual 1
-  }
 
-  "DeviceDetails Service" should "get list of devices by token Id" in {
-    val device = DeviceDetailsService.getByTokenId(appName, tokenId).get
-    device.get.deviceId shouldEqual deviceId
+    //cache version check
+    val deviceList2 = DeviceDetailsService.getByUserId(appName, accountId)
+    println(deviceList2)
+    deviceList2.get.length shouldEqual 1
   }
 
   "DeviceDetails Service" should "get list of devices for given list of deviceIds" in {

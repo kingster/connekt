@@ -1,12 +1,12 @@
 package com.flipkart.connekt.commons.tests
 
-import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
-import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
+import com.flipkart.connekt.commons.helpers.{KafkaConsumerHelper, KafkaProducerHelper}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.tests.connections.MockConnectionProvider
+import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -14,16 +14,31 @@ import com.typesafe.config.ConfigFactory
  */
 class CommonsBaseTest extends ConnektUTSpec {
 
+  val kafkaProducerHelper: Option[KafkaProducerHelper] = None
+  val kafkaConsumerHelper: Option[KafkaConsumerHelper] = None
+
   override def beforeAll() = {
     super.beforeAll()
     bootstrapReceptors()
   }
 
+  def getKafkaConsumerHelper = kafkaConsumerHelper.getOrElse({
+    val kafkaConsumerConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+    val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
+    ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConsumerConf.toString}")
+    KafkaConsumerHelper(kafkaConsumerConf, kafkaConsumerPoolConf)
+  })
+
+  def getKafkaProducerHelper = kafkaProducerHelper.getOrElse({
+    val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
+    val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
+    KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
+  })
+
   private def bootstrapReceptors() = {
 
     ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
-    ConnektConfig(configServiceHost, configServicePort)()
-
+    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-busybees-akka"))
     SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
     DaoFactory.setUpConnectionProvider(new MockConnectionProvider())
@@ -41,11 +56,7 @@ class CommonsBaseTest extends ConnektUTSpec {
     val specterConfig = ConnektConfig.getConfig("receptors.connections.specter").getOrElse(ConfigFactory.empty())
     DaoFactory.initSpecterSocket(specterConfig)
 
-    val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
-    val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
-    val kafkaProducerHelper = KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
-
-    ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, kafkaProducerHelper, null)
+    ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null)
     ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
     ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)

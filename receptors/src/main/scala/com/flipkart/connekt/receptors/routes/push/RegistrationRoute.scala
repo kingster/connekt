@@ -1,17 +1,18 @@
 package com.flipkart.connekt.receptors.routes.push
 
-import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
+import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities.{AppUser, DeviceDetails}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
-import scala.collection.immutable.Seq
-import scala.util.{Failure, Success}
-
+import scala.util.Failure
 /**
  *
  *
@@ -25,11 +26,11 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
 
   val register =
     pathPrefix("v1") {
-      pathPrefix("registration" / "push") {
+        pathPrefix("registration" / "push") {
         path(MPlatformSegment / Segment / Segment) {
           (platform: MobilePlatform, appName: String, deviceId: String) =>
             put {
-              authorize(user, "REGISTRATION") {
+              authorize(user, s"REGISTRATION_$appName") {
                 entity(as[DeviceDetails]) { d =>
                   val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId)
 
@@ -47,9 +48,9 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
                 }
               }
             } ~ delete {
-              authorize(user, "REGISTRATION") {
+              authorize(user, s"REGISTRATION_$appName") {
                 DeviceDetailsService.delete(appName, deviceId).get
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for ${deviceId}", null)))
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for $deviceId", null)))
               }
             }
         } ~ path(Segment / "users" / Segment) {
@@ -70,6 +71,20 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
                   case None =>
                     complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No DeviceDetails found for app: $appName id: $deviceId", null)))
                 }
+              }
+            }
+        } ~ path(Segment / "snapshot") {
+          (appName: String) =>
+            get {
+              authorize(user, "REGISTRATION_DOWNLOAD", s"REGISTRATION_DOWNLOAD_$appName") {
+                ConnektLogger(LogFile.SERVICE).info(s"REGISTRATION_DOWNLOAD for $appName started by ${user.userId}")
+                val dataStream = DeviceDetailsService.getAll(appName).get
+                def chunks = Source.fromIterator(() => dataStream)
+                  .grouped(100)
+                  .map(d => d.map(_.getJson).mkString(scala.compat.Platform.EOL))
+                  .map(HttpEntity.ChunkStreamPart.apply)
+                val response = HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunks))
+                complete(response)
               }
             }
         }

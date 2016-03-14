@@ -1,13 +1,13 @@
-package com.flipkart.connekt.busybees.streams.topologies
+package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import akka.http.scaladsl.Http
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.busybees.streams.TopologyUTSpec
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GCMDispatcherPrepare
 import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
 import com.flipkart.connekt.busybees.streams.sources.RateControl
+import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 /**
  * Created by kinshuk.bairagi on 05/02/16.
  */
-class AndroidTopology extends TopologyUTSpec {
+class AndroidTopologyTest extends TopologyUTSpec {
 
   "AndroidTopology Test" should "run" in {
 
@@ -63,7 +63,7 @@ class AndroidTopology extends TopologyUTSpec {
     val result = Source.single(cRequest)
       .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
-      .via(new AndroidChannelFormatter)
+      .via(new AndroidChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
       .via(httpDispatcher)
       .via(poolClientFlow)
       .runWith(Sink.head)

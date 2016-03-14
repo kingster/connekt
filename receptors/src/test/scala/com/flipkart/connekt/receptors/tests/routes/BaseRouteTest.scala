@@ -1,4 +1,4 @@
-package com.flipkart.connekt.receptors.routes
+package com.flipkart.connekt.receptors.tests.routes
 
 import java.util.concurrent.TimeUnit
 

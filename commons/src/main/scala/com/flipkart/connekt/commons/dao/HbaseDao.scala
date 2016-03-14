@@ -13,6 +13,7 @@ import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter}
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -22,7 +23,6 @@ import scala.collection.mutable.ListBuffer
  * @version 11/18/15
  */
 trait HbaseDao {
-
 
   @throws[IOException]
   def addRow(rowKey: String, data: RowData)(implicit hTableInterface: HTableInterface) = {
@@ -84,11 +84,12 @@ trait HbaseDao {
    * @param rowStopKeyPrefix
    * @param colFamilies
    * @param timeRange
+   * @param maxRowLimit If not Defined, defaults to Int.MaxValue
    * @param hTableInterface
-   * @return Map [Row ]
+   * @return
    */
   @throws[IOException]
-  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
+  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
 
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -100,13 +101,9 @@ trait HbaseDao {
     val resultScanner = hTableInterface.getScanner(scan)
     var rowMap = Map[String,RowData]()
 
-    val ri = resultScanner.iterator()
-    while (ri.hasNext) {
-      val riNext = ri.next()
-      val resultMap: RowData = getRowData(riNext, colFamilies)
-      rowMap += riNext.getRow.getString -> resultMap
-    }
-    resultScanner.close()
+    resultScanner.iterator().toIterator.take(maxRowLimit.getOrElse(Int.MaxValue))
+      .foreach(rowResult => rowMap += rowResult.getRow.getString -> getRowData(rowResult, colFamilies))
+
     rowMap
   }
 
@@ -125,7 +122,7 @@ trait HbaseDao {
   }
 
 
-  private def getRowData(result: Result, colFamilies: List[String]): RowData = {
+  protected def getRowData(result: Result, colFamilies: List[String]): RowData = {
     colFamilies.flatMap { cF =>
       val optResult = result.getFamilyMap(cF.getBytes(CharEncoding.UTF_8))
       Option(optResult).map(cFResult => {

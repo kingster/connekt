@@ -1,7 +1,7 @@
-package com.flipkart.connekt.receptors.routes.push
+package com.flipkart.connekt.receptors.tests.routes.push
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
-import com.flipkart.connekt.receptors.routes.BaseRouteTest
+import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 
 /**
  *
