@@ -76,7 +76,7 @@ object StencilService extends Instrumented with SyncDelegate  {
       case Success(b) =>
         DaoFactory.getStencilDao.writeStencil(stencil)
         SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(stencil.id)))
-        LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](stencil.id, stencil)
+        LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](cacheKey(stencil.id), stencil)
         Success(Unit)
       case Failure(e) =>
         ConnektLogger(LogFile.SERVICE).error(s"Stencil update error for id: ${stencil.id}", e)
