@@ -31,13 +31,11 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
               post {
                 getXHeaders { headers =>
                   entity(as[ConnektRequest]) { r =>
-
                     val request = r.copy(channel = "push", meta = headers)
                     ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
 
                     /* Find platform for each deviceId, group */
                     if (request.validate()) {
-
                       val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
                       val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
@@ -56,7 +54,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
 
                       val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
 
-                      groupedPlatformRequests.toList.foreach { p =>
+                      groupedPlatformRequests.foreach { p =>
                         /* enqueue multiple requests into kafka */
                         ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                           case Success(id) =>
@@ -65,9 +63,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                             failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
                         }
                       }
-
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, SendResponse("PN request processed.", success.toMap, failure.toList)))
-
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN request processed.", success.toMap, failure.toList)))
                     } else {
                       ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
@@ -77,39 +73,38 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
               }
             }
         } ~ path(MPlatformSegment / Segment / "users" / Segment) {
-          (appPlatform: MobilePlatform, appName: String, users: String) =>
+          (appPlatform: MobilePlatform, appName: String, userId: String) =>
             authorize(user, "SEND_" + appName) {
               post {
                 getXHeaders { headers =>
                   entity(as[ConnektRequest]) { r =>
                     val request = r.copy(channel = "push")
-                    ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : ${users} with payload: ${request.toString}")
+                    ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : $userId with payload: ${request.toString}")
 
-                    /* Find platform for each deviceId, group */
                     if (request.validate()) {
-                        val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
-                        val groupedPlatformRequests = ListBuffer[ConnektRequest]()
+                      val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
+                      val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
-                        appPlatform match {
-                          case MobilePlatform.UNKNOWN =>
-                            val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, users).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
-                            groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                              platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
-                            }.values
-                          case _ =>
-                            val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, users).get.filter(p => p.osName == appPlatform.toLowerCase).groupBy(_.osName).mapValues(_.map(_.deviceId))
-                            groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                              platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
-                            }.values
-                        }
+                      appPlatform match {
+                        case MobilePlatform.UNKNOWN =>
+                          val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
+                          groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                            platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                          }.values
+                        case _ =>
+                          val osSpecificDeviceIds = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.filter(_.osName == appPlatform.toLowerCase).map(_.deviceId)
+                          if (osSpecificDeviceIds.nonEmpty)
+                            groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform, deviceId = osSpecificDeviceIds))
+                      }
 
-                        val failure = ListBuffer[String]()
-                        val success = scala.collection.mutable.Map[String, List[String]]()
+                      val failure = ListBuffer[String]()
+                      val success = scala.collection.mutable.Map[String, List[String]]()
 
-                        val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
+                      val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
 
-                        groupedPlatformRequests.toList.foreach { p =>
-                          /* enqueue multiple requests into kafka */
+
+                      if (groupedPlatformRequests.nonEmpty) {
+                        groupedPlatformRequests.foreach { p =>
                           ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                             case Success(id) =>
                               success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
@@ -117,13 +112,15 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                               failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
                           }
                         }
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, SendResponse(s"PN request processed for user ${users}.", success.toMap, failure.toList)))
+                        complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse(s"PN request processed for user $userId.", success.toMap, failure.toList)))
+                      } else {
+                        complete(GenericResponse(StatusCodes.NotFound.intValue, null, SendResponse(s"No device Registred for user: $userId.", success.toMap, failure.toList)))
+                      }
 
                     } else {
                       ConnektLogger(LogFile.SERVICE).error(s"Invalid templateId or Channel Request data for ${r.templateId} ")
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Invalid request. templateId/ChannelRequestData not valid", null)))
                     }
-
                   }
                 }
               }
@@ -131,4 +128,5 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
         }
       }
     }
+
 }

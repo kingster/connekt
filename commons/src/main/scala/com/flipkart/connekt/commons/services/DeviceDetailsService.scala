@@ -89,7 +89,8 @@ object DeviceDetailsService extends Instrumented {
   def getByUserId(appName: String, userId: String): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getByUserId Failed") {
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[List[DeviceDetails]](cacheKey(appName, userId), typeTag[List[DeviceDetails]]).getOrElse {
       val deviceList = dao.getByUserId(appName, userId)
-      DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
+      if (deviceList.nonEmpty)
+        DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[List[DeviceDetails]](cacheKey(appName, userId), deviceList)
       deviceList
     }
   }
