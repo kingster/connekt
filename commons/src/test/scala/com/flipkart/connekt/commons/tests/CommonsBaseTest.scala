@@ -23,8 +23,8 @@ class CommonsBaseTest extends ConnektUTSpec {
   }
 
   def getKafkaConsumerHelper = kafkaConsumerHelper.getOrElse({
-    val kafkaConsumerConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
-    val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
+    val kafkaConsumerConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+    val kafkaConsumerPoolConf = ConnektConfig.getConfig("connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
     ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConsumerConf.toString}")
     KafkaConsumerHelper(kafkaConsumerConf, kafkaConsumerPoolConf)
   })
