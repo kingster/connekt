@@ -23,14 +23,14 @@ class CommonsBaseTest extends ConnektUTSpec {
   }
 
   def getKafkaConsumerHelper = kafkaConsumerHelper.getOrElse({
-    val kafkaConsumerConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
-    val kafkaConsumerPoolConf = ConnektConfig.getConfig("busybees.connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
+    val kafkaConsumerConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+    val kafkaConsumerPoolConf = ConnektConfig.getConfig("connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
     ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConsumerConf.toString}")
     KafkaConsumerHelper(kafkaConsumerConf, kafkaConsumerPoolConf)
   })
 
   def getKafkaProducerHelper = kafkaProducerHelper.getOrElse({
-    val kafkaConnConf = ConnektConfig.getConfig("receptors.connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
+    val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
     val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
     KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
   })
@@ -38,7 +38,7 @@ class CommonsBaseTest extends ConnektUTSpec {
   private def bootstrapReceptors() = {
 
     ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
-    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-busybees-akka"))
+    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka"))
     SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
     DaoFactory.setUpConnectionProvider(new MockConnectionProvider())
@@ -47,7 +47,7 @@ class CommonsBaseTest extends ConnektUTSpec {
 
     DaoFactory.initHTableDaoFactory(hConfig.get)
 
-    val mysqlConf = ConnektConfig.getConfig("receptors.connections.mysql").getOrElse(ConfigFactory.empty())
+    val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
     DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
     val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())

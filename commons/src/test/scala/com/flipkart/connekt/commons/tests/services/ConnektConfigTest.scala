@@ -16,7 +16,7 @@ class ConnektConfigTest extends ConnektUTSpec {
     val currentAppEnv = ConfigUtils.getConfEnvironment
     System.setProperty("CONNEKT_ENV", "local")
 
-    val connektConfig = ConnektConfig(configServiceHost, configServicePort)()
+    val connektConfig = ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka"))
 
     assert(null != connektConfig)
 

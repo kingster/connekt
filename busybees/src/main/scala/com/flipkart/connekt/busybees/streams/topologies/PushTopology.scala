@@ -80,7 +80,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      * iosRequest ~> iosFormatter ~> apnsDispatcher
      */
 
-    val fmtIOSParallelism = ConnektConfig.getInt("busybees.topology.push.iosFormatter.parallelism").get
+    val fmtIOSParallelism = ConnektConfig.getInt("topology.push.iosFormatter.parallelism").get
     val fmtIOS = b.add(new IOSChannelFormatter(fmtIOSParallelism)(ioDispatcher).flow)
     val apnsDispatcher = b.add(new APNSDispatcher)
 
@@ -89,7 +89,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     /**
      * Android Topology
      */
-    val fmtAndroidParallelism = ConnektConfig.getInt("busybees.topology.push.androidFormatter.parallelism").get
+    val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
     val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
     val gcmHttpPrepare = b.add(new GCMDispatcherPrepare())
 
@@ -118,7 +118,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
     val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request)/*.buffer(10, OverflowStrategy.backpressure)*/)
 
-    val fmtWindowsParallelism = ConnektConfig.getInt("busybees.topology.push.windowsFormatter.parallelism").get
+    val fmtWindowsParallelism = ConnektConfig.getInt("topology.push.windowsFormatter.parallelism").get
     val fmtWindows = b.add(new WindowsChannelFormatter(fmtWindowsParallelism)(ioDispatcher).flow)
     val wnsRHandler = b.add(new WNSResponseHandler)
 
