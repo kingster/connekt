@@ -44,6 +44,11 @@ apt-get install --yes --allow-unauthenticated fk-3p-kafka-0.8.2.x
 sudo mkdir -p /storage/1/fk-3p-kafka/logs
 sudo chown -R fk-3p-kafka:fk-3p /storage/1/fk-3p-kafka
 
-
 sudo mkdir -p /storage/2/fk-3p-kafka/logs
 sudo chown -R fk-3p-kafka:fk-3p /storage/2/fk-3p-kafka
+
+sudo mkdir -p /storage/3/fk-3p-kafka/logs
+sudo chown -R fk-3p-kafka:fk-3p /storage/3/fk-3p-kafka
+
+sudo mkdir -p /storage/4/fk-3p-kafka/logs
+sudo chown -R fk-3p-kafka:fk-3p /storage/4/fk-3p-kafka

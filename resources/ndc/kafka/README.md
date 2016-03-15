@@ -9,7 +9,7 @@ ZK: 10.34.93.207:2181,10.33.253.246:2181,10.33.241.39:2181,10.33.133.219:2181,10
 
 Manager
 -----------
-
+http://fk-bro-kafka-ga-preprod4-266223:9000/clusters/ConnektNDCProd
 
 Config Bucket
 -----------
