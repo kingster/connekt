@@ -22,18 +22,14 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
   var registrationRoute: server.Route = null
   var unicastRoute: server.Route = null
 
-
-
   implicit val am = system
   val header = RawHeader("x-api-key", "b0979afd-2ce3-4786-af62-ab53f88204ae")
+
   override def beforeAll() = {
     super.beforeAll()
     implicit val user = DaoFactory.getUserInfoDao.getUserByKey("b0979afd-2ce3-4786-af62-ab53f88204ae").get
     stencilRoute = new StencilsRoute().stencils
     registrationRoute = new RegistrationRoute().register
     unicastRoute = new SendRoute().route
-
-
   }
-
 }
