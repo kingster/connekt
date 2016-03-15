@@ -99,8 +99,11 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
     val threadCount = Math.ceil(getTopicPartitionCount(topic) / partitionFactor).toInt
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Streams[$threadCount]")
 
-    kafkaConsumerConnector.commitOffsets
-    val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> threadCount), new DefaultDecoder(), new MessageDecoder[V]())
+    /**
+      * Using threadCount = 1, since for now we got the best performance with this.
+      * Once akka/reactive-kafka get's stable, we will move to it provided it gives better performance.
+      */
+    val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> 1 /*threadCount*/), new DefaultDecoder(), new MessageDecoder[V]())
     val streams = consumerStreams.getOrElse(topic,throw new Exception(s"No KafkaStreams for topic: $topic"))
     streams.map(_.iterator()).merge
   }
