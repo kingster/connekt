@@ -3,7 +3,7 @@
 curl -v -X PUT 'http://repo-svc-app-0001.nm.flipkart.com:8080/env/fk-connekt-couchbase?appkey=connekt'  -d \
 '[
      {
-                        "repoName": "couchbase",
+                        "repoName": "couchbase3",
                         "repoVersion": 1,
                         "repoReferenceType": "HEAD"        
     },
