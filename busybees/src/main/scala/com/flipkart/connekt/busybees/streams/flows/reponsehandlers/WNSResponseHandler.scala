@@ -8,7 +8,7 @@ import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsTokenService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsOAuthService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContext
@@ -97,7 +97,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidHeader, MobilePlatform.WINDOWS, appName, "", r.getHeader("X-WNS-MSG-ID").get.value(), eventTS)
           case 401 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: The cloud service is not authorized to send a notification to this URI even though they are authenticated. $requestId")
-            WindowsTokenService.refreshToken(appName)
+            WindowsOAuthService.refreshToken(appName)
             null
           case 403 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler:: Invalid method (GET, CREATE); only POST (Windows or Windows Phone) or DELETE (Windows Phone only) is allowed. $requestId")

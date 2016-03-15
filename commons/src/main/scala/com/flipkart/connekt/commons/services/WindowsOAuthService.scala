@@ -16,9 +16,14 @@ import org.apache.http.message.BasicNameValuePair
 /**
  * @author aman.shrivastava on 15/02/16.
  */
-case class Token(token: String, expectedExpiry: Long)
+case class OAuthToken(token: String, expectedExpiry: Long)
 
-object WindowsTokenService {
+trait TWindowsOAuthService {
+  def getToken(appName: String): Option[OAuthToken]
+  def refreshToken(appName: String, requestTime: Long = System.currentTimeMillis())
+}
+
+object WindowsOAuthService extends TWindowsOAuthService {
 
   val tokenRefreshURI = ConnektConfig.getString("windows.access.token.endpoint").getOrElse("https://login.live.com/accesstoken.srf")
 
@@ -33,10 +38,10 @@ object WindowsTokenService {
 
   val rwl = new ReentrantReadWriteLock()
 
-  def getToken(appName: String): Option[Token] = {
+  def getToken(appName: String): Option[OAuthToken] = {
     rwl.readLock().lock()
     try {
-      LocalCacheManager.getCache[Token](LocalCacheType.WnsAccessToken).get(appName)
+      LocalCacheManager.getCache[OAuthToken](LocalCacheType.WnsAccessToken).get(appName)
     } finally {
       rwl.readLock().unlock()
     }
@@ -48,7 +53,7 @@ object WindowsTokenService {
       requestNewToken(appName, requestTime)
   }
 
-  def requestNewToken(appName: String, requestTime: Long): Unit = {
+  private def requestNewToken(appName: String, requestTime: Long): Unit = {
     val credential = KeyChainManager.getMicrosoftCredential(appName)
     credential match {
       case Some(cred) =>
@@ -69,7 +74,7 @@ object WindowsTokenService {
 
             ConnektLogger(LogFile.CLIENTS).debug(s"Windows token request response for App $appName Response $response")
 
-            LocalCacheManager.getCache[Token](LocalCacheType.WnsAccessToken).put(appName, Token(response.get("access_token").asText(), response.get("expires_in").asLong * 1000 + requestTime))
+            LocalCacheManager.getCache[OAuthToken](LocalCacheType.WnsAccessToken).put(appName, OAuthToken(response.get("access_token").asText(), response.get("expires_in").asLong * 1000 + requestTime))
 
             ConnektLogger(LogFile.CLIENTS).debug(s"Windows token updated for App $appName")
 
