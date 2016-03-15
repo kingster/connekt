@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicLong
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.stream.{OverflowStrategy, ActorAttributes, Attributes}
 import akka.stream.scaladsl.{Sink, Source}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
@@ -18,10 +17,9 @@ import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNRequestData, PNR
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import org.scalatest.Ignore
 
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Await, Promise}
+import scala.concurrent.{Await, Future, Promise}
 
 /**
  *
@@ -43,7 +41,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
   "Kafka2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
 
     val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.head
-    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 4)(Promise[String]().future)
+    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic)(Promise[String]().future)
     val qps = meter("android.send")
 
     val repeatSource = Source.repeat {

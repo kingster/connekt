@@ -32,7 +32,7 @@ class KafkaPerPartitionStreamBenchmarkTest extends TopologyUTSpec with Instrumen
 
     val merge = b.add(Merge[ConnektRequest](10))
     for(portNum <- 0 to 9)
-      new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 10)(Promise[String]().future) ~> merge.in(portNum)
+      new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic)(Promise[String]().future) ~> merge.in(portNum)
 
     SourceShape(merge.out)
   })
