@@ -28,7 +28,7 @@ class KafkaBenchmarkTest extends TopologyUTSpec with Instrumented {
 
   "KafkaBenchmarkTest" should "bench" in {
 
-    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, "push_connekt_insomnia_d346b56a260f1a")(Promise[String]().future)
+    val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, "push_connekt_insomnia_d346b56a260f1a")(Promise[String]().future))
     val qps = meter("kafa.read")
 
     val repeatSource = Source.repeat {
@@ -63,7 +63,7 @@ class KafkaBenchmarkTest extends TopologyUTSpec with Instrumented {
     }
 
 
-    val rKafka = new ReactiveKafka()
+    /*val rKafka = new ReactiveKafka()
     val publisher = rKafka.consume(ConsumerProperties(
       brokerList = "10.84.174.216:9092",
       zooKeeperHost = "10.84.174.225:2181,10.84.174.222:2181/bro/kafka-nm-qa",
@@ -71,11 +71,11 @@ class KafkaBenchmarkTest extends TopologyUTSpec with Instrumented {
       groupId = "ckt",
       decoder = new MessageDecoder[ConnektRequest]()
     ))
-
     val reactiveSource = Source.fromPublisher(publisher).map(_.message())
+    */
 
     //Run the benchmark topology
-    val rF = reactiveSource.runWith(Sink.foreach( r => {
+    val rF = kSource.runWith(Sink.foreach( r => {
       qps.mark()
       if(0 == (counter.incrementAndGet() % 1000)) {
         ConnektLogger(LogFile.SERVICE).info(s">>> MR[${qps.getMeanRate}], 1MR[${qps.getOneMinuteRate}], 5MR[${qps.getFiveMinuteRate}]")
