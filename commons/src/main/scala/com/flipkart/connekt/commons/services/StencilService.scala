@@ -10,7 +10,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ChannelRequestData
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.sync.SyncType._
-import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
+import com.flipkart.connekt.commons.sync.{SyncMessage, SyncDelegate, SyncManager, SyncType}
 import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Success, Try}
@@ -21,6 +21,8 @@ import scala.util.{Failure, Success, Try}
 object StencilService extends Instrumented with SyncDelegate  {
 
   SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE))
+
+  private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
   private def checkStencil(stencil: Stencil): Try[Boolean] = {
     try {
@@ -39,13 +41,16 @@ object StencilService extends Instrumented with SyncDelegate  {
 
   @Timed("render")
   def render(stencil: Stencil, req: ObjectNode): ChannelRequestData = {
-      val fabric = stencil.engine match {
-        case StencilEngine.GROOVY =>
-          FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
-        case StencilEngine.VELOCITY =>
-          FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
-      }
-      fabric.renderData(stencil.id, req)
+      LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](cacheKey(stencil.id, Option(stencil.version.toString))).orElse {
+        val fabric = stencil.engine match {
+          case StencilEngine.GROOVY =>
+            FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
+          case StencilEngine.VELOCITY =>
+            FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
+        }
+        LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(stencil.id, Option(stencil.version.toString)), fabric)
+        Option(fabric)
+      }.map(_.renderData(stencil.id, req)).orNull
   }
 
   @Timed("add")
@@ -57,7 +62,7 @@ object StencilService extends Instrumented with SyncDelegate  {
         checkStencil(stencil) match {
           case Success(b) =>
             DaoFactory.getStencilDao.writeStencil(stencil)
-            LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](stencil.id, stencil)
+            LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](cacheKey(stencil.id), stencil)
             Success(Unit)
           case Failure(e) =>
             Failure(e)
@@ -70,7 +75,7 @@ object StencilService extends Instrumented with SyncDelegate  {
     checkStencil(stencil) match {
       case Success(b) =>
         DaoFactory.getStencilDao.writeStencil(stencil)
-        LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](stencil.id, stencil)
+        SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(stencil.id)))
         Success(Unit)
       case Failure(e) =>
         ConnektLogger(LogFile.SERVICE).error(s"Stencil update error for id: ${stencil.id}", e)
@@ -80,9 +85,9 @@ object StencilService extends Instrumented with SyncDelegate  {
 
   @Timed("get")
   def get(id: String, version: Option[String] = None) = {
-    LocalCacheManager.getCache(LocalCacheType.Stencils).get[Stencil](id).orElse {
+    LocalCacheManager.getCache(LocalCacheType.Stencils).get[Stencil](cacheKey(id, version)).orElse {
       val stencil = DaoFactory.getStencilDao.getStencil(id, version)
-      stencil.foreach(s => LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](id, s))
+      stencil.foreach(s => LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](cacheKey(id, version), s))
       stencil
     }
   }
@@ -110,7 +115,9 @@ object StencilService extends Instrumented with SyncDelegate  {
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Unit = {
     _type match {
       case SyncType.STENCIL_CHANGE => Try_ {
-        LocalCacheManager.getCache(LocalCacheType.Stencils).remove(args.head.toString)
+        LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString))
+        LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
+        LocalCacheManager.getCache(LocalCacheType.EngineFabrics).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
       }
       case SyncType.STENCIL_BUCKET_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).remove(args.head.toString)

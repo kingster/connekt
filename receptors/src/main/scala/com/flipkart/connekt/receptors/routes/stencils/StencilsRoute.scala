@@ -47,10 +47,10 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
               }
             }
         } ~ path("bucket" / "touch" / Segment) {
-          (name: String) =>
+          (id: String) =>
             post {
-              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(name)))
-              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $name", null)))
+              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(id)))
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
             }
         } ~ pathPrefix(Segment) {
           (id: String) =>
@@ -81,6 +81,11 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                             }
                           }
                         }
+                      }
+                    }  ~ path("touch") {
+                      post {
+                        SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id, version)))
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
                       }
                     } ~ pathEndOrSingleSlash {
                       get {
@@ -118,12 +123,6 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
               case None =>
                 complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id", null)))
 
-            }
-        } ~ path("touch" / Segment) {
-          (stencilId: String) =>
-            post {
-              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(stencilId)))
-              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $stencilId", null)))
             }
         } ~ pathEndOrSingleSlash {
           post {
