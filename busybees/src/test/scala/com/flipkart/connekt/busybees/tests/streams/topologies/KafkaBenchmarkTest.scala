@@ -9,7 +9,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.softwaremill.react.kafka.{ConsumerProperties, ReactiveKafka}
+//import com.softwaremill.react.kafka.{ConsumerProperties, ReactiveKafka}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
