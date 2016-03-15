@@ -1,17 +1,17 @@
 package com.flipkart.connekt.commons.tests.services
 
-import com.flipkart.connekt.commons.services.WindowsTokenService
+import com.flipkart.connekt.commons.services.WindowsOAuthService
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 /**
  * @author aman.shrivastava on 16/02/16.
  */
-class WindowsTokenServiceTest extends CommonsBaseTest {
+class WindowsOAuthServiceTest extends CommonsBaseTest {
 
 
   "Window Service" should "get Token" in {
 
-    val wTS =  WindowsTokenService
+    val wTS =  WindowsOAuthService
 
     val r1 = new Runnable {
       override def run(): Unit = {

@@ -10,7 +10,7 @@ import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.WNSPayloadEnvelope
-import com.flipkart.connekt.commons.services.WindowsTokenService
+import com.flipkart.connekt.commons.services.WindowsOAuthService
 
 /**
  * @author aman.shrivastava on 08/02/16.
@@ -33,7 +33,7 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
           ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Received Message: $message")
 
           val uri = new URI(message.token).toURL
-          val bearerToken = WindowsTokenService.getToken(message.appName).map(_.token).getOrElse("INVALID")
+          val bearerToken = WindowsOAuthService.getToken(message.appName).map(_.token).getOrElse("INVALID")
           val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken), RawHeader("X-WNS-Type", message.wnsPNType.getWnsType))
 
           val payload = HttpEntity(message.wnsPNType.getContentType, message.wnsPNType.getPayload)
