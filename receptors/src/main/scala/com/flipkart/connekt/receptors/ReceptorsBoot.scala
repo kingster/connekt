@@ -41,8 +41,6 @@ object ReceptorsBoot extends BaseApp {
       DaoFactory.setUpConnectionProvider(new ConnectionProvider())
 
       val hConfig = ConnektConfig.getConfig("connections.hbase")
-      println(hConfig)
-      println(ConnektConfig.instance.bucketConfigs)
       DaoFactory.initHTableDaoFactory(hConfig.get)
 
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
