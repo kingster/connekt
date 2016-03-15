@@ -33,7 +33,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
 
   override def beforeAll() = {
     super.beforeAll()
-    HttpDispatcher.init(ConnektConfig.getConfig("busybees.akka.http").get)
+    HttpDispatcher.init(ConnektConfig.getConfig("react").get)
   }
 
   lazy val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")

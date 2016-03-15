@@ -24,7 +24,7 @@ class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelp
 
   def createKafkaConsumerFactory = {
     val consumerConnProps = new Properties()
-    consumerConnProps.setProperty("zookeeper.connect", ConnektConfig.getString("receptors.connections.kafka.consumerConnProps.zookeeper.connect").getOrElse("10.32.197.54:2181,10.32.165.183:2181,10.32.237.188:2181/kafka/preprod6")  )
+    consumerConnProps.setProperty("zookeeper.connect", ConnektConfig.getString("connections.kafka.consumerConnProps.zookeeper.connect").getOrElse("10.32.197.54:2181,10.32.165.183:2181,10.32.237.188:2181/kafka/preprod6")  )
     consumerConnProps.setProperty("group.id", "1")
     consumerConnProps.setProperty("zookeeper.session.timeout.ms", "5000")
     consumerConnProps.setProperty("zookeeper.sync.time.ms", "200")
@@ -36,7 +36,7 @@ class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelp
 
   def createKafkaProducerFactory = {
     val producerConnProps = new Properties()
-    producerConnProps.setProperty("metadata.broker.list",ConnektConfig.getString("receptors.connections.kafka.producerConnProps.metadata.broker.list").getOrElse( "10.33.217.147:9092"))
+    producerConnProps.setProperty("metadata.broker.list",ConnektConfig.getString("connections.kafka.producerConnProps.metadata.broker.list").getOrElse( "10.33.217.147:9092"))
     producerConnProps.setProperty("serializer.class", "kafka.serializer.StringEncoder")
     producerConnProps.setProperty("request.required.acks", "0")
 

@@ -34,7 +34,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
 
   override def beforeAll() = {
     super.beforeAll()
-    HttpDispatcher.init(ConnektConfig.getConfig("busybees.akka.http").get)
+    HttpDispatcher.init(ConnektConfig.getConfig("react").get)
   }
 
   val counter: AtomicLong = new AtomicLong(0)

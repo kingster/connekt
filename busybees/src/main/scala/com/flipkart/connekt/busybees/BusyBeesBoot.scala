@@ -51,13 +51,13 @@ object BusyBeesBoot extends BaseApp {
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
-      val hConfig = ConnektConfig.getConfig("busybees.connections.hbase")
+      val hConfig = ConnektConfig.getConfig("connections.hbase")
       DaoFactory.initHTableDaoFactory(hConfig.get)
 
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
-      val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
+      val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
       DaoFactory.initCouchbaseCluster(couchbaseCf)
 
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
@@ -73,7 +73,7 @@ object BusyBeesBoot extends BaseApp {
       //TODO : Fix this, this is for bootstraping hbase connection.
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
 
-      HttpDispatcher.init(ConnektConfig.getConfig("busybees.akka.http").get)
+      HttpDispatcher.init(ConnektConfig.getConfig("react").get)
 
       pushTopology = new PushTopology(kafkaHelper)
       pushTopology.run

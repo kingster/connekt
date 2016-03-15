@@ -31,7 +31,7 @@ class CommonsBaseTest extends ConnektUTSpec {
 
   def getKafkaProducerHelper = kafkaProducerHelper.getOrElse({
     val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
-    val kafkaProducerPoolConf = ConnektConfig.getConfig("receptors.connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
+    val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
     KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
   })
 
@@ -43,17 +43,17 @@ class CommonsBaseTest extends ConnektUTSpec {
 
     DaoFactory.setUpConnectionProvider(new MockConnectionProvider())
 
-    val hConfig = ConnektConfig.getConfig("receptors.connections.hbase")
+    val hConfig = ConnektConfig.getConfig("connections.hbase")
 
     DaoFactory.initHTableDaoFactory(hConfig.get)
 
     val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
     DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
-    val couchbaseCf = ConnektConfig.getConfig("receptors.connections.couchbase").getOrElse(ConfigFactory.empty())
+    val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
     DaoFactory.initCouchbaseCluster(couchbaseCf)
 
-    val specterConfig = ConnektConfig.getConfig("receptors.connections.specter").getOrElse(ConfigFactory.empty())
+    val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
     DaoFactory.initSpecterSocket(specterConfig)
 
     ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null)

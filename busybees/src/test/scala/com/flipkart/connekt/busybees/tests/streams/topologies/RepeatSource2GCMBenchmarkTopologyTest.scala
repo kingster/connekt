@@ -1,7 +1,6 @@
 package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.http.scaladsl.model._
@@ -10,16 +9,13 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
-import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.{ConnektConfig, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import org.scalatest.Ignore
 
-import scala.concurrent.duration.{FiniteDuration, _}
-import scala.concurrent.{Await, Promise}
+import scala.concurrent.Await
+import scala.concurrent.duration._
 /**
  *
  *
@@ -31,7 +27,7 @@ class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
 
   override def beforeAll() = {
     super.beforeAll()
-    HttpDispatcher.init(ConnektConfig.getConfig("busybees.akka.http").get)
+    HttpDispatcher.init(ConnektConfig.getConfig("react").get)
   }
 
   val counter: AtomicLong = new AtomicLong(0)
