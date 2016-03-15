@@ -18,7 +18,12 @@ import org.apache.http.message.BasicNameValuePair
  */
 case class OAuthToken(token: String, expectedExpiry: Long)
 
-object WindowsOAuthService {
+trait TWindowsOAuthService {
+  def getToken(appName: String): Option[OAuthToken]
+  def refreshToken(appName: String, requestTime: Long = System.currentTimeMillis())
+}
+
+object WindowsOAuthService extends TWindowsOAuthService {
 
   val tokenRefreshURI = ConnektConfig.getString("windows.access.token.endpoint").getOrElse("https://login.live.com/accesstoken.srf")
 
@@ -48,7 +53,7 @@ object WindowsOAuthService {
       requestNewToken(appName, requestTime)
   }
 
-  def requestNewToken(appName: String, requestTime: Long): Unit = {
+  private def requestNewToken(appName: String, requestTime: Long): Unit = {
     val credential = KeyChainManager.getMicrosoftCredential(appName)
     credential match {
       case Some(cred) =>
