@@ -42,8 +42,8 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
       }
       case AuthorizationFailedRejection => logTimedRequestResult {
         complete(responseMarshallable[GenericResponse](
-          StatusCodes.Unauthorized, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)))
+          StatusCodes.Forbidden, Seq.empty[HttpHeader],
+          GenericResponse(StatusCodes.Forbidden.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)))
         )
       }
       case MalformedRequestContentRejection(msg, _) => logTimedRequestResult {
