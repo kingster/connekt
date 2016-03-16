@@ -34,7 +34,7 @@ object ReceptorsBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"Receptors Logging using $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors", "fk-connekt-busybees-akka"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors" ))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 

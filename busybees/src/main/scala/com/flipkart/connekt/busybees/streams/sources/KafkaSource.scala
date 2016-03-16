@@ -8,23 +8,25 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.CollectionUtils._
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
-import kafka.consumer.ConsumerConnector
+import kafka.consumer.{ConsumerConnector, ConsumerTimeoutException}
 import kafka.message.MessageAndMetadata
 import kafka.serializer.{Decoder, DefaultDecoder}
-import kafka.utils.{ZKStringSerializer, ZkUtils}
+import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
 
 import scala.collection.Iterator
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
+import scala.util.Try
+
 /**
  *
  *
  * @author durga.s
  * @version 1/28/16
  */
-class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String, partitionFactor: Int)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented{
+class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented{
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
@@ -38,7 +40,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     case object TimerPollTrigger
 
-    val timerDelayInMs = 5.milliseconds
+    val timerDelayInMs = 100.milliseconds
 
     override protected def onTimer(timerKey: Any): Unit = {
       if (timerKey == TimerPollTrigger)
@@ -47,7 +49,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     @Timed("pushElement")
     private def pushElement() = {
-      if (iterator.hasNext) {
+      if (safeHasNext) {
         val m = iterator.next()
         commitOffset(m.offset)
         push(out, m.message())
@@ -55,6 +57,8 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
         ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource:: pushElement no-data")
         scheduleOnce(TimerPollTrigger, timerDelayInMs)
       }
+
+      def safeHasNext = try { iterator.hasNext } catch { case e: ConsumerTimeoutException => false }
     }
 
     setHandler(out, new OutHandler {
@@ -86,23 +90,20 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
   var kafkaConsumerConnector: ConsumerConnector = null
   var iterator: Iterator[MessageAndMetadata[Array[Byte], V]] = Iterator.empty
 
-  private def getTopicPartitionCount(topic: String): Int = try {
-    ZkUtils.getPartitionsForTopics(zk, Seq(topic)).get(topic).map(_.size).getOrElse(1)
-  } catch {
-    case e: Exception =>
-      ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource ZK Error", e)
-      1
-  }
-
   private def initIterator(kafkaConnector: ConsumerConnector): Iterator[MessageAndMetadata[Array[Byte], V]] = {
 
-    val threadCount = Math.ceil(getTopicPartitionCount(topic) / partitionFactor).toInt
-    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Streams[$threadCount]")
+    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Streams[1]")
 
-    kafkaConsumerConnector.commitOffsets
-    val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> threadCount), new DefaultDecoder(), new MessageDecoder[V]())
+    /**
+      * Using threadCount = 1, since for now we got the best performance with this.
+      * Once akka/reactive-kafka get's stable, we will move to it provided it gives better performance.
+      */
+    val consumerStreams = kafkaConnector.createMessageStreams[Array[Byte], V](Map[String, Int](topic -> 1), new DefaultDecoder(), new MessageDecoder[V]())
     val streams = consumerStreams.getOrElse(topic,throw new Exception(s"No KafkaStreams for topic: $topic"))
-    streams.map(_.iterator()).merge
+    Try(streams.map(_.iterator()).head).getOrElse {
+      ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource:: stream could not be created for $topic")
+      Iterator.empty
+    }
   }
 
   private def createKafkaConsumer(): Unit = {

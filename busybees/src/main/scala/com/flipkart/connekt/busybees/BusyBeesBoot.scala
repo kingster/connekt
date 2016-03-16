@@ -84,8 +84,7 @@ object BusyBeesBoot extends BaseApp {
     ConnektLogger(LogFile.SERVICE).info("BusyBees Shutting down.")
     if (initialized.get()) {
       DaoFactory.shutdownHTableDaoFactory()
-
-      pushTopology.shutdown()
+      Option(pushTopology).foreach(_.shutdown())
     }
   }
 

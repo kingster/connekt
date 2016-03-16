@@ -11,8 +11,7 @@ object ConnektConfig {
 
   var instance: KloudConfig = null
 
-  def apply(configHost: String = "10.47.0.101", configPort: Int = 80)
-           (bucketIdMap: Seq[String] = Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment))) = {
+  def apply(configHost: String = "10.47.0.101", configPort: Int = 80)(bucketIdMap: Seq[String]) = {
     this.synchronized {
       if (null == instance) {
         instance = new KloudConfig(configHost, configPort)(bucketIdMap)
@@ -39,6 +38,5 @@ object ConnektConfig {
   def getBoolean(k: String): Option[Boolean] = instance.get[Boolean](k)
 
   def getConfig(k: String): Option[Config] = instance.getConfig(k)
-
 
 }

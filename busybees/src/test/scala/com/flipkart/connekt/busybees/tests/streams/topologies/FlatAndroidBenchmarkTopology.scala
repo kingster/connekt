@@ -44,7 +44,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
     val prevTime = new AtomicLong(System.currentTimeMillis())
 
     val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.head
-    val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic, 10)(Promise[String]().future))
+    val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic)(Promise[String]().future))
     val repeatSource = Source.repeat {
       """
         |{
