@@ -21,6 +21,7 @@ object DeviceDetailsService extends Instrumented {
   @Timed("add")
   def add(deviceDetails: DeviceDetails): Try[Unit] = Try_#(message = "DeviceDetailsService.add Failed") {
     dao.add(deviceDetails.appName, deviceDetails)
+    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(deviceDetails.appName, deviceDetails.deviceId), deviceDetails)
     if (deviceDetails.userId != null)
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
     BigfootService.ingest(deviceDetails.toBigfootFormat)
