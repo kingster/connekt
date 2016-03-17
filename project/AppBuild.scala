@@ -21,8 +21,7 @@ object AppBuild extends Build  {
       "-encoding", "utf8",
       "-Ywarn-adapted-args",
       "-Ywarn-dead-code",
-      "-Ywarn-numeric-widen",
-      "-Ywarn-value-discard"
+      "-Ywarn-numeric-widen"
   ),
     crossPaths in Scope.GlobalScope := false,
     resolvers ++= Seq(
