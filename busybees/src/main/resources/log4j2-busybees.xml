@@ -14,7 +14,7 @@
   <Appenders>
 
     <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d %highlight{%p} [%t] %m%n"/>
+      <PatternLayout pattern="%d %highlight{%p} %c{1.} [%t] %m%n"/>
     </Console>
 
     <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">
@@ -121,7 +121,7 @@
     <Logger name="com.flipkart" level="DEBUG"/>
     <Logger name="com.flipkart.kloud.config" level="ERROR"/>
 
-    <Root level="INFO">
+    <Root level="INFO" includeLocation="false">
       <AppenderRef ref="DEFAULT"/>
     </Root>
 

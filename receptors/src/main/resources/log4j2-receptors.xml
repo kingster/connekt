@@ -12,7 +12,7 @@
   <Appenders>
 
     <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d %highlight{%p} [%t] %m%n"/>
+      <PatternLayout pattern="%d %highlight{%p} %c{1.} [%t] %m%n"/>
     </Console>
 
     <RollingRandomAccessFile name="ACCESS" fileName="${accessLogFile}" filePattern="${accessLogFile}.%i" immediateFlush="false" >
