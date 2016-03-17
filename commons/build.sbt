@@ -79,7 +79,7 @@ libraryDependencies ++= Seq(
     ),
 
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
-  "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
+  "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.7.2",
   "commons-lang" % "commons-lang" % "2.6",
   "commons-pool" % "commons-pool" % "1.6",
   "org.springframework" % "spring-jdbc" % "4.2.3.RELEASE",

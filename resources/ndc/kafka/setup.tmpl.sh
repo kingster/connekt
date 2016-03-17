@@ -10,6 +10,7 @@ echo "export KAFKA_CONFIG_BROKER_ID=__BROKER_ID__" >> /etc/default/fk-3p-kafka.e
 
 #setup your package
 reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-bro-kafka --appkey fk-bro-kafka-ga > /etc/apt/sources.list.d/fk-bro-kafka.list
+reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-commons --appkey connekt > /etc/apt/sources.list.d/fk-connekt-commons.list
 apt-get update
 
 apt-get install --yes --allow-unauthenticated parted
@@ -52,3 +53,9 @@ sudo chown -R fk-3p-kafka:fk-3p /storage/3/fk-3p-kafka
 
 sudo mkdir -p /storage/4/fk-3p-kafka/logs
 sudo chown -R fk-3p-kafka:fk-3p /storage/4/fk-3p-kafka
+
+
+echo 'team_name="Connekt"' > /etc/default/nsca_wrapper
+echo 'nagios_server_ip="10.47.2.198"' >> /etc/default/nsca_wrapper
+
+sudo apt-get install --yes --allow-unauthenticated fk-nagios-common --reinstall || true
