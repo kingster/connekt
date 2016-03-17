@@ -17,8 +17,11 @@ object AppBuild extends Build {
       "-unchecked",
       "-deprecation",
       "-encoding", "utf8",
-      "-Ywarn-adapted-args"
-    ),
+      "-Ywarn-adapted-args",
+      "-Ywarn-dead-code",
+      "-Ywarn-numeric-widen",
+      "-Ywarn-value-discard"
+  ),
     crossPaths in Scope.GlobalScope := false,
     resolvers ++= Seq(
       Resolver.jcenterRepo,
