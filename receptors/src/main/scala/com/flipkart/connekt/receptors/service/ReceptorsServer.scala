@@ -32,7 +32,7 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
 
   var httpService: scala.concurrent.Future[akka.http.scaladsl.Http.ServerBinding] = null
 
-  implicit def rejectionHandler = RejectionHandler.newBuilder()
+  implicit def rejectionHandler: RejectionHandler = RejectionHandler.newBuilder()
     .handle{
       case AuthenticationFailedRejection(cause, _ ) =>  logTimedRequestResult {
         complete(responseMarshallable[GenericResponse](
@@ -67,7 +67,7 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
       }
     }.result()
 
-  implicit def exceptionHandler = ExceptionHandler {
+  implicit def exceptionHandler: ExceptionHandler = ExceptionHandler {
     case e: Throwable =>
       val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
       ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- $errorUID  --  Reason [ ${e.getMessage} ]", e)
@@ -80,7 +80,6 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
       }
   }
 
-  val allRoutes = cors {
   val allRoutes = cors {
     new RouteRegistry().allRoutes
   }
