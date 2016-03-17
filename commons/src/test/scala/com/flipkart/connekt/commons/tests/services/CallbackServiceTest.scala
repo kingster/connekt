@@ -82,5 +82,9 @@ class CallbackServiceTest extends CommonsBaseTest {
     result.get.size should be > 0
   }
 
-
+  "Callback Servcie " should "delete " in {
+    val callBackService = ServiceFactory.getCallbackService
+    val events = callBackService.deleteCallBackEvent(mid, s"${callBackEvent.appName}${callBackEvent.deviceId}", Channel.PUSH)
+    events.get.size == 1
+  }
 }

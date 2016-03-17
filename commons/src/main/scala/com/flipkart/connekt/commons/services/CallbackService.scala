@@ -71,6 +71,13 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
     }
   }
 
+  @Timed("deleteCallBackEvent")
+  def deleteCallBackEvent(requestId: String, forContact: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
+    Try{
+      channelEventsDao(channel).deleteCallbackEvents(requestId, forContact)
+    }
+  }
+
   @Timed("fetchEventsMapForContactId")
   override def fetchEventsMapForContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]] = {
     Try {
