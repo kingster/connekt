@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities
 
 import java.util.Date
@@ -8,12 +11,6 @@ import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
 import com.flipkart.connekt.commons.entities.StencilEngine.StencilEngine
 
-/**
- *
- *
- * @author durga.s
- * @version 12/14/15
- */
 class Stencil() {
   @Column(name = "id")
   var id: String = _
@@ -80,4 +77,3 @@ class StencilEngineToStringDeserializer extends JsonDeserializer[StencilEngine] 
     }
   }
 }
-

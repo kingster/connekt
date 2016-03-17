@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.dao._
@@ -10,12 +13,6 @@ import org.apache.commons.lang.RandomStringUtils
 
 import scala.util.Try
 
-/**
- *
- *
- * @author durga.s
- * @version 12/9/15
- */
 class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService with Instrumented {
 
   val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))

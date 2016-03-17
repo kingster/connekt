@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.clients
 
 import akka.actor.ActorSystem
@@ -12,12 +15,7 @@ import com.flipkart.connekt.commons.transmission.HostConnectionHelper._
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.{Failure, Success}
-/**
- *
- *
- * @author durga.s
- * @version 11/28/15
- */
+
 class GCMClient {
   lazy val gcmHost = "android.googleapis.com"
   lazy val gcmPort = 443

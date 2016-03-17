@@ -8,12 +8,7 @@ import com.flipkart.connekt.receptors.routes.common.KeyChainRoute
 import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 import org.scalatest.Ignore
 
-/**
- * Created by nidhi.mehla on 18/02/16.
- */
-
 //TODO: Fix this test, multiplepart/form-data not working
-
 @Ignore
 class KeyChainRouteTest extends BaseRouteTest {
 

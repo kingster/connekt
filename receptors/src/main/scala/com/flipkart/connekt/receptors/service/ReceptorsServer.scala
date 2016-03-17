@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.service
 
 import java.util.UUID
@@ -15,12 +18,6 @@ import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 
 import scala.collection.immutable.Seq
 
-/**
- *
- *
- * @author durga.s
- * @version 11/20/15
- */
 object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORSDirectives {
 
   implicit val system = ActorSystem("ckt-receptors")

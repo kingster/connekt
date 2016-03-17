@@ -1,8 +1,7 @@
-package com.flipkart.connekt.commons.cache
-
-/**
- * Created by nidhi.mehla on 19/01/16.
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
  */
+package com.flipkart.connekt.commons.cache
 
 trait CacheType extends Enumeration
 
@@ -13,4 +12,3 @@ object DistributedCacheType extends CacheType {
 object LocalCacheType extends CacheType {
   val Default, UserInfo, ResourcePriv, UserConfiguration, WnsAccessToken, Stencils, StencilsBucket, AppCredential = Value
 }
-

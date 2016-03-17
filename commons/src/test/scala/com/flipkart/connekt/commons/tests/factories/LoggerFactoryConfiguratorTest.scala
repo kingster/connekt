@@ -7,12 +7,6 @@ import org.apache.logging.log4j.core.config.xml.XmlConfiguration
 import org.apache.logging.log4j.core.config.{ConfigurationSource, Configurator}
 import org.slf4j.{Logger, LoggerFactory}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/20/15
- */
 class LoggerFactoryConfiguratorTest extends ConnektUTSpec {
 
   "LoggerFactory configuration" should "complete without exceptions" in {

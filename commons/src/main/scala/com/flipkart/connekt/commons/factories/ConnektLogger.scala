@@ -1,13 +1,10 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.factories
 
 import org.apache.logging.log4j.LogManager
 
-/**
- *
- *
- * @author durga.s
- * @version 11/20/15
- */
 object ConnektLogger {
 
   def init(logConfFilePath: String) = LoggerFactoryConfigurator.configureLog4j2(logConfFilePath)

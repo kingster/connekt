@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.factories
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
@@ -7,12 +10,6 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.{HConstants, HBaseConfiguration}
 import org.apache.hadoop.hbase.client.{HConnectionManager, HConnection, HTableInterface}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/16/15
- */
 class HTableFactoryWrapper(hConnConfig: Config, connProvider: TConnectionProvider) extends HTableFactory {
 
   val hConnectionConfig = {

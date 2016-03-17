@@ -10,12 +10,6 @@ import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.flipkart.connekt.commons.utils.StringUtils
 import org.scalatest.Ignore
 
-/**
- *
- *
- * @author durga.s
- * @version 1/18/16
- */
 @Ignore
 class CouchbaseConnectionTest extends ConnektUTSpec {
 

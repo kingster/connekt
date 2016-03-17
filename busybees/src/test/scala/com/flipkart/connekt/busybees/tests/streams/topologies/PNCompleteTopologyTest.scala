@@ -16,9 +16,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.Try
 
-/**
- * Created by kinshuk.bairagi on 05/02/16.
- */
 class PNCompleteTopologyTest extends TopologyUTSpec {
 
   "PNCompleteTopology Test" should "run" in {

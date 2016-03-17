@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes.common
 
 import akka.http.scaladsl.model.StatusCodes
@@ -11,9 +14,6 @@ import com.flipkart.connekt.commons.sync.{SyncType, SyncMessage, SyncManager}
 import com.flipkart.connekt.receptors.directives.ChannelSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
-/**
- * Created by kinshuk.bairagi on 15/02/16.
- */
 class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.dao.DaoFactory
@@ -15,9 +18,6 @@ import com.flipkart.specter.{SpecterClient, SpecterRequest}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.util.{Failure, Success, Try}
 
-/**
- * Created by nidhi.mehla on 02/02/16.
- */
 object BigfootService extends Instrumented {
 
   val socketClient = DaoFactory.phantomClientSocket

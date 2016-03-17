@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.cache.{LocalCacheType, LocalCacheManager}
@@ -5,11 +8,6 @@ import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.serializers.KryoSerializer
-
-
-/**
- * Created by kinshuk.bairagi on 13/11/14.
- */
 
 object KeyChainManager {
 

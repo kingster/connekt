@@ -1,11 +1,8 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.iomodels
 
-/**
- *
- *
- * @author durga.s
- * @version 2/2/16
- */
 case class APSPayloadEnvelope(messageId: String, deviceId: String, appName: String, apsPayload: APSPayload)
 
 abstract class APSPayload

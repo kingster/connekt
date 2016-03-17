@@ -10,9 +10,6 @@ import org.apache.commons.dbcp2.BasicDataSourceFactory
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.{HConnectionManager, HConnection}
 
-/**
-  * Created by kinshuk.bairagi on 27/01/16.
-  */
 class MockConnectionProvider extends TConnectionProvider{
 
   override def createCouchBaseConnection(nodes: List[String]): Cluster = new CouchbaseMockCluster

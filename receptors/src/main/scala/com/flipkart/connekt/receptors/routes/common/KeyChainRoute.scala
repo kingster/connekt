@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes.common
 
 import java.io.File
@@ -15,9 +18,6 @@ import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.util.{Failure, Success}
 
-/**
- * Created by nidhi.mehla on 18/02/16.
- */
 class KeyChainRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler with FileDirective {
 
   /**

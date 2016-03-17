@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.entities.Channel
@@ -5,12 +8,6 @@ import com.flipkart.connekt.commons.iomodels.CallbackEvent
 
 import scala.util.Try
 
-/**
- *
- *
- * @author durga.s
- * @version 12/9/15
- */
 trait TCallbackService extends TService {
 
   def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String]

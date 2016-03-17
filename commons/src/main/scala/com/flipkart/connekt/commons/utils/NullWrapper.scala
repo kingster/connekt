@@ -1,8 +1,8 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.utils
 
-/**
- * Created by nidhi.mehla on 20/01/16.
- */
 object NullWrapper {
 
   val noData = Array[Byte]( 0x00 )

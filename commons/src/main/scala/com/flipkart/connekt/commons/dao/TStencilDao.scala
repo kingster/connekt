@@ -1,13 +1,10 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/14/15
- */
 trait TStencilDao extends Dao {
 
   def getStencil(id: String, version: Option[String] = None): Option[Stencil]

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import java.util.Properties
@@ -16,12 +19,6 @@ import org.I0Itec.zkclient.ZkClient
 import scala.util.{Failure, Success, Try}
 import com.flipkart.connekt.commons.core.Wrappers._
 
-/**
- *
- *
- * @author durga.s
- * @version 12/8/15
- */
 class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumerHelper) extends TMessageService {
 
   private val messageDao: TRequestDao = requestDao

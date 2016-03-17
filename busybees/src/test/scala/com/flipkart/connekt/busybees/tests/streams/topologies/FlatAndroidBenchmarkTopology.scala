@@ -22,12 +22,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 
-/**
- *
- *
- * @author durga.s
- * @version 3/11/16
- */
 //@Ignore
 class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.flows
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
@@ -6,9 +9,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import fkint.mp.connekt.PNCallbackEvent
 
-/**
- * Created by kinshuk.bairagi on 09/03/16.
- */
 class FlowMetrics[T](names: String*) extends GraphStage[FlowShape[T, T]] with Instrumented {
 
   val in = Inlet[T]("FlowMetrics.In")

@@ -1,14 +1,11 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.node.ObjectNode
 
-/**
- *
- *
- * @author durga.s
- * @version 11/26/15
- */
 case class XmppRequest(to: String,
                        @JsonProperty("message_id") messageId: String,
                        data: ObjectNode,

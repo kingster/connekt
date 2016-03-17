@@ -11,12 +11,6 @@ import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.CharEncoding
 
-/**
- *
- *
- * @author durga.s
- * @version 11/18/15
- */
 class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
   var hConnectionHelper = getHBaseConnHelper

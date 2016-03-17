@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.connections
 
 import java.util.Properties
@@ -10,10 +13,6 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.{HConnectionManager, HConnection}
 
 import scala.collection.JavaConverters._
-
-/**
-  * Created by kinshuk.bairagi on 27/01/16.
-  */
 
 class ConnectionProvider extends TConnectionProvider {
 

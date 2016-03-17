@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.cache
 
 import com.couchbase.client.java.document.StringDocument
@@ -11,9 +14,6 @@ import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 import scala.reflect.runtime.universe._
 
-/**
- * Created by nidhi.mehla on 19/01/16.
- */
 object DistributedCacheManager extends CacheManager {
 
   private var cacheTTLMap: Map[DistributedCacheType.Value, CacheProperty] = Map[DistributedCacheType.Value, CacheProperty]()

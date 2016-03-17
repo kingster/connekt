@@ -1,14 +1,11 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities
 
 import com.fasterxml.jackson.core.{JsonParser, JsonGenerator}
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, SerializerProvider, JsonSerializer}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/28/15
- */
 object Channel extends Enumeration {
   type Channel = Value
   val PUSH = Value("push")

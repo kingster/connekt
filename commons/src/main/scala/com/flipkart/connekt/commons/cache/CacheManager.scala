@@ -1,11 +1,11 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.cache
 
 import scala.concurrent.duration.Duration
 import scala.reflect.runtime.universe._
 
-/**
- * Created by nidhi.mehla on 19/01/16.
- */
 trait CacheManager {
 
 }

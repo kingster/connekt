@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}

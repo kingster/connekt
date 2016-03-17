@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.sources
 
 import java.util.concurrent.TimeUnit
@@ -10,8 +13,6 @@ import org.isomorphism.util.TokenBuckets
 import scala.reflect.ClassTag
 
 /**
- * Created by kinshuk.bairagi on 02/02/16.
- *
  * @param capacity
  * @param tokenRefreshPeriod
  * @param tokenRefreshAmount
@@ -55,4 +56,3 @@ class RateControl[V: ClassTag](capacity: Long, tokenRefreshPeriod: Long, tokenRe
   }
 
 }
-

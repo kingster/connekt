@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes.callbacks
 
 import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
@@ -12,12 +15,6 @@ import scala.collection.immutable.Seq
 import scala.util.{Failure, Success}
 import com.flipkart.connekt.commons.entities.Channel
 
-/**
- *
- *
- * @author durga.s
- * @version 12/8/15
- */
 class CallbackRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val callback =

@@ -1,12 +1,13 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities
 
 import java.util.Date
 import javax.persistence.Column
 
-/**
- * Created by nidhi.mehla on 17/02/16.
- */
 class Key {
+  
   @Column(name = "key")
   var keyName: String = _
 

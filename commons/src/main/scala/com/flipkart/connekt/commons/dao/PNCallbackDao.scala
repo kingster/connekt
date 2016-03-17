@@ -1,15 +1,12 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo, PNCallbackEvent, PNRequestInfo}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/9/15
- */
 class PNCallbackDao(tableName: String, hTableFactory: HTableFactory) extends CallbackDao(tableName: String, hTableFactory: HTableFactory) {
 
   override def channelEventPropsMap(channelCallbackEvent: CallbackEvent): Map[String, Array[Byte]] = {

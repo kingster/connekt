@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
 import java.util.concurrent.TimeUnit
@@ -14,12 +17,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.collection.immutable
 import scala.concurrent.ExecutionContextExecutor
 
-/**
- *
- *
- * @author durga.s
- * @version 2/2/16
- */
 class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
 
   def getExpiry(ts: Option[Long]): Long = {

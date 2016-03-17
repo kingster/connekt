@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.model.HttpRequest
@@ -6,9 +9,6 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.{LogEntry, BasicDirectives, LoggingMagnet}
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 
-/**
- * Created by kinshuk.bairagi on 27/02/16.
- */
 trait AccessLogDirective extends BasicDirectives {
 
   private val logFormat = "%s %s %s %s %s"

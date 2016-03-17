@@ -1,14 +1,12 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities.fabric
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, EmailRequestData, PNRequestData}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/14/15
- */
+
 sealed trait ChannelFabric {
 }
 

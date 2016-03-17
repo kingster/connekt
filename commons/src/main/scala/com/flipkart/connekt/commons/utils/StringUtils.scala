@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.utils
 
 import java.lang.reflect.{ParameterizedType, Type => JType}
@@ -20,12 +23,6 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.reflect.{ClassTag, _}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/23/15
- */
 object StringUtils {
 
   val currentMirror = runtimeMirror(getClass.getClassLoader)

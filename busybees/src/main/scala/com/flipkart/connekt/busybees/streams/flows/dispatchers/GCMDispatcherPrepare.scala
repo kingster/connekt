@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import java.net.URL
@@ -12,10 +15,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.GCMPayloadEnvelope
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
-
-/**
- * Created by kinshuk.bairagi on 02/02/16.
- */
+ 
 class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com", 443, "/gcm/send"))
   extends GraphStage[FlowShape[GCMPayloadEnvelope, (HttpRequest, GCMRequestTracker)]] {
 

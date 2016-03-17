@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.flows.eventcreators
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
@@ -5,12 +8,6 @@ import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 
-/**
- *
- *
- * @author durga.s
- * @version 2/8/16
- */
 class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.mp.connekt.PNCallbackEvent]] {
 
   val in = Inlet[PNCallbackEvent]("PNBigfootEventCreator.In")

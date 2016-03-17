@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedCacheType}
@@ -11,9 +14,6 @@ import scala.util.{Failure, Try}
 import com.roundeights.hasher.Implicits._
 import reflect.runtime.universe._
 
-/**
- * Created by kinshuk.bairagi on 16/01/16.
- */
 object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao

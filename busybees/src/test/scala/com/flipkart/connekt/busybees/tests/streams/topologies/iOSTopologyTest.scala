@@ -15,9 +15,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-/**
- * Created by kinshuk.bairagi on 05/02/16.
- */
 class iOSTopologyTest extends TopologyUTSpec {
 
   "iOSTopology Test" should "run" in {

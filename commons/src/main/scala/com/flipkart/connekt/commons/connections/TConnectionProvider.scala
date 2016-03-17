@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.connections
 
 import java.util.Properties
@@ -8,9 +11,6 @@ import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.HConnection
 
-/**
-  * Created by kinshuk.bairagi on 27/01/16.
-  */
 abstract class TConnectionProvider {
 
   def createCouchBaseConnection(nodes: List[String]): Cluster

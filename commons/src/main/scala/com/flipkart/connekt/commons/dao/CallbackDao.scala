@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
@@ -9,12 +12,6 @@ import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
 import com.roundeights.hasher.Implicits._
 import scala.util.{Success, Try}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/9/15
- */
 abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) extends TCallbackDao with HbaseDao {
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName

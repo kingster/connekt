@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import java.util.Date
@@ -9,10 +12,6 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 
 import scala.util.Try
 
-
-/**
- * Created by nidhi.mehla on 17/02/16.
- */
 class KeyChainService(dao: TKeyChainDao) extends TStorageService with Instrumented {
 
   override def put(key: String, value: String): Try[Unit] = Try_ {

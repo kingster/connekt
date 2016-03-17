@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import java.util.UUID
@@ -8,12 +11,6 @@ import com.flipkart.connekt.commons.iomodels.ConnektRequest
 
 import scala.util.Try
 
-/**
- *
- *
- * @author durga.s
- * @version 12/8/15
- */
 trait TMessageService extends TService {
 
   protected def generateId: String = UUID.randomUUID().toString

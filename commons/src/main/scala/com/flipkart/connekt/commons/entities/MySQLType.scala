@@ -1,11 +1,8 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities
 
-/**
- *
- *
- * @author durga.s
- * @version 12/11/15
- */
 abstract class MySQLType {
 
 }

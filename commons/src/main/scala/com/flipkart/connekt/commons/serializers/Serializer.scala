@@ -1,8 +1,8 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.serializers
 
-/**
- * Created by kinshuk.bairagi on 19/02/16.
- */
 trait Serializer {
 
   def serialize(obj: AnyRef): Array[Byte]

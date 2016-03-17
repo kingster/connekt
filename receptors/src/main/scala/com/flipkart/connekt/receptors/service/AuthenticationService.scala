@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.service
 
 import com.flipkart.connekt.commons.dao.DaoFactory
@@ -10,12 +13,6 @@ import com.flipkart.metrics.Timed
 
 import scala.util.Try
 
-/**
-  *
-  *
-  * @author durga.s
-  * @version 11/22/15
-  */
 object AuthenticationService extends Instrumented {
 
   val userService: UserInfoService = ServiceFactory.getUserInfoService

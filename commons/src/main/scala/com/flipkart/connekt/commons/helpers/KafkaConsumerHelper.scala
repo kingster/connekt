@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.helpers
 
 import java.util.NoSuchElementException
@@ -10,12 +13,6 @@ import org.apache.commons.pool.impl.GenericObjectPool
 import scala.util.{Success, Failure, Try}
 import scala.util.control.NonFatal
 
-/**
- *
- *
- * @author durga.s
- * @version 11/26/15
- */
 trait KafkaConsumer {
   def readMessage(topic: String): Option[String]
 }

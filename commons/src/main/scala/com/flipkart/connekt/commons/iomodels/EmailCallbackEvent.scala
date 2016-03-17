@@ -1,9 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.iomodels
 
-/**
- *
- *
- * @author durga.s
- * @version 12/8/15
- */
 case class EmailCallbackEvent(eventType: String, reason: String) extends CallbackEvent

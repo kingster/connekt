@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities.fabric
 
 import java.io.StringWriter
@@ -12,12 +15,7 @@ import org.apache.velocity.app.Velocity
 import org.apache.velocity.context.Context
 
 import scala.util.{Failure, Success, Try}
-/**
- *
- *
- * @author durga.s
- * @version 12/14/15
- */
+
 @JsonTypeInfo(
 use = JsonTypeInfo.Id.NAME,
 include = JsonTypeInfo.As.PROPERTY,

@@ -1,12 +1,12 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.metrics
 
 import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics._
 
-/**
- * Created by kinshuk.bairagi on 11/02/16.
- */
 object MetricRegistry {
 
   val REGISTRY = new com.codahale.metrics.MetricRegistry()
@@ -31,5 +31,3 @@ object MetricRegistry {
 
 
 }
-
-

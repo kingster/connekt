@@ -2,9 +2,6 @@ package com.flipkart.marketing.connekt;
 
 import org.apache.hadoop.hbase.coprocessor.BaseRegionObserver;
 
-/**
- * Created by kinshuk.bairagi on 19/01/16.
- */
 public class RegistryCoprocessor extends BaseRegionObserver implements RegistryConfig {
 
 //    private static final Log logger = LogFactory.getLog(RegistryCoprocessor.class);

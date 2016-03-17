@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.MySQLFactory
@@ -6,12 +9,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/11/15
- */
 class UserInfoDao(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with MySQLDao {
 
   val mysqlHelper = mysqlFactory

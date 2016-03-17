@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
@@ -16,12 +19,6 @@ import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
-/**
- *
- *
- * @author durga.s
- * @version 11/18/15
- */
 trait HbaseDao {
 
   @throws[IOException]
@@ -180,4 +177,3 @@ object HbaseDao {
   }
 
 }
-

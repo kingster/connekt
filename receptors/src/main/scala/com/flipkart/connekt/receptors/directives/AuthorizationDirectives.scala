@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.server.directives.{BasicDirectives, RouteDirectives}
@@ -7,12 +10,6 @@ import com.flipkart.connekt.commons.factories.ServiceFactory
 
 import scala.util.Success
 
-/**
- *
- *
- * @author durga.s
- * @version 11/22/15
- */
 trait AuthorizationDirectives {
 
   def authorize(user: AppUser, tags: String*): Directive0 = {

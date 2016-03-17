@@ -1,13 +1,10 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.utils
 
 import com.typesafe.config.{ConfigFactory, ConfigException, Config}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/26/15
- */
 object ConfigUtils {
 
   implicit class configHandyFunctions(val c: Config) {

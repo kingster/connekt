@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.wire
 
 import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMarshaller}
@@ -21,8 +24,6 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
  * http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0-M1/scala/http/common/marshalling.html
  * http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0-M1/scala/http/common/unmarshalling.html
  *
- * @author durga.s
- * @version 11/20/15
  */
 trait GenericJsonSupport {
 

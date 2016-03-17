@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -15,9 +18,6 @@ import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Success, Try}
 
-/**
- * Created by kinshuk.bairagi on 14/12/15.
- */
 object StencilService extends Instrumented with SyncDelegate  {
 
   SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE))
@@ -119,4 +119,3 @@ object StencilService extends Instrumented with SyncDelegate  {
     }
   }
 }
-

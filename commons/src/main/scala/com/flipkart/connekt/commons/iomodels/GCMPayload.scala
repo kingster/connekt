@@ -1,14 +1,11 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonInclude
 
 
-/**
- *
- *
- * @author durga.s
- * @version 11/28/15
- */
 case class GCMPayloadEnvelope(messageId: String, deviceId: List[String], appName: String, gcmPayload: GCMPayload)
 
 abstract class GCMPayload

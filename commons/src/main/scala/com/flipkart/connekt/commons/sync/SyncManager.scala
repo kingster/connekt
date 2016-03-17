@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.sync
 
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -13,9 +16,6 @@ import org.apache.zookeeper.{CreateMode, ZooDefs}
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
 
-/**
- * Created by kinshuk.bairagi on 01/02/16.
- */
 class SyncManager(zkQuorum: String) {
 
   /** Zookeeper client */

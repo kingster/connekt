@@ -1,15 +1,12 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.clients
 
 import akka.actor.{Terminated, Props, Actor}
 import akka.routing.{RoundRobinRoutingLogic, Router, ActorRefRoutee}
 import com.flipkart.connekt.commons.iomodels.XmppRequest
 
-/**
- *
- *
- * @author durga.s
- * @version 12/12/15
- */
 class XMPPChannelSupervisor(maxConnections: Int) extends Actor {
   var router = {
     val xmppChannelHandlers = Vector.fill(maxConnections) {

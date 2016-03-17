@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
@@ -10,9 +13,6 @@ import com.flipkart.metrics.Timed
 
 import scala.util.Try
 
-/**
- * Created by kinshuk.bairagi on 15/02/16.
- */
 object UserConfigurationService extends Instrumented {
 
   @Timed("add")

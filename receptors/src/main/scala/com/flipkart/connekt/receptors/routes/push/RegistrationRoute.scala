@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model._
@@ -13,12 +16,7 @@ import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.util.Failure
-/**
- *
- *
- * @author durga.s
- * @version 11/20/15
- */
+
 class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   type Created = Boolean

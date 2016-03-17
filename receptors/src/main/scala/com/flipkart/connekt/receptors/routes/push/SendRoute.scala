@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
@@ -14,12 +17,6 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/26/15
- */
 class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   val route =

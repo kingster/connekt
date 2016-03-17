@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.sinks
 
 import akka.http.scaladsl.model.HttpResponse
@@ -9,12 +12,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.util.{Failure, Success, Try}
 
-/**
- *
- *
- * @author durga.s
- * @version 2/2/16
- */
 class LoggingSink extends GraphStage[SinkShape[(Try[HttpResponse], String)]] {
 
   val in: Inlet[(Try[HttpResponse], String)] = Inlet("LoggingSink.In")

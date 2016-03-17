@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.serializers
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
@@ -6,9 +9,6 @@ import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.pool.{KryoFactory, KryoPool}
 
-/**
- * Created by kinshuk.bairagi on 19/02/16.
- */
 object KryoSerializer extends Serializer {
 
   val factory = new KryoFactory() {

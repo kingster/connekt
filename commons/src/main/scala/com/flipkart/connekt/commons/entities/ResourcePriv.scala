@@ -1,15 +1,12 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities
 
 import javax.persistence.Column
 
 import com.flipkart.connekt.commons.entities.UserType.UserType
 
-/**
- *
- *
- * @author durga.s
- * @version 12/11/15
- */
 class ResourcePriv {
 
   @Column(name = "userId")
@@ -50,4 +47,3 @@ object UserType extends Enumeration {
   type UserType = Value
   val GLOBAL, GROUP, USER = Value
 }
-

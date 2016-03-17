@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
@@ -14,12 +17,6 @@ import scala.collection.immutable.Seq
 import scala.concurrent.duration._
 import scala.util.Try
 
-/**
- *
- *
- * @author durga.s
- * @version 1/14/16
- */
 class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events")

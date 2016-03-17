@@ -1,15 +1,12 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.utils
 
 import kafka.consumer.ConsumerTimeoutException
 
 import scala.collection.{AbstractIterator, Iterator}
 
-/**
- *
- *
- * @author durga.s
- * @version 3/10/16
- */
 object CollectionUtils {
 
   implicit class iteratorUtils[T](iterators: List[Iterator[T]]) {

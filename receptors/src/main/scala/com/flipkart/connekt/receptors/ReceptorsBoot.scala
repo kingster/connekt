@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -13,12 +16,6 @@ import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.connekt.receptors.service.ReceptorsServer
 import com.typesafe.config.ConfigFactory
 
-/**
- *
- *
- * @author durga.s
- * @version 11/20/15
- */
 object ReceptorsBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)

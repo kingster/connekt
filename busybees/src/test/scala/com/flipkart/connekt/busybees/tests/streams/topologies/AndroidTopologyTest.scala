@@ -15,9 +15,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-/**
- * Created by kinshuk.bairagi on 05/02/16.
- */
 class AndroidTopologyTest extends TopologyUTSpec {
 
   "AndroidTopology Test" should "run" in {

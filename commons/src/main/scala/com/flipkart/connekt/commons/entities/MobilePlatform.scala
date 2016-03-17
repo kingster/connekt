@@ -1,11 +1,8 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities
 
-/**
- *
- *
- * @author durga.s
- * @version 2/11/16
- */
 object MobilePlatform extends Enumeration {
   type MobilePlatform = Value
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.directives
 
 import java.io.File
@@ -16,7 +19,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import MultiPartFormData._
 
 /**
- * Created by nidhi.mehla on 18/02/16.
  * Based upon https://github.com/clockfly/akka-http-file-server
  */
 

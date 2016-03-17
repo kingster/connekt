@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.cache
 
 import java.util.concurrent.TimeUnit
@@ -10,9 +13,6 @@ import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 import scala.reflect.runtime.universe._
 
-/**
- * Created by nidhi.mehla on 27/01/16.
- */
 object LocalCacheManager extends CacheManager {
 
   var cacheTTLMap: Map[LocalCacheType.Value, CacheProperty] = Map[LocalCacheType.Value, CacheProperty]()
@@ -104,4 +104,3 @@ class LocalCaches(val cacheName: LocalCacheType.Value, props: CacheProperty) ext
   }
 
 }
-

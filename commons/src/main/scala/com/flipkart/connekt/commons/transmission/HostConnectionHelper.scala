@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.transmission
 
 import akka.actor.ActorSystem
@@ -9,12 +12,6 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import scala.concurrent.Future
 import scala.util.Try
 
-/**
- *
- *
- * @author durga.s
- * @version 11/28/15
- */
 object HostConnectionHelper {
 
   implicit val system = ActorSystem("host-conn-helper")

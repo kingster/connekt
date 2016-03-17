@@ -5,12 +5,6 @@ import com.flipkart.connekt.commons.entities.{Bucket, StencilEngine, Stencil}
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils
 
-/**
- *
- *
- * @author durga.s
- * @version 12/16/15
- */
 class StencilDaoTest extends CommonsBaseTest {
   val stencil = new Stencil
   stencil.id = StringUtils.generateRandomStr(10)

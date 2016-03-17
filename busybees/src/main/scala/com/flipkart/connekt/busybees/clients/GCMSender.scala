@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.clients
 
 import akka.actor.Actor
@@ -12,12 +15,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
-/**
- *
- *
- * @author durga.s
- * @version 12/4/15
- */
+
 class GCMSender(host: String, port: Int, api: String, authKey: String) extends Actor {
 
   def this() = this("android.googleapis.com", 443,"/gcm/send", KeyChainManager.getGoogleCredential("ConnektSampleApp").get.apiKey)

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes.common
 
 import akka.http.scaladsl.model.StatusCodes
@@ -6,10 +9,6 @@ import com.flipkart.connekt.commons.entities.SimpleCredential
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.service.{AuthenticationService, TokenService}
-
-/**
- * Created by avinash.h on 1/21/16.
- */
 
 class LdapAuthRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 

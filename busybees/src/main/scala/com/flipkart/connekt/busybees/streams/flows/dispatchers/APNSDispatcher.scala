@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import java.util.Date
@@ -16,9 +19,6 @@ import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException}
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
-/**
- * Created by kinshuk.bairagi on 05/02/16.
- */
 class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[FlowShape[APSPayloadEnvelope, PNCallbackEvent]] {
 
   type AppName = String

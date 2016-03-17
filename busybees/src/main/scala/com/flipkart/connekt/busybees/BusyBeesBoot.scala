@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -16,12 +19,6 @@ import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import com.typesafe.config.ConfigFactory
 
-/**
- *
- *
- * @author durga.s
- * @version 11/28/15
- */
 object BusyBeesBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)

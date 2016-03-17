@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.model.HttpHeader
@@ -9,11 +12,6 @@ import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.receptors.service.AuthenticationService
 
-/**
- *
- * @author durga.s
- * @version 11/22/15
- */
 trait AuthenticationDirectives {
 
   private def getHeader(key: String, h: Seq[HttpHeader]): Option[String] = h.find(_.name.equalsIgnoreCase(key)).flatMap(w => Option(w.value))

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.receptors.routes
 
 import akka.http.scaladsl.marshalling._
@@ -10,9 +13,6 @@ import com.flipkart.connekt.receptors.wire.JsonToEntityMarshaller
 
 import scala.collection.immutable.Seq
 
-/**
- * Created by kinshuk.bairagi on 19/02/16.
- */
 abstract class BaseHandler extends Directives with HeaderDirectives with AuthenticationDirectives with AuthorizationDirectives with AsyncDirectives with PredefinedFromEntityUnmarshallers with PredefinedToEntityMarshallers with JsonToEntityMarshaller {
 
   /**

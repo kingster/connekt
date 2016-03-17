@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.helpers
 
 import java.util.Properties
@@ -8,12 +11,6 @@ import org.apache.commons.pool.impl.GenericObjectPool
 
 import scala.util.Try
 
-/**
- *
- *
- * @author durga.s
- * @version 11/15/15
- */
 trait KafkaConnectionHelper {
 
   def zkPath(): String

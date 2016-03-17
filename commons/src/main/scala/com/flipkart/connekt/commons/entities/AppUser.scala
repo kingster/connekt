@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.commons.entities
 
 import java.util.Date
@@ -5,12 +8,6 @@ import javax.persistence.Column
 
 import org.apache.commons.lang.StringUtils
 
-/**
- *
- *
- * @author durga.s
- * @version 12/10/15
- */
 class AppUser {
 
   @Column(name = "userId")

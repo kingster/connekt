@@ -11,9 +11,6 @@ import com.couchbase.client.java.{Bucket, Cluster}
 import com.couchbase.client.java.document.Document
 import com.couchbase.client.java.transcoder.Transcoder
 
-/**
- * Created by kinshuk.bairagi on 22/01/16.
- */
 class CouchbaseMockCluster extends Cluster {
 
   private var buckets: Map[String, Bucket] = Map()

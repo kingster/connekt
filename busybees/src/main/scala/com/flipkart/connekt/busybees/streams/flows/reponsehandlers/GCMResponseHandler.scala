@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import akka.http.scaladsl.model.HttpResponse
@@ -17,12 +20,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
-/**
- *
- *
- * @author durga.s
- * @version 2/8/16
- */
 class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] {
 
   val in = Inlet[(Try[HttpResponse], GCMRequestTracker)]("GCMResponseHandler.In")

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+ */
 package com.flipkart.connekt.busybees.streams
 
 import akka.NotUsed
@@ -6,12 +9,6 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{ActorAttributes, Attributes, Materializer}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest}
 
-/**
- *
- *
- * @author durga.s
- * @version 2/25/16
- */
 trait ConnektTopology[E <:CallbackEvent] {
   def source: Source[ConnektRequest, NotUsed]
   def transform: Flow[ConnektRequest, E, NotUsed]

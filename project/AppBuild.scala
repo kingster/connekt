@@ -1,11 +1,13 @@
 import com.aol.sbt.sonar.SonarRunnerPlugin
 import com.aol.sbt.sonar.SonarRunnerPlugin.autoImport._
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import de.heikoseeberger.sbtheader.{AutomateHeaderPlugin, HeaderPattern}
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbtbuildinfo.Plugin._
 
-object AppBuild extends Build {
+object AppBuild extends Build  {
 
   lazy val _commonSettings = Seq[Def.Setting[_]](
     organization := "com.flipkart.marketing",
@@ -45,7 +47,16 @@ object AppBuild extends Build {
     ivyScala := ivyScala.value map {
       _.copy(overrideScalaVersion = true)
     },
-    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+    headers := headers.value ++ Map(
+      "scala" -> (
+        HeaderPattern.cStyleBlockComment,
+        """|/*
+           | * Copyright (C) 2016 Flipkart.com <http://www.flipkart.com>
+           | */
+           |""".stripMargin
+      )
+    )
   )
 
   val envKey = SettingKey[String]("env-key", "Flipkart Environment.")
@@ -76,21 +87,27 @@ object AppBuild extends Build {
     Project("root", file("."))
       .enablePlugins(SonarRunnerPlugin)
       .settings(_commonSettings ++ Seq(
-      sonarRunnerOptions := Seq("-e")
-    ): _*)
+        publishArtifact := false,
+        sonarRunnerOptions := Seq("-e")
+      ): _*)
+      .enablePlugins(AutomateHeaderPlugin)
       .aggregate(receptors, busybees, commons)
       .dependsOn(receptors, busybees, commons)
 
   lazy val connekt_8087 = Project("connekt-8087", file("8087"), settings = _commonSettings)
+    .enablePlugins(AutomateHeaderPlugin)
 
   lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++
     buildInfoGenerator ++ bareResourceGenerators)
+    .enablePlugins(AutomateHeaderPlugin)
 
 
   lazy val receptors = Project("receptors", file("receptors"), settings = _commonSettings)
+    .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(commons % "test->test;compile->compile")
 
   lazy val busybees = Project("busybees", file("busybees"), settings = _commonSettings)
+    .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(commons % "test->test;compile->compile")
 
 
