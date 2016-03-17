@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.metrics.Timed
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter}
@@ -19,9 +21,10 @@ import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
-trait HbaseDao {
+trait HbaseDao extends Instrumented {
 
   @throws[IOException]
+  @Timed("add")
   def addRow(rowKey: String, data: RowData)(implicit hTableInterface: HTableInterface) = {
 
     val put: Put = new Put(rowKey.getBytes(CharEncoding.UTF_8))
@@ -35,12 +38,14 @@ trait HbaseDao {
   }
 
   @throws[IOException]
+  @Timed("remove")
   def removeRow(rowKey: String)(implicit hTableInterface: HTableInterface): Unit = {
     val del = new Delete(rowKey.getUtf8Bytes)
     hTableInterface.delete(del)
   }
 
   @throws[IOException]
+  @Timed("get")
   def fetchRow(rowKey: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): RowData = {
 
     val get: Get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
@@ -52,6 +57,7 @@ trait HbaseDao {
   }
 
   @throws[IOException]
+  @Timed("getKeys")
   def fetchRowKeys(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None)(implicit hTableInterface: HTableInterface): List[String] = {
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -86,6 +92,7 @@ trait HbaseDao {
    * @return
    */
   @throws[IOException]
+  @Timed("scan")
   def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
 
     val scan = new Scan()
@@ -105,6 +112,7 @@ trait HbaseDao {
   }
 
   @throws[IOException]
+  @Timed("mget")
   def fetchMultiRows(rowKeys: List[String], colFamilies: List[String])(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
     val gets = ListBuffer[Get]()
     rowKeys.map(rowKey => {
