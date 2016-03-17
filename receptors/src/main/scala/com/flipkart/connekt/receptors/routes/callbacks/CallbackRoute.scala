@@ -21,7 +21,7 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
           post {
             entity(as[CallbackEvent]) { e =>
               val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app, deviceId = devId)
-              ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, s"${event.appName}${event.deviceId}", Channel.PUSH, event).get
+              ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, s"${event.appName.toLowerCase}${event.deviceId}", Channel.PUSH, event).get
               ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
               complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
             }
@@ -31,7 +31,7 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
           authorize(user, s"DELETE_EVENTS_$appName") {
             delete {
               ConnektLogger(LogFile.SERVICE).debug(s"Received event delete request for: ${messageId.toString}")
-              val deletedEvents = ServiceFactory.getCallbackService.deleteCallBackEvent(messageId, s"$appName$contactId", Channel.PUSH)
+              val deletedEvents = ServiceFactory.getCallbackService.deleteCallBackEvent(messageId, s"${appName.toLowerCase}$contactId", Channel.PUSH)
               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"PN callback events deleted successfully for requestId: $messageId.", deletedEvents)))
             }
           }
