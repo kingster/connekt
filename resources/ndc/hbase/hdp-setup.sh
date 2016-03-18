@@ -1,5 +1,6 @@
 #!/bin/bash -
 
+set -x
 set -o nounset    # Treat unset variables as an error
 
 # Setup repositories for IaaS and debian backports.
@@ -52,12 +53,15 @@ done
 
 apt-get update
 
-echo "fk-connekt-hdfs-hosts/etc-hosts" > /usr/local/fk-ops-hosts-populator/buckets/fk-connekt-hdfs.conf
-sudo apt-get install --yes --allow-unauthenticated fk-ops-hosts-populator
-
 # Configure and install cluster environment package
 echo "fdp-infra-cluster-env cluster-env/bucketid string ${env_bucket_name}" | sudo -E debconf-set-selections
 apt-get install --yes --allow-unauthenticated fdp-infra-cluster-env
+
+#Swith back to original host-populator
+mkdir -p /usr/local/fk-ops-hosts-populator/buckets/
+echo "fk-connekt-hdfs-hosts/etc-hosts" > /usr/local/fk-ops-hosts-populator/buckets/fk-connekt-hdfs.conf
+sudo apt-get install --yes --allow-unauthenticated fk-ops-hosts-populator
+
 
 # Configure libc6 flag for uninterrupted install
 echo "libc6 libraries/restart-without-asking boolean true" | sudo -E debconf-set-selections
