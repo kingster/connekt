@@ -18,42 +18,7 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
 
   val route = pathPrefix("v1" / "client") {
     authorize(user, "ADMIN_CLIENT") {
-      pathEndOrSingleSlash {
-        post {
-          entity(as[AppUserConfiguration]) { userConfig =>
-            val mSvc = ServiceFactory.getPNMessageService
-            val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, userConfig.userId)
-            userConfig.queueName = clientTopic
-            UserConfigurationService.add(userConfig).get
-            mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
-
-            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
-          }
-        }
-      } ~ path(Segment) {
-        (clientName: String) =>
-          get {
-            val data = Channel.values.flatMap(ch => UserConfigurationService.get(clientName, ch).get)
-            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched ClientConfig for client: $clientName", data)))
-          }
-      } ~ path(Segment / "apikey") {
-        (clientName: String) =>
-          put {
-            entity(as[AppUser]) { au =>
-              val uiSvc = ServiceFactory.getUserInfoService
-
-              au.userId = clientName
-              au.updatedBy = user.userId
-              uiSvc.addUserInfo(au).get
-              uiSvc.getUserInfo(au.userId).get match {
-                case Some(appUser) =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName api-key fetched.", appUser)))
-                case None =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetching client $clientName api-key failed.", null)))
-              }
-            }
-          }
-      } ~ path(Segment / "apikey") {
+      path(Segment) {
         (clientName: String) =>
           get {
             ServiceFactory.getUserInfoService.getUserInfo(clientName).get match {
@@ -63,7 +28,13 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
                 complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching client $clientName info failed.", null)))
             }
           }
-      } ~ path(Segment / ChannelSegment) {
+      } ~ path(Segment / "config") {
+        (clientName: String) =>
+          get {
+            val data = Channel.values.flatMap(ch => UserConfigurationService.get(clientName, ch).get)
+            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched ClientConfig for client: $clientName", data)))
+          }
+      } ~ path(Segment / "config" / ChannelSegment) {
         (clientName: String, channel: Channel) =>
           get {
             UserConfigurationService.get(clientName, channel).get match {
@@ -73,6 +44,29 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
                 complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching ClientDetails failed.", Map("clientName" -> clientName, "channel" -> channel))))
             }
           }
+      } ~ pathPrefix("create") {
+        pathEndOrSingleSlash {
+          post {
+            entity(as[AppUser]) { au =>
+              au.updatedBy = user.userId
+              ServiceFactory.getUserInfoService.addUserInfo(au).get
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${au.userId} has been added.", au)))
+            }
+          }
+        } ~ path(Segment / "configuration") {
+          (clientName: String) =>
+            post {
+              entity(as[AppUserConfiguration]) { userConfig =>
+                val mSvc = ServiceFactory.getPNMessageService
+                val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, userConfig.userId)
+                userConfig.queueName = clientTopic
+                UserConfigurationService.add(userConfig).get
+                mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
+
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
+              }
+            }
+        }
       } ~ path("touch" / Segment) {
         (clientName: String) =>
           post {
