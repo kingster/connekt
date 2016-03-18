@@ -83,18 +83,4 @@ object PasswordGenerator {
     new String(randomString)
   }
 
-  def main(args: Array[String]) {
-
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-    println(generate(48,48,16,16,8,2))
-  }
-
 }
