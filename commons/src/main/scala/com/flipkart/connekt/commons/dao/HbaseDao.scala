@@ -25,40 +25,40 @@ trait HbaseDao extends Instrumented {
 
   @throws[IOException]
   @Timed("add")
-  def addRow(rowKey: String, data: RowData)(implicit hTableInterface: HTableInterface) = {
+  def addRow(rowKey: String, data: RowData)(implicit hTable: Table) = {
 
     val put: Put = new Put(rowKey.getBytes(CharEncoding.UTF_8))
     data.foreach { case (colFamily, v) =>
       v.foreach { case (colQualifier, d) =>
-        put.add(colFamily.getBytes(CharEncoding.UTF_8), colQualifier.getBytes(CharEncoding.UTF_8), d)
+        put.addColumn(colFamily.getUtf8Bytes, colQualifier.getUtf8Bytes, d)
       }
     }
 
-    hTableInterface.put(put)
+    hTable.put(put)
   }
 
   @throws[IOException]
   @Timed("remove")
-  def removeRow(rowKey: String)(implicit hTableInterface: HTableInterface): Unit = {
+  def removeRow(rowKey: String)(implicit hTable: Table): Unit = {
     val del = new Delete(rowKey.getUtf8Bytes)
-    hTableInterface.delete(del)
+    hTable.delete(del)
   }
 
   @throws[IOException]
   @Timed("get")
-  def fetchRow(rowKey: String, colFamilies: List[String])(implicit hTableInterface: HTableInterface): RowData = {
+  def fetchRow(rowKey: String, colFamilies: List[String])(implicit hTable: Table): RowData = {
 
     val get: Get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
     colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
 
-    val rowResult = hTableInterface.get(get)
+    val rowResult = hTable.get(get)
     getRowData(rowResult, colFamilies)
 
   }
 
   @throws[IOException]
   @Timed("getKeys")
-  def fetchRowKeys(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None)(implicit hTableInterface: HTableInterface): List[String] = {
+  def fetchRowKeys(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None)(implicit hTable: Table): List[String] = {
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
     scan.setStopRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -70,7 +70,7 @@ trait HbaseDao extends Instrumented {
     filters.addFilter(new KeyOnlyFilter())
     scan.setFilter(filters)
 
-    val resultScanner = hTableInterface.getScanner(scan)
+    val resultScanner = hTable.getScanner(scan)
     val ri = resultScanner.iterator()
 
     var results = ListBuffer[String]()
@@ -88,12 +88,12 @@ trait HbaseDao extends Instrumented {
    * @param colFamilies
    * @param timeRange
    * @param maxRowLimit If not Defined, defaults to Int.MaxValue
-   * @param hTableInterface
+   * @param hTable
    * @return
    */
   @throws[IOException]
   @Timed("scan")
-  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
+  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTable: Table): Map[String, RowData] = {
 
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -102,7 +102,7 @@ trait HbaseDao extends Instrumented {
     if (timeRange.isDefined)
       scan.setTimeRange(timeRange.get._1, timeRange.get._2)
 
-    val resultScanner = hTableInterface.getScanner(scan)
+    val resultScanner = hTable.getScanner(scan)
     var rowMap = Map[String,RowData]()
 
     resultScanner.iterator().toIterator.take(maxRowLimit.getOrElse(Int.MaxValue))
@@ -113,14 +113,14 @@ trait HbaseDao extends Instrumented {
 
   @throws[IOException]
   @Timed("mget")
-  def fetchMultiRows(rowKeys: List[String], colFamilies: List[String])(implicit hTableInterface: HTableInterface): Map[String, RowData] = {
+  def fetchMultiRows(rowKeys: List[String], colFamilies: List[String])(implicit hTable: Table): Map[String, RowData] = {
     val gets = ListBuffer[Get]()
     rowKeys.map(rowKey => {
       val get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
       colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
       gets += get
     })
-    val rowResults = hTableInterface.get(gets.toList.asJava)
+    val rowResults = hTable.get(gets.toList.asJava)
     var rowMap = Map[String,RowData]()
     rowResults.filter(_.getRow != null).foreach(rowResult => rowMap += rowResult.getRow.getString -> getRowData(rowResult, colFamilies))
     rowMap

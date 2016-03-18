@@ -43,41 +43,22 @@ libraryDependencies ++= Seq(
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
   "com.esotericsoftware" % "kryo-shaded" % "3.0.3",
-  "org.apache.hbase" % "hbase" % "0.94.15-cdh4.7.0" excludeAll(
-    ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
-    ExclusionRule(organization = "javax.servlet"),
-    ExclusionRule(organization = "javax.servlet.jsp"),
-    ExclusionRule(organization = "tomcat"),
-    ExclusionRule(organization = "org.eclipse.jetty.orbit"),
-    ExclusionRule(organization = "log4j"),
-    ExclusionRule(organization = "org.jruby", name = "jruby-complete"),
-    ExclusionRule(organization = "org.slf4j"),
-    ExclusionRule(organization = "org.mortbay.jetty", name = "servlet-api-2.5"),
-    ExclusionRule(organization = "org.mockito"),
-    ExclusionRule(organization = "junit"),
-    ExclusionRule(organization = "asm"),
-    ExclusionRule(organization = "javax.xml.stream", name = "stax-api"),
-    ExclusionRule(organization = "com.google.guava", name = "guava"),
-    ExclusionRule(organization = "jline", name = "jline")
+  "org.apache.hbase" % "hbase" % "1.1.2" excludeAll(
+    ExclusionRule("log4j")
     ),
-  "org.apache.hadoop" % "hadoop-client" % "2.0.0-mr1-cdh4.7.0" excludeAll(
-    ExclusionRule(organization = "javax.servlet"),
-    ExclusionRule(organization = "tomcat"),
-    ExclusionRule(organization = "javax.servlet.jsp"),
-    ExclusionRule(organization = "org.eclipse.jetty.orbit"),
-    ExclusionRule(organization = "log4j"),
-    ExclusionRule(organization = "org.mockito"),
-    ExclusionRule(organization = "junit"),
-    ExclusionRule(organization = "asm"),
-    ExclusionRule(organization = "org.slf4j"),
-    ExclusionRule(organization = "org.jruby", name = "jruby-complete"),
-    ExclusionRule(organization = "org.mortbay.jetty", name = "servlet-api-2.5"),
-    ExclusionRule(organization = "javax.xml.stream", name = "stax-api"),
-    ExclusionRule(organization = "com.google.guava", name = "guava"),
-    ExclusionRule(organization = "jline", name = "jline"),
-    ExclusionRule(organization = "commons-beanutils")
+  "org.apache.hbase" % "hbase-client" % "1.1.2" excludeAll(
+    ExclusionRule("io.netty", "netty-all"),
+    ExclusionRule("log4j"),
+    ExclusionRule(organization = "asm")
     ),
-
+  "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll(
+    ExclusionRule("log4j")
+    ),
+  "org.apache.hadoop" % "hadoop-core" % "1.1.2" excludeAll(
+    ExclusionRule("stax", "stax-api"),
+    ExclusionRule(organization = "asm"),
+    ExclusionRule("tomcat")
+    ),
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.7.2",
   "commons-lang" % "commons-lang" % "2.6",

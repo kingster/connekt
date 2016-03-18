@@ -3,10 +3,11 @@
  */
 package com.flipkart.connekt.commons.behaviors
 
-import org.apache.hadoop.hbase.client.HTableInterface
+import org.apache.hadoop.hbase.client.Table
+
 
 trait HTableFactory {
-  def getTableInterface(tableName: String): HTableInterface
-  def releaseTableInterface(hTableInterface: HTableInterface)
+  def getTableInterface(tableName: String): Table
+  def releaseTableInterface(hTableInterface: Table)
   def shutdown()
 }

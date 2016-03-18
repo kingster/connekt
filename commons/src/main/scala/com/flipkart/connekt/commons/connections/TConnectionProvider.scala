@@ -7,15 +7,14 @@ import java.util.Properties
 import javax.sql.DataSource
 
 import com.couchbase.client.java.Cluster
-import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.HConnection
+import org.apache.hadoop.hbase.client.Connection
 
 abstract class TConnectionProvider {
 
   def createCouchBaseConnection(nodes: List[String]): Cluster
 
-  def createHbaseConnection(hConnConfig: Configuration) : HConnection
+  def createHbaseConnection(hConnConfig: Configuration) : Connection
 
   def createDatasourceConnection(mySQLProperties: Properties): DataSource
 }
