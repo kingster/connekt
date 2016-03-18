@@ -34,12 +34,12 @@ class UserInfoDao(table: String, mysqlFactory: MySQLFactory) extends TUserInfo w
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-         |INSERT INTO $table(userId, apikey, groups, updatedBy) VALUES(?, ?, ?, ?)
-         |ON DUPLICATE KEY UPDATE apikey = ?, groups = ?, updatedBy = ?
+         |INSERT INTO $table(userId, apikey, groups, updatedBy, contact) VALUES(?, ?, ?, ?, ?)
+         |ON DUPLICATE KEY UPDATE apikey = ?, groups = ?, updatedBy = ?, contact = ?
       """.stripMargin
 
     try {
-      update(q, user.userId, user.apiKey, user.groups, user.updatedBy, user.apiKey, user.groups, user.updatedBy)
+      update(q, user.userId, user.apiKey, user.groups, user.updatedBy, user.contact, user.apiKey, user.groups, user.updatedBy, user.contact)
     } catch {
       case e: DataAccessException =>
         ConnektLogger(LogFile.DAO).error(s"Error adding user [${user.getJson}] info: ${e.getMessage}", e)

@@ -19,7 +19,7 @@ class UserInfoService( userInfoDao: TUserInfo) extends TService {
 
   def addUserInfo(user: AppUser):Try[Unit] = Try_ {
     user.apiKey = generateApiKey
-    Option(user.groups).map(_.split(",").find(ServiceFactory.getAuthorisationService.getGroupPrivileges(_).isEmpty).
+    Option(user.groups).map(_.split(",").map(_.trim).find(ServiceFactory.getAuthorisationService.getGroupPrivileges(_).isEmpty).
       foreach(group => throw new RuntimeException(s"AppUser ${user.userId} is part of a non-existent group $group"))
     )
 
