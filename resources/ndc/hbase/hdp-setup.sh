@@ -33,6 +33,9 @@ apt-get install --yes --allow-unauthenticated infra-cli
 
 apt-get install fdp-infra-hdp-repos --yes --allow-unauthenticated
 
+# Wait indefinitely for repos to be fetched from Config Service
+sleep 10
+
 sl=10
 counter=0
 while true; do
