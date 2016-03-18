@@ -41,13 +41,15 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
           put {
             entity(as[AppUser]) { au =>
               val uiSvc = ServiceFactory.getUserInfoService
+
+              au.userId = clientName
               au.updatedBy = user.userId
               uiSvc.addUserInfo(au).get
               uiSvc.getUserInfo(au.userId).get match {
                 case Some(appUser) =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${appUser.userId} has api-key ${appUser.apiKey}", null)))
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName api-key fetched.", appUser)))
                 case None =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetching client ${au.userId} api-key failed.", null)))
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetching client $clientName api-key failed.", null)))
               }
             }
           }
@@ -56,9 +58,9 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
           get {
             ServiceFactory.getUserInfoService.getUserInfo(clientName).get match {
               case Some(data) =>
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName 's api-key fetched.", data.apiKey)))
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName's api-key fetched.", Map("clientName" -> data.userId, "apikey" -> data.apiKey))))
               case None =>
-                complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching AppUser info failed.", null)))
+                complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching client $clientName info failed.", null)))
             }
           }
       } ~ path(Segment / ChannelSegment) {
