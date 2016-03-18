@@ -53,11 +53,11 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
     }
   }
 
-  private def getGroupPrivileges(groupName: String): List[String] = {
+  override def getGroupPrivileges(groupName: String): List[String] = {
     read(groupName, UserType.GROUP).map(_.resources.split(',').toList).getOrElse(List())
   }
 
-  private def getUserPrivileges(userName: String): List[String] = {
+  override def getUserPrivileges(userName: String): List[String] = {
     read(userName, UserType.USER).map(_.resources.split(',').toList).getOrElse(List())
   }
 
