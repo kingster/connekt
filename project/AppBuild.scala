@@ -99,7 +99,6 @@ object AppBuild extends Build  {
         sonarRunnerOptions := Seq("-e")
       ): _*)
       .enablePlugins(AutomateHeaderPlugin)
-      .aggregate(receptors, busybees, commons)
       .dependsOn(receptors, busybees, commons)
 
   lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++

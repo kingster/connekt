@@ -43,22 +43,19 @@ libraryDependencies ++= Seq(
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
   "com.esotericsoftware" % "kryo-shaded" % "3.0.3",
-  "org.apache.hbase" % "hbase" % "1.1.2" excludeAll(
-    ExclusionRule("log4j")
-    ),
+  "org.apache.hbase" % "hbase" % "1.1.2" excludeAll ExclusionRule("log4j"),
   "org.apache.hbase" % "hbase-client" % "1.1.2" excludeAll(
     ExclusionRule("io.netty", "netty-all"),
     ExclusionRule("log4j"),
     ExclusionRule(organization = "asm")
     ),
-  "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll(
-    ExclusionRule("log4j")
+  "org.apache.hadoop" % "hadoop-common" % "2.7.2" excludeAll(
+    ExclusionRule("org.slf4j"),
+    ExclusionRule("asm"),
+    ExclusionRule("log4j"),
+    ExclusionRule("org.apache.curator")
     ),
-  "org.apache.hadoop" % "hadoop-core" % "1.1.2" excludeAll(
-    ExclusionRule("stax", "stax-api"),
-    ExclusionRule(organization = "asm"),
-    ExclusionRule("tomcat")
-    ),
+  "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll ExclusionRule("log4j"),
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.7.2",
   "commons-lang" % "commons-lang" % "2.6",
@@ -68,19 +65,19 @@ libraryDependencies ++= Seq(
   "javax.persistence" % "persistence-api" % "1.0.2",
   "mysql" % "mysql-connector-java" % "5.1.37",
   "com.h2database" % "h2" % "1.4.187" % Test,
-  "com.google.guava" % "guava" % "19.0",
   "org.apache.velocity" % "velocity" % "1.7",
   "org.codehaus.groovy" % "groovy-all" % "2.4.5",
   "com.roundeights" %% "hasher" % "1.2.0",
   "com.couchbase.client" % "java-client" % "2.1.3",
   "io.reactivex" %% "rxscala" % "0.26.0",
   "org.apache.curator" % "curator-recipes" % "2.9.1" excludeAll(
+    ExclusionRule(organization = "com.google.guava"),
     ExclusionRule(organization = "log4j"),
     ExclusionRule(organization = "org.slf4j")
     ),
   "com.flipkart.specter" % "specter-client" % "1.4.0-SNAPSHOT",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1",
+  "com.flipkart" %% "util-config" % "0.0.1" excludeAll ExclusionRule("com.google.guava", "guava"),
   "com.flipkart" %% "espion" % "1.0.1",
   "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT"
 )
@@ -89,6 +86,5 @@ libraryDependencies ++= Seq(
 test in assembly := {}
 
 parallelExecution in Test := false
-
 
 assemblyMergeStrategy in assembly := AppBuild.mergeStrategy
