@@ -61,7 +61,7 @@ object StencilService extends Instrumented with SyncDelegate  {
   def add(stencil: Stencil): Try[Unit] = {
     get(stencil.id) match {
       case Some(stn) =>
-        Failure(throw new Exception(s"stencil already exist for id: ${stencil.id}"))
+        Failure(new Exception(s"stencil already exist for id: ${stencil.id}"))
       case _ =>
         checkStencil(stencil) match {
           case Success(b) =>
@@ -109,7 +109,7 @@ object StencilService extends Instrumented with SyncDelegate  {
   def addBucket(bucket: Bucket) : Try[Unit] = {
     getBucket(bucket.name) match {
       case Some(bck) =>
-        Failure(throw new Exception(s"Bucket already exist for name: ${bucket.name}"))
+        Failure(new Exception(s"Bucket already exist for name: ${bucket.name}"))
       case _ =>
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).put[Bucket](bucket.name, bucket)
         Success(DaoFactory.getStencilDao.writeBucket(bucket))
