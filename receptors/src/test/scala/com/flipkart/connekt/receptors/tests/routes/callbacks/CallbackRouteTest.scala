@@ -1,14 +1,22 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.tests.routes.callbacks
 
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
-import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.receptors.routes.callbacks.CallbackRoute
 import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 
-/**
- * @author aman.shrivastava on 10/12/15.
- */
 class CallbackRouteTest extends BaseRouteTest {
 
   val mssgId = "7a4df25c383d4c7a9438c478ddcadd1f2"

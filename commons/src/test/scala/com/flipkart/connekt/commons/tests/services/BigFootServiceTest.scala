@@ -1,17 +1,26 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.services
 
 import java.util.UUID
 
-import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.services.BigfootService
+import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import fkint.mp.connekt.DeviceDetails
 import org.joda.time.format.DateTimeFormat
 import org.scalatest.Ignore
 
-/**
- * Created by nidhi.mehla on 03/02/16.
- */
-//@Ignore
+@Ignore
 class BigFootServiceTest extends CommonsBaseTest {
 
   val deviceId = "UT-" + UUID.randomUUID().toString

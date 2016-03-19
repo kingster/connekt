@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.tests.routes.push
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
@@ -5,9 +17,6 @@ import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 import org.scalatest.Ignore
 
-/**
- * @author aman.shrivastava on 10/12/15.
- */
 @Ignore
 class RegistrationRouteTest extends BaseRouteTest {
 

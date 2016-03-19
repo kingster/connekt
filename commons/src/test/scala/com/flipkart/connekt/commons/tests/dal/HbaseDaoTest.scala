@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.dal
 
 import java.util.{Properties, UUID}
@@ -7,14 +19,13 @@ import com.flipkart.connekt.commons.dao.HbaseDao
 import com.flipkart.connekt.commons.factories.HTableFactoryWrapper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
-import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.CharEncoding
 
 class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
   var hConnectionHelper = getHBaseConnHelper
-  val tblName = "fk-connekt-proto"
+  val tblName = "connekt-registry"
 
   override def afterAll() = {
     println("triggering cleanup afterAll")
@@ -24,10 +35,11 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
   def getHBaseConnHelper = {
 
-    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka"))
+    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-nm", "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka"))
     val hConfProps = new Properties()
-    hConfProps.setProperty("hbase.zookeeper.quorum", ConnektConfig.getString("hbase.zookeeper.quorum").getOrElse("usercrm-zookeeper-qa-0001.nm.flipkart.com"))
+    hConfProps.setProperty("hbase.zookeeper.quorum", "fk-connekt-hbase-jn-firestorm-397105,fk-connekt-hbase-jn-firestorm-397106,fk-connekt-hbase-jn-firestorm-397107")
     hConfProps.setProperty("hbase.zookeeper.property.clientPort", "2181")
+    hConfProps.setProperty("zookeeper.znode.parent", "/hbase-unsecure")
 
     val hConfig = ConfigFactory.parseProperties(hConfProps)
 
@@ -51,12 +63,15 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
       addRow(rowKey, Map[String, Map[String, Array[Byte]]]("p" -> data))
 
       println("inserted hbase table row: %s".format(data.toString()))
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
     } finally {
       hConnectionHelper.releaseTableInterface(h)
     }
   }
 
-
+/*
   var rowKey = UUID.randomUUID().toString
   "A row put operation for multiple columnFamilies" should "throw no IOException" in {
     implicit val h = hConnectionHelper.getTableInterface(tblName)
@@ -106,6 +121,6 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
     } finally {
       hConnectionHelper.releaseTableInterface(h)
     }
-  }
+  }*/
 
 }
