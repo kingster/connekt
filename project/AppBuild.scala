@@ -64,7 +64,8 @@ object AppBuild extends Build  {
            | */
            |""".stripMargin
         )
-    )
+    ),
+    updateOptions := updateOptions.value.withLatestSnapshots(false).withCachedResolution(true)
   )
 
   val envKey = SettingKey[String]("env-key", "Flipkart Environment.")

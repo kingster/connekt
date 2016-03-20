@@ -74,19 +74,19 @@ object PasswordGenerator {
       randomIndex = random.nextInt(selectableChars.length - 1)
       val nextChar = selectableChars.charAt(randomIndex)
       randomString(i) = nextChar
-      if (LCaseChars.indexOf(nextChar) > -1) {
+      if (LCaseChars.contains(nextChar)) {
         if (charGroupsUsed(CharacterTypes.LowerCase).decrementAndGet() >= 0) {
           requiredCharactersLeft -= 1
         }
-      } else if (UCaseChars.indexOf(nextChar) > -1) {
+      } else if (UCaseChars.contains(nextChar)) {
         if (charGroupsUsed(CharacterTypes.UpperCase).decrementAndGet() >= 0) {
           requiredCharactersLeft -= 1
         }
-      } else if (NumericChars.indexOf(nextChar) > -1) {
+      } else if (NumericChars.contains(nextChar)) {
         if (charGroupsUsed(CharacterTypes.Numbers).decrementAndGet() >= 0) {
           requiredCharactersLeft -= 1
         }
-      } else if (SpecialChars.indexOf(nextChar) > -1) {
+      } else if (SpecialChars.contains(nextChar)) {
         if (charGroupsUsed(CharacterTypes.Symbols).decrementAndGet() >= 0) {
           requiredCharactersLeft -= 1
         }

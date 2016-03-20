@@ -43,11 +43,19 @@ libraryDependencies ++= Seq(
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
   "com.esotericsoftware" % "kryo-shaded" % "3.0.3",
-  "org.apache.hbase" % "hbase" % "1.1.2" excludeAll ExclusionRule("log4j"),
   "org.apache.hbase" % "hbase-client" % "1.1.2" excludeAll(
     ExclusionRule("io.netty", "netty-all"),
     ExclusionRule("log4j"),
+    ExclusionRule(organization = "org.slf4j"),
     ExclusionRule(organization = "asm")
+    ),
+  /* include specific netty for hbase, since we need our fork of netty-tcnative. */
+  "io.netty" % "netty-transport" % "4.1.0.CR3",
+  "io.netty" % "netty-handler" % "4.1.0.CR3",
+  /* netty-ends */
+  "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll (
+    ExclusionRule("log4j"),
+      ExclusionRule(organization = "org.slf4j")
     ),
   "org.apache.hadoop" % "hadoop-common" % "2.7.2" excludeAll(
     ExclusionRule("org.slf4j"),
@@ -55,7 +63,7 @@ libraryDependencies ++= Seq(
     ExclusionRule("log4j"),
     ExclusionRule("org.apache.curator")
     ),
-  "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll ExclusionRule("log4j"),
+  "com.google.guava" % "guava" % "12.0.1",
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.7.2",
   "commons-lang" % "commons-lang" % "2.6",
