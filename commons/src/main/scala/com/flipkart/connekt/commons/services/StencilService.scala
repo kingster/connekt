@@ -33,13 +33,13 @@ object StencilService extends Instrumented with SyncDelegate  {
 
   private def checkStencil(stencil: Stencil): Try[Boolean] = {
     try {
-      stencil.engine match {
+      val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
           FabricMaker.create(stencil.id, stencil.engineFabric).asInstanceOf[GroovyFabric]
         case StencilEngine.VELOCITY =>
           FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
       }
-      Success(true)
+      Success(fabric.isInstanceOf[EngineFabric])
     } catch {
       case e: Exception =>
         Failure(e)
