@@ -29,8 +29,8 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
         (appPlatform: MobilePlatform, app: String, devId: String) =>
           post {
             entity(as[CallbackEvent]) { e =>
-              val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app.toLowerCase, deviceId = devId)
-              ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, s"${event.appName}${event.deviceId}", Channel.PUSH, event).get
+              val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app, deviceId = devId)
+              ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, s"${event.appName.toLowerCase}${event.deviceId}", Channel.PUSH, event).get
               ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
               complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
             }
