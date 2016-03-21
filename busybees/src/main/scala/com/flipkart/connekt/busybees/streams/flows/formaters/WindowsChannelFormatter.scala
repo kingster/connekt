@@ -12,15 +12,13 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{StencilService, PNStencilService, DeviceDetailsService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.Try
 
 /**
  * @author aman.shrivastava on 08/02/16.
@@ -40,7 +38,6 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName}-windows").get
       val wnsRequestEnvelopes = devices.map(d => {
-        //TODO: determine wnsPNType
         val wnsPayload = WNSToastPayload(PNStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
         WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload)
       })

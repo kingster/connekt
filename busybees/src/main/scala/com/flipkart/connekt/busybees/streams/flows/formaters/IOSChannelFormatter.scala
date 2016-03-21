@@ -14,17 +14,13 @@ package com.flipkart.connekt.busybees.streams.flows.formaters
 
 import java.util.concurrent.TimeUnit
 
-import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
-import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
-import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{PNStencilService, StencilService, DeviceDetailsService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-import scala.collection.immutable
 import scala.concurrent.ExecutionContextExecutor
 
 class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
