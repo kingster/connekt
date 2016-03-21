@@ -34,8 +34,8 @@ object DistributedCacheManager extends CacheManager {
 
   /**
    * Get Map for given cacheType
-   * @param cacheName
-   * @tparam V
+   * @param cacheName: cache
+   * @tparam V: classType of cache value
    * @return [[Caches]]
    */
   def getCache[V <: Any](cacheName: DistributedCacheType.Value)(implicit cTag: reflect.ClassTag[V]): Caches = {
@@ -50,8 +50,8 @@ object DistributedCacheManager extends CacheManager {
 
   /**
    * Delete the given key from the distributed cache.
-   * @param cacheName
-   * @param key
+   * @param cacheName: cache Name
+   * @param key: cache key
    */
   def delCacheItem(cacheName: DistributedCacheType.Value, key: String): Unit = {
     //DistributedCacheManager.getCache[Any](cacheType).remove(key)
@@ -121,7 +121,7 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
 
   override def exists(key: String): Boolean = cacheStorageBucket.get(StringDocument.create(key)) != null
 
-  override def flush(): Unit = ???
+  override def flush(): Unit = {}
 
   override def get[T](keys: List[String])(implicit cTag: reflect.ClassTag[T]): Predef.Map[String, T] = {
     try {
