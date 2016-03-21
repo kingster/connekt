@@ -12,10 +12,11 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.services.{StencilService, PNStencilService, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -29,8 +30,9 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
       val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(_.token)
+      val androidStencil = StencilService.get(s"ckt-${pnInfo.appName}-android").get
 
-      val appDataWithId = message.channelData.asInstanceOf[PNRequestData].data.put("messageId", message.id)
+      val appDataWithId = PNStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
 
       tokens.map(t => pnInfo.platform.toUpperCase match {

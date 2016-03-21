@@ -128,3 +128,17 @@ object StencilService extends Instrumented with SyncDelegate  {
     }
   }
 }
+
+object PNStencilService extends Instrumented {
+
+  @Timed("getPNData")
+  def getPNData(platformStencil: Stencil, req: ObjectNode): String = {
+    val fabric = platformStencil.engine match {
+      case StencilEngine.GROOVY =>
+        FabricMaker.create[PNGroovyFabric](platformStencil.id, platformStencil.engineFabric)
+      case StencilEngine.VELOCITY =>
+        FabricMaker.createVtlFabric(platformStencil.id, platformStencil.engineFabric).asInstanceOf[PNVelocityFabric]
+    }
+    fabric.getData(platformStencil.id, req)
+  }
+}
