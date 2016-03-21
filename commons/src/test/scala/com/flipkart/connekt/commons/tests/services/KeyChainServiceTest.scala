@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.services
 
 import java.util.UUID
@@ -5,9 +17,6 @@ import java.util.UUID
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
-/**
- * Created by nidhi.mehla on 17/02/16.
- */
 class KeyChainServiceTest extends CommonsBaseTest {
 
   val keyData = UUID.randomUUID().toString.take(6)

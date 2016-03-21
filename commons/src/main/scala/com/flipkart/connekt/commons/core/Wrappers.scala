@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.core
 
 import com.flipkart.connekt.commons.factories.LogFile.LogFile
@@ -5,9 +17,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.util.{Failure, Success, Try}
 
-/**
- * Created by kinshuk.bairagi on 13/02/16.
- */
 object Wrappers {
 
   def Try_#[T](fileName: LogFile = LogFile.SERVICE, message: String = "ERROR")(f: => T) : Try[T] = {

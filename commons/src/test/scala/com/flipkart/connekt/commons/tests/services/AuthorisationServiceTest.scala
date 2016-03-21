@@ -1,12 +1,21 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.services
 
 import com.flipkart.connekt.commons.entities.UserType
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
-/**
- * @author aman.shrivastava on 12/12/15.
- */
 class AuthorisationServiceTest extends CommonsBaseTest {
   "AuthorisationService Test " should "return is Authorized " in {
     val auth = ServiceFactory.getAuthorisationService

@@ -19,3 +19,6 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.3")
 
 addSbtPlugin("com.aol.sbt" % "sbt-sonarrunner-plugin" % "1.0.4")
 
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.4.0")
+
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % "1.5.1")

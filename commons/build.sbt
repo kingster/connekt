@@ -43,43 +43,29 @@ libraryDependencies ++= Seq(
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
   "com.esotericsoftware" % "kryo-shaded" % "3.0.3",
-  "org.apache.hbase" % "hbase" % "0.94.15-cdh4.7.0" excludeAll(
-    ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12"),
-    ExclusionRule(organization = "javax.servlet"),
-    ExclusionRule(organization = "javax.servlet.jsp"),
-    ExclusionRule(organization = "tomcat"),
-    ExclusionRule(organization = "org.eclipse.jetty.orbit"),
-    ExclusionRule(organization = "log4j"),
-    ExclusionRule(organization = "org.jruby", name = "jruby-complete"),
+  "org.apache.hbase" % "hbase-client" % "1.1.2" excludeAll(
+    ExclusionRule("io.netty", "netty-all"),
+    ExclusionRule("log4j"),
     ExclusionRule(organization = "org.slf4j"),
-    ExclusionRule(organization = "org.mortbay.jetty", name = "servlet-api-2.5"),
-    ExclusionRule(organization = "org.mockito"),
-    ExclusionRule(organization = "junit"),
-    ExclusionRule(organization = "asm"),
-    ExclusionRule(organization = "javax.xml.stream", name = "stax-api"),
-    ExclusionRule(organization = "com.google.guava", name = "guava"),
-    ExclusionRule(organization = "jline", name = "jline")
+    ExclusionRule(organization = "asm")
     ),
-  "org.apache.hadoop" % "hadoop-client" % "2.0.0-mr1-cdh4.7.0" excludeAll(
-    ExclusionRule(organization = "javax.servlet"),
-    ExclusionRule(organization = "tomcat"),
-    ExclusionRule(organization = "javax.servlet.jsp"),
-    ExclusionRule(organization = "org.eclipse.jetty.orbit"),
-    ExclusionRule(organization = "log4j"),
-    ExclusionRule(organization = "org.mockito"),
-    ExclusionRule(organization = "junit"),
-    ExclusionRule(organization = "asm"),
-    ExclusionRule(organization = "org.slf4j"),
-    ExclusionRule(organization = "org.jruby", name = "jruby-complete"),
-    ExclusionRule(organization = "org.mortbay.jetty", name = "servlet-api-2.5"),
-    ExclusionRule(organization = "javax.xml.stream", name = "stax-api"),
-    ExclusionRule(organization = "com.google.guava", name = "guava"),
-    ExclusionRule(organization = "jline", name = "jline"),
-    ExclusionRule(organization = "commons-beanutils")
+  /* include specific netty for hbase, since we need our fork of netty-tcnative. */
+  "io.netty" % "netty-transport" % "4.1.0.CR3",
+  "io.netty" % "netty-handler" % "4.1.0.CR3",
+  /* netty-ends */
+  "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll (
+    ExclusionRule("log4j"),
+      ExclusionRule(organization = "org.slf4j")
     ),
-
+  "org.apache.hadoop" % "hadoop-common" % "2.7.2" excludeAll(
+    ExclusionRule("org.slf4j"),
+    ExclusionRule("asm"),
+    ExclusionRule("log4j"),
+    ExclusionRule("org.apache.curator")
+    ),
+  "com.google.guava" % "guava" % "12.0.1",
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
-  "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.6.3",
+  "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.7.2",
   "commons-lang" % "commons-lang" % "2.6",
   "commons-pool" % "commons-pool" % "1.6",
   "org.springframework" % "spring-jdbc" % "4.2.3.RELEASE",
@@ -87,19 +73,19 @@ libraryDependencies ++= Seq(
   "javax.persistence" % "persistence-api" % "1.0.2",
   "mysql" % "mysql-connector-java" % "5.1.37",
   "com.h2database" % "h2" % "1.4.187" % Test,
-  "com.google.guava" % "guava" % "19.0",
   "org.apache.velocity" % "velocity" % "1.7",
   "org.codehaus.groovy" % "groovy-all" % "2.4.5",
   "com.roundeights" %% "hasher" % "1.2.0",
   "com.couchbase.client" % "java-client" % "2.1.3",
   "io.reactivex" %% "rxscala" % "0.26.0",
   "org.apache.curator" % "curator-recipes" % "2.9.1" excludeAll(
+    ExclusionRule(organization = "com.google.guava"),
     ExclusionRule(organization = "log4j"),
     ExclusionRule(organization = "org.slf4j")
     ),
   "com.flipkart.specter" % "specter-client" % "1.4.0-SNAPSHOT",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1",
+  "com.flipkart" %% "util-config" % "0.0.1" excludeAll ExclusionRule("com.google.guava", "guava"),
   "com.flipkart" %% "espion" % "1.0.1",
   "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT"
 )
@@ -108,6 +94,5 @@ libraryDependencies ++= Seq(
 test in assembly := {}
 
 parallelExecution in Test := false
-
 
 assemblyMergeStrategy in assembly := AppBuild.mergeStrategy

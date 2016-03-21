@@ -1,16 +1,23 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/14/15
- */
 class StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: MySQLFactory) extends TStencilDao with MySQLDao {
+
   val mysqlHelper = jdbcHelper
 
   override def getStencil(id: String, version: Option[String] = None): Option[Stencil] = {

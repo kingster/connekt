@@ -1,15 +1,21 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.factories
 
 import com.flipkart.connekt.commons.dao._
 import com.flipkart.connekt.commons.helpers.{KafkaConsumerHelper, KafkaProducerHelper}
 import com.flipkart.connekt.commons.services.{KeyChainService, _}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/8/15
- */
 object ServiceFactory {
 
   var serviceCache = Map[ServiceType.Value, TService]()

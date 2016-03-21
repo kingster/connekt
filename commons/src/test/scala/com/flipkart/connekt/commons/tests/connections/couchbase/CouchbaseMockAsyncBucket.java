@@ -1,9 +1,5 @@
 package com.flipkart.connekt.commons.tests.connections.couchbase;
 
-/**
- * Created by kinshuk.bairagi on 22/01/16.
- */
-
 import com.couchbase.client.core.ClusterFacade;
 import com.couchbase.client.java.AsyncBucket;
 import com.couchbase.client.java.PersistTo;

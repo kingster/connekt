@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import java.util.concurrent.atomic.AtomicLong
@@ -16,12 +28,6 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 import akka.stream.scaladsl.GraphDSL.Implicits._
 
-/**
- *
- *
- * @author durga.s
- * @version 3/14/16
- */
 @Ignore
 class KafkaPerPartitionStreamBenchmarkTest extends TopologyUTSpec with Instrumented {
 

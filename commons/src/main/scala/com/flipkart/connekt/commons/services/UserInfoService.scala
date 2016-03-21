@@ -1,15 +1,37 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.services
+
+import java.util.UUID
 
 import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
 import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.TUserInfo
 import com.flipkart.connekt.commons.entities.AppUser
+import com.flipkart.connekt.commons.factories.ServiceFactory
+import com.flipkart.connekt.commons.utils.PasswordGenerator
 
 import scala.util.Try
 
 class UserInfoService( userInfoDao: TUserInfo) extends TService {
 
+
   def addUserInfo(user: AppUser):Try[Unit] = Try_ {
+    user.apiKey = PasswordGenerator.generate(48,48,16,16,0)
+    Option(user.groups).foreach(_.split(",").map(_.trim).find(ServiceFactory.getAuthorisationService.getGroupPrivileges(_).isEmpty).
+      foreach(group => throw new RuntimeException(s"AppUser ${user.userId} is part of a non-existent group $group"))
+    )
+
     userInfoDao.addUserInfo(user)
   }
 

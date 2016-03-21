@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.tests.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
@@ -11,10 +23,6 @@ import org.apache.commons.lang.StringEscapeUtils
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
-/**
- * @author aman.shrivastava on 25/01/16.
- */
 
 class StencilsRouteTest extends BaseRouteTest {
   val engine = StencilEngine.GROOVY

@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.services
 
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -15,9 +27,6 @@ import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Success, Try}
 
-/**
- * Created by kinshuk.bairagi on 14/12/15.
- */
 object StencilService extends Instrumented with SyncDelegate  {
 
   SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE))
@@ -52,7 +61,7 @@ object StencilService extends Instrumented with SyncDelegate  {
   def add(stencil: Stencil): Try[Unit] = {
     get(stencil.id) match {
       case Some(stn) =>
-        Failure(throw new Exception(s"stencil already exist for id: ${stencil.id}"))
+        Failure(new Exception(s"stencil already exist for id: ${stencil.id}"))
       case _ =>
         checkStencil(stencil) match {
           case Success(b) =>
@@ -100,7 +109,7 @@ object StencilService extends Instrumented with SyncDelegate  {
   def addBucket(bucket: Bucket) : Try[Unit] = {
     getBucket(bucket.name) match {
       case Some(bck) =>
-        Failure(throw new Exception(s"Bucket already exist for name: ${bucket.name}"))
+        Failure(new Exception(s"Bucket already exist for name: ${bucket.name}"))
       case _ =>
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).put[Bucket](bucket.name, bucket)
         Success(DaoFactory.getStencilDao.writeBucket(bucket))
@@ -119,4 +128,3 @@ object StencilService extends Instrumented with SyncDelegate  {
     }
   }
 }
-

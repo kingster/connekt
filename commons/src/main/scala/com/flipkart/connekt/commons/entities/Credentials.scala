@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.entities
 
 import java.io.{OutputStream, FileOutputStream, FileInputStream, File}
@@ -8,9 +20,6 @@ import org.apache.commons.io.IOUtils
 import org.apache.commons.lang.{StringUtils => ApacheStringUtils}
 import scala.collection.JavaConverters._
 
-/**
- * Created by kinshuk.bairagi on 23/09/14.
- */
 abstract class Credential extends Serializable
 
 case class SimpleCredential(username: String, password: String) extends Credential {

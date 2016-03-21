@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.factories
 
 import org.apache.logging.log4j.LogManager
@@ -5,12 +17,6 @@ import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.core.config.xml.XmlConfiguration
 import org.apache.logging.log4j.core.config.{ConfigurationSource, Configurator}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/19/15
- */
 object LoggerFactoryConfigurator {
 
   def configureLog4j2(log4j2ConfigFile: String, async: Boolean = true) = {

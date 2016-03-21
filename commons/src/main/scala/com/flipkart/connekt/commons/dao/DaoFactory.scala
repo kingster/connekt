@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.dao
 
 import com.couchbase.client.java.Bucket
@@ -7,12 +19,6 @@ import com.flipkart.connekt.commons.factories.{HTableFactoryWrapper, MySQLFactor
 import com.flipkart.phantom.client.sockets.{PhantomClientSocket, PhantomSocketFactory}
 import com.typesafe.config.Config
 
-/**
- *
- *
- * @author durga.s
- * @version 11/23/15
- */
 object DaoFactory {
 
   var connectionProvider: TConnectionProvider = null
@@ -118,4 +124,3 @@ object DaoType extends Enumeration {
   STENCIL,
   KEY_CHAIN = Value
 }
-

@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.connections.couchbase
 
 import java.lang.Boolean
@@ -11,9 +23,6 @@ import com.couchbase.client.java.{Bucket, Cluster}
 import com.couchbase.client.java.document.Document
 import com.couchbase.client.java.transcoder.Transcoder
 
-/**
- * Created by kinshuk.bairagi on 22/01/16.
- */
 class CouchbaseMockCluster extends Cluster {
 
   private var buckets: Map[String, Bucket] = Map()

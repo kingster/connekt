@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.factories
 
 import java.util.Properties
@@ -9,12 +21,6 @@ import com.typesafe.config.Config
 import org.apache.commons.dbcp2.BasicDataSourceFactory
 import org.springframework.jdbc.core.JdbcTemplate
 
-/**
- *
- *
- * @author durga.s
- * @version 12/10/15
- */
 class MySQLFactoryWrapper private(config: Properties, connProvider: TConnectionProvider) extends MySQLFactory {
 
   private val source: DataSource = connProvider.createDatasourceConnection(config)

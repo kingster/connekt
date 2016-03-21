@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model._
@@ -13,12 +25,7 @@ import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.util.Failure
-/**
- *
- *
- * @author durga.s
- * @version 11/20/15
- */
+
 class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   type Created = Boolean
@@ -30,9 +37,9 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
         path(MPlatformSegment / Segment / Segment) {
           (platform: MobilePlatform, appName: String, deviceId: String) =>
             put {
-              authorize(user, s"REGISTRATION_$appName") {
+              authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
                 entity(as[DeviceDetails]) { d =>
-                  val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId)
+                  val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId, active = true)
 
                   val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Updated, Created]]({
                     case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(true))
@@ -48,7 +55,7 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
                 }
               }
             } ~ delete {
-              authorize(user, s"REGISTRATION_$appName") {
+              authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
                 DeviceDetailsService.delete(appName, deviceId).get
                 complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for $deviceId", null)))
               }

@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.utils
 
 import java.lang.reflect.{ParameterizedType, Type => JType}
@@ -20,12 +32,6 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.reflect.{ClassTag, _}
 
-/**
- *
- *
- * @author durga.s
- * @version 11/23/15
- */
 object StringUtils {
 
   val currentMirror = runtimeMirror(getClass.getClassLoader)

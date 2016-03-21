@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
@@ -14,12 +26,6 @@ import scala.collection.immutable.Seq
 import scala.concurrent.duration._
 import scala.util.Try
 
-/**
- *
- *
- * @author durga.s
- * @version 1/14/16
- */
 class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events")
@@ -27,14 +33,14 @@ class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
   val fetch =
     pathPrefix("v1") {
       path("fetch" / "push" / MPlatformSegment / Segment / Segment) {
-        (platform: MobilePlatform, app: String, instanceId: String) =>
-          authorize(user, "FETCH", s"FETCH_${platform.toString}", s"FETCH_${platform.toString}_$app") {
+        (platform: MobilePlatform, appName: String, instanceId: String) =>
+          authorize(user, "FETCH", s"FETCH_$appName") {
             get {
               parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) { (startTs, endTs, skipIds) =>
 
                 //return if startTs is older than 7 days
                 if (startTs > (System.currentTimeMillis - 7.days.toMillis) ) {
-                  val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${app.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
+                  val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
                   val messageService = ServiceFactory.getPNMessageService
 
                   //Skip all messages which are either read/dismissed or passed in skipIds

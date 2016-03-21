@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.factories
 
 import java.util.Properties
@@ -5,13 +17,6 @@ import java.util.Properties
 import kafka.consumer.{Consumer, ConsumerConfig, ConsumerConnector}
 import kafka.producer.{Producer, ProducerConfig}
 import org.apache.commons.pool.PoolableObjectFactory
-
-/**
- *
- *
- * @author durga.s
- * @version 11/15/15
- */
 
 class KafkaProducerFactory[K, M](producerProps: Properties) extends PoolableObjectFactory[Producer[K, M]] {
 

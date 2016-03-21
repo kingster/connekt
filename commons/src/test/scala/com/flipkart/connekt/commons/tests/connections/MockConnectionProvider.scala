@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.connections
 
 import java.util.Properties
@@ -10,9 +22,6 @@ import org.apache.commons.dbcp2.BasicDataSourceFactory
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.{HConnectionManager, HConnection}
 
-/**
-  * Created by kinshuk.bairagi on 27/01/16.
-  */
 class MockConnectionProvider extends TConnectionProvider{
 
   override def createCouchBaseConnection(nodes: List[String]): Cluster = new CouchbaseMockCluster

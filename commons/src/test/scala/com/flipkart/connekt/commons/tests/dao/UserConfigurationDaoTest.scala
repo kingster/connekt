@@ -1,14 +1,23 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.dao
 
-import java.util.{Date, UUID}
+import java.util.UUID
 
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.entities.{Channel, AppUserConfiguration, AppUser}
+import com.flipkart.connekt.commons.entities.{AppUserConfiguration, Channel}
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
-/**
- * @author aman.shrivastava on 11/12/15.
- */
 class UserConfigurationDaoTest extends CommonsBaseTest {
 
   val id = UUID.randomUUID().toString.substring(20)

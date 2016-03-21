@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import akka.actor.ActorSystem
@@ -9,9 +21,6 @@ import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContextExecutor
 
-/**
- * Created by kinshuk.bairagi on 03/03/16.
- */
 class HttpDispatcher(actorSystemConf: Config) {
 
   implicit val httpSystem: ActorSystem = ActorSystem("http-out", actorSystemConf)

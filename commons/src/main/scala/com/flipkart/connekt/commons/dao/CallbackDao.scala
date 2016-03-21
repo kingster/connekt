@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
@@ -9,12 +21,6 @@ import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
 import com.roundeights.hasher.Implicits._
 import scala.util.{Success, Try}
 
-/**
- *
- *
- * @author durga.s
- * @version 12/9/15
- */
 abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) extends TCallbackDao with HbaseDao {
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
@@ -52,12 +58,32 @@ abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) exte
       rawDataList.values.flatMap(rowData => {
         val eventProps = rowData.get(columnFamily)
         eventProps.map(mapToChannelEvent)
-      } ).toList
+      }).toList
 
     } catch {
       case e: IOException =>
         ConnektLogger(LogFile.DAO).error(s"Fetching events trail failed for $requestId _ $contactId, ${e.getMessage}", e)
         throw new IOException(s"Fetching events trail failed for $requestId _ $contactId", e)
+    } finally {
+      hTableConnFactory.releaseTableInterface(hTableInterface)
+    }
+  }
+
+  def deleteCallbackEvents(requestId: String, forContact: String): List[CallbackEvent] = {
+    val colFamiliesReqd = List(columnFamily)
+    implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
+    try {
+      val rows = fetchRows(s"${forContact.sha256.hash.hex}:$requestId", s"${forContact.sha256.hash.hex}:$requestId{", colFamiliesReqd)
+      ConnektLogger(LogFile.DAO).info(s"Deleting events for $forContact:$requestId")
+      rows.keySet.foreach(removeRow)
+      rows.values.flatMap(rowData => {
+        val eventProps = rowData.get(columnFamily)
+        eventProps.map(mapToChannelEvent)
+      }).toList
+    } catch {
+      case e: IOException =>
+        ConnektLogger(LogFile.DAO).error(s"Delete events failed for $requestId _ $forContact, ${e.getMessage}", e)
+        throw new IOException(s"Delete events failed for $requestId _ $forContact", e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }

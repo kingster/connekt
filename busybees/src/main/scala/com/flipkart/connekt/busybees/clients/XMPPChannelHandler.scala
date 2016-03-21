@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.clients
 
 import akka.actor.Actor
@@ -12,12 +24,6 @@ import org.jivesoftware.smack.{ReconnectionManager, ConnectionListener, StanzaLi
 
 import scala.xml.XML
 
-/**
- *
- *
- * @author durga.s
- * @version 12/10/15
- */
 class XMPPChannelHandler private (xmppConnection: XMPPTCPConnection)
                                  (downStreamHandler: XmppRequest => Unit, upStreamHandler: XmppResponse => Unit) extends Actor {
 

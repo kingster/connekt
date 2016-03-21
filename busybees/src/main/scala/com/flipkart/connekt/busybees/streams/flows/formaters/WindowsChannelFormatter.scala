@@ -1,7 +1,18 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
-import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
@@ -9,6 +20,7 @@ import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
+import scala.util.Try
 
 /**
  * @author aman.shrivastava on 08/02/16.
@@ -21,7 +33,9 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: Received Message: ${message.getJson}")
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-      val wnsPayload = message.channelData.asInstanceOf[PNRequestData].data.getJson.getObj[WNSPayload]
+      val payload = message.channelData.asInstanceOf[PNRequestData].data
+      val wnsPayload = makeWNSPayload("toast" /* wnsPayload `type` has to be dynamically available */, payload).get
+
       val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
       ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: devices: ${devices.getJson}")
 
@@ -44,6 +58,15 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: OnFormat error", e)
         List.empty[WNSPayloadEnvelope]
+    }
+  }
+
+  private def makeWNSPayload(notificationType: String, input: ObjectNode) = Try {
+    WindowsNotificationType.withName(notificationType) match {
+      case WindowsNotificationType.toast => WNSToastPayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
+      case WindowsNotificationType.tile => WNSTilePayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
+      case WindowsNotificationType.badge => WNSBadgePayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
+      case WindowsNotificationType.raw => WNSRawPayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
     }
   }
 }

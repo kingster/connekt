@@ -1,15 +1,21 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.helpers
 
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.typesafe.config.{Config, ConfigException}
 import org.apache.commons.pool.impl.GenericObjectPool
 
-/**
- *
- *
- * @author durga.s
- * @version 11/27/15
- */
 trait GenericObjectPoolHelper {
   def validatePoolProps(poolName: String, poolProps: Config) = {
     val reqdPoolConf = Map[String, AnyVal](

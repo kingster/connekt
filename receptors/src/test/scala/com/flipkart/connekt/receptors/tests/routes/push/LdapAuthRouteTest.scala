@@ -1,12 +1,21 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.tests.routes.push
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.flipkart.connekt.receptors.routes.common.LdapAuthRoute
 import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 
-/**
- * Created by avinash.h on 1/21/16.
- */
 class LdapAuthRouteTest extends BaseRouteTest {
 
   val ldapAuthentication = new LdapAuthRoute().route

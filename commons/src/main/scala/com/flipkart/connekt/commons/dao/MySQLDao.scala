@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.dao
 
 import java.lang.reflect.{Modifier, Field}
@@ -10,12 +22,6 @@ import scala.collection.JavaConverters._
 
 import scala.reflect.ClassTag
 
-/**
- *
- *
- * @author durga.s
- * @version 12/10/15
- */
 trait MySQLDao extends Dao {
   def update(statement: String, args: Any*)(implicit jdbcTemplate: JdbcTemplate): Int = {
     jdbcTemplate.update(statement, args.map(_.asInstanceOf[Object]): _*)

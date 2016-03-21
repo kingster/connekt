@@ -1,5 +1,31 @@
-create 'fk-connekt-pn-info', {NAME => 'r', VERSIONS => '1', TTL => '31536000'}, {NAME => 'c', VERSIONS => '1', TTL => '31536000'}, {NAME => 't', VERSIONS => '1', TTL => '31536000'}
-create 'fk-connekt-events', {NAME => 'e', VERSIONS => '1', TTL => '31536000'}
-create 'connekt-registry', {NAME => 'p', VERSIONS => '1', TTL => '31536000'}, {NAME => 'a', VERSIONS => '1', TTL => '31536000'}
-create 'connekt-registry-user-index', {NAME => 'd', VERSIONS => '1', TTL => '31536000'}
-create 'connekt-registry-token-index', {NAME => 'd', VERSIONS => '1', TTL => '31536000'}
+
+$>
+
+hbase org.apache.hadoop.hbase.util.RegionSplitter 'connekt-registry' HexStringSplit -c 32 -f p:a
+hbase org.apache.hadoop.hbase.util.RegionSplitter 'connekt-registry-user-index' HexStringSplit -c 32 -f d
+hbase org.apache.hadoop.hbase.util.RegionSplitter 'connekt-registry-token-index' HexStringSplit -c 32 -f d
+hbase org.apache.hadoop.hbase.util.RegionSplitter 'fk-connekt-events' HexStringSplit -c 64 -f e
+hbase org.apache.hadoop.hbase.util.RegionSplitter 'fk-connekt-pn-info' HexStringSplit -c 64 -f r:t:c
+
+$> hbase shell
+
+disable 'connekt-registry'
+alter 'connekt-registry', {NAME => 'p', COMPRESSION => 'SNAPPY'}, {NAME => 'a', COMPRESSION => 'SNAPPY'}
+enable 'connekt-registry'
+
+disable 'connekt-registry-user-index'
+alter 'connekt-registry-user-index', {NAME => 'd', COMPRESSION => 'SNAPPY'}
+enable 'connekt-registry-user-index'
+
+disable 'connekt-registry-token-index'
+alter 'connekt-registry-token-index', {NAME => 'd', COMPRESSION => 'SNAPPY'}
+enable 'connekt-registry-token-index'
+
+disable 'fk-connekt-pn-info'
+alter 'fk-connekt-pn-info', {NAME => 'r', TTL => '31536000', COMPRESSION => 'SNAPPY'}, {NAME => 'c', TTL => '31536000', COMPRESSION => 'SNAPPY'}, {NAME => 't', TTL => '2592000', COMPRESSION => 'SNAPPY'}
+enable 'fk-connekt-pn-info'
+
+disable 'fk-connekt-events'
+alter 'fk-connekt-events', {NAME => 'e', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
+enable 'fk-connekt-events'
+

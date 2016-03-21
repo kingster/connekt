@@ -1,15 +1,22 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.behaviors
 
-import org.apache.hadoop.hbase.client.HTableInterface
+import org.apache.hadoop.hbase.client.Table
 
-/**
- *
- *
- * @author durga.s
- * @version 11/16/15
- */
+
 trait HTableFactory {
-  def getTableInterface(tableName: String): HTableInterface
-  def releaseTableInterface(hTableInterface: HTableInterface)
+  def getTableInterface(tableName: String): Table
+  def releaseTableInterface(hTableInterface: Table)
   def shutdown()
 }

@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.services
 
 import java.util.Properties
@@ -10,12 +22,6 @@ import kafka.consumer.ConsumerConnector
 import kafka.producer.{KeyedMessage, Producer}
 import org.apache.commons.pool.impl.GenericObjectPool
 
-/**
- *
- *
- * @author durga.s
- * @version 11/26/15
- */
 class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelper {
 
   val topicName = "fk-connekt-proto"

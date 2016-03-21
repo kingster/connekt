@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.helpers
 
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -8,12 +20,6 @@ import org.apache.commons.pool.impl.GenericObjectPool
 import scala.util.Try
 import scala.util.control.NonFatal
 
-/**
- *
- *
- * @author durga.s
- * @version 11/27/15
- */
 trait KafkaProducer {
   def writeMessages(topic: String, message: String*)
 }
