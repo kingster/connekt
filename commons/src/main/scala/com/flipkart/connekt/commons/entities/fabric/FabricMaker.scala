@@ -30,8 +30,6 @@ object FabricMaker {
     val groovyFabricKey = s"""G${groovyFabric.md5.hash.hex}"""
     val gcl: GroovyClassLoader = new GroovyClassLoader()
     gcl.parseClass(groovyFabric, groovyFabricKey).newInstance().asInstanceOf[T]
-
-
   }
 
   def createVtlFabric(stencilId: String, objRep: String): VelocityFabric = {

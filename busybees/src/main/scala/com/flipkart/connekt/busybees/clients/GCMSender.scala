@@ -52,7 +52,7 @@ class GCMSender(host: String, port: Int, api: String, authKey: String) extends A
               val response = Await.result(r.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")),10.seconds)
 
               sender() ! (if(r.status.isSuccess()) (messageId, deviceId, response.getObj[GCMProcessed]) else (messageId, deviceId, GCMRejected(statusCode = r.status.intValue(), error = response)))
-              ConnektLogger(LogFile.CLIENTS).debug(s"GCM Response: ${response}")
+              ConnektLogger(LogFile.CLIENTS).debug(s"GCM Response: $response")
 
             case Failure(e) =>
               sender() ! (messageId, deviceId, GCMSendFailure(e.getMessage))
