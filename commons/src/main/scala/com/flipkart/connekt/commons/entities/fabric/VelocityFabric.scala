@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.utils.VelocityUtils
 import org.apache.velocity.app.Velocity
 import org.apache.velocity.context.Context
@@ -76,7 +75,7 @@ class EmailVelocityFabric(subjectVtl: String, bodyHtmlVtl: String) extends Veloc
 class PNVelocityFabric(dataVtl: String) extends VelocityFabric with PNFabric {
   override def validateVtl(): Try[Boolean] = Try.apply(true)
 
-  override def getData(id: String, context: ObjectNode): ObjectNode = {
-    fabricate(id, context, dataVtl, s"_$id _").get.getObj[ObjectNode]
+  override def getData(id: String, context: ObjectNode): String = {
+    fabricate(id, context, dataVtl, s"_$id _").get
   }
 }
