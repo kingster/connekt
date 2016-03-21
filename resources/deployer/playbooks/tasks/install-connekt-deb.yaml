@@ -1,0 +1,2 @@
+- name: Install connekt
+  command: sudo /usr/bin/apt-get install --yes --allow-unauthenticated fk-pf-connekt

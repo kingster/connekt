@@ -1,0 +1,4 @@
+- name: Start Receptors
+  command: sudo /etc/init.d/fk-pf-connekt restart receptors
+- name: Wait 10 Seconds
+  command: sleep 10

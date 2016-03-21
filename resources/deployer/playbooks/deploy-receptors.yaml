@@ -1,0 +1,7 @@
+- hosts: receptors
+  serial: 5
+  tasks:
+  - include: tasks/update-sources.yaml
+  - include: tasks/install-connekt-deb.yaml
+  - include: tasks/start-receptors.yaml
+  - include: tasks/verify-service-up.yaml
