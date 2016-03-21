@@ -1,0 +1,5 @@
+- hosts: receptors
+  serial: 5
+  tasks:
+  - include: tasks/start-receptors.yaml
+  - include: tasks/verify-service-up.yaml
