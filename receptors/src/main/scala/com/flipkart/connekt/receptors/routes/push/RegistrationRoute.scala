@@ -28,11 +28,7 @@ import scala.util.Failure
 
 class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
-  type Created = Boolean
-  type Updated = Boolean
-
-  val register =
-    pathPrefix("v1") {
+  val register = pathPrefix("v1") {
         pathPrefix("registration" / "push") {
         path(MPlatformSegment / Segment / Segment) {
           (platform: MobilePlatform, appName: String, deviceId: String) =>
@@ -41,9 +37,9 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
                 entity(as[DeviceDetails]) { d =>
                   val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId, active = true)
 
-                  val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Updated, Created]]({
-                    case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(true))
-                    case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(true))
+                  val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Unit, Unit]]({
+                    case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(Unit))
+                    case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(Unit))
                   }, Failure(_)).get
 
                   result match {

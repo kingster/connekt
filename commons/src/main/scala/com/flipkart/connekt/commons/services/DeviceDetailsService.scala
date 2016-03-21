@@ -18,22 +18,22 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
-
-import scala.util.{Failure, Try}
 import com.roundeights.hasher.Implicits._
-import reflect.runtime.universe._
+
+import scala.reflect.runtime.universe._
+import scala.util.{Failure, Try}
 
 object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
 
   @Timed("add")
-  def add(deviceDetails: DeviceDetails): Try[Unit] = Try_#(message = "DeviceDetailsService.add Failed") {
+  def add(deviceDetails: DeviceDetails): Try[Boolean] = Try_#(message = "DeviceDetailsService.add Failed") {
     dao.add(deviceDetails.appName, deviceDetails)
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(deviceDetails.appName, deviceDetails.deviceId), deviceDetails)
     if (deviceDetails.userId != null)
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
-    BigfootService.ingest(deviceDetails.toBigfootFormat)
+    BigfootService.ingest(deviceDetails.toBigfootFormat).get
   }
 
   /**
@@ -42,36 +42,38 @@ object DeviceDetailsService extends Instrumented {
    * @param deviceDetails
    */
   @Timed("update")
-  def update(deviceId: String, deviceDetails: DeviceDetails): Try[Unit] = {
-    get(deviceDetails.appName, deviceId) flatMap {
+  def update(deviceId: String, deviceDetails: DeviceDetails): Try[Boolean] = {
+    get(deviceDetails.appName, deviceId).flatMap {
       case Some(device) =>
-        Try_ {
+        Try_#(message = "DeviceDetailsService.update Failed") {
+          dao.update(deviceDetails.appName, deviceId, deviceDetails)
           if (device.userId != null)
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
           if (deviceDetails.userId != null)
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
-
-          dao.update(deviceDetails.appName, deviceId, deviceDetails)
-          BigfootService.ingest(deviceDetails.toBigfootFormat)
+          BigfootService.ingest(deviceDetails.toBigfootFormat).get
         }
-      case None => Failure(new Throwable(s"No Device Detail found for id: [$deviceId] to update."))
+      case None =>
+        Failure(new Throwable(s"No Device Detail found for id: [$deviceId] to update."))
     }
-
   }
 
-
-  /*
-      get and delete device if device exists
-      And if device exists, delete corresponding cache entry
-      and mark device as INACTIVE in bigfoot
+  /**
+   * get and delete device if device exists,
+   * if device exists, delete corresponding cache entry
+   * and mark device as INACTIVE in bigfoot
+   *
+   * @param appName
+   * @param deviceId
+   * @return
    */
   @Timed("delete")
   def delete(appName: String, deviceId: String): Try[Unit] = {
     get(appName, deviceId).flatMap {
       case Some(device) =>
-        Try_ {
+        Try_#(message = "DeviceDetailsService.delete Failed") {
           dao.delete(appName, deviceId)
           if (device.userId != null)
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
