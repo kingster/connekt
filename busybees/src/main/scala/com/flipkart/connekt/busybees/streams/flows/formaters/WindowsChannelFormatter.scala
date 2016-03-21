@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.services.{StencilService, PNStencilService, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -34,12 +34,16 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
       val payload = message.channelData.asInstanceOf[PNRequestData].data
-      val wnsPayload = makeWNSPayload("toast" /* wnsPayload `type` has to be dynamically available */, payload).get
 
       val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
       ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: devices: ${devices.getJson}")
 
-      val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
+      val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName}-windows").get
+      val wnsRequestEnvelopes = devices.map(d => {
+        //TODO: determine wnsPNType
+        val wnsPayload = WNSToastPayload(PNStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
+        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload)
+      })
 
       if(wnsRequestEnvelopes.nonEmpty) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
@@ -58,15 +62,6 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: OnFormat error", e)
         List.empty[WNSPayloadEnvelope]
-    }
-  }
-
-  private def makeWNSPayload(notificationType: String, input: ObjectNode) = Try {
-    WindowsNotificationType.withName(notificationType) match {
-      case WindowsNotificationType.toast => WNSToastPayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
-      case WindowsNotificationType.tile => WNSTilePayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
-      case WindowsNotificationType.badge => WNSBadgePayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
-      case WindowsNotificationType.raw => WNSRawPayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
     }
   }
 }
