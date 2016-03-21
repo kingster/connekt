@@ -42,16 +42,9 @@ For a Pull Request to be considered at all it has to meet these requirements:
 2. Regardless if the code introduces new features or fixes bugs or regressions, it must have comprehensive tests.
 3. The code must be well documented in the Lightbend's standard documentation format (see the ‘Documentation’ section below).
 4. The commit messages must properly describe the changes, see further below.
-5. All  projects must include Lightbend copyright notices.  Each project can choose between one of two approaches:
+5. Guidelines to follow for copyright notices:
 
-    1. All source files in the project must have a Lightbend copyright notice in the file header.
-    2. The Notices file for the project includes the Lightbend copyright notice and no other files contain copyright notices.  See http://www.apache.org/legal/src-headers.html for instructions for managing this approach for copyrights.
-
-    reactive-kafka uses the first choice, having copyright notices in every file header.
-
-    Other guidelines to follow for copyright notices:
-
-    - Use a form of ``Copyright (C) 2011-2015 Lightbend Inc. <http://www.lightbend.com>``, where the start year is when the project or file was first created and the end year is the last time the project or file was modified.
+    - Use a form of ``Copyright (C) 2011-2015 Flipkart.com``, where the start year is when the project or file was first created and the end year is the last time the project or file was modified.
     - Never delete or change existing copyright notices, just add additional info.
     - Do not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html). However, each project should make sure that the contributors gets the credit they deserve—in a text file or page on the project website and in the release notes etc.
 
@@ -59,24 +52,7 @@ If these requirements are not met then the code should **not** be merged into ma
 
 ## Continuous Integration
 
-Each project should be configured to use a continuous integration (CI) tool (i.e. a build server à la Jenkins). Lightbend has a [Jenkins server farm](https://jenkins.akka.io/) that can be used. The CI tool should, on each push to master, build the **full** distribution and run **all** tests, and if something fails it should email out a notification with the failure report to the committer and the core team. The CI tool should also be used in conjunction with a Pull Request validator (discussed below).
-
-## Documentation
-
-All documentation should be generated using the sbt-site-plugin, *or* publish artifacts to a repository that can be consumed by the Lightbend stack.
-
-All documentation must abide by the following maxims:
-
-- Example code should be run as part of an automated test suite.
-- Version should be **programmatically** specifiable to the build.
-- Generation should be **completely automated** and available for scripting.
-- Artifacts that must be included in the Lightbend stack should be published to a maven “documentation” repository as documentation artifacts.
-
-All documentation is preferred to be in Lightbend's standard documentation format [reStructuredText](http://doc.akka.io/docs/akka/snapshot/dev/documentation.html) compiled using Lightbend's customized [Sphinx](http://sphinx.pocoo.org/) based documentation generation system, which among other things allows all code in the documentation to be externalized into compiled files and imported into the documentation.
-
-For more info, or for a starting point for new projects, look at the [Lightbend Documentation Template project](https://github.com/typesafehub/doc-template).
-
-For larger projects that have invested a lot of time and resources into their current documentation and samples scheme (like for example Play), it is understandable that it will take some time to migrate to this new model. In these cases someone from the project needs to take the responsibility of manual QA and verifier for the documentation and samples.
+Each project should be configured to use a continuous integration (CI) tool (i.e. a build server à la Jenkins). Connekt has a [Jenkins server farm](http://usercrm-automation-qa-0001.nm.flipkart.com:8080/) that can be used. The CI tool should, on each push to master, build the **full** distribution and run **all** tests, and if something fails it should email out a notification with the failure report to the committer and the core team. The CI tool should also be used in conjunction with a Pull Request validator (discussed below).
 
 ## External Dependencies
 
@@ -127,9 +103,9 @@ Example:
 ## How To Enforce These Guidelines?
 
 ### Make Use of Pull Request Validator
-reactive-kafka uses [Travis pull request builder](https://travis-ci.org/akka/reactive-kafka) 
-that automatically merges the code, builds it, runs the tests and comments on the Pull Request in GitHub.
+Connekt uses [Jenkins pull request builder](http://usercrm-automation-qa-0001.nm.flipkart.com:8080/view/Connekt/job/Connekt_pull_request_build/) 
+that automatically merges the code, builds it, runs the tests and sends out status mailer. TODO: Auto comment on the PR iteself.
 
 ## Source style
 
-reactive-kafka uses [Scalariform](https://github.com/daniel-trinh/scalariform) to enforce some of the code style rules.
+Connekt uses [Scalariform](https://github.com/daniel-trinh/scalariform) to enforce some of the code style rules.
