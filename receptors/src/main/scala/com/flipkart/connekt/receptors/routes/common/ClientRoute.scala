@@ -35,7 +35,7 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
             get {
               ServiceFactory.getUserInfoService.getUserInfo(clientName).get match {
                 case Some(data) =>
-                  val userPrivileges = ServiceFactory.getAuthorisationService.getAllPrivileges(clientName)
+                  val userPrivileges = ServiceFactory.getAuthorisationService.getAllPrivileges(clientName).map(_.toUpperCase)
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName's api-key fetched.", Map("clientName" -> data.userId, "apikey" -> data.apiKey, "privileges" -> userPrivileges))))
                 case None =>
                   complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching client $clientName info failed.", null)))
