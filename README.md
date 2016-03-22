@@ -14,7 +14,8 @@ Tech Stack
 API Docs
 ---------------------
 
-You can find sample request's on our API [sample doc's](https://docs.google.com/document/d/1SgIZHrXTTSmuvL-fyr7hLV7Dzwg_npgu4OHtUanztYk/edit#)
+- You can find sample request's on our API [sample doc's](https://docs.google.com/document/d/1SgIZHrXTTSmuvL-fyr7hLV7Dzwg_npgu4OHtUanztYk/edit#).
+- Swagger Available at [petstore.swagger.io](http://petstore.swagger.io/), just browse to [api-defination](https://github.com/Flipkart/connekt/blob/streams/schema/swagger-api.yaml) and copy paste the raw-url and hit explore!
 
 Getting Started
 ---------------------
