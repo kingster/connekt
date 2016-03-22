@@ -12,11 +12,13 @@
  */
 package com.flipkart.connekt.commons.behaviors
 
-import org.apache.hadoop.hbase.client.Table
+import org.apache.hadoop.hbase.client.{BufferedMutator, Table}
 
 
 trait HTableFactory {
   def getTableInterface(tableName: String): Table
   def releaseTableInterface(hTableInterface: Table)
   def shutdown()
+  def getBufferedMutator(tableName: String): BufferedMutator
+  def releaseMutator(mutatorInterface: BufferedMutator)
 }

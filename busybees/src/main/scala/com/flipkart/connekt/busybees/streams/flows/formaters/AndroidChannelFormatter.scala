@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.services.{StencilService, PNStencilService, 
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.duration._
 
 class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, GCMPayloadEnvelope](parallelism)(ec) {
 
@@ -34,11 +35,17 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val appDataWithId = PNStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
+      val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis)/1000).getOrElse(6.hour.toSeconds)
 
-      tokens.map(t => pnInfo.platform.toUpperCase match {
-        case "ANDROID" => GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = None, dry_run = dryRun)
-        case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
-      }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
+      if ( ttl > 0 ) {
+        tokens.map(t => pnInfo.platform.toUpperCase match {
+          case "ANDROID" => GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(ttl), dry_run = dryRun)
+          case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
+        }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
+      } else {
+        ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter:: Dropped message since expired.")
+        List.empty[GCMPayloadEnvelope] //dropping the PN, its expiry is in past
+      }
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: OnFormat error", e)

@@ -14,9 +14,8 @@ package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import java.net.URI
 
-
-import akka.http.scaladsl.model.{HttpMethods, HttpEntity, HttpHeader, HttpRequest}
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpEntity, HttpHeader, HttpMethods, HttpRequest}
 import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
@@ -46,12 +45,14 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
 
           val uri = new URI(message.token).toURL
           val bearerToken = WindowsOAuthService.getToken(message.appName).map(_.token).getOrElse("INVALID")
-          val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken), RawHeader("X-WNS-Type", message.wnsPayload.getType))
+          val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken),
+                RawHeader("X-WNS-Type", message.wnsPayload.getType), RawHeader("X-WNS-TTL", message.time_to_live.toString)
+              )
 
           val payload = HttpEntity(message.wnsPayload.getContentType, message.wnsPayload.getBody)
           val request = new HttpRequest(HttpMethods.POST, uri.getFile, headers, payload)
 
-          if(isAvailable(out)) {
+          if (isAvailable(out)) {
             push(out, (request, WNSRequestTracker(message.appName, message.messageId, message)))
             ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PUSHED downstream for ${message.messageId}")
           }
@@ -59,7 +60,7 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
         } catch {
           case e: Throwable =>
             ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
-            if(!hasBeenPulled(in)) {
+            if (!hasBeenPulled(in)) {
               ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PUSHED downstream for ${message.messageId}")
               pull(in)
             }
@@ -81,7 +82,7 @@ class WNSDispatcherPrepare extends GraphStage[FlowShape[WNSPayloadEnvelope, (Htt
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPull")
-        if(!hasBeenPulled(in)) {
+        if (!hasBeenPulled(in)) {
           ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: PULLED upstream on downstream pull")
           pull(in)
         }

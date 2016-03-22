@@ -19,6 +19,7 @@ import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilSer
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.duration._
 
 class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, WNSPayloadEnvelope](parallelism)(ec) {
 
@@ -34,12 +35,14 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: devices: ${devices.getJson}")
 
       val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-windows").get
+      val ttlInSeconds = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis)/1000).getOrElse(6.hours.toSeconds)
+
       val wnsRequestEnvelopes = devices.map(d => {
         val wnsPayload = WNSToastPayload(PNStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
-        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload)
+        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, wnsPayload)
       })
 
-      if(wnsRequestEnvelopes.nonEmpty) {
+      if(wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0 ) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
         if (!dryRun) {
           ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: PUSHED downstream for ${message.id}")
@@ -49,7 +52,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
           List.empty[WNSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Valid Output for : ${pnInfo.deviceId}, msgId: ${message.id}")
         List.empty[WNSPayloadEnvelope]
       }
     } catch {
