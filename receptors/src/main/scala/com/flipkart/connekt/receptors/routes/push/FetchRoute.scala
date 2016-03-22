@@ -26,7 +26,7 @@ import scala.collection.immutable.Seq
 import scala.concurrent.duration._
 import scala.util.Try
 
-class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
+class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events")
 

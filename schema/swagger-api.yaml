@@ -39,6 +39,13 @@ parameters:
     required: true
     type: string
     format: string
+  messageId:
+    name: messageId
+    in: path
+    description: MessageId.
+    required: true
+    type: string
+    format: string
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
     put:
@@ -97,9 +104,9 @@ paths:
           description: Device deleted succesfully 
   /send/push/{MPlatform}/{appName}:
     post:
-      summary: Register New Device
+      summary: Send Push Notification
       description: |
-        Registrion of a new device. The token from this registration data would be used sending pn..
+        Send a new push notification to a given set of devices.
       parameters:
         - $ref: '#/parameters/api-key'
         - $ref: '#/parameters/MPlatform'
@@ -115,6 +122,124 @@ paths:
       responses:
         '201':
           description:  PN Created
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /callback/{MPlatform}/{appName}/{deviceId}:
+    post:
+      summary: Notification Callback
+      description: |
+        Callback's for notifications
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - name: callbackEvent
+          in: body  
+          description: CallbackEvent.
+          required: true
+          schema:
+            type: object
+      tags:
+        - Callback
+      responses:
+        '200':
+          description:  Callback Accepted 
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /fetch/push/{MPlatform}/{appName}/{deviceId}:
+    get:
+      summary: Fetch Notifications
+      description: |
+        Fetch Pending Notifications for given device
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - name: startTs
+          in: query  
+          description: StartTS.
+          required: true
+          type: number
+          format: long
+        - name: endTs
+          in: query  
+          description: EndTS.
+          required: false
+          type: number
+          format: long
+        - name: skipIds
+          in: query  
+          description: Skip Specific MessageIds
+          required: false
+          type: string
+      tags:
+        - Fetch
+      responses:
+        '200':
+          description:  List of PN
+        '400':
+          description:  Invalid StartTS
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /reports/push/{appName}/messages/{deviceId}/{messageId}/events:
+    get:
+      summary: MessageId/DeviceId Events
+      description: |
+        Callback's for notifications
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - $ref: '#/parameters/messageId'
+      tags:
+        - Reports
+      responses:
+        '200':
+          description:  Events
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /reports/push/{appName}/messages/{messageId}/events:
+    get:
+      summary: Message Events
+      description: |
+        Event's for given MessageId
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/messageId'
+      tags:
+        - Reports
+      responses:
+        '200':
+          description:  Events
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /reports/push/{appName}/messages/{messageId}:
+    get:
+      summary: PN Request Data
+      description: |
+        Get Request Payload
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/messageId'
+      tags:
+        - Reports
+      responses:
+        '200':
+          description:  Original Request
         default:
           description: Unexpected error
           schema:
