@@ -37,14 +37,14 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
 
       val ttlInMillis =  message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
-
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
         val payloadData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
         val apnsPayload = iOSPNPayload(td._1, ttlInMillis, payloadData)
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
       })
 
-      if (apnsEnvelopes.nonEmpty && ttlInMillis > 0) {
+
+      if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
         if (!dryRun) {
           ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
