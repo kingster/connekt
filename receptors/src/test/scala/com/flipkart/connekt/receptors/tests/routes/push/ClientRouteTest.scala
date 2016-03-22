@@ -28,14 +28,4 @@ class ClientRouteTest extends BaseRouteTest {
         status shouldEqual StatusCodes.Created
       }
   }
-
-  "Create Client Test" should "create client" in {
-    Post(s"v1/client/", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(testHeader) ~>
-      clientRoute ~>
-      check {
-        status shouldEqual StatusCodes.Created
-      }
-  }
-
-
 }
