@@ -17,7 +17,7 @@
       <PatternLayout pattern="%d %p %c{1.} [%t] %m%n"/>
     </Console>
 
-    <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1024">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -27,7 +27,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i" immediateFlush="false" bufferSize="1024">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -37,7 +37,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="CLIENTS" fileName="${clientsLogFile}" filePattern="${clientsLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="CLIENTS" fileName="${clientsLogFile}" filePattern="${clientsLogFile}.%i" immediateFlush="false" bufferSize="1024">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -47,7 +47,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i" immediateFlush="false" bufferSize="1024">
       <PatternLayout>
         <Pattern>%n%d %p %C{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -57,7 +57,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i" immediateFlush="false" bufferSize="1024">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -67,7 +67,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false" bufferSize="1024">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
@@ -77,7 +77,7 @@
       <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
-    <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+    <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i" immediateFlush="false" bufferSize="1024">
       <PatternLayout>
         <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
