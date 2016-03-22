@@ -24,6 +24,12 @@ parameters:
     description: Platform (ios/android/windows/openweb).
     required: true
     type: string
+    enum:
+      - android
+      - ios
+      - windows
+      - openweb
+      - unknown
     format: string
   appName:
     name: appName
@@ -271,6 +277,57 @@ definitions:
         description: UserId 
   ConnektRequest:
     type: object
+    properties:
+      channel:
+        type: string
+        description: Channel (PN/EMAIL/SMS)
+        default: "PN"
+        enum: 
+          - PN
+          - EMAIL
+      sla:
+        type: string
+        description: SLA (L/M/H)
+        default: "L"
+        enum:
+          - L
+          - M
+          - H
+      templateId:
+        type: string
+        description: Optional TemplateId 
+      expiryTs:
+        type: number
+        format: long
+        description: Expiry Epoch Time in Millis
+      scheduleTs:
+        type: number
+        format: long
+        description: ScheduledTS (Not Available, Currently Ignored)
+      channelInfo:
+        type: object
+        description:  PN Channel Info
+        properties:
+          deviceId:
+            type: array
+            items:
+              type: string
+            description: List of Destination DeviceIds
+          ackRequired:
+            type: boolean
+            description : ackRequired
+            default : false
+          delayWhileIdle:
+            type: boolean
+            description : delayWhileIdle
+            default : true
+      channelData:
+        type: object
+        description:  Channel Payload, incase channelDataModel is not provided.
+      channelDataModel:
+        type: object
+        description:  Data Model to be rendered incase templateId is provided
+  
   Error:
     type: object
     properties:
