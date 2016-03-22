@@ -67,13 +67,15 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
     read(userName, UserType.USER).map(_.resources.split(',').toList).getOrElse(List())
   }
 
+  override def getAllPrivileges(userName: String): List[String] = {
+    val userPrivs = getUserPrivileges(userName)
+    val groupPrivs = userInfoDao.getUserInfo(userName).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).getOrElse(Array.empty[String]).flatMap(getGroupPrivileges)
+    userPrivs ++ groupPrivs ++ globalPrivileges
+  }
+
   override def isAuthorized(username: String, resource: String*): Try[Boolean] = {
     try {
-      val userPrivs = getUserPrivileges(username)
-      val groupPrivs = userInfoDao.getUserInfo(username).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).getOrElse(Array.empty[String]).flatMap(getGroupPrivileges)
-      val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
-
-      Success(allowedPrivileges.intersect(resource.toSet[String].map(_.toUpperCase)).nonEmpty)
+      Success(getAllPrivileges(username).intersect(resource.map(_.toUpperCase)).nonEmpty)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$username] info: ${e.getMessage}", e)

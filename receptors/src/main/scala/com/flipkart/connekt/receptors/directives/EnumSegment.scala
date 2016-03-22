@@ -17,7 +17,8 @@ import akka.http.scaladsl.server.PathMatcher.{Matched, Unmatched}
 import akka.http.scaladsl.server.PathMatcher1
 import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
-import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
+import com.flipkart.connekt.commons.entities.UserType.UserType
+import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform, UserType}
 
 /**
  * @author aman.shrivastava on 18/01/16.
@@ -49,3 +50,4 @@ abstract class EnumSegment[T <: Enumeration#Value](clz : Class[_])(implicit mani
 
 object ChannelSegment extends EnumSegment[Channel](Channel.getClass)
 object MPlatformSegment extends EnumSegment[MobilePlatform](MobilePlatform.getClass)
+object UserTypeSegment extends EnumSegment[UserType](UserType.getClass)
