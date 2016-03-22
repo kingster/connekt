@@ -20,9 +20,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
 
-/**
- * @author aman.shrivastava on 08/02/16.
- */
 class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, WNSPayloadEnvelope](parallelism)(ec) {
 
   override def map: (ConnektRequest) => List[WNSPayloadEnvelope] = message => {
@@ -36,7 +33,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
       ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: devices: ${devices.getJson}")
 
-      val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName}-windows").get
+      val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-windows").get
       val wnsRequestEnvelopes = devices.map(d => {
         val wnsPayload = WNSToastPayload(PNStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
         WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload)

@@ -36,7 +36,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
       val listOfTokenDeviceId = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(r => (r.token, r.deviceId))
-      val iosStencil = StencilService.get(s"ckt-${pnInfo.appName}-ios").get
+      val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
 
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
         val apsData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
