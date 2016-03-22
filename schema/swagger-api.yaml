@@ -3,12 +3,42 @@ info:
   title: Connekt API
   description: Fast Forward Communications with the Connekt API
   version: 1.0.0
-host: umap23.nm.flipkart.com:28000
+host: 10.47.0.120
 schemes:
   - http
 basePath: /v1
 produces:
   - application/json
+parameters:
+  api-key:
+    name: x-api-key
+    in: header
+    description: API key
+    required: true
+    type: string
+    format: string
+    default: "connekt-genesis"
+  MPlatform:
+    name: MPlatform
+    in: path
+    description: Platform (ios/android/windows/openweb).
+    required: true
+    type: string
+    format: string
+  appName:
+    name: appName
+    in: path
+    description: AppName.
+    required: true
+    type: string
+    format: string
+  deviceId:
+    name: deviceId
+    in: path
+    description: DeviceId.
+    required: true
+    type: string
+    format: string
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
     put:
@@ -16,31 +46,10 @@ paths:
       description: |
         Registrion of a new device. The token from this registration data would be used sending pn..
       parameters:
-        - name: x-api-key
-          in: header
-          description: API key
-          required: true
-          type: string
-          format: string
-          default: "connekt-genesis"
-        - name: MPlatform
-          in: path
-          description: Platform (ios/android/windows/openweb).
-          required: true
-          type: string
-          format: string
-        - name: appName
-          in: path
-          description: AppName.
-          required: true
-          type: string
-          format: string
-        - name: deviceId
-          in: path
-          description: DeviceId.
-          required: true
-          type: string
-          format: string
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
         - name: deviceData
           in: body  
           description: deviceData Defination.
@@ -54,8 +63,54 @@ paths:
           description:  Device details created
         '200':
           description: Device details update
-          
-            
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: Get Device Details
+      description: |
+       Fetch device details for specific device
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId' 
+      responses:
+        '200':
+          description: Device details 
+    delete:
+      summary: Delete Device 
+      description: |
+       Delete specific device
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId' 
+      responses:
+        '200':
+          description: Device deleted succesfully 
+  /send/push/{MPlatform}/{appName}:
+    put:
+      summary: Register New Device
+      description: |
+        Registrion of a new device. The token from this registration data would be used sending pn..
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - name: ConnektRequest
+          in: body  
+          description: ConnektRequest.
+          required: true
+          schema:
+            $ref: '#/definitions/ConnektRequest'
+      tags:
+        - Send
+      responses:
+        '201':
+          description:  PN Created
         default:
           description: Unexpected error
           schema:
@@ -85,6 +140,8 @@ definitions:
       userId:
         type: string
         description: UserId 
+  ConnektRequest:
+    type: object
   Error:
     type: object
     properties:
