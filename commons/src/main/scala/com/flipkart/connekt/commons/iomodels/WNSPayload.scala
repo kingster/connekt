@@ -15,14 +15,14 @@ package com.flipkart.connekt.commons.iomodels
 import akka.http.scaladsl.model.{ContentType, ContentTypes}
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-import com.fasterxml.jackson.databind.node.ObjectNode
-import scala.xml.{XML, Node}
+
+import scala.xml.{Node, XML}
 
 /**
  * @author aman.shrivastava on 08/02/16.
  */
 
-case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, deviceId: String, wnsPayload: WNSPayload)
+case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, deviceId: String, time_to_live: Long,  wnsPayload: WNSPayload)
 
 object WindowsNotificationType extends Enumeration {
   val toast, tile, badge, raw = Value
