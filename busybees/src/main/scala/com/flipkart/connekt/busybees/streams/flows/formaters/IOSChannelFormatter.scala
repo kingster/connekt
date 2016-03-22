@@ -22,12 +22,10 @@ import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilSer
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.duration._
 
 class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
 
-  def getExpiry(ts: Option[Long]): Long = {
-    ts.getOrElse(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(6))
-  }
 
   override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
 
@@ -38,13 +36,15 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val listOfTokenDeviceId = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(r => (r.token, r.deviceId))
       val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
 
+      val ttlInMillis =  message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
+
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
         val payloadData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
-        val apnsPayload = iOSPNPayload(td._1, getExpiry(message.expiryTs), payloadData)
+        val apnsPayload = iOSPNPayload(td._1, ttlInMillis, payloadData)
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
       })
 
-      if (apnsEnvelopes.nonEmpty) {
+      if (apnsEnvelopes.nonEmpty && ttlInMillis > 0) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
         if (!dryRun) {
           ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
@@ -55,7 +55,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
           List.empty[APSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Valid Output found for : ${pnInfo.deviceId}, msgId: ${message.id}")
         List.empty[APSPayloadEnvelope]
       }
 
