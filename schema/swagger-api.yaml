@@ -76,6 +76,8 @@ paths:
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId' 
+      tags:
+        - Registration
       responses:
         '200':
           description: Device details 
@@ -83,6 +85,8 @@ paths:
       summary: Delete Device 
       description: |
        Delete specific device
+      tags:
+        - Registration
       parameters:
         - $ref: '#/parameters/api-key'
         - $ref: '#/parameters/MPlatform'
