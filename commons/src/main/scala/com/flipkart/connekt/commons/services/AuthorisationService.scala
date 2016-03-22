@@ -22,9 +22,6 @@ import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 
 import scala.util.{Failure, Success, Try}
-/**
- * @author aman.shrivastava on 12/12/15.
- */
 
 class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAuthorisationService with SyncDelegate {
 
@@ -73,7 +70,7 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
   override def isAuthorized(username: String, resource: String*): Try[Boolean] = {
     try {
       val userPrivs = getUserPrivileges(username)
-      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',').map(_.trim)).get.flatMap(getGroupPrivileges)
+      val groupPrivs = userInfoDao.getUserInfo(username).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).getOrElse(Array.empty[String]).flatMap(getGroupPrivileges)
       val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
 
       Success(allowedPrivileges.intersect(resource.toSet[String].map(_.toUpperCase)).nonEmpty)

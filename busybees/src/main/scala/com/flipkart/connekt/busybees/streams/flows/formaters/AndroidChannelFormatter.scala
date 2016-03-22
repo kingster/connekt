@@ -30,7 +30,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
       val tokens = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(_.token)
-      val androidStencil = StencilService.get(s"ckt-${pnInfo.appName}-android").get
+      val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
 
       val appDataWithId = PNStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
