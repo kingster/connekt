@@ -12,4 +12,6 @@
  */
 package com.flipkart.connekt.commons.dao
 
-trait Dao
+trait Dao {
+  def close() = {}
+}
