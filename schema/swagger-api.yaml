@@ -96,7 +96,7 @@ paths:
         '200':
           description: Device deleted succesfully 
   /send/push/{MPlatform}/{appName}:
-    put:
+    post:
       summary: Register New Device
       description: |
         Registrion of a new device. The token from this registration data would be used sending pn..
