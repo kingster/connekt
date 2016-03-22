@@ -11,6 +11,10 @@ Tech Stack
 [Scala]:http://www.scala-lang.org
 [Akka]:http://doc.akka.io/docs/akka/2.4.2/scala.html
 
+API Docs
+---------------------
+
+You can find sample request's on our API [sample doc's](https://docs.google.com/document/d/1SgIZHrXTTSmuvL-fyr7hLV7Dzwg_npgu4OHtUanztYk/edit#)
 
 Getting Started
 ---------------------

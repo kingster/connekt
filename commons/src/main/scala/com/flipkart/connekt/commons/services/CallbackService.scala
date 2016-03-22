@@ -39,7 +39,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   @Timed("persistCallbackEvent")
   override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
     Try {
-      channelEventsDao(channel).saveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
+      channelEventsDao(channel).asyncSaveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
       requestId
     }

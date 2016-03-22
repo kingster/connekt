@@ -37,7 +37,7 @@ class iOSTopologyTest extends TopologyUTSpec {
       DeviceDetails(
         deviceId = deviceId,
         userId = "",
-        token = "e27fff706bef4e958ebd4ae798fb6517fdfdd9ccc3e899caf8cfcfee31716da4",
+        token = "6b1e059bb2a51d03d37384d1493aaffbba4edc58f8e21eb2f80ad4851875ee25",
         osName = "ios", osVersion = "UT", appName = "RetailApp", appVersion = "UT", brand = "UT", model = "UT"
       )
     )
@@ -46,14 +46,11 @@ class iOSTopologyTest extends TopologyUTSpec {
                      |{
                      |	"channel": "PN",
                      |	"sla": "H",
-                     |	"scheduleTs": 12312312321,
-                     |	"expiryTs": 3243243224,
                      |	"channelData": {
                      |		"type": "PN",
                      |		"data": {
-                     |      "alert" : "Message received from Kinshuk ${deviceId.substring(0,4)}",
-                     |      "sound" : "default",
-                     |      "badge" : 0
+                     |      "title" : "Hello" ,
+                     |      "message" : "Message ${deviceId.substring(0,4)} from Kinshuk "
                      |		}
                      |	},
                      |	"channelInfo" : {
@@ -70,7 +67,6 @@ class iOSTopologyTest extends TopologyUTSpec {
 
 
     val result = Source.single(cRequest)
-      .via(new RateControl[ConnektRequest](2, 1, 2))
       .via(new RenderFlow)
       .via(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
       .via(new APNSDispatcher())

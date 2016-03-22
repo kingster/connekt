@@ -16,7 +16,7 @@ import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.{Connection, Table}
+import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, Table}
 import org.apache.hadoop.hbase.{TableName, HBaseConfiguration, HConstants}
 
 class HTableFactoryWrapper(hConnConfig: Config, connProvider: TConnectionProvider) extends HTableFactory {
@@ -39,4 +39,8 @@ class HTableFactoryWrapper(hConnConfig: Config, connProvider: TConnectionProvide
   override def getTableInterface(tableName: String): Table = hConnection.getTable(TableName.valueOf(tableName))
 
   override def releaseTableInterface(hTableInterface: Table): Unit = hTableInterface.close()
+
+  override def getBufferedMutator(tableName: String): BufferedMutator = hConnection.getBufferedMutator(TableName.valueOf(tableName))
+
+  override def releaseMutator(mutatorInterface: BufferedMutator): Unit = mutatorInterface.close()
 }

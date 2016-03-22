@@ -33,6 +33,20 @@ import scala.collection.mutable.ListBuffer
 trait HbaseDao extends Instrumented {
 
   @throws[IOException]
+  @Timed("asyncAdd")
+  def asyncAddRow(rowKey: String, data: RowData)(implicit hMutator: BufferedMutator) = {
+
+    val put: Put = new Put(rowKey.getBytes(CharEncoding.UTF_8))
+    data.foreach { case (colFamily, v) =>
+      v.foreach { case (colQualifier, d) =>
+        put.addColumn(colFamily.getUtf8Bytes, colQualifier.getUtf8Bytes, d)
+      }
+    }
+
+    hMutator.mutate(put)
+  }
+
+  @throws[IOException]
   @Timed("add")
   def addRow(rowKey: String, data: RowData)(implicit hTable: Table) = {
 
