@@ -48,7 +48,7 @@ class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                   val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
                     val messageIds = res.map(_.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
                     val fetchedMessages = messageIds.filterNot(skipMessageIds.contains).flatMap(mId => messageService.getRequestInfo(mId).getOrElse(None))
-                    val validMessages = fetchedMessages.filter(_.expiryTs.map(t => t  < System.currentTimeMillis).getOrElse(true))
+                    val validMessages = fetchedMessages.filter(_.expiryTs.map(t => t > System.currentTimeMillis).getOrElse(true))
                     validMessages
                   })
 
