@@ -39,8 +39,8 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
 
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
-        val apsData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
-        val apnsPayload = iOSPNPayload(td._1, getExpiry(message.expiryTs), Map("aps" -> apsData))
+        val payloadData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
+        val apnsPayload = iOSPNPayload(td._1, getExpiry(message.expiryTs), payloadData)
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
       })
 
