@@ -8,17 +8,17 @@ schemes:
   - http
 basePath: /v1
 tags:
-- name: "registration"
+- name: "Registration"
   description: "manage device registrations"
-- name: "send"
-  description: "send operations"
-- name: "callback"
+- name: "Send"
+  description: "trigger communications"
+- name: "Callback"
   description: "manage events corresponding to send requests"
-- name: "report"
+- name: "Report"
   description: "query events corresponding to send requests"
-- name: "admin"
+- name: "Admin"
   description: "manage platform clients and privileges"
-- name: "fetch"
+- name: "Fetch"
   description: "pull based messaging operations"
 produces:
   - application/json
@@ -72,18 +72,11 @@ parameters:
     required: true
     type: string
     format: string
-  contactId:
-    name: contactId
-    in: path
-    description: contactId.
-    required: true
-    type: string
-    format: string
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
     put:
       tags:
-      - "registration"
+        - "Registration"
       summary: Register New Device
       description: |
         Registrion of a new device. The token from this registration data would be used sending pn..
@@ -126,7 +119,7 @@ paths:
       description: |
        Delete specific device
       tags:
-        - "registration"
+        - Registration
       parameters:
         - $ref: '#/parameters/api-key'
         - $ref: '#/parameters/MPlatform'
@@ -135,10 +128,10 @@ paths:
       responses:
         '200':
           description: Device deleted succesfully 
-  /registration/push/{MPlatform}/{appName}/{userId}:
+  /registration/push/{MPlatform}/{appName}/users/{userId}:
     get:
       tags:
-      - "registration"
+      - "Registration"
       operationId: "getRegistrationForUserId"
       summary: "fetch user device(s) registration"
       description: "fetch registration info for user's devices"
@@ -170,7 +163,7 @@ paths:
           schema:
             $ref: '#/definitions/ConnektRequest'
       tags:
-        - "send"
+        - "Send"
       responses:
         '201':
           description:  PN Created
@@ -195,7 +188,7 @@ paths:
           schema:
             type: object
       tags:
-        - "callback"
+        - "Callback"
       responses:
         '200':
           description:  Callback Accepted 
@@ -203,10 +196,10 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /push/callback/{appName}/{contactId}/{messageId}:
+  /push/callback/{MPlatform}/{appName}/{deviceId}/{messageId}:
     delete:
       tags:
-      - "callback"
+      - "Callback"
       operationId: "deleteCallbackEvents"
       summary: "delete callback events of a connekt request"
       description: "delete callback events of a connekt request"
@@ -214,8 +207,9 @@ paths:
       - "application/json"
       parameters:
         - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
-        - $ref: '#/parameters/messageId'
+        - $ref: '#/parameters/deviceId'
         - $ref: '#/parameters/messageId'
       responses:
         200:
@@ -248,7 +242,7 @@ paths:
           required: false
           type: string
       tags:
-        - "fetch"
+        - "Fetch"
       responses:
         '200':
           description:  List of PN
@@ -269,7 +263,7 @@ paths:
         - $ref: '#/parameters/deviceId'
         - $ref: '#/parameters/messageId'
       tags:
-        - "reports"
+        - "Report"
       responses:
         '200':
           description:  Events
@@ -287,7 +281,7 @@ paths:
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/messageId'
       tags:
-        - "reports"
+        - "Report"
       responses:
         '200':
           description:  Events
@@ -305,7 +299,7 @@ paths:
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/messageId'
       tags:
-        - "reports"
+        - "Report"
       responses:
         '200':
           description:  Original Request
@@ -313,10 +307,10 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /reports/push/{appName}/messages/{contactId}/{messageId}/events:
+  /reports/push/{appName}/messages/{deviceId}/{messageId}/events:
     get:
       tags:
-      - "report"
+      - "Report"
       operationId: "getEventsForSpecificUserMessage"
       summary: "fetch events for specific message of a user"
       description: "fetch events for specific message of a user"
@@ -325,7 +319,7 @@ paths:
       parameters:
         - $ref: '#/parameters/api-key'
         - $ref: '#/parameters/appName'
-        - $ref: '#/parameters/contactId'
+        - $ref: '#/parameters/deviceId'
         - $ref: '#/parameters/messageId'
       responses:
         200:
