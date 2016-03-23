@@ -3,7 +3,7 @@ info:
   title: Connekt API
   description: Fast Forward Communications with the Connekt API
   version: 1.0.0
-host: 10.47.0.120
+host: 10.84.178.131
 schemes:
   - http
 basePath: /v1
