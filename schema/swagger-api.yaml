@@ -72,6 +72,13 @@ parameters:
     required: true
     type: string
     format: string
+  clientName:
+    name: clientName
+    in: path
+    description: clientName.
+    required: true
+    type: string
+    format: string
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
     put:
@@ -324,6 +331,79 @@ paths:
       responses:
         200:
           description: "fetched events for user's messageId"
+  /client/{clientName}:
+    get:
+      tags:
+      - "Admin"
+      operationId: "getClientInfo"
+      summary: "fetch api-key for clientName"
+      description: "fetch api-key for clientName"
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/clientName'
+      responses:
+        200:
+          description: "client api-key fetched for clientName"
+        404:
+          description: "no api-key found for clientName"
+  /client/{clientName}/config:
+    get:
+      tags:
+      - "Admin"
+      operationId: "getClientConfiguration"
+      summary: "fetch configuration for clientName"
+      description: "fetch configuration for clientName"
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/clientName'
+      responses:
+        200:
+          description: "client config fetched for clientName"
+  /client/create:
+    post:
+      tags:
+      - "Admin"
+      operationId: "createClient"
+      summary: "create client & assign api-key, groups."
+      description: "create client & assign api-key, groups."
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - name: AppUser
+          in: body
+          description: AppUser.
+          required: true
+          schema:
+            $ref: '#/definitions/AppUser'
+      responses:
+        200:
+          description: "client created and assigned group, api-key."
+  /client/{clientName}/configuration:
+    post:
+      tags:
+      - "Admin"
+      operationId: "configureClientSla"
+      summary: "create client & assign api-key, groups."
+      description: "create client & assign api-key, groups."
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/clientName'
+        - name: appUserConfig
+          in: body
+          description: appUserConfig.
+          required: true
+          schema:
+            $ref: '#/definitions/AppUserConfiguration'
+      responses:
+        200:
+          description: "client created and assigned group, api-key."
 definitions:
   DeviceDetails:
     type: object
@@ -416,4 +496,33 @@ definitions:
           message:
             type: string
             description: Error Message
-
+  AppUser:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: userId / clientName of app user
+      groups:
+        type: string
+        description: comma separated list of groups
+      contact:
+        type: string
+        description: reference email-id for app user
+  AppUserConfiguration:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: userId / clientName of app user
+      queueName:
+        type: string
+        default: push
+        enum:
+        - push
+        - email
+        - sms
+        description: channel to configure sla
+      maxRate:
+        type: integer
+        format: int32
+        description: max-rate for channel
