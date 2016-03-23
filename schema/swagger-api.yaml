@@ -383,7 +383,7 @@ paths:
       responses:
         200:
           description: "client created and assigned group, api-key."
-  /client/{clientName}/configuration:
+  /client/create/{clientName}/configuration:
     post:
       tags:
       - "Admin"
@@ -511,12 +511,8 @@ definitions:
   AppUserConfiguration:
     type: object
     properties:
-      userId:
+      channel:
         type: string
-        description: userId / clientName of app user
-      queueName:
-        type: string
-        default: push
         enum:
         - push
         - email
