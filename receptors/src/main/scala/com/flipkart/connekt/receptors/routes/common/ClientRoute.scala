@@ -55,13 +55,12 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
             post {
               entity(as[AppUserConfiguration]) { userConfig =>
                 val mSvc = ServiceFactory.getPNMessageService
-                val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, userConfig.userId)
+                val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, clientName)
                 userConfig.userId = clientName
                 userConfig.queueName = clientTopic
                 UserConfigurationService.add(userConfig).get
                 mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
-
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
+                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName has been added.", userConfig)))
               }
             }
         }
