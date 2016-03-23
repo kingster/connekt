@@ -3,7 +3,7 @@ info:
   title: Connekt API
   description: Fast Forward Communications with the Connekt API
   version: 1.0.0
-host: 10.84.178.131
+host: 10.84.178.131:28000
 schemes:
   - http
 basePath: /v1
@@ -30,7 +30,7 @@ parameters:
     required: true
     type: string
     format: string
-    default: "connekt-genesis"
+    default: "sandbox-key-01"
   MPlatform:
     name: MPlatform
     in: path
