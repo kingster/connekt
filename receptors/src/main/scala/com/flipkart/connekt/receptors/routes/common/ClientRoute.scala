@@ -54,13 +54,19 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
           (clientName: String) =>
             post {
               entity(as[AppUserConfiguration]) { userConfig =>
-                val mSvc = ServiceFactory.getPNMessageService
-                val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, clientName)
-                userConfig.userId = clientName
-                userConfig.queueName = clientTopic
-                UserConfigurationService.add(userConfig).get
-                mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName has been added.", userConfig)))
+                assert(userConfig.channel != null)
+                UserConfigurationService.get(clientName, userConfig.channel).get match {
+                  case Some(x) =>
+                    complete(GenericResponse(StatusCodes.Conflict.intValue, null, Response(s"Client configuration for$clientName already exists", x)))
+                  case None =>
+                    val mSvc = ServiceFactory.getPNMessageService
+                    val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, clientName)
+                    userConfig.userId = clientName
+                    userConfig.queueName = clientTopic
+                    UserConfigurationService.add(userConfig).get
+                    mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName has been added.", userConfig)))
+                }
               }
             }
         }
