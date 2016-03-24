@@ -135,7 +135,7 @@ paths:
       responses:
         '200':
           description: Device deleted succesfully 
-  /registration/push/{MPlatform}/{appName}/users/{userId}:
+  /registration/push/{appName}/users/{userId}:
     get:
       tags:
       - "Registration"
@@ -146,7 +146,6 @@ paths:
       - "application/json"
       parameters:
         - $ref: '#/parameters/api-key'
-        - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/userId'
       responses:
