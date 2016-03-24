@@ -34,7 +34,7 @@ parameters:
   MPlatform:
     name: MPlatform
     in: path
-    description: Platform (ios/android/windows/openweb/unknown).
+    description: OS Platfrom
     required: true
     type: string
     enum:
@@ -165,6 +165,31 @@ paths:
         - $ref: '#/parameters/appName'
         - name: ConnektRequest
           in: body  
+          description: ConnektRequest.
+          required: true
+          schema:
+            $ref: '#/definitions/ConnektRequest'
+      tags:
+        - "Send"
+      responses:
+        '201':
+          description:  PN Created
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /send/push/{MPlatform}/{appName}/users/{userId}:
+    post:
+      summary: Send Push Notification to User
+      description: |
+        Send a new push notification all devices of given user and platform.
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/userId'
+        - name: ConnektRequest
+          in: body
           description: ConnektRequest.
           required: true
           schema:
