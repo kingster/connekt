@@ -54,12 +54,9 @@ class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                     validMessages
                   })
 
-                  lazy val osStencil = StencilService.get(s"ckt-${appName.toLowerCase}-${platform.toString.toLowerCase}").get
-
                   val pushRequests = messages.get.map(r => {
                     val channelRequestData = r.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, r.channelDataModel)).getOrElse(r.channelData)
-                    val renderedPN = PNStencilService.getPNData(osStencil, channelRequestData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
-                    r.id -> renderedPN
+                    r.id -> channelRequestData
                   }).toMap
 
                   //TODO: Cleanup this.
