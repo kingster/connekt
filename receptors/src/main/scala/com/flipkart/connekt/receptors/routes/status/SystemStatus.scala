@@ -36,10 +36,10 @@ class SystemStatus(implicit am: ActorMaterializer) extends BaseJsonHandler {
     } ~ pathPrefix("service") {
       path("oor"){
         HealthService.oor()
-        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Service Status Moved to OOR", Map("status" -> HealthService.getStatus))))
+        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Service Status Updated to OOR", Map("status" -> HealthService.getStatus.toString))))
       } ~ path("bir") {
         HealthService.bir()
-        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Service Status Moved to IR", Map("status" -> HealthService.getStatus))))
+        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Service Status Updated to IR", Map("status" -> HealthService.getStatus.toString))))
       }
     }
 }
