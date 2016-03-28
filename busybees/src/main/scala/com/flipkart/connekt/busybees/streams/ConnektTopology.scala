@@ -23,17 +23,10 @@ import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest, PNC
 import com.flipkart.connekt.commons.services.BigfootService
 
 trait ConnektTopology[E <:CallbackEvent] {
+
   def source: Source[ConnektRequest, NotUsed]
   def transform: Flow[ConnektRequest, E, NotUsed]
   def sink: Sink[E, NotUsed]
-
-  def graph() = source.withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(transform).to(sink)
-    .withAttributes(ActorAttributes.supervisionStrategy(stageSupervisionDecider))
-//    .withAttributes(Attributes.inputBuffer(initial = 16, max = 64))
-    .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
-
-  def run(implicit mat: Materializer) = graph().run()
-  def shutdown()
 
   val stageSupervisionDecider: Supervision.Decider = {
     case cEx: ConnektPNStageException =>
@@ -44,4 +37,14 @@ trait ConnektTopology[E <:CallbackEvent] {
 
     case _ => Supervision.Stop
   }
+
+  def graph() = source.withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(transform).to(sink)
+    .withAttributes(ActorAttributes.supervisionStrategy(stageSupervisionDecider))
+//    .withAttributes(Attributes.inputBuffer(initial = 16, max = 64))
+    .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
+
+  def run(implicit mat: Materializer) = graph().run()
+  def shutdown()
+
+
 }
