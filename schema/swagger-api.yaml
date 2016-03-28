@@ -79,6 +79,17 @@ parameters:
     required: true
     type: string
     format: string
+  userType:
+    name: userType
+    in: path
+    description: userType
+    required: true
+    type: string
+    enum:
+      - USER
+      - GLOBAL
+      - GROUP
+    format: string
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
     put:
@@ -428,6 +439,60 @@ paths:
       responses:
         200:
           description: "client created and assigned group, api-key."
+  /grant/{userType}/{userId}:
+    post:
+      tags:
+      - "Admin"
+      operationId: "grantResourceAccess"
+      summary: "provide user and group resource access to clients."
+      description: "provide user and group resource access to clients."
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/userType'
+        - $ref: '#/parameters/userId'
+        - name:  grantResourceAccess
+          in: body
+          description: grantResourceAccess
+          required: true
+          schema: 
+            $ref: '#/definitions/ResourcePriv'
+      responses:
+        201:
+          description: "granted access to requested resources"
+        404:
+          description: "no api-key found for clientName"
+        400: 
+          description: "while user does not existed for user level access"
+        
+  /revoke/{userType}/{userId}:
+   post:
+    tags:
+      - "Admin"
+    operationId: "revokeResourceAccess"
+    summary: "revoke user and group resource access to clients."
+    description: "revoke user and group resource access to clients."
+    produces:
+      - "application/json"
+    parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/userType'
+        - $ref: '#/parameters/userId'
+        - name:  revokeResourceAccess
+          in: body
+          description: revokeResourceAccess
+          required: true
+          schema: 
+            $ref: '#/definitions/ResourcePriv'
+    responses:
+        201:
+          description: "revoked access to requested resources"
+        404:
+          description: "no api-key found for clientName"
+        400: 
+          description: "while user does not existed for user level access"
+        
 definitions:
   DeviceDetails:
     type: object
@@ -452,7 +517,7 @@ definitions:
         description: osVersion of Device.
       userId:
         type: string
-        description: UserId 
+        description: UserId
   ConnektRequest:
     type: object
     properties:
@@ -460,7 +525,7 @@ definitions:
         type: string
         description: Channel (PN/EMAIL/SMS)
         default: "PN"
-        enum: 
+        enum:
           - PN
           - EMAIL
       sla:
@@ -473,7 +538,7 @@ definitions:
           - H
       templateId:
         type: string
-        description: Optional TemplateId 
+        description: Optional TemplateId
       expiryTs:
         type: number
         format: long
@@ -505,7 +570,7 @@ definitions:
       channelDataModel:
         type: object
         description:  Data Model to be rendered incase templateId is provided
-  
+
   Error:
     type: object
     properties:
@@ -546,3 +611,10 @@ definitions:
         type: integer
         format: int32
         description: max-rate for channel
+        
+  ResourcePriv:
+    type: object
+    properties:
+      resources:
+        type: string
+        description: resource list 
