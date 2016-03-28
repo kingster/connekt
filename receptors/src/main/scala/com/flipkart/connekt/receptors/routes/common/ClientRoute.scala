@@ -91,7 +91,7 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
       authorize(user, "ADMIN_CLIENT") {
         path(UserTypeSegment / Segment) {
           (userType: UserType, id: String) =>
-            put {
+            post {
               entity(as[ResourcePriv]) { resourcePriv =>
                 val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
                 userType match {
@@ -116,7 +116,7 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
       authorize(user, "ADMIN_CLIENT") {
         path(UserTypeSegment / Segment) {
           (userType: UserType, id: String) =>
-            put {
+            post {
               entity(as[ResourcePriv]) { resourcePriv =>
                 val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
                 userType match {
