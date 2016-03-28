@@ -87,7 +87,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
     userConfigurationDao.getAllUserConfiguration(channel).map(_.queueName).intersect(getKafkaTopicNames(channel).get)
   }
 
-  override def assignClientChannelTopic(channel: Channel, clientUserId: String): String = s"${channel}_${clientUserId.sha256.hash.hex}"
+  override def assignClientChannelTopic(channel: Channel, clientUserId: String): String = s"${channel}_${clientUserId.md5.hash.hex}"
 
   override def getKafkaTopicNames(channel: Channel): Try[Seq[String]] = Try_ {
     val kafkaConnH: KafkaConnectionHelper = Option(queueProducerHelper).getOrElse(queueConsumerHelper)

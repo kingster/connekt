@@ -14,15 +14,13 @@ package com.flipkart.connekt.receptors.routes.common
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.entities.UserType.UserType
-import com.flipkart.connekt.commons.entities._
+import com.flipkart.connekt.commons.entities.{AppUser, AppUserConfiguration, Channel, UserType, _}
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.UserConfigurationService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
-import com.flipkart.connekt.receptors.directives.{UserTypeSegment, ChannelSegment}
+import com.flipkart.connekt.receptors.directives.UserTypeSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
@@ -35,8 +33,7 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
             get {
               ServiceFactory.getUserInfoService.getUserInfo(clientName).get match {
                 case Some(data) =>
-                  val userPrivileges = ServiceFactory.getAuthorisationService.getAllPrivileges(clientName).map(_.toUpperCase)
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName's api-key fetched.", Map("clientName" -> data.userId, "apikey" -> data.apiKey, "privileges" -> userPrivileges))))
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client $clientName's api-key fetched.", data)))
                 case None =>
                   complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching client $clientName info failed.", null)))
               }
@@ -47,16 +44,6 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
               val data = Channel.values.flatMap(ch => UserConfigurationService.get(clientName, ch).get)
               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched ClientConfig for client: $clientName", data)))
             }
-        } ~ path(Segment / "config" / ChannelSegment) {
-          (clientName: String, channel: Channel) =>
-            get {
-              UserConfigurationService.get(clientName, channel).get match {
-                case Some(data) =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched ClientConfig ", data)))
-                case None =>
-                  complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"Fetching ClientDetails failed.", Map("clientName" -> clientName, "channel" -> channel))))
-              }
-            }
         } ~ pathPrefix("create") {
           pathEndOrSingleSlash {
             post {
@@ -65,78 +52,88 @@ class ClientRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJso
                 ServiceFactory.getUserInfoService.addUserInfo(au).get
                 complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${au.userId} has been added.", au)))
               }
-            }
-          } ~ path(Segment / "configuration") {
-            (clientName: String) =>
-              post {
-                entity(as[AppUserConfiguration]) { userConfig =>
-                  val mSvc = ServiceFactory.getPNMessageService
-                  val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, userConfig.userId)
-                  userConfig.userId = clientName
-                  userConfig.queueName = clientTopic
-                  UserConfigurationService.add(userConfig).get
-                  mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
+            } ~ pathPrefix("create") {
+              pathEndOrSingleSlash {
+                post {
+                  entity(as[AppUser]) { au =>
+                    au.updatedBy = user.userId
+                    ServiceFactory.getUserInfoService.addUserInfo(au).get
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${au.userId} has been added.", au)))
+                  }
+                }
+              } ~ path(Segment / "configuration") {
+                (clientName: String) =>
+                  post {
+                    entity(as[AppUserConfiguration]) { userConfig =>
+                      val mSvc = ServiceFactory.getPNMessageService
+                      val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, userConfig.userId)
+                      userConfig.userId = clientName
+                      userConfig.queueName = clientTopic
+                      UserConfigurationService.add(userConfig).get
+                      mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
 
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
+                    }
+                  }
+              }
+            } ~ path("touch" / Segment) {
+              (clientName: String) =>
+                post {
+                  SyncManager.get().publish(new SyncMessage(SyncType.AUTH_CHANGE, List(clientName, UserType.USER.toString)))
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $clientName", null)))
+                }
+            }
+          }
+        }
+      } ~ pathPrefix("grant") {
+        authorize(user, "ADMIN_CLIENT") {
+          path(UserTypeSegment / Segment) {
+            (userType: UserType, id: String) =>
+              put {
+                entity(as[ResourcePriv]) { resourcePriv =>
+                  val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
+                  userType match {
+                    case UserType.USER =>
+                      ServiceFactory.getUserInfoService.getUserInfo(id).get match {
+                        case None =>
+                          complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"User $id: does not exist.", null)))
+                        case Some(userInfo) =>
+                          ServiceFactory.getAuthorisationService.addAuthorization(id, UserType.USER, resourceList)
+                          complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission granted for $id.", Map("user" -> id, "permissions" -> resourceList))))
+                      }
+                    case _ =>
+                      val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
+                      ServiceFactory.getAuthorisationService.addAuthorization(id, userType, resourceList)
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission granted for $id", Map("id" -> id, "permissions" -> resourceList))))
+                  }
                 }
               }
           }
-        } ~ path("touch" / Segment) {
-          (clientName: String) =>
-            post {
-              SyncManager.get().publish(new SyncMessage(SyncType.AUTH_CHANGE, List(clientName, UserType.USER.toString)))
-              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $clientName", null)))
-            }
         }
-      }
-    } ~ pathPrefix("grant") {
-      authorize(user, "ADMIN_CLIENT") {
-        path(UserTypeSegment / Segment) {
-          (userType: UserType, id: String) =>
-            put {
-              entity(as[ResourcePriv]) { resourcePriv =>
-                val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
-                userType match {
-                  case UserType.USER =>
-                    ServiceFactory.getUserInfoService.getUserInfo(id).get match {
-                      case None =>
-                        complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"User $id: does not exist.", null)))
-                      case Some(userInfo) =>
-                        ServiceFactory.getAuthorisationService.addAuthorization(id, UserType.USER, resourceList)
-                        complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission granted for $id.", Map("user" -> id, "permissions" -> resourceList))))
-                    }
-                  case _ =>
-                    val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
-                    ServiceFactory.getAuthorisationService.addAuthorization(id, userType, resourceList)
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission granted for $id", Map("id" -> id, "permissions" -> resourceList))))
+      } ~ pathPrefix("revoke") {
+        authorize(user, "ADMIN_CLIENT") {
+          path(UserTypeSegment / Segment) {
+            (userType: UserType, id: String) =>
+              put {
+                entity(as[ResourcePriv]) { resourcePriv =>
+                  val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
+                  userType match {
+                    case UserType.USER =>
+                      ServiceFactory.getUserInfoService.getUserInfo(id).get match {
+                        case None =>
+                          complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"User $id: does not exist.", null)))
+                        case Some(userInfo) =>
+                          ServiceFactory.getAuthorisationService.removeAuthorization(id, UserType.USER, resourceList)
+                          complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission revoked for $id.", Map("user" -> id, "permissions" -> resourceList))))
+                      }
+                    case _ =>
+                      val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
+                      ServiceFactory.getAuthorisationService.removeAuthorization(id, userType, resourceList)
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission revoked for $id", Map("id" -> id, "permissions" -> resourceList))))
+                  }
                 }
               }
-            }
-        }
-      }
-    }~ pathPrefix("revoke") {
-      authorize(user, "ADMIN_CLIENT") {
-        path(UserTypeSegment / Segment) {
-          (userType: UserType, id: String) =>
-            put {
-              entity(as[ResourcePriv]) { resourcePriv =>
-                val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
-                userType match {
-                  case UserType.USER =>
-                    ServiceFactory.getUserInfoService.getUserInfo(id).get match {
-                      case None =>
-                        complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"User $id: does not exist.", null)))
-                      case Some(userInfo) =>
-                        ServiceFactory.getAuthorisationService.removeAuthorization(id, UserType.USER, resourceList)
-                        complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission revoked for $id.", Map("user" -> id, "permissions" -> resourceList))))
-                    }
-                  case _ =>
-                    val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
-                    ServiceFactory.getAuthorisationService.removeAuthorization(id, userType, resourceList)
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission revoked for $id", Map("id" -> id, "permissions" -> resourceList))))
-                }
-              }
-            }
+          }
         }
       }
     }

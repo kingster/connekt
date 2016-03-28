@@ -3,63 +3,431 @@ info:
   title: Connekt API
   description: Fast Forward Communications with the Connekt API
   version: 1.0.0
-host: umap23.nm.flipkart.com:28000
+host: 10.84.178.131:28000
 schemes:
   - http
 basePath: /v1
+tags:
+- name: "Registration"
+  description: "manage device registrations"
+- name: "Send"
+  description: "trigger communications"
+- name: "Callback"
+  description: "manage events corresponding to send requests"
+- name: "Report"
+  description: "query events corresponding to send requests"
+- name: "Admin"
+  description: "manage platform clients and privileges"
+- name: "Fetch"
+  description: "pull based messaging operations"
 produces:
   - application/json
+parameters:
+  api-key:
+    name: x-api-key
+    in: header
+    description: API key
+    required: true
+    type: string
+    format: string
+    default: "sandbox-key-01"
+  MPlatform:
+    name: MPlatform
+    in: path
+    description: OS Platfrom
+    required: true
+    type: string
+    enum:
+      - android
+      - ios
+      - windows
+      - openweb
+      - unknown
+    format: string
+  appName:
+    name: appName
+    in: path
+    description: AppName.
+    required: true
+    type: string
+    format: string
+  deviceId:
+    name: deviceId
+    in: path
+    description: DeviceId.
+    required: true
+    type: string
+    format: string
+  userId:
+    name: userId
+    in: path
+    description: userId.
+    required: true
+    type: string
+    format: string
+  messageId:
+    name: messageId
+    in: path
+    description: MessageId.
+    required: true
+    type: string
+    format: string
+  clientName:
+    name: clientName
+    in: path
+    description: clientName.
+    required: true
+    type: string
+    format: string
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
     put:
+      tags:
+        - "Registration"
       summary: Register New Device
       description: |
         Registrion of a new device. The token from this registration data would be used sending pn..
       parameters:
-        - name: x-api-key
-          in: header
-          description: API key
-          required: true
-          type: string
-          format: string
-          default: "connekt-genesis"
-        - name: MPlatform
-          in: path
-          description: Platform (ios/android/windows/openweb).
-          required: true
-          type: string
-          format: string
-        - name: appName
-          in: path
-          description: AppName.
-          required: true
-          type: string
-          format: string
-        - name: deviceId
-          in: path
-          description: DeviceId.
-          required: true
-          type: string
-          format: string
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
         - name: deviceData
           in: body  
           description: deviceData Defination.
           required: true
           schema:
             $ref: '#/definitions/DeviceDetails'
-      tags:
-        - Registration
       responses:
         '201':
           description:  Device details created
         '200':
           description: Device details update
-          
-            
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+    get:
+      summary: Get Device Details
+      description: |
+       Fetch device details for specific device
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId' 
+      tags:
+        - Registration
+      responses:
+        '200':
+          description: Device details 
+    delete:
+      summary: Delete Device 
+      description: |
+       Delete specific device
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId' 
+      responses:
+        '200':
+          description: Device deleted succesfully 
+  /registration/push/{appName}/users/{userId}:
+    get:
+      tags:
+      - "Registration"
+      operationId: "getRegistrationForUserId"
+      summary: "fetch user device(s) registration"
+      description: "fetch registration info for user's devices"
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/userId'
+      responses:
+        200:
+          description: "device(s) details fetched for user"
+        404:
+          description: "no device details found for user"
+  /send/push/{MPlatform}/{appName}:
+    post:
+      summary: Send Push Notification
+      description: |
+        Send a new push notification to a given set of devices.
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - name: ConnektRequest
+          in: body  
+          description: ConnektRequest.
+          required: true
+          schema:
+            $ref: '#/definitions/ConnektRequest'
+      tags:
+        - "Send"
+      responses:
+        '201':
+          description:  PN Created
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /send/push/{MPlatform}/{appName}/users/{userId}:
+    post:
+      summary: Send Push Notification to User
+      description: |
+        Send a new push notification all devices of given user and platform.
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/userId'
+        - name: ConnektRequest
+          in: body
+          description: ConnektRequest.
+          required: true
+          schema:
+            $ref: '#/definitions/ConnektRequest'
+      tags:
+        - "Send"
+      responses:
+        '201':
+          description:  PN Created
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /push/callback/{MPlatform}/{appName}/{deviceId}:
+    post:
+      summary: Notification Callback
+      description: |
+        Callback's for notifications
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - name: callbackEvent
+          in: body  
+          description: CallbackEvent.
+          required: true
+          schema:
+            type: object
+      tags:
+        - "Callback"
+      responses:
+        '200':
+          description:  Callback Accepted 
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /push/callback/{MPlatform}/{appName}/{deviceId}/{messageId}:
+    delete:
+      tags:
+      - "Callback"
+      operationId: "deleteCallbackEvents"
+      summary: "delete callback events of a connekt request"
+      description: "delete callback events of a connekt request"
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - $ref: '#/parameters/messageId'
+      responses:
+        200:
+          description: "callback events deleted for messageId."
+  /fetch/push/{MPlatform}/{appName}/{deviceId}:
+    get:
+      summary: Fetch Notifications
+      description: |
+        Fetch Pending Notifications for given device
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/MPlatform'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - name: startTs
+          in: query  
+          description: StartTS.
+          required: true
+          type: number
+          format: long
+        - name: endTs
+          in: query  
+          description: EndTS.
+          required: false
+          type: number
+          format: long
+        - name: skipIds
+          in: query  
+          description: Skip Specific MessageIds
+          required: false
+          type: string
+      tags:
+        - "Fetch"
+      responses:
+        '200':
+          description:  List of PN
+        '400':
+          description:  Invalid StartTS
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /reports/push/{appName}/messages/{deviceId}/{messageId}/events:
+    get:
+      summary: MessageId/DeviceId Events
+      description: |
+        Callback's for notifications
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - $ref: '#/parameters/messageId'
+      tags:
+        - "Report"
+      responses:
+        '200':
+          description:  Events
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /reports/push/{appName}/messages/{messageId}/events:
+    get:
+      summary: Message Events
+      description: |
+        Event's for given MessageId
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/messageId'
+      tags:
+        - "Report"
+      responses:
+        '200':
+          description:  Events
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /reports/push/{appName}/messages/{messageId}:
+    get:
+      summary: PN Request Data
+      description: |
+        Get Request Payload
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/messageId'
+      tags:
+        - "Report"
+      responses:
+        '200':
+          description:  Original Request
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /reports/push/{appName}/messages/{deviceId}/{messageId}/events:
+    get:
+      tags:
+      - "Report"
+      operationId: "getEventsForSpecificUserMessage"
+      summary: "fetch events for specific message of a user"
+      description: "fetch events for specific message of a user"
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - $ref: '#/parameters/messageId'
+      responses:
+        200:
+          description: "fetched events for user's messageId"
+  /client/{clientName}:
+    get:
+      tags:
+      - "Admin"
+      operationId: "getClientInfo"
+      summary: "fetch api-key for clientName"
+      description: "fetch api-key for clientName"
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/clientName'
+      responses:
+        200:
+          description: "client api-key fetched for clientName"
+        404:
+          description: "no api-key found for clientName"
+  /client/{clientName}/config:
+    get:
+      tags:
+      - "Admin"
+      operationId: "getClientConfiguration"
+      summary: "fetch configuration for clientName"
+      description: "fetch configuration for clientName"
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/clientName'
+      responses:
+        200:
+          description: "client config fetched for clientName"
+  /client/create:
+    post:
+      tags:
+      - "Admin"
+      operationId: "createClient"
+      summary: "create client & assign api-key, groups."
+      description: "create client & assign api-key, groups."
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - name: AppUser
+          in: body
+          description: AppUser.
+          required: true
+          schema:
+            $ref: '#/definitions/AppUser'
+      responses:
+        200:
+          description: "client created and assigned group, api-key."
+  /client/create/{clientName}/configuration:
+    post:
+      tags:
+      - "Admin"
+      operationId: "configureClientSla"
+      summary: "create client & assign api-key, groups."
+      description: "create client & assign api-key, groups."
+      produces:
+      - "application/json"
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/clientName'
+        - name: appUserConfig
+          in: body
+          description: appUserConfig.
+          required: true
+          schema:
+            $ref: '#/definitions/AppUserConfiguration'
+      responses:
+        200:
+          description: "client created and assigned group, api-key."
 definitions:
   DeviceDetails:
     type: object
@@ -85,6 +453,59 @@ definitions:
       userId:
         type: string
         description: UserId 
+  ConnektRequest:
+    type: object
+    properties:
+      channel:
+        type: string
+        description: Channel (PN/EMAIL/SMS)
+        default: "PN"
+        enum: 
+          - PN
+          - EMAIL
+      sla:
+        type: string
+        description: SLA (L/M/H)
+        default: "L"
+        enum:
+          - L
+          - M
+          - H
+      templateId:
+        type: string
+        description: Optional TemplateId 
+      expiryTs:
+        type: number
+        format: long
+        description: Expiry Epoch Time in Millis
+      scheduleTs:
+        type: number
+        format: long
+        description: ScheduledTS (Not Available, Currently Ignored)
+      channelInfo:
+        type: object
+        description:  PN Channel Info
+        properties:
+          deviceId:
+            type: array
+            items:
+              type: string
+            description: List of Destination DeviceIds
+          ackRequired:
+            type: boolean
+            description : ackRequired
+            default : false
+          delayWhileIdle:
+            type: boolean
+            description : delayWhileIdle
+            default : true
+      channelData:
+        type: object
+        description:  Channel Payload, incase channelDataModel is not provided.
+      channelDataModel:
+        type: object
+        description:  Data Model to be rendered incase templateId is provided
+  
   Error:
     type: object
     properties:
@@ -99,4 +520,29 @@ definitions:
           message:
             type: string
             description: Error Message
-
+  AppUser:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: userId / clientName of app user
+      groups:
+        type: string
+        description: comma separated list of groups
+      contact:
+        type: string
+        description: reference email-id for app user
+  AppUserConfiguration:
+    type: object
+    properties:
+      channel:
+        type: string
+        enum:
+        - push
+        - email
+        - sms
+        description: channel to configure sla
+      maxRate:
+        type: integer
+        format: int32
+        description: max-rate for channel

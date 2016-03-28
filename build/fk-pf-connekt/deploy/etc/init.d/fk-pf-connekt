@@ -73,7 +73,7 @@ stop()
 
 usage()
 {
-    echo "Usage: ${0} {start <which> |stop |restart <which>|status <which>|force-stop } "
+    echo "Usage: ${0} {start <which> |stop |restart <which>|status <which>|force-stop |set-env <env-name>} "
     exit 0
 }
 

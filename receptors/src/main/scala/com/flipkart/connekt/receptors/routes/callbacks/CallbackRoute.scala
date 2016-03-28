@@ -37,8 +37,8 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
               }
             }
           }
-      } ~ path("callback" / Segment / Segment / Segment) {
-        (appName: String, contactId: String, messageId: String) =>
+      } ~ path("callback" / MPlatformSegment / Segment / Segment / Segment) {
+        (appPlatform: MobilePlatform, appName: String, contactId: String, messageId: String) =>
           authorize(user, s"DELETE_EVENTS_$appName") {
             delete {
               ConnektLogger(LogFile.SERVICE).debug(s"Received event delete request for: ${messageId.toString}")
