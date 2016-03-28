@@ -452,7 +452,7 @@ definitions:
         description: osVersion of Device.
       userId:
         type: string
-        description: UserId 
+        description: UserId
   ConnektRequest:
     type: object
     properties:
@@ -460,7 +460,7 @@ definitions:
         type: string
         description: Channel (PN/EMAIL/SMS)
         default: "PN"
-        enum: 
+        enum:
           - PN
           - EMAIL
       sla:
@@ -473,7 +473,7 @@ definitions:
           - H
       templateId:
         type: string
-        description: Optional TemplateId 
+        description: Optional TemplateId
       expiryTs:
         type: number
         format: long
@@ -505,7 +505,7 @@ definitions:
       channelDataModel:
         type: object
         description:  Data Model to be rendered incase templateId is provided
-  
+
   Error:
     type: object
     properties:
