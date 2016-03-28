@@ -14,10 +14,12 @@ package com.flipkart.connekt.busybees.streams.flows
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
+import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.busybees.streams.errors.ConnektErrorHelper._
 
 class RenderFlow extends GraphStage[FlowShape[ConnektRequest, ConnektRequest]] {
 
@@ -53,6 +55,8 @@ class RenderFlow extends GraphStage[FlowShape[ConnektRequest, ConnektRequest]] {
                 pull(in)
                 ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow:: PULLED upstream for ${m.id}")
               }
+
+              throw new ConnektPNStageException(m.id, m.deviceId, "connekt_render_failure", m.appName, m.platform, "", e.getMessage, e)
           }
         }
       })
