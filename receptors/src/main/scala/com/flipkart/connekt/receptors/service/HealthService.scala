@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.service
 
 import java.lang.management.ManagementFactory
@@ -27,6 +39,7 @@ object HealthService {
 
   def elbResponse(): ELBResponse ={
     val rb = ManagementFactory.getRuntimeMXBean
+    val uptimeSeconds:Long = rb.getUptime/1000
 
     //TODO: Comeup with better implementation of this.
     val capacity:Int = this.status match {
@@ -37,7 +50,7 @@ object HealthService {
     //TODO: Implement this.
     val requestCount = 0l
 
-    ELBResponse(rb.getUptime,requestCount,capacity)
+    ELBResponse(uptimeSeconds,requestCount,capacity)
   }
   
 
