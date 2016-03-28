@@ -17,6 +17,8 @@ import akka.event.Logging
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{ActorAttributes, Attributes, Materializer, Supervision}
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
+import com.flipkart.connekt.commons.entities.Channel
+import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest, PNCallbackEvent}
 import com.flipkart.connekt.commons.services.BigfootService
 
@@ -33,11 +35,11 @@ trait ConnektTopology[E <:CallbackEvent] {
   def run(implicit mat: Materializer) = graph().run()
   def shutdown()
 
-  def stageSupervisionDecider: Supervision.Decider = {
+  val stageSupervisionDecider: Supervision.Decider = {
     case cEx: ConnektPNStageException =>
-      val bigfootEvents = cEx.deviceId.map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
-      bigfootEvents.foreach(e => BigfootService.ingest(e.toBigfootFormat))
-
+      val callbackEvents = cEx.deviceId.map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
+      callbackEvents.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
+      callbackEvents.foreach(e => BigfootService.ingest(e.toBigfootFormat))
       Supervision.Resume
 
     case _ => Supervision.Stop

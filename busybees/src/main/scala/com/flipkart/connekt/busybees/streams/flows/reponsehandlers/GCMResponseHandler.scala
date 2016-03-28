@@ -21,7 +21,7 @@ import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.services.{BigfootService, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.JavaConversions._
@@ -149,6 +149,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     }
 
     events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
+    events.foreach(e => BigfootService.ingest(e.toBigfootFormat))
     ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: Saved callback events for $messageId ${events.toList.toString()}")
     events.toList
   }

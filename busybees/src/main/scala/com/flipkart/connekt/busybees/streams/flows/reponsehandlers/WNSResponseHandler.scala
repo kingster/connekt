@@ -20,7 +20,7 @@ import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsOAuthService}
+import com.flipkart.connekt.commons.services.{BigfootService, DeviceDetailsService, WindowsOAuthService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContext
@@ -156,6 +156,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     }
 
     maybePNCallbackEvent.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
+    maybePNCallbackEvent.foreach(e => BigfootService.ingest(e.toBigfootFormat))
     maybePNCallbackEvent
   }
 

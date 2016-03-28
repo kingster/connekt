@@ -18,6 +18,7 @@ import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.services.BigfootService
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
@@ -32,6 +33,7 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
               entity(as[CallbackEvent]) { e =>
                 val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app, deviceId = devId)
                 ServiceFactory.getCallbackService.persistCallbackEvent(event.messageId, s"${event.appName.toLowerCase}${event.deviceId}", Channel.PUSH, event).get
+                BigfootService.ingest(event.toBigfootFormat)
                 ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
                 complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
               }
