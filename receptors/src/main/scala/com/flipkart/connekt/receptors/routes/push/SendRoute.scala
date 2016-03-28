@@ -58,11 +58,10 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                           groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
                       }
 
+                      var failure = pnRequestInfo.deviceId.diff(groupedPlatformRequests.map(_.channelInfo.asInstanceOf[PNRequestInfo].deviceId))
+                      val success = scala.collection.mutable.Map[String, List[String]]()
+
                       if (groupedPlatformRequests.nonEmpty) {
-
-                        val failure = ListBuffer[String]()
-                        val success = scala.collection.mutable.Map[String, List[String]]()
-
                         val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
                         groupedPlatformRequests.foreach { p =>
                           /* enqueue multiple requests into kafka */
@@ -73,11 +72,8 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                               failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
                           }
                         }
-                        complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN request processed.", success.toMap, failure.toList)))
-                      } else {
-                        complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("No valid devices found", null)))
                       }
-
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN Send Response.", success.toMap, failure)))
                     } else {
                       ConnektLogger(LogFile.SERVICE).error(s"Request Validation Failed, $request ")
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Request Validation Failed, Please ensure mandatory field values.", null)))
@@ -128,7 +124,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                         }
                         complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse(s"PN request processed for user $userId.", success.toMap, failure.toList)))
                       } else {
-                        complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No device Found for user: $userId.",null)))
+                        complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No device Found for user: $userId.", null)))
                       }
 
                     } else {
