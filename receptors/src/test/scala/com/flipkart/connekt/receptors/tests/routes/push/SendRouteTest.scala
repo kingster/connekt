@@ -21,7 +21,7 @@ import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 
 class SendRouteTest extends BaseRouteTest {
 
-  val appName = "ConnectSampleApp"
+  val appName = "retailqa"
   val platform = "android"
   val unknownPlatfrom = "unknown"
   val deviceId = "bbd505411b210e38b15142bd6a0de0f6"
@@ -42,7 +42,7 @@ class SendRouteTest extends BaseRouteTest {
          |	"channelInfo": {
          |		"type": "PN",
          |		"ackRequired": true,
-         |   "deviceId" : ["$deviceId"],
+         |   "deviceId" : ["$deviceId", "nfkjadnfkl"],
          |		"delayWhileIdle": true
          |	},
          |	"channelData": {
@@ -58,7 +58,7 @@ class SendRouteTest extends BaseRouteTest {
          |	"meta": {}
          |}        """.stripMargin
 
-    Post(s"/v1/send/push/$platform/$appName", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+    Post(s"/v1/send/push/$unknownPlatfrom/$appName", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       unicastRoute ~>
       check {
         status shouldEqual StatusCodes.Created

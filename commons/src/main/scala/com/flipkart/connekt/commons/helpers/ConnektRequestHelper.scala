@@ -10,11 +10,11 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.busybees.streams.errors
+package com.flipkart.connekt.commons.helpers
 
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNRequestInfo}
 
-object ConnektErrorHelper {
+object ConnektRequestHelper {
 
   abstract class FlatConnektRequest
 
