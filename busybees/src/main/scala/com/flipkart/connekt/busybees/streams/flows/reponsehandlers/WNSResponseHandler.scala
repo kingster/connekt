@@ -17,13 +17,12 @@ import akka.stream._
 import akka.stream.scaladsl.Sink
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
-import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.CallbackRecorder._
+import com.flipkart.connekt.commons.entities.MobilePlatform
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
-import com.flipkart.connekt.commons.services.{BigfootService, DeviceDetailsService, WindowsOAuthService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsOAuthService}
 import com.flipkart.connekt.commons.utils.StringUtils._
-
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
@@ -62,6 +61,8 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
               pull(in)
               ConnektLogger(LogFile.PROCESSORS).debug(s"WNSResponseHandler:: PULLED upstream for ${wnsResponse._2.requestId}")
             }
+
+            List(PNCallbackEvent(wnsResponse._2.requestId, wnsResponse._2.request.deviceId , "WNS_FAILED", MobilePlatform.WINDOWS,wnsResponse._2.request.appName, "TODO/CONTEXT", e.getMessage)).persist
         }
       }
     })

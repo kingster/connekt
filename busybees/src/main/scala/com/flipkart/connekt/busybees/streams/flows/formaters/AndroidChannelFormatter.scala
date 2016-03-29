@@ -58,6 +58,5 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: OnFormat error", e)
         List.empty[GCMPayloadEnvelope]
     }
-
   }
 }

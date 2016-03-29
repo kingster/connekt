@@ -13,7 +13,7 @@
 package com.flipkart.connekt.busybees.streams.flows
 
 import akka.stream.Supervision
-import com.flipkart.connekt.busybees.streams.SupervisedFlowStage
+import com.flipkart.connekt.busybees.streams.{MapFlowStage, MapGraphStage}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -22,9 +22,9 @@ import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-class RenderFlow(implicit decider: Supervision.Decider) extends SupervisedFlowStage[ConnektRequest, ConnektRequest]("Render")(decider) {
+class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
 
-  override def processInput(input: ConnektRequest): List[ConnektRequest] = {
+  override val map: (ConnektRequest) => List[ConnektRequest] = input => {
     try {
       ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPush:: Received Message: ${input.getJson}")
       lazy val cRD = input.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, input.channelDataModel)).get
@@ -33,7 +33,7 @@ class RenderFlow(implicit decider: Supervision.Decider) extends SupervisedFlowSt
         case Some(cD) => cD
         case None => cRD
       })
-      
+
       List(mRendered)
     } catch {
       case e: Throwable =>

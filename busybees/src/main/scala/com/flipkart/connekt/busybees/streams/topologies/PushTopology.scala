@@ -17,7 +17,6 @@ import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.BusyBeesBoot
-import com.flipkart.connekt.busybees.BusyBeesBoot._
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, HttpDispatcher, WNSDispatcherPrepare}
@@ -68,7 +67,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
 
-    val render = b.add(new RenderFlow)
+    val render = b.add(new RenderFlow().flow)
     val merger = b.add(Merge[PNCallbackEvent](3))
 
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
@@ -103,11 +102,11 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      */
     val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
     val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare())
+    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare().flow)
 
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
 
-    val gcmResponseHandle = b.add(new GCMResponseHandler())
+    val gcmResponseHandle = b.add(new GCMResponseHandler().flow)
 
     platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle ~> merger.in(1)
 
@@ -124,7 +123,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      *                                      |~~~~~~~~~~~~~~~~~~~~~~~~~~~  wnsRetryMapper <~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
      */
 
-    val wnsHttpPrepare = b.add(new WNSDispatcherPrepare())
+    val wnsHttpPrepare = b.add(new WNSDispatcherPrepare().flow)
     val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow)
 
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
@@ -147,7 +146,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create(){ implicit b =>
 
     val evtCreator = b.add(new PNBigfootEventCreator)
-    val metrics = b.add(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH))
+    val metrics = b.add(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH).flow)
     evtCreator.out ~> metrics ~> Sink.ignore
 
     SinkShape(evtCreator.in)

@@ -32,55 +32,11 @@ import scala.util.{Failure, Success, Try}
 
 class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] {
 
-  val in = Inlet[(Try[HttpResponse], GCMRequestTracker)]("GCMResponseHandler.In")
-  val out = Outlet[PNCallbackEvent]("GCMResponseHandler.Out")
+  override val map: ((Try[HttpResponse], GCMRequestTracker)) => List[PNCallbackEvent] = responseTrackerPair => {
 
-  override def shape = FlowShape.of(in, out)
+    val tryResponse = responseTrackerPair._1
+    val requestTracker = responseTrackerPair._2
 
-  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-
-    setHandler(in, new InHandler {
-
-      override def onPush(): Unit = {
-        val gcmResponse = grab(in)
-        ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: ON_PUSH for ${gcmResponse._2.messageId}")
-        try {
-          val outEvents = handleGCMResponse(gcmResponse._1, gcmResponse._2)
-
-          if (outEvents.nonEmpty)
-            emitMultiple[PNCallbackEvent](out,outEvents.iterator,() => {
-              ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PUSHED downstream for ${gcmResponse._2.messageId}")
-          })
-
-        } catch {
-          case e: Throwable =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: ON_PUSH error: ${e.getMessage}", e)
-            if (!hasBeenPulled(in)) {
-              pull(in)
-              ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream for ${gcmResponse._2.messageId}")
-            }
-        }
-      }
-
-      override def onUpstreamFailure(e: Throwable): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: onUpstream failure: ${e.getMessage}", e)
-        super.onUpstreamFinish()
-      }
-
-    })
-
-    setHandler(out, new OutHandler {
-      override def onPull(): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: onPull.")
-        if (!hasBeenPulled(in)) {
-          pull(in)
-          ConnektLogger(LogFile.PROCESSORS).debug(s"GCMResponseHandler:: PULLED upstream on downstream pull.")
-        }
-      }
-    })
-  }
-
-  private def handleGCMResponse(tryResponse: Try[HttpResponse], requestTracker: GCMRequestTracker): List[PNCallbackEvent] = {
     val messageId = requestTracker.messageId
     val appName = requestTracker.appName
     val deviceIds = requestTracker.deviceId
@@ -152,6 +108,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     events.persist
     events.toList
   }
+
 
   object GCMResponseStatus extends Enumeration {
     type GCMResponseStatus = Value

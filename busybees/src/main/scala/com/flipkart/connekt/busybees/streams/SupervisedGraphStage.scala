@@ -13,22 +13,41 @@
 package com.flipkart.connekt.busybees.streams
 
 import akka.stream._
-import akka.stream.stage.{OutHandler, GraphStage, GraphStageLogic, InHandler}
+import akka.stream.scaladsl.Flow
+import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
+import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 
 import scala.util.control.NonFatal
 
-trait SupervisedGraphStage
+private [busybees] abstract class MapFlowStage[In, Out] {
 
-abstract class SupervisedFlowStage[In, Out](stageName: String = "")(implicit val strategy: Supervision.Decider = Supervision.stoppingDecider) extends GraphStage[FlowShape[In, Out]] with SupervisedGraphStage {
-  def processInput(inputMessage: In): List[Out]
+  protected val stageName: String = this.getClass.getSimpleName
 
-  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
+  val map: In => List[Out]
+
+  def flow = Flow[In].mapConcat(map).named(stageName)
+}
+
+private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[FlowShape[In, Out]] {
+
+  protected val stageName: String = this.getClass.getSimpleName
+
+  val map: In => List[Out]
+
+  val i = Inlet[In](s"$stageName.in")
+  val o = Outlet[Out](s"$stageName.out")
+
+  override def shape: FlowShape[In, Out] = FlowShape.of(i, o)
+
+  class SupervisedGraphStageLogic extends GraphStageLogic(shape) {
 
     setHandler(i, new InHandler {
       override def onPush(): Unit = try {
         val inMessage = grab(i)
-        val outMessages = processInput(inMessage)
+        val outMessages = map(inMessage)
 
         if(isAvailable(o))
           emitMultiple[Out](o, outMessages.iterator, () => {
@@ -36,7 +55,7 @@ abstract class SupervisedFlowStage[In, Out](stageName: String = "")(implicit val
           })
 
       } catch {
-        case NonFatal(e) => strategy(e) match {
+        case NonFatal(e) => StageSupervision.decider(e) match {
           case Supervision.Stop =>
             failStage(e)
           case Supervision.Resume =>
@@ -53,13 +72,21 @@ abstract class SupervisedFlowStage[In, Out](stageName: String = "")(implicit val
       override def onPull(): Unit =
         if(!hasBeenPulled(i)) {
           pull(i)
-          ConnektLogger(LogFile.PROCESSORS).trace(s"${stageName}_SupervisedFlowStage pulled upstream on downstream pull.")
         }
     })
   }
 
-  val i = Inlet[In](s"$stageName.in")
-  val o = Outlet[Out](s"$stageName.out")
+  override def createLogic(inheritedAttributes: Attributes) = new SupervisedGraphStageLogic
+}
 
-  override def shape: FlowShape[In, Out] = FlowShape.of(i, o)
+object StageSupervision {
+  val decider: Supervision.Decider = {
+    case cEx: ConnektPNStageException =>
+      cEx.deviceId
+        .map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
+        .persist
+      Supervision.Resume
+
+    case _ => Supervision.Stop
+  }
 }

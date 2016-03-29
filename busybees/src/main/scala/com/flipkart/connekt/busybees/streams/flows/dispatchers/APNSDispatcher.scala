@@ -16,10 +16,11 @@ import java.util.Date
 import java.util.concurrent.{ExecutionException, TimeUnit}
 
 import akka.stream.stage._
-import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
+import akka.stream._
+import com.flipkart.connekt.busybees.streams.MapGraphStage
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.iomodels.{APSPayloadEnvelope, PNCallbackEvent, iOSPNPayload}
+import com.flipkart.connekt.commons.iomodels.{ConnektRequest, APSPayloadEnvelope, PNCallbackEvent, iOSPNPayload}
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
@@ -27,17 +28,40 @@ import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import scala.collection.mutable.ListBuffer
 
-class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[FlowShape[APSPayloadEnvelope, PNCallbackEvent]] {
+class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[APSPayloadEnvelope, PNCallbackEvent] {
 
-  type AppName = String
-  val in = Inlet[APSPayloadEnvelope]("APNSDispatcher.In")
-  val out = Outlet[PNCallbackEvent]("APNSDispatcher.Out")
-
-  override def shape = FlowShape.of(in, out)
-
+  private type AppName = String
   var clients = scala.collection.mutable.Map[AppName, ApnsClient[SimpleApnsPushNotification]]()
 
-  private def handleDispatch(envelope: APSPayloadEnvelope): PNCallbackEvent = {
+  override def createLogic(inheritedAttributes: Attributes): SupervisedGraphStageLogic = new SupervisedGraphStageLogic {
+    override def preStart(): Unit = {
+      ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: preStart")
+      /* Create APNSClients for all apps */
+      clients ++= appNames.map(app => app -> getAPNSClient(app))
+      super.preStart()
+    }
+
+    override def postStop(): Unit = {
+      ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: postStop")
+
+      // Disconnect all the APNSClients prior to stop
+      clients.foreach(kv => {
+        ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: Stopping ${kv._1} APNSClient.")
+        kv._2.disconnect().await(5000)
+      })
+      super.postStop()
+    }
+  }
+
+  private def getAPNSClient(appName: String) = {
+    ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: Starting $appName APNSClient.")
+    val credential = KeyChainManager.getAppleCredentials(appName).get
+    val client = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey)
+    client.connect(ApnsClient.PRODUCTION_APNS_HOST).await(30, TimeUnit.SECONDS)
+    client
+  }
+
+  override val map = (envelope: APSPayloadEnvelope) => {
     val events = ListBuffer[PNCallbackEvent]()
     try {
 
@@ -89,68 +113,6 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
     }
 
     events.persist
-    events.head
+    events.toList
   }
-
-  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-
-    setHandler(in, new InHandler {
-      override def onPush(): Unit = {
-        val envelope = grab(in)
-        ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher:: ON_PUSH for ${envelope.messageId}")
-        try {
-
-          val event = handleDispatch(envelope)
-          if (isAvailable(out)) {
-            push(out, event)
-            ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher:: PUSHED downstream for ${envelope.messageId}")
-          }
-        } catch {
-          case e: Exception =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: Error ${envelope.messageId}", e)
-            if (!hasBeenPulled(in)) {
-              ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher:: PULLED upstream for ${envelope.messageId}")
-              pull(in)
-            }
-        }
-      }
-    })
-
-    setHandler(out, new OutHandler {
-      override def onPull(): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: onPull")
-        if (!hasBeenPulled(in)) {
-          pull(in)
-          ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher:: PULLED upstream on downstream pull.")
-        }
-      }
-    })
-
-    override def preStart(): Unit = {
-      ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: preStart")
-      /* Create APNSClients for all apps */
-      clients ++= appNames.map(app => app -> getAPNSClient(app))
-      super.preStart()
-    }
-
-    override def postStop(): Unit = {
-      ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: postStop")
-
-      // Disconnect all the APNSClients prior to stop
-      clients.foreach(kv => {
-        ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: Stopping ${kv._1} APNSClient.")
-        kv._2.disconnect().await(5000)
-      })
-      super.postStop()
-    }
-  }
-
-  private def getAPNSClient(appName: String) = {
-    ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher:: Starting $appName APNSClient.")
-    val credential = KeyChainManager.getAppleCredentials(appName).get
-    val client = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey)
-    client.connect(ApnsClient.PRODUCTION_APNS_HOST).await(30, TimeUnit.SECONDS)
-    client
-  }
-
 }
