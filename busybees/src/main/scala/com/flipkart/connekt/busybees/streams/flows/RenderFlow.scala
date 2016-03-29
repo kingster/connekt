@@ -12,6 +12,7 @@
  */
 package com.flipkart.connekt.busybees.streams.flows
 
+import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
@@ -35,7 +36,7 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow:: onPush :: Error", e)
-        throw new ConnektPNStageException(input.id, input.deviceId, "connekt_render_failure", input.appName, input.platform, "", e.getMessage, e)
+        throw new ConnektPNStageException(input.id, input.deviceId, InternalStatus.RenderFailure, input.appName, input.platform, "", e.getMessage, e)
     }
   }
 }

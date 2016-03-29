@@ -22,7 +22,7 @@ case class PNCallbackEvent(@JsonProperty(required = false) messageId: String,
                            @JsonProperty(required = false) platform: String,
                            @JsonProperty(required = false) appName: String,
                            contextId: String,
-                           @JsonProperty(required = false) cargo: String,
+                           @JsonProperty(required = false) cargo: String = null,
                            timestamp: Long = System.currentTimeMillis()) extends CallbackEvent with BigfootSupport[fkint.mp.connekt.PNCallbackEvent] {
 
   def toBigfootFormat : fkint.mp.connekt.PNCallbackEvent = {

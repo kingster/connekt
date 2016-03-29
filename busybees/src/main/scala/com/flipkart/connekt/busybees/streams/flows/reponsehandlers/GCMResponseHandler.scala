@@ -17,6 +17,7 @@ import akka.stream._
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
+import com.flipkart.connekt.busybees.models.MessageStatus.{InternalStatus, GCMResponseStatus}
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
@@ -80,7 +81,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
               })
             } catch {
               case e: Exception =>
-                events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.ParseError, MobilePlatform.ANDROID, appName, "", e.getMessage, eventTS)))
+                events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.ParseError, MobilePlatform.ANDROID, appName, "", e.getMessage, eventTS)))
                 ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Failed Processing HttpResponseBody for: $messageId:: ${e.getMessage}", e)
             }
 
@@ -99,25 +100,11 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         }
 
       case Failure(e2) =>
-        events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.SendError, MobilePlatform.ANDROID, appName, "", e2.getMessage, eventTS)))
+        events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.SendError, MobilePlatform.ANDROID, appName, "", e2.getMessage, eventTS)))
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: GCM send failure for r: $messageId, e: ${e2.getMessage}", e2)
     }
 
     events.persist
     events.toList
   }
-
-
-  object GCMResponseStatus extends Enumeration {
-    type GCMResponseStatus = Value
-
-    val InvalidJsonError = Value("gcm_invalid_json_error")
-    val AuthError = Value("gcm_auth_error")
-    val Received = Value("gcm_received")
-    val Error = Value("gcm_error")
-    val InternalError = Value("gcm_internal_error")
-    val SendError = Value("connekt_gcm_send_error")
-    val ParseError = Value("connekt_gcm_response_parse_error")
-  }
-
 }

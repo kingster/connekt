@@ -20,6 +20,8 @@ import com.flipkart.connekt.commons.services.BigfootService
 
 object CallbackRecorder {
 
+  implicit def callbackRecorder(event: PNCallbackEvent): PNListCallbackRecorder = new PNListCallbackRecorder(List(event))
+
   implicit class PNListCallbackRecorder(val events: Iterable[PNCallbackEvent]) {
     def persist = Try_ {
       events.foreach(e => {
@@ -28,6 +30,4 @@ object CallbackRecorder {
       })
     }
   }
-
-
 }
