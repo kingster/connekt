@@ -73,7 +73,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
         |    	"delayWhileIdle": true,
         |     "platform" :  "android",
         |     "appName" : "ConnectSampleApp",
-        |     "deviceId" : ["513803e45cf1b344ef494a04c9fb650a"]
+        |     "deviceIds" : ["513803e45cf1b344ef494a04c9fb650a"]
         |	},
         |	"meta": {
         |   "x-perf-test" : "true"

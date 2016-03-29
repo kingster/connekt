@@ -33,9 +33,6 @@ class AndroidTopologyTest extends TopologyUTSpec {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
-    val httpDispatcher = new GCMDispatcherPrepare
-
-
     lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("android.googleapis.com", 443)
 
     val cRequest = """
@@ -62,7 +59,7 @@ class AndroidTopologyTest extends TopologyUTSpec {
                      |    	"delayWhileIdle": true,
                      |     "platform" :  "android",
                      |     "appName" : "ConnectSampleApp",
-                     |     "deviceId" : ["513803e45cf1b344ef494a04c9fb650a"]
+                     |     "deviceIds" : ["513803e45cf1b344ef494a04c9fb650a"]
                      |	},
                      |	"meta": {}
                      |}
@@ -71,9 +68,9 @@ class AndroidTopologyTest extends TopologyUTSpec {
 
     val result = Source.single(cRequest)
       .via(new RateControl[ConnektRequest](2, 1, 2))
-      .via(new RenderFlow)
+      .via(new RenderFlow().flow)
       .via(new AndroidChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
-      .via(httpDispatcher)
+      .via(new GCMDispatcherPrepare().flow)
       .via(poolClientFlow)
       .runWith(Sink.head)
 
