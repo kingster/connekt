@@ -51,7 +51,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         tokens.map(t => pnInfo.platform.toUpperCase match {
           case "ANDROID" => GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(ttl), dry_run = dryRun)
           case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
-        }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceIds, pnInfo.appName, _))
+        }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceIds, pnInfo.appName, message.contextId.orEmpty , _))
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter:: Dropped message since expired/invalid.")
         pnInfo.deviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.TTLExpired, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty, "")).persist

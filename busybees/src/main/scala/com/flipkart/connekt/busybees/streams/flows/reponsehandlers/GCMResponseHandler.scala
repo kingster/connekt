@@ -65,7 +65,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                         DeviceDetailsService.update(d.deviceId, d.copy(token = s.get("registration_id").asText.trim))
                       }))
 
-                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Received, MobilePlatform.ANDROID, appName, "", s.get("message_id").asText(), eventTS)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Received, MobilePlatform.ANDROID, appName, requestTracker.contextId, s.get("message_id").asText(), eventTS)
                   case f if f.has("error") && List("InvalidRegistration", "NotRegistered").contains(f.get("error").asText.trim) =>
                     DeviceDetailsService.get(appName, rDeviceId).foreach {
                       _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
@@ -73,34 +73,34 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                         DeviceDetailsService.delete(appName, device.deviceId)
                       })
                     }
-                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, "", f.get("error").asText, eventTS)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, f.get("error").asText, eventTS)
                   case e: JsonNode =>
                     ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Unknown Error [${e.toString}}] via. $messageId for $rDeviceId")
-                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, "", e.toString, eventTS)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, e.toString, eventTS)
                 }
               })
             } catch {
               case e: Exception =>
-                events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.ParseError, MobilePlatform.ANDROID, appName, "", e.getMessage, eventTS)))
+                events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.ParseError, MobilePlatform.ANDROID, appName, requestTracker.contextId, e.getMessage, eventTS)))
                 ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: Failed Processing HttpResponseBody for: $messageId:: ${e.getMessage}", e)
             }
 
           case 400 =>
-            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InvalidJsonError, MobilePlatform.ANDROID, appName, "", "", eventTS)))
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InvalidJsonError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - Invalid json sent for $messageId")
           case 401 =>
-            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.AuthError, MobilePlatform.ANDROID, appName, "", "", eventTS)))
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.AuthError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - The sender account used to send a message couldn't be authenticated. for $messageId")
           case w if 5 == (w / 100) =>
-            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InternalError, MobilePlatform.ANDROID, appName, "", "", eventTS)))
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InternalError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - The gcm server encountered an error while trying to process the request for $messageId")
           case _ =>
-            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, "", "", eventTS)))
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: HttpResponse - GCM Response Unhandled for $messageId")
         }
 
       case Failure(e2) =>
-        events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.GCMSendError, MobilePlatform.ANDROID, appName, "", e2.getMessage, eventTS)))
+        events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.ProviderSendError, MobilePlatform.ANDROID, appName, requestTracker.contextId, e2.getMessage, eventTS)))
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: GCM send failure for r: $messageId, e: ${e2.getMessage}", e2)
     }
 
