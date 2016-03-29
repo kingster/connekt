@@ -1,6 +1,6 @@
 - name: Install connekt
-  command: sudo /usr/bin/apt-get install --yes --allow-unauthenticated fk-pf-connekt
+  command: sudo /usr/bin/apt-get install --yes --allow-unauthenticated fk-pf-connekt2
   register: install_result
-  failed_when: install_result.rc != 0
+  # failed_when: install_result.rc != 0 #not supported yet
 
 
