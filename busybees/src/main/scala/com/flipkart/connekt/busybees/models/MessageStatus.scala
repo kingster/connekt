@@ -14,6 +14,7 @@ package com.flipkart.connekt.busybees.models
 
 
 object MessageStatus {
+
   object GCMResponseStatus extends Enumeration {
     type GCMResponseStatus = Value
 
@@ -32,7 +33,6 @@ object MessageStatus {
     val InvalidMethod = Value("wns_invalid_method")
     val InvalidChannelUri = Value("wns_invalid_channel_uri")
     val InvalidDevice = Value("wns_invalid_device")
-    val DeletedDevice = Value("wns_deleted_device")
     val ThrottleLimitExceeded = Value("wns_throttle_limit_exceeded")
     val ChannelExpired = Value("wns_channel_expired")
     val EntityTooLarge = Value("wns_entity_too_large")
@@ -55,8 +55,6 @@ object MessageStatus {
     val ParseError = Value("connekt_gcm_response_parse_error")
     val TTLExpired = Value("connekt_ttl_expired")
     val StageError = Value("connekt_stage_error")
-    val GCMSendError = Value("connekt_gcm_send_error")
-    val APNSSendError = Value("connekt_apns_send_error")
-    val WNSSendError = Value("connekt_wns_send_error")
+    val ProviderSendError = Value("connekt_provider_send_error")
   }
 }

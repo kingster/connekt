@@ -44,7 +44,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val wnsRequestEnvelopes = devicesInfo.map(d => {
         val wnsPayload = WNSToastPayload(PNStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
-        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, wnsPayload)
+        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty,  wnsPayload)
       })
 
       if(wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0 ) {

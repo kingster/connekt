@@ -98,7 +98,7 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[
       } catch {
         case e: ExecutionException =>
           ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: onPush :: Failed to send push notification: ${envelope.messageId}, ${e.getMessage}", e)
-          events += PNCallbackEvent(envelope.messageId, envelope.deviceId, InternalStatus.APNSSendError, MobilePlatform.IOS.toString, envelope.appName, "")
+          events += PNCallbackEvent(envelope.messageId, envelope.deviceId, InternalStatus.ProviderSendError, MobilePlatform.IOS.toString, envelope.appName, "")
 
           if (e.getCause.isInstanceOf[ClientNotConnectedException]) {
             ConnektLogger(LogFile.PROCESSORS).debug("APNSDispatcher:: onPush :: Waiting for APNSClient to reconnect.")
