@@ -1,2 +1,2 @@
 - name: Update APT Cache
-  command: sudo apt-get update --allow-unauthenticated
+  command: sudo apt-get update --allow-unauthenticated warn=no
