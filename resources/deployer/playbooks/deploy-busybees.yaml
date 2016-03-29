@@ -1,10 +1,8 @@
-- hosts: receptors
+- hosts: busybees
   serial: 5
   tasks:
   - name: Set Service
     set_fact:
-      app: receptors
-  - include: tasks/update-sources.yaml
+      app: busybees
   - include: tasks/install-connekt-deb.yaml
   - include: tasks/start-service.yaml
-  - include: tasks/verify-service-up.yaml
