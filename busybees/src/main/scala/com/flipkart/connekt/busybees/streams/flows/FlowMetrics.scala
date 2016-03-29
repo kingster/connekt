@@ -12,8 +12,7 @@
  */
 package com.flipkart.connekt.busybees.streams.flows
 
-import com.flipkart.connekt.busybees.streams.MapFlowStage
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
 
 class FlowMetrics[T](names: String*) extends MapFlowStage[T, T] with Instrumented {

@@ -17,7 +17,6 @@ import akka.stream.{Attributes, Outlet, SourceShape}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.metrics.Instrumented
-import com.flipkart.connekt.commons.utils.CollectionUtils._
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
 import kafka.consumer.{ConsumerConnector, ConsumerTimeoutException}

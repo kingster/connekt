@@ -12,8 +12,8 @@
  */
 package com.flipkart.connekt.busybees.clients
 
-import akka.actor.{Terminated, Props, Actor}
-import akka.routing.{RoundRobinRoutingLogic, Router, ActorRefRoutee}
+import akka.actor.{Actor, Props, Terminated}
+import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
 import com.flipkart.connekt.commons.iomodels.XmppRequest
 
 class XMPPChannelSupervisor(maxConnections: Int) extends Actor {

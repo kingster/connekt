@@ -18,8 +18,8 @@ import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.busybees.streams.MapFlowStage
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
+import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.GCMPayloadEnvelope

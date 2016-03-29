@@ -14,7 +14,7 @@ package com.flipkart.connekt.busybees.tests.streams
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializerSettings, ActorMaterializer}
-import com.flipkart.connekt.busybees.streams.StageSupervision
+import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 class TopologyUTSpec extends CommonsBaseTest {
