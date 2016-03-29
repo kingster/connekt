@@ -22,7 +22,7 @@ object ConnektRequestHelper {
     val pnInfo = request.channelInfo.asInstanceOf[PNRequestInfo]
 
     def id = request.id
-    def deviceId = Option(pnInfo).map(_.deviceId).orNull
+    def deviceId = Option(pnInfo).map(_.deviceIds).orNull
     def appName = Option(pnInfo).map(_.appName).orNull
     def platform = Option(pnInfo).map(_.platform).orNull
   }

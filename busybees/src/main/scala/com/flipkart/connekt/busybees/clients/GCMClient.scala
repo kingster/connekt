@@ -38,8 +38,8 @@ class GCMClient {
   import system.dispatcher
 
   def wirePN(requestId: String, pnRequestInfo: PNRequestInfo, pnRequestData: PNRequestData, authKey: String) = {
-    ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequestInfo.appName} ${pnRequestInfo.deviceId} [${pnRequestInfo.getJson}]")
-    val tokens = pnRequestInfo.deviceId.map(deviceDetailsDao.get(pnRequestInfo.appName, _).get.token)
+    ConnektLogger(LogFile.SERVICE).info(s"Fetching deviceDetails: ${pnRequestInfo.appName} ${pnRequestInfo.deviceIds} [${pnRequestInfo.getJson}]")
+    val tokens = pnRequestInfo.deviceIds.map(deviceDetailsDao.get(pnRequestInfo.appName, _).get.token)
 
     val gcmRequestPayload = GCMPNPayload(tokens,Option( pnRequestInfo.delayWhileIdle), pnRequestData.data)
     ConnektLogger(LogFile.SERVICE).info(s"GCM Request payload ${gcmRequestPayload.getJson}")
@@ -63,7 +63,7 @@ class GCMClient {
             ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest failed for ${t._2}, e: ${e.getMessage}")
         }
       case Failure(e) =>
-        ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest future failed for ${pnRequestInfo.deviceId}, e: ${e.getMessage}")
+        ConnektLogger(LogFile.SERVICE).error(s"GCM httpRequest future failed for ${pnRequestInfo.deviceIds}, e: ${e.getMessage}")
     }
   }
 }

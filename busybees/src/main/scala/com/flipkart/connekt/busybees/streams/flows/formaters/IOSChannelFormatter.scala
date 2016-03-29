@@ -34,8 +34,8 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
-      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceId).get
-      val invalidDeviceIds = pnInfo.deviceId.diff(devicesInfo.map(_.deviceId))
+      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
+      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId))
       invalidDeviceIds.map(PNCallbackEvent(message.id, _, "INVALID_DEVICE_ID", MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmptyString, "")).persist
 
       val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
@@ -60,7 +60,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
           List.empty[APSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Valid Output found for : ${pnInfo.deviceId}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Valid Output found for : ${pnInfo.deviceIds}, msgId: ${message.id}")
         List.empty[APSPayloadEnvelope]
       }
 

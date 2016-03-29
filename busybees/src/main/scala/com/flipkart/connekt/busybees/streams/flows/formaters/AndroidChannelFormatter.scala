@@ -33,8 +33,8 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
-      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceId).get
-      val invalidDeviceIds = pnInfo.deviceId.diff(devicesInfo.map(_.deviceId))
+      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
+      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId))
       invalidDeviceIds.map(PNCallbackEvent(message.id, _, "INVALID_DEVICE_ID", MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmptyString, "")).persist
 
       val tokens = devicesInfo.map(_.token)
@@ -48,7 +48,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         tokens.map(t => pnInfo.platform.toUpperCase match {
           case "ANDROID" => GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(ttl), dry_run = dryRun)
           case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
-        }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceId, pnInfo.appName, _))
+        }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceIds, pnInfo.appName, _))
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter:: Dropped message since expired.")
         List.empty[GCMPayloadEnvelope] //dropping the PN, its expiry is in past

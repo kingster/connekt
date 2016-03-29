@@ -32,8 +32,8 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
-      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceId).get
-      val invalidDeviceIds = pnInfo.deviceId.diff(devicesInfo.map(_.deviceId))
+      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
+      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId))
       invalidDeviceIds.map(PNCallbackEvent(message.id, _, "INVALID_DEVICE_ID", MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmptyString, "")).persist
 
       val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-windows").get
@@ -54,7 +54,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
           List.empty[WNSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Valid Output for : ${pnInfo.deviceId}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Valid Output for : ${pnInfo.deviceIds}, msgId: ${message.id}")
         List.empty[WNSPayloadEnvelope]
       }
     } catch {

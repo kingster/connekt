@@ -44,22 +44,22 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
 
                     val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
 
-                    if (request.validate() && pnRequestInfo.deviceId.nonEmpty) {
+                    if (request.validate() && pnRequestInfo.deviceIds.nonEmpty) {
 
                       val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
                       /* Find platform for each deviceId, group */
                       appPlatform match {
                         case MobilePlatform.UNKNOWN =>
-                          val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
+                          val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceIds).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
                           groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                            request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                            request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
                           }
                         case _ =>
                           groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
                       }
 
-                      val failure = ListBuffer(pnRequestInfo.deviceId.diff(groupedPlatformRequests.flatMap(_.deviceId)):_ *)
+                      val failure = ListBuffer(pnRequestInfo.deviceIds.diff(groupedPlatformRequests.flatMap(_.deviceId)):_ *)
                       val success = scala.collection.mutable.Map[String, List[String]]()
 
                       if (groupedPlatformRequests.nonEmpty) {
@@ -68,9 +68,9 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                           /* enqueue multiple requests into kafka */
                           ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                             case Success(id) =>
-                              success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                              success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                             case Failure(t) =>
-                              failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                              failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                           }
                         }
                       }
@@ -101,12 +101,12 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                         case MobilePlatform.UNKNOWN =>
                           val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
                           groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                            platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceId = deviceId))
+                            platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
                           }.values
                         case _ =>
                           val osSpecificDeviceIds = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.filter(_.osName == appPlatform.toLowerCase).map(_.deviceId)
                           if (osSpecificDeviceIds.nonEmpty)
-                            groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform, deviceId = osSpecificDeviceIds))
+                            groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform, deviceIds = osSpecificDeviceIds))
                       }
 
                       val failure = ListBuffer[String]()
@@ -118,9 +118,9 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                         groupedPlatformRequests.foreach { p =>
                           ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                             case Success(id) =>
-                              success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                              success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                             case Failure(t) =>
-                              failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceId
+                              failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                           }
                         }
                         complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse(s"PN request processed for user $userId.", success.toMap, failure.toList)))

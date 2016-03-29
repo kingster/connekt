@@ -554,7 +554,7 @@ definitions:
         type: object
         description:  PN Channel Info
         properties:
-          deviceId:
+          deviceIds:
             type: array
             items:
               type: string
