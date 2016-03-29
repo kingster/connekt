@@ -45,7 +45,7 @@ object StringUtils {
   }
 
   implicit class StringOptionHandyFunctions(val obj: Option[String]) {
-    def orEmptyString = obj.getOrElse("")
+    def orEmpty = obj.getOrElse("")
   }
 
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {

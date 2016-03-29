@@ -13,6 +13,8 @@
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -20,6 +22,7 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
@@ -36,7 +39,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
 
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
       val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId))
-      invalidDeviceIds.map(PNCallbackEvent(message.id, _, "INVALID_DEVICE_ID", MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmptyString, "")).persist
+      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
       val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
@@ -47,7 +50,6 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
         val apnsPayload = iOSPNPayload(td._1, ttlInMillis, payloadData)
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
       })
-
 
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
@@ -61,13 +63,14 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
         }
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Valid Output found for : ${pnInfo.deviceIds}, msgId: ${message.id}")
+        apnsEnvelopes.map(e => PNCallbackEvent(e.messageId, e.deviceId, InternalStatus.TTLExpired, MobilePlatform.IOS, e.appName, message.contextId.orEmpty)).persist
         List.empty[APSPayloadEnvelope]
       }
 
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: OnFormat error", e)
-        List.empty[APSPayloadEnvelope]
+        throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, "IOSChannelFormatter::".concat(e.getMessage), e)
     }
   }
 }
