@@ -15,12 +15,12 @@ package com.flipkart.connekt.receptors.routes
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
-import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 import com.flipkart.connekt.receptors.routes.callbacks.CallbackRoute
-import com.flipkart.connekt.receptors.routes.common.{KeyChainRoute, ClientRoute, LdapAuthRoute}
+import com.flipkart.connekt.receptors.routes.common.{ClientRoute, KeyChainRoute, LdapAuthRoute}
 import com.flipkart.connekt.receptors.routes.push.{FetchRoute, RegistrationRoute, SendRoute}
 import com.flipkart.connekt.receptors.routes.reports.ReportsRoute
 import com.flipkart.connekt.receptors.routes.status.SystemStatus
+import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 
 class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
 

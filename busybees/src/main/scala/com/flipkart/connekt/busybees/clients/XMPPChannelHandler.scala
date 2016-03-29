@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils
 import org.jivesoftware.smack.filter.StanzaTypeFilter
 import org.jivesoftware.smack.packet._
 import org.jivesoftware.smack.tcp.{XMPPTCPConnection, XMPPTCPConnectionConfiguration}
-import org.jivesoftware.smack.{ReconnectionManager, ConnectionListener, StanzaListener, XMPPConnection}
+import org.jivesoftware.smack.{ConnectionListener, ReconnectionManager, StanzaListener, XMPPConnection}
 
 import scala.xml.XML
 
