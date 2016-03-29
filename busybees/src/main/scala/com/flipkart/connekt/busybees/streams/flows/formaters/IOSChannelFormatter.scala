@@ -12,11 +12,11 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import java.util.concurrent.TimeUnit
-
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
+import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.CallbackRecorder
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -24,7 +24,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
-class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
+class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) with CallbackRecorder {
 
 
   override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
@@ -33,7 +33,12 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
 
       ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-      val listOfTokenDeviceId = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(r => (r.token, r.deviceId))
+
+      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceId).get
+      val invalidDeviceIds = pnInfo.deviceId.diff(devicesInfo.map(_.deviceId))
+      invalidDeviceIds.map(PNCallbackEvent(message.id, _, "INVALID_DEVICE_ID", MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmptyString, "")).persist
+
+      val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
       val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
 
       val ttlInMillis =  message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)

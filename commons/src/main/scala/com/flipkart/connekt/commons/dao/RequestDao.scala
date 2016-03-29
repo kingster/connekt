@@ -48,6 +48,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
 
       request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
       request.scheduleTs.foreach(requestProps += "scheduleTs" -> _.getBytes)
+      request.contextId.foreach(requestProps += "contextId" -> _.getBytes)
 
       val channelRequestInfoProps = channelRequestInfoMap(request.channelInfo)
       val channelRequestDataProps = Option(request.channelData).map(channelRequestDataMap).getOrElse(Map[String, Array[Byte]]())
@@ -85,6 +86,7 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
 
         ConnektRequest(
           id = connektId,
+          contextId = Option(fields.getS("contextId")),
           channel = fields.getS("channel"),
           sla = fields.getS("sla"),
           templateId = Option(fields.getS("templateId")),
