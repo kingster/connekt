@@ -16,6 +16,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
 import akka.stream.scaladsl.Sink
 import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
+import com.flipkart.connekt.busybees.models.MessageStatus.{InternalStatus, WNSResponseStatus}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -155,26 +156,10 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InternalError, MobilePlatform.WINDOWS, appName, "", "", eventTS)
         })
       case Failure(e) =>
-        Some(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.RequestError, MobilePlatform.WINDOWS, appName, "", e.getMessage, eventTS))
+        Some(PNCallbackEvent(requestId, deviceId, InternalStatus.WNSSendError, MobilePlatform.WINDOWS, appName, "", e.getMessage, eventTS))
     }
 
     maybePNCallbackEvent.toList.persist
     maybePNCallbackEvent
-  }
-
-  object WNSResponseStatus extends Enumeration {
-    type WNSResponseStatus = Value
-    
-    val Received = Value("wns_received")
-    val InvalidHeader = Value("wns_invalid_header")
-    val InvalidMethod = Value("wns_invalid_method")
-    val InvalidChannelUri = Value("wns_invalid_channel_uri")
-    val InvalidDevice = Value("wns_invalid_device")
-    val DeletedDevice = Value("wns_deleted_device")
-    val ThrottleLimitExceeded = Value("wns_throttle_limit_exceeded")
-    val ChannelExpired = Value("wns_channel_expired")
-    val EntityTooLarge = Value("wns_entity_too_large")
-    val InternalError = Value("wns_internal_error")
-    val RequestError = Value("connekt_wns_send_error")
   }
 }

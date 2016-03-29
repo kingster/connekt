@@ -29,9 +29,7 @@ import scala.concurrent.duration._
 
 class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
 
-
   override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
-
     try {
 
       ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
@@ -48,7 +46,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
         val payloadData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
         val apnsPayload = iOSPNPayload(td._1, ttlInMillis, payloadData)
-        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
+        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload)
       })
 
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {

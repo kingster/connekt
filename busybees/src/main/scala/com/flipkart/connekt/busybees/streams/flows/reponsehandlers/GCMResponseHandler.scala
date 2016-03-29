@@ -100,7 +100,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         }
 
       case Failure(e2) =>
-        events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.SendError, MobilePlatform.ANDROID, appName, "", e2.getMessage, eventTS)))
+        events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.GCMSendError, MobilePlatform.ANDROID, appName, "", e2.getMessage, eventTS)))
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler:: GCM send failure for r: $messageId, e: ${e2.getMessage}", e2)
     }
 

@@ -16,6 +16,7 @@ import java.util.Date
 import java.util.concurrent.{ExecutionException, TimeUnit}
 
 import akka.stream._
+import com.flipkart.connekt.busybees.models.MessageStatus.{InternalStatus, APNSResponseStatus}
 import com.flipkart.connekt.busybees.streams.flows.MapGraphStage
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -78,7 +79,7 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[
 
         pushNotificationResponse.isAccepted match {
           case true =>
-            events += PNCallbackEvent(envelope.messageId, envelope.deviceId, "APNS_ACCEPTED", MobilePlatform.IOS.toString, envelope.appName, "", "", System.currentTimeMillis())
+            events += PNCallbackEvent(envelope.messageId, envelope.deviceId, APNSResponseStatus.Received, MobilePlatform.IOS.toString, envelope.appName, "")
           case false =>
             ConnektLogger(LogFile.PROCESSORS).error("APNSDispatcher:: onPush :: Notification rejected by the APNs gateway: " + pushNotificationResponse.getRejectionReason)
 
@@ -87,17 +88,17 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[
               DeviceDetailsService.get(envelope.appName, envelope.deviceId).map {
                 _.filter(_.osName == MobilePlatform.IOS.toString).foreach(d => DeviceDetailsService.delete(envelope.appName, d.deviceId))
               }.get
-              events += PNCallbackEvent(envelope.messageId, envelope.deviceId, "APNS_REJECTED_TOKEN_EXPIRED", MobilePlatform.IOS.toString, envelope.appName, "", "", System.currentTimeMillis())
+              events += PNCallbackEvent(envelope.messageId, envelope.deviceId, APNSResponseStatus.TokenExpired, MobilePlatform.IOS.toString, envelope.appName, "")
               ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: Token Invalid [${message.token}] since " + pushNotificationResponse.getTokenInvalidationTimestamp)
             } else {
-              events += PNCallbackEvent(envelope.messageId, envelope.deviceId, "APNS_REJECTED", MobilePlatform.IOS.toString, envelope.appName, "", "", System.currentTimeMillis())
+              events += PNCallbackEvent(envelope.messageId, envelope.deviceId, APNSResponseStatus.Rejected, MobilePlatform.IOS.toString, envelope.appName, "")
             }
 
         }
       } catch {
         case e: ExecutionException =>
           ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: onPush :: Failed to send push notification: ${envelope.messageId}, ${e.getMessage}", e)
-          events += PNCallbackEvent(envelope.messageId, envelope.deviceId, "APNS_SEND_FAILURE", MobilePlatform.IOS.toString, envelope.appName, "", "", System.currentTimeMillis())
+          events += PNCallbackEvent(envelope.messageId, envelope.deviceId, InternalStatus.APNSSendError, MobilePlatform.IOS.toString, envelope.appName, "")
 
           if (e.getCause.isInstanceOf[ClientNotConnectedException]) {
             ConnektLogger(LogFile.PROCESSORS).debug("APNSDispatcher:: onPush :: Waiting for APNSClient to reconnect.")
@@ -109,7 +110,7 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher:: onPush :: Failed to send push notification : ${envelope.messageId}, ${e.getMessage}", e)
-        events += PNCallbackEvent(envelope.messageId, envelope.deviceId, "APNS_UNKNOWN_FAILURE", MobilePlatform.IOS.toString, envelope.appName, "", "", System.currentTimeMillis())
+        events += PNCallbackEvent(envelope.messageId, envelope.deviceId, "APNS_UNKNOWN_FAILURE", MobilePlatform.IOS.toString, envelope.appName, "", "APNSDispatcher::".concat(e.getMessage))
     }
 
     events.persist
