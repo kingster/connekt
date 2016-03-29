@@ -41,11 +41,7 @@ class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
               parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) { (startTs, endTs, skipIds) =>
 
                 //return if startTs is older than 7 days
-                if (startTs < (System.currentTimeMillis - 7.days.toMillis)) {
-                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Invalid startTs : startTs can be max 7 days from now.", null)))
-                } else if (endTs < startTs) {
-                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"endTs should be greater then startTs.", null)))
-                } else {
+                if (startTs > (System.currentTimeMillis - 7.days.toMillis) ) {
                   val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
                   val messageService = ServiceFactory.getPNMessageService
 
@@ -73,9 +69,10 @@ class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                   }
 
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))
-                    .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString))))
+                      .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString))))
 
-                }
+                } else
+                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Invalid startTs : startTs can be max 7 days from now.", null)))
               }
             }
           }
