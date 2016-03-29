@@ -35,8 +35,9 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val appDataWithId = PNStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
-      val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis)/1000).getOrElse(6.hour.toSeconds)
-
+      var ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis)/1000).getOrElse(6.hour.toSeconds)
+      // time_to_live for GCM must be between 0 and 2419200.
+      ttl = if (ttl > 2419200) 2419200 else ttl
       if ( ttl > 0 ) {
         tokens.map(t => pnInfo.platform.toUpperCase match {
           case "ANDROID" => GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(ttl), dry_run = dryRun)
