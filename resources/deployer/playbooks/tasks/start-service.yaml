@@ -1,0 +1,4 @@
+- name: Re-Start Service {{app}}
+  command: sudo /etc/init.d/fk-pf-connekt restart {{app}}
+- name: Wait 15 Seconds
+  command: sleep 15
