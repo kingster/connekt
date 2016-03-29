@@ -19,7 +19,7 @@ import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.CallbackRecorder
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.{BigfootService, DeviceDetailsService, WindowsOAuthService}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -27,7 +27,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
-class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseErrorHandler[(Try[HttpResponse], WNSRequestTracker), WNSRequestTracker] with CallbackRecorder {
+class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseErrorHandler[(Try[HttpResponse], WNSRequestTracker), WNSRequestTracker] {
 
   val in = Inlet[(Try[HttpResponse], WNSRequestTracker)]("WNSResponseHandler.In")
   val out = Outlet[PNCallbackEvent]("WNSResponseHandler.Out")

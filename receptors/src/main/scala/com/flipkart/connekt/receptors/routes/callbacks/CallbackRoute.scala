@@ -17,12 +17,12 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
-import com.flipkart.connekt.commons.helpers.CallbackRecorder
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
-class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler with CallbackRecorder{
+class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   val callback = pathPrefix("v1") {
     pathPrefix("push") {

@@ -19,16 +19,15 @@ import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.CallbackRecorder
 import com.flipkart.connekt.commons.iomodels.{APSPayloadEnvelope, PNCallbackEvent, iOSPNPayload}
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException}
-
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import scala.collection.mutable.ListBuffer
 
-class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[FlowShape[APSPayloadEnvelope, PNCallbackEvent]] with CallbackRecorder{
+class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[FlowShape[APSPayloadEnvelope, PNCallbackEvent]] {
 
   type AppName = String
   val in = Inlet[APSPayloadEnvelope]("APNSDispatcher.In")

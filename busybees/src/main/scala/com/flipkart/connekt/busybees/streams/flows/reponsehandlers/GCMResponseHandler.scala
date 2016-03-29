@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
-import com.flipkart.connekt.commons.helpers.CallbackRecorder
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{BigfootService, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -30,7 +30,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
-class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] with CallbackRecorder {
+class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] {
 
   val in = Inlet[(Try[HttpResponse], GCMRequestTracker)]("GCMResponseHandler.In")
   val out = Outlet[PNCallbackEvent]("GCMResponseHandler.Out")
