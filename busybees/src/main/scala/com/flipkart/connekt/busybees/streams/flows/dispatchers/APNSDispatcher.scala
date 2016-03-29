@@ -17,18 +17,18 @@ import java.util.concurrent.{ExecutionException, TimeUnit}
 
 import akka.stream.stage._
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
-import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.entities.MobilePlatform
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.CallbackRecorder
 import com.flipkart.connekt.commons.iomodels.{APSPayloadEnvelope, PNCallbackEvent, iOSPNPayload}
-import com.flipkart.connekt.commons.services.{BigfootService, DeviceDetailsService, KeyChainManager}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException}
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
-class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[FlowShape[APSPayloadEnvelope, PNCallbackEvent]] {
+class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[FlowShape[APSPayloadEnvelope, PNCallbackEvent]] with CallbackRecorder{
 
   type AppName = String
   val in = Inlet[APSPayloadEnvelope]("APNSDispatcher.In")
@@ -89,8 +89,7 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends GraphStage[Flo
         events += PNCallbackEvent(envelope.messageId, envelope.deviceId, "APNS_UNKNOWN_FAILURE", MobilePlatform.IOS.toString, envelope.appName, "", "", System.currentTimeMillis())
     }
 
-    events.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
-    events.foreach(e => BigfootService.ingest(e.toBigfootFormat))
+    events.persist
     events.head
   }
 

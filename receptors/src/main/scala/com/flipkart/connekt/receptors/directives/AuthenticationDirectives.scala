@@ -23,7 +23,7 @@ import com.flipkart.connekt.receptors.service.AuthenticationService
 
 trait AuthenticationDirectives {
 
-  private def getHeader(key: String, h: Seq[HttpHeader]): Option[String] = h.find(_.name.equalsIgnoreCase(key)).flatMap(w => Option(w.value))
+  private def getHeader(key: String, h: Seq[HttpHeader]): Option[String] = h.find(_.is(key)).flatMap(w => Option(w.value()))
 
   val X_API_KEY_HEADER = "x-api-key"
 

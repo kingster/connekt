@@ -19,6 +19,7 @@ import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.CallbackRecorder
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.{BigfootService, DeviceDetailsService, WindowsOAuthService}
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -26,7 +27,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
-class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseErrorHandler[(Try[HttpResponse], WNSRequestTracker), WNSRequestTracker] {
+class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseErrorHandler[(Try[HttpResponse], WNSRequestTracker), WNSRequestTracker] with CallbackRecorder {
 
   val in = Inlet[(Try[HttpResponse], WNSRequestTracker)]("WNSResponseHandler.In")
   val out = Outlet[PNCallbackEvent]("WNSResponseHandler.Out")
@@ -155,8 +156,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
         Some(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.RequestError, MobilePlatform.WINDOWS, appName, "", e.getMessage, eventTS))
     }
 
-    maybePNCallbackEvent.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
-    maybePNCallbackEvent.foreach(e => BigfootService.ingest(e.toBigfootFormat))
+    maybePNCallbackEvent.toList.persist
     maybePNCallbackEvent
   }
 
