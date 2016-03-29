@@ -115,7 +115,11 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                   put {
                     authorize(user, bucketIds.map("STENCIL_UPDATE_" + _): _*) {
                       entity(as[Stencil]) { stnc =>
+                        stnc.createdBy = stencil.createdBy
+                        stnc.creationTS = stencil.creationTS
+                        stnc.lastUpdatedTS = new Date(System.currentTimeMillis())
                         stnc.id = id
+                        stnc.version = stencil.version + 1
                         stnc.updatedBy = user.userId
                         stnc.bucket = stencil.bucket.split(",").map(StencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "").mkString(",")
                         StencilService.update(stnc) match {
@@ -148,6 +152,7 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                 stencil.updatedBy = user.userId
                 stencil.version = 1
                 stencil.creationTS = new Date(System.currentTimeMillis())
+                stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
 
                 StencilService.add(stencil) match {
                   case Success(sten) =>
