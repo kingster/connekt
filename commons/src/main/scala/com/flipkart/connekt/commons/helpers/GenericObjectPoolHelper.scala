@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.commons.helpers
 
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.typesafe.config.{Config, ConfigException}
 import org.apache.commons.pool.impl.GenericObjectPool
 

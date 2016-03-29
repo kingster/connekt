@@ -17,6 +17,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities.{AppUser, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
+import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -25,7 +26,6 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
-import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
 class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 

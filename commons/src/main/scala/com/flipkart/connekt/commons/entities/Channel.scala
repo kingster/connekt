@@ -12,8 +12,8 @@
  */
 package com.flipkart.connekt.commons.entities
 
-import com.fasterxml.jackson.core.{JsonParser, JsonGenerator}
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, SerializerProvider, JsonSerializer}
+import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
+import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
 
 object Channel extends Enumeration {
   type Channel = Value

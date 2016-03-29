@@ -20,12 +20,11 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.stream.Materializer
 import akka.stream.scaladsl.FileIO
+import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.receptors.directives.MultiPartFormData._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
-import com.flipkart.connekt.commons.utils.StringUtils._
-
-import MultiPartFormData._
 
 /**
  * Based upon https://github.com/clockfly/akka-http-file-server

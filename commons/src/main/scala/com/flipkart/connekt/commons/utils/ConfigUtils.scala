@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.commons.utils
 
-import com.typesafe.config.{ConfigFactory, ConfigException, Config}
+import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 
 object ConfigUtils {
 

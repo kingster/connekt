@@ -14,6 +14,7 @@ package com.flipkart.connekt.commons.services
 
 import java.util.Properties
 
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.{TRequestDao, TUserConfiguration}
 import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.entities.{AppUser, Channel}
@@ -26,7 +27,6 @@ import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 
 import scala.util.{Failure, Success, Try}
-import com.flipkart.connekt.commons.core.Wrappers._
 
 class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumerHelper) extends TMessageService {
 
