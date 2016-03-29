@@ -15,15 +15,18 @@ package com.flipkart.connekt.busybees
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import akka.stream.{Supervision, ActorMaterializer, ActorMaterializerSettings}
+import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
-import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
+import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
+import com.flipkart.connekt.commons.services.{BigfootService, ConnektConfig, DeviceDetailsService}
 import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import com.typesafe.config.ConfigFactory
@@ -39,6 +42,17 @@ object BusyBeesBoot extends BaseApp {
     .withAutoFusing(enable = false)
 
   lazy implicit val mat = ActorMaterializer(settings)
+
+  implicit val stageSupervisionDecider: Supervision.Decider = {
+    case cEx: ConnektPNStageException =>
+      val callbackEvents = cEx.deviceId.map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
+      callbackEvents.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
+      callbackEvents.foreach(e => BigfootService.ingest(e.toBigfootFormat))
+      Supervision.Resume
+
+    case _ => Supervision.Stop
+  }
+
   var pushTopology: PushTopology = _
 
   def start() {

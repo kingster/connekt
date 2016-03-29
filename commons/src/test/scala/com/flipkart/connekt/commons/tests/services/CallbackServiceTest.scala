@@ -39,6 +39,7 @@ class CallbackServiceTest extends CommonsBaseTest {
 
   var pnInfo = ConnektRequest(
     mid,
+    contextId = None,
     channel = "push",
     sla = "H",
     templateId = Some(UUID.randomUUID().toString),

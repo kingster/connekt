@@ -15,12 +15,8 @@ package com.flipkart.connekt.busybees.streams
 import akka.NotUsed
 import akka.event.Logging
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import akka.stream.{ActorAttributes, Attributes, Materializer, Supervision}
-import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
-import com.flipkart.connekt.commons.entities.Channel
-import com.flipkart.connekt.commons.factories.ServiceFactory
-import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest, PNCallbackEvent}
-import com.flipkart.connekt.commons.services.BigfootService
+import akka.stream.{ActorAttributes, Attributes, Materializer}
+import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest}
 
 trait ConnektTopology[E <:CallbackEvent] {
 
@@ -28,18 +24,7 @@ trait ConnektTopology[E <:CallbackEvent] {
   def transform: Flow[ConnektRequest, E, NotUsed]
   def sink: Sink[E, NotUsed]
 
-  val stageSupervisionDecider: Supervision.Decider = {
-    case cEx: ConnektPNStageException =>
-      val callbackEvents = cEx.deviceId.map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
-      callbackEvents.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
-      callbackEvents.foreach(e => BigfootService.ingest(e.toBigfootFormat))
-      Supervision.Resume
-
-    case _ => Supervision.Stop
-  }
-
   def graph() = source.withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(transform).to(sink)
-    .withAttributes(ActorAttributes.supervisionStrategy(stageSupervisionDecider))
 //    .withAttributes(Attributes.inputBuffer(initial = 16, max = 64))
     .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
 

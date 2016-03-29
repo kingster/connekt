@@ -17,6 +17,7 @@ import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.BusyBeesBoot
+import com.flipkart.connekt.busybees.BusyBeesBoot._
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, HttpDispatcher, WNSDispatcherPrepare}
