@@ -1,5 +1,6 @@
 - hosts: receptors
   serial: 5
+  gather_facts: no
   tasks:
   - name: Set Service
     set_fact:
