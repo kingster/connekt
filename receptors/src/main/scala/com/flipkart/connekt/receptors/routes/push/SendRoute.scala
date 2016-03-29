@@ -25,6 +25,7 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
+import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
 class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
@@ -58,7 +59,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                           groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
                       }
 
-                      var failure = pnRequestInfo.deviceId.diff(groupedPlatformRequests.map(_.channelInfo.asInstanceOf[PNRequestInfo].deviceId))
+                      val failure = ListBuffer(pnRequestInfo.deviceId.diff(groupedPlatformRequests.flatMap(_.deviceId)):_ *)
                       val success = scala.collection.mutable.Map[String, List[String]]()
 
                       if (groupedPlatformRequests.nonEmpty) {
@@ -73,7 +74,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                           }
                         }
                       }
-                      complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN Send Response.", success.toMap, failure)))
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN Send Request Received", success.toMap, failure.toList)))
                     } else {
                       ConnektLogger(LogFile.SERVICE).error(s"Request Validation Failed, $request ")
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Request Validation Failed, Please ensure mandatory field values.", null)))
