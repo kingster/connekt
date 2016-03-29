@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.busybees.streams.flows
 
-import com.flipkart.connekt.busybees.streams.MapFlowStage
+import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.metrics.Instrumented
 

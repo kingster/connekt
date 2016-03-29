@@ -17,7 +17,7 @@ import java.util.concurrent.{ExecutionException, TimeUnit}
 
 import akka.stream.stage._
 import akka.stream._
-import com.flipkart.connekt.busybees.streams.MapGraphStage
+import com.flipkart.connekt.busybees.streams.flows.MapGraphStage
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, APSPayloadEnvelope, PNCallbackEvent, iOSPNPayload}

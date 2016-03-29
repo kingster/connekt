@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{Supervision, ActorMaterializer, ActorMaterializerSettings}
-import com.flipkart.connekt.busybees.streams.StageSupervision
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
+import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider

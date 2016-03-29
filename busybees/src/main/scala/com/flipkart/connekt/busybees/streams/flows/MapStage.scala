@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.busybees.streams
+package com.flipkart.connekt.busybees.streams.flows
 
 import akka.stream._
 import akka.stream.scaladsl.Flow
