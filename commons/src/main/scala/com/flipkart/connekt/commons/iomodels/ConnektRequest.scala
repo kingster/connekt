@@ -18,7 +18,7 @@ import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils
 
 case class ConnektRequest(@JsonProperty(required = false) id: String,
-                          @JsonProperty(required = false) contextId: String,
+                          contextId: Option[String],
                           channel: String,
                           @JsonProperty(required = true) sla: String,
                           templateId: Option[String],
