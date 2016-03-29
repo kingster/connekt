@@ -13,8 +13,8 @@
 package com.flipkart.connekt.commons.entities.fabric
 
 import com.flipkart.connekt.commons.utils.StringUtils._
-import groovy.lang.GroovyClassLoader
 import com.roundeights.hasher.Implicits._
+import groovy.lang.GroovyClassLoader
 
 object FabricMaker {
 

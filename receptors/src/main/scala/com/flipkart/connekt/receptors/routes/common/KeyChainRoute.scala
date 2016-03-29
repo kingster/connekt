@@ -16,8 +16,7 @@ import java.io.File
 
 import _root_.akka.stream.ActorMaterializer
 import akka.http.scaladsl.model.StatusCodes
-import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
-import com.flipkart.connekt.commons.entities.MobilePlatform._
+import com.flipkart.connekt.commons.entities.MobilePlatform.{MobilePlatform, _}
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}

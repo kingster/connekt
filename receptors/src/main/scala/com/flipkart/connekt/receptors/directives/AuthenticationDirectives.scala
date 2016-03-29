@@ -13,12 +13,12 @@
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsRejected, CredentialsMissing}
-import akka.http.scaladsl.server.{AuthenticationFailedRejection, Directive1}
+import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsMissing, CredentialsRejected}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.{BasicDirectives, RouteDirectives}
+import akka.http.scaladsl.server.{AuthenticationFailedRejection, Directive1}
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.receptors.service.AuthenticationService
 
 trait AuthenticationDirectives {

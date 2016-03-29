@@ -14,19 +14,17 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.entities.{AppUser, Channel}
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
+import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{PNStencilService, StencilService, ConnektConfig}
+import com.flipkart.connekt.commons.services.{ConnektConfig, StencilService}
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration._
 import scala.util.Try
-import com.flipkart.connekt.commons.utils.StringUtils._
 
 class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 

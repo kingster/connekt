@@ -12,13 +12,12 @@
  */
 package com.flipkart.connekt.commons.entities
 
-import java.io.{OutputStream, FileOutputStream, FileInputStream, File}
+import java.io.{File, FileInputStream, FileOutputStream, OutputStream}
 
 import com.esotericsoftware.kryo.serializers.FieldSerializer
 import com.flipkart.connekt.commons.utils.StringUtils
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang.{StringUtils => ApacheStringUtils}
-import scala.collection.JavaConverters._
 
 abstract class Credential extends Serializable
 

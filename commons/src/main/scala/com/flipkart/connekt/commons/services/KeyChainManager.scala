@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.commons.services
 
-import com.flipkart.connekt.commons.cache.{LocalCacheType, LocalCacheManager}
+import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.factories.ServiceFactory

@@ -12,8 +12,6 @@
  */
 package com.flipkart.connekt.commons.services
 
-import java.util.UUID
-
 import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
 import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.TUserInfo

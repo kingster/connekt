@@ -18,7 +18,6 @@ import javax.sql.DataSource
 import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.typesafe.config.Config
-import org.apache.commons.dbcp2.BasicDataSourceFactory
 import org.springframework.jdbc.core.JdbcTemplate
 
 class MySQLFactoryWrapper private(config: Properties, connProvider: TConnectionProvider) extends MySQLFactory {

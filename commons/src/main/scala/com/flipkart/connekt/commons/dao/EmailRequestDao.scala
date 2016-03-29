@@ -13,7 +13,7 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.behaviors.HTableFactory
-import com.flipkart.connekt.commons.iomodels.{ChannelRequestInfo, ChannelRequestData}
+import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequestInfo}
 
 /**
  * @author aman.shrivastava on 14/12/15.
