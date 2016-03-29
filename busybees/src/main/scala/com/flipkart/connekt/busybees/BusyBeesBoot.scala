@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{Supervision, ActorMaterializer, ActorMaterializerSettings}
+import com.flipkart.connekt.busybees.streams.StageSupervision
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
@@ -39,19 +40,10 @@ object BusyBeesBoot extends BaseApp {
 
   val settings = ActorMaterializerSettings(system)
     .withDispatcher("akka.actor.default-dispatcher")
-    .withAutoFusing(enable = false)
+    .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
+    .withSupervisionStrategy(StageSupervision.decider)
 
   lazy implicit val mat = ActorMaterializer(settings)
-
-  implicit val stageSupervisionDecider: Supervision.Decider = {
-    case cEx: ConnektPNStageException =>
-      val callbackEvents = cEx.deviceId.map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
-      callbackEvents.foreach(e => ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e))
-      callbackEvents.foreach(e => BigfootService.ingest(e.toBigfootFormat))
-      Supervision.Resume
-
-    case _ => Supervision.Stop
-  }
 
   var pushTopology: PushTopology = _
 
