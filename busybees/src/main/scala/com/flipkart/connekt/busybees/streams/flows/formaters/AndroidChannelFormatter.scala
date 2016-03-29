@@ -38,7 +38,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
       val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId))
-      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty, "")).persist
+      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val tokens = devicesInfo.map(_.token)
       val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
@@ -54,7 +54,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceIds, pnInfo.appName, _))
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter:: Dropped message since expired/invalid.")
-        pnInfo.deviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.TTLExpired, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty, "")).persist
+        devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
         List.empty[GCMPayloadEnvelope]
       }
     } catch {
