@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider
@@ -36,9 +37,11 @@ object BusyBeesBoot extends BaseApp {
 
   val settings = ActorMaterializerSettings(system)
     .withDispatcher("akka.actor.default-dispatcher")
-    .withAutoFusing(enable = false)
+    .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
+    .withSupervisionStrategy(StageSupervision.decider)
 
   lazy implicit val mat = ActorMaterializer(settings)
+
   var pushTopology: PushTopology = _
 
   def start() {

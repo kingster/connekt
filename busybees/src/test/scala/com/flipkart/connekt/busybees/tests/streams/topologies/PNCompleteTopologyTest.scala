@@ -77,7 +77,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
         |		"delayWhileIdle": true,
         |		"platform": "ios",
         |		"appName": "UT",
-        |		"deviceId": [ "VM6DODCT7BEOO0LGMH1Q399O96LPMRYE" ]
+        |		"deviceIds": [ "VM6DODCT7BEOO0LGMH1Q399O96LPMRYE" ]
         |	},
         |	"meta": {}
         |}
@@ -109,7 +109,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
         |		"delayWhileIdle": true,
         |		"platform": "android",
         |		"appName": "UT",
-        |		"deviceId": [ "EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97" ]
+        |		"deviceIds": [ "EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97" ]
         |	},
         |	"meta": {}
         |}
@@ -141,7 +141,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
 
         val out = Sink.foreach[String](println)
 
-        val render = b.add(new RenderFlow)
+        val render = b.add(new RenderFlow().flow)
 
         val iosFormat = b.add(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
         val iosDispatch = b.add(new APNSDispatcher)

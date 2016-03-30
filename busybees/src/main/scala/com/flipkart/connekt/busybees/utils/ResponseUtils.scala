@@ -16,9 +16,8 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.stream.Materializer
 
 import scala.concurrent.Await
-import scala.concurrent.duration._
-
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 object ResponseUtils {
 

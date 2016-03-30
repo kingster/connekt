@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import java.util.concurrent.atomic.AtomicLong
@@ -17,9 +29,6 @@ import jdk.nashorn.internal.ir.annotations.Ignore
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-/**
- * @author aman.shrivastava on 16/03/16.
- */
 @Ignore
 class StencilBenchmarkTest extends TopologyUTSpec with Instrumented {
 
@@ -60,7 +69,7 @@ class StencilBenchmarkTest extends TopologyUTSpec with Instrumented {
         |    	"delayWhileIdle": true,
         |     "platform" :  "android",
         |     "appName" : "ConnectSampleApp",
-        |     "deviceId" : ["513803e45cf1b344ef494a04c9fb650a"]
+        |     "deviceIds" : ["513803e45cf1b344ef494a04c9fb650a"]
         |	},
         |	"meta": {
         |   "x-perf-test" : "true"
@@ -69,7 +78,7 @@ class StencilBenchmarkTest extends TopologyUTSpec with Instrumented {
       """.stripMargin.getObj[ConnektRequest]
     }
 
-    val renderFlow = Flow.fromGraph(new RenderFlow).map(rT => {
+    val renderFlow = Flow.fromGraph(new RenderFlow().flow).map(rT => {
       qps.mark()
       if(0 == (counter.incrementAndGet() % 1000)) {
         val now = System.currentTimeMillis

@@ -539,6 +539,9 @@ definitions:
       templateId:
         type: string
         description: Optional TemplateId
+      contextId:
+        type: string
+        description: Optional contextId for tracking
       expiryTs:
         type: number
         format: long
@@ -551,7 +554,7 @@ definitions:
         type: object
         description:  PN Channel Info
         properties:
-          deviceId:
+          deviceIds:
             type: array
             items:
               type: string

@@ -44,6 +44,10 @@ object StringUtils {
     def getUtf8BytesNullWrapped = Option(s).map(_.getUtf8Bytes).orNull.wrap
   }
 
+  implicit class StringOptionHandyFunctions(val obj: Option[String]) {
+    def orEmpty = obj.getOrElse("")
+  }
+
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
     def getString = new String(b, CharEncoding.UTF_8)
 

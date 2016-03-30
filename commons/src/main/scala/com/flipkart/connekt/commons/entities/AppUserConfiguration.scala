@@ -15,11 +15,8 @@ package com.flipkart.connekt.commons.entities
 import java.util.Date
 import javax.persistence.Column
 
-import com.fasterxml.jackson.core.{JsonParser, JsonGenerator}
 import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize}
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, SerializerProvider, JsonSerializer}
 import com.flipkart.connekt.commons.entities.Channel._
-import org.apache.commons.lang.StringUtils
 
 class AppUserConfiguration {
 

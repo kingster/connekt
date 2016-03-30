@@ -39,6 +39,7 @@ class CallbackServiceTest extends CommonsBaseTest {
 
   var pnInfo = ConnektRequest(
     mid,
+    contextId = None,
     channel = "push",
     sla = "H",
     templateId = Some(UUID.randomUUID().toString),
@@ -46,7 +47,7 @@ class CallbackServiceTest extends CommonsBaseTest {
     expiryTs = Some(System.currentTimeMillis()),
     channelInfo = PNRequestInfo(platform = callBackEvent.platform,
       appName = callBackEvent.appName,
-      deviceId = List[String](callBackEvent.deviceId),
+      deviceIds = List[String](callBackEvent.deviceId),
       ackRequired = true,
       delayWhileIdle = true),
     channelData = PNRequestData(data.getObj[ObjectNode]),

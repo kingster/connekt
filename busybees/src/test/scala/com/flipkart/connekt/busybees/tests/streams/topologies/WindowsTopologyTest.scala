@@ -13,27 +13,21 @@
 package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpRequest
 import akka.stream.ClosedShape
-import akka.stream.scaladsl.{RunnableGraph, GraphDSL, Sink, Source}
+import akka.stream.scaladsl.GraphDSL.Implicits._
+import akka.stream.scaladsl.{GraphDSL, RunnableGraph, Sink, Source, _}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.WNSDispatcherPrepare
 import com.flipkart.connekt.busybees.streams.flows.formaters.WindowsChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.WNSResponseHandler
-import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.iomodels.{WNSPayloadEnvelope, PNCallbackEvent, ConnektRequest}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent, WNSPayloadEnvelope}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import akka.stream.scaladsl.GraphDSL.Implicits._
-import akka.stream.scaladsl._
 
 class WindowsTopologyTest extends TopologyUTSpec {
   "WindowsTopology Test" should "run" in {
@@ -88,7 +82,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
                       |    	"delayWhileIdle": true,
                       |      "platform" :  "windows",
                       |      "appName" : "retailapp",
-                      |      "deviceId" : ["$deviceId"]
+                      |      "deviceIds" : ["$deviceId"]
                       |	},
                       |	"meta": {}
                       |}
@@ -101,9 +95,9 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
         val out = Sink.foreach[PNCallbackEvent](println)
 
-        val render = b.add(new RenderFlow)
+        val render = b.add(new RenderFlow().flow)
         val formatter = b.add(new WindowsChannelFormatter(1)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
-        val dispatcher = b.add(new WNSDispatcherPrepare)
+        val dispatcher = b.add(new WNSDispatcherPrepare().flow)
 
         val pipeInletMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
 

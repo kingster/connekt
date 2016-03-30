@@ -14,19 +14,17 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.entities.{AppUser, Channel}
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
+import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{PNStencilService, StencilService, ConnektConfig}
+import com.flipkart.connekt.commons.services.{ConnektConfig, StencilService}
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration._
 import scala.util.Try
-import com.flipkart.connekt.commons.utils.StringUtils._
 
 class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 
@@ -41,11 +39,7 @@ class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
               parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) { (startTs, endTs, skipIds) =>
 
                 //return if startTs is older than 7 days
-                if (startTs < (System.currentTimeMillis - 7.days.toMillis)) {
-                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Invalid startTs : startTs can be max 7 days from now.", null)))
-                } else if (endTs < startTs) {
-                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"endTs should be greater then startTs.", null)))
-                } else {
+                if (startTs > (System.currentTimeMillis - 7.days.toMillis) ) {
                   val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
                   val messageService = ServiceFactory.getPNMessageService
 
@@ -73,9 +67,10 @@ class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                   }
 
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))
-                    .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString))))
+                      .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString))))
 
-                }
+                } else
+                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Invalid startTs : startTs can be max 7 days from now.", null)))
               }
             }
           }

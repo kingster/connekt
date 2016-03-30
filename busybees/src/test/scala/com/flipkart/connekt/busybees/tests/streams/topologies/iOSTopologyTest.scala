@@ -16,7 +16,6 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.APNSDispatcher
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
-import com.flipkart.connekt.busybees.streams.sources.RateControl
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
@@ -59,7 +58,7 @@ class iOSTopologyTest extends TopologyUTSpec {
                      |    	"delayWhileIdle": true,
                      |      "platform" :  "ios",
                      |      "appName" : "RetailApp",
-                     |      "deviceId" : ["$deviceId"]
+                     |      "deviceIds" : ["$deviceId"]
                      |	},
                      |	"meta": {}
                      |}
@@ -67,7 +66,7 @@ class iOSTopologyTest extends TopologyUTSpec {
 
 
     val result = Source.single(cRequest)
-      .via(new RenderFlow)
+      .via(new RenderFlow().flow)
       .via(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
       .via(new APNSDispatcher())
       .runWith(Sink.head)

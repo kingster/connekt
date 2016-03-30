@@ -74,7 +74,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
         |    	"delayWhileIdle": true,
         |     "platform" :  "android",
         |     "appName" : "ConnectSampleApp",
-        |     "deviceId" : ["513803e45cf1b344ef494a04c9fb650a"]
+        |     "deviceIds" : ["513803e45cf1b344ef494a04c9fb650a"]
         |	},
         |	"meta": {
         |   "x-perf-test" : "true"
@@ -83,11 +83,11 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
       """.stripMargin.getObj[ConnektRequest]
     }
 
-    val render = Flow.fromGraph(new RenderFlow)
+    val render = Flow.fromGraph(new RenderFlow().flow)
     val gcmFmt = Flow.fromGraph(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-    val gcmPrepare = Flow.fromGraph(new GCMDispatcherPrepare)
-    val gcmRHandler = Flow.fromGraph(new GCMResponseHandler)
-    val metrics = Flow.fromGraph(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH))
+    val gcmPrepare = Flow.fromGraph(new GCMDispatcherPrepare().flow)
+    val gcmRHandler = Flow.fromGraph(new GCMResponseHandler().flow)
+    val metrics = Flow.fromGraph(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH).flow)
     val eventCreator = Flow.fromGraph(new PNBigfootEventCreator)
     val qps = meter("android.send")
 

@@ -16,7 +16,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream._
 import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContextExecutor

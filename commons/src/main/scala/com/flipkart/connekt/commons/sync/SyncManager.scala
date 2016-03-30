@@ -14,8 +14,8 @@ package com.flipkart.connekt.commons.sync
 
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
+import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import org.apache.curator.framework.recipes.cache._
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryForever

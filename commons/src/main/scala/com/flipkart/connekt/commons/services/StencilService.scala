@@ -22,7 +22,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ChannelRequestData
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.sync.SyncType._
-import com.flipkart.connekt.commons.sync.{SyncMessage, SyncDelegate, SyncManager, SyncType}
+import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncMessage, SyncType}
 import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Success, Try}

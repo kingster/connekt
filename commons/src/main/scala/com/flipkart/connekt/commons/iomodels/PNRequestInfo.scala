@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 case class PNRequestInfo(@JsonProperty(required = false) platform: String,
                          @JsonProperty(required = false) appName: String,
-                         @JsonProperty(required = false) deviceId: List[String] = List.empty[String],
+                         @JsonProperty(required = false) deviceIds: List[String] = List.empty[String],
                          ackRequired: Boolean,
                          delayWhileIdle: Boolean) extends ChannelRequestInfo {
   def this() {

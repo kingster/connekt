@@ -13,17 +13,17 @@
 package com.flipkart.connekt.receptors.directives
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsRejected, CredentialsMissing}
-import akka.http.scaladsl.server.{AuthenticationFailedRejection, Directive1}
+import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsMissing, CredentialsRejected}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.{BasicDirectives, RouteDirectives}
+import akka.http.scaladsl.server.{AuthenticationFailedRejection, Directive1}
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.receptors.service.AuthenticationService
 
 trait AuthenticationDirectives {
 
-  private def getHeader(key: String, h: Seq[HttpHeader]): Option[String] = h.find(_.name.equalsIgnoreCase(key)).flatMap(w => Option(w.value))
+  private def getHeader(key: String, h: Seq[HttpHeader]): Option[String] = h.find(_.is(key)).flatMap(w => Option(w.value()))
 
   val X_API_KEY_HEADER = "x-api-key"
 

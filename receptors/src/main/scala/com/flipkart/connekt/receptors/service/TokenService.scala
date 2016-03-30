@@ -15,9 +15,9 @@ package com.flipkart.connekt.receptors.service
 import java.util.UUID
 
 import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedCacheType}
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
-import com.flipkart.connekt.commons.core.Wrappers._
 
 import scala.util.Try
 

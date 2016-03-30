@@ -17,8 +17,8 @@ import javax.sql.DataSource
 
 import com.couchbase.client.java.{Cluster, CouchbaseCluster}
 import org.apache.commons.dbcp2.BasicDataSourceFactory
-import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 
 import scala.collection.JavaConverters._
 
