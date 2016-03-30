@@ -53,7 +53,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
           case 200 =>
             try {
               val responseBody = stringResponse.getObj[ObjectNode]
-              val deviceIdItr = deviceIds.iterator
+              val deviceIdItr = deviceIds.listIterator()
 
               responseBody.findValue("results").foreach(rBlock => {
                 val rDeviceId = deviceIdItr.next()

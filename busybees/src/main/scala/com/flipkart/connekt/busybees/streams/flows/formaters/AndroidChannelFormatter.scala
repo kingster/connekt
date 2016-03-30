@@ -37,7 +37,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
-      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
+      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId))
       invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val tokens = devicesInfo.map(_.token)

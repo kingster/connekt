@@ -47,7 +47,7 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
-        throw new ConnektPNStageException(message.messageId, Set(message.deviceId), "connekt_gcmprepare_failure", message.appName, MobilePlatform.ANDROID, "TODO/Context", e.getMessage, e)
+        throw new ConnektPNStageException(message.messageId, List(message.deviceId), "connekt_gcmprepare_failure", message.appName, MobilePlatform.ANDROID, "TODO/Context", e.getMessage, e)
     }
   }
 }

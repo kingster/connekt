@@ -30,4 +30,4 @@ abstract class ResponseBody
 
 case class Response(message: String, data: Any) extends ResponseBody
 
-case class SendResponse(message: String, success: Map[String, Set[String]], failure: List[String]) extends ResponseBody
+case class SendResponse(message: String, success: Map[String, List[String]], failure: List[String]) extends ResponseBody
