@@ -41,7 +41,7 @@ class DeviceDetailsDaoTest extends CommonsBaseTest {
   }
 
   "Device Details Dao" should "fetch multiple Device details" in {
-    DaoFactory.getDeviceDetailsDao.get(appName, Set(deviceId)).head shouldEqual deviceDetails
+    DaoFactory.getDeviceDetailsDao.get(appName, List(deviceId)).head shouldEqual deviceDetails
   }
 
   "Device Details Dao" should " get by userId" in {

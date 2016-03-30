@@ -51,7 +51,7 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                       /* Find platform for each deviceId, group */
                       appPlatform match {
                         case MobilePlatform.UNKNOWN =>
-                          val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceIds).get.groupBy(_.osName).mapValues(_.map(_.deviceId).toSet)
+                          val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceIds).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
                           groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
                             request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
                           }
@@ -59,8 +59,8 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                           groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
                       }
 
-                      val failure = ListBuffer(pnRequestInfo.deviceIds.toList.diff(groupedPlatformRequests.flatMap(_.deviceId)): _ *)
-                      val success = scala.collection.mutable.Map[String, Set[String]]()
+                      val failure = ListBuffer(pnRequestInfo.deviceIds.diff(groupedPlatformRequests.flatMap(_.deviceId)):_ *)
+                      val success = scala.collection.mutable.Map[String, List[String]]()
 
                       if (groupedPlatformRequests.nonEmpty) {
                         val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
@@ -99,18 +99,18 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
 
                       appPlatform match {
                         case MobilePlatform.UNKNOWN =>
-                          val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.groupBy(_.osName).mapValues(_.map(_.deviceId).toSet)
+                          val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.groupBy(_.osName).mapValues(_.map(_.deviceId))
                           groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
                             platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
                           }.values
                         case _ =>
-                          val osSpecificDeviceIds = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.filter(_.osName == appPlatform.toLowerCase).map(_.deviceId).toSet
+                          val osSpecificDeviceIds = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.filter(_.osName == appPlatform.toLowerCase).map(_.deviceId)
                           if (osSpecificDeviceIds.nonEmpty)
                             groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform, deviceIds = osSpecificDeviceIds))
                       }
 
                       val failure = ListBuffer[String]()
-                      val success = scala.collection.mutable.Map[String, Set[String]]()
+                      val success = scala.collection.mutable.Map[String, List[String]]()
 
                       if (groupedPlatformRequests.nonEmpty) {
 
