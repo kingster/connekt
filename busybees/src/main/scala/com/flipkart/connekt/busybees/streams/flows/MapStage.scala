@@ -82,11 +82,14 @@ private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[Flow
 object StageSupervision {
   val decider: Supervision.Decider = {
     case cEx: ConnektPNStageException =>
+      ConnektLogger(LogFile.PROCESSORS).warn("StageSupervision Handle ConnektPNStageException")
       cEx.deviceId
         .map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
         .persist
       Supervision.Resume
 
-    case _ => Supervision.Stop
+    case e:Throwable =>
+      ConnektLogger(LogFile.PROCESSORS).error("StageSupervision Handle Unknown Exception",e)
+      Supervision.Stop
   }
 }
