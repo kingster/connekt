@@ -32,15 +32,13 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     m.toMap
   }
 
-  override protected def getChannelRequestInfo(reqInfoProps: Map[String, Array[Byte]]): ChannelRequestInfo = {
-    PNRequestInfo(
-      platform = reqInfoProps.getS("platform"),
-      appName = reqInfoProps.getS("appName"),
-      deviceIds = reqInfoProps.getS("deviceId").split(",").toList,
-      ackRequired = reqInfoProps.getB("ackRequired"),
-      delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
-    )
-  }
+  override protected def getChannelRequestInfo(reqInfoProps: Map[String, Array[Byte]]): ChannelRequestInfo = PNRequestInfo(
+    platform = reqInfoProps.getS("platform"),
+    appName = reqInfoProps.getS("appName"),
+    deviceIds = reqInfoProps.getS("deviceId").split(",").toSet,
+    ackRequired = reqInfoProps.getB("ackRequired"),
+    delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
+  )
 
   override protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]] = {
     Option(channelRequestData).map(d => {
