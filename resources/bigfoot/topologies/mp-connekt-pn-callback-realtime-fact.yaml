@@ -32,19 +32,19 @@ transformation_bolt:
     parallelism_hint: 50
     schema_map:
         app_name:
-            column_definition: data['data']('appName')
+            column_definition: data['data'].get('appName')
             column_type: java.lang.String
         context_id:
-            column_definition: data['data']('contextId')
+            column_definition: data['data'].get('contextId')
             column_type: java.lang.String
         event_type:
-            column_definition: data['data']('eventType')
+            column_definition: data['data'].get('eventType')
             column_type: java.lang.String
         platform:
-            column_definition: data['data']('platform')
+            column_definition: data['data'].get('platform')
             column_type: java.lang.String
         timestamp:
-            column_definition: data['data']('timestamp')
+            column_definition: data['data'].get('timestamp')
             column_type: java.lang.String
         
 sink_bolt:
