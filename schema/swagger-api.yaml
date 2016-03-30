@@ -313,14 +313,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /reports/push/{appName}/messages/{messageId}/events:
+  /reports/push/messages/{messageId}/events:
     get:
       summary: Message Events
       description: |
         Event's for given MessageId
       parameters:
         - $ref: '#/parameters/api-key'
-        - $ref: '#/parameters/appName'
         - $ref: '#/parameters/messageId'
       tags:
         - "Report"
@@ -331,14 +330,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /reports/push/{appName}/messages/{messageId}:
+  /reports/push/messages/{messageId}:
     get:
       summary: PN Request Data
       description: |
         Get Request Payload
       parameters:
         - $ref: '#/parameters/api-key'
-        - $ref: '#/parameters/appName'
         - $ref: '#/parameters/messageId'
       tags:
         - "Report"
@@ -349,23 +347,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /reports/push/{appName}/messages/{deviceId}/{messageId}/events:
-    get:
-      tags:
-      - "Report"
-      operationId: "getEventsForSpecificUserMessage"
-      summary: "fetch events for specific message of a user"
-      description: "fetch events for specific message of a user"
-      produces:
-      - "application/json"
-      parameters:
-        - $ref: '#/parameters/api-key'
-        - $ref: '#/parameters/appName'
-        - $ref: '#/parameters/deviceId'
-        - $ref: '#/parameters/messageId'
-      responses:
-        200:
-          description: "fetched events for user's messageId"
   /client/{clientName}:
     get:
       tags:
