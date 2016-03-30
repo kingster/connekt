@@ -16,6 +16,7 @@ import java.net.URI
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
+import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
@@ -30,8 +31,8 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
 
   override val map: WNSPayloadEnvelope => List[(HttpRequest, WNSRequestTracker)] = message => {
     try {
-      ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher:: ON_PUSH for ${message.messageId}")
-      ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher:: onPush:: Received Message: $message")
+      ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher received message: ${message.messageId}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"WNSDispatcher received message: $message")
 
       val uri = new URI(message.token).toURL
       val bearerToken = WindowsOAuthService.getToken(message.appName).map(_.token).getOrElse("INVALID")
@@ -47,7 +48,7 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
-        throw new ConnektPNStageException(message.messageId, Set(message.deviceId), "connekt_gcmprepare_failure", message.appName, MobilePlatform.ANDROID, "TODO/Context", e.getMessage, e)
+        throw new ConnektPNStageException(message.messageId, Set(message.deviceId), InternalStatus.StageError, message.appName, MobilePlatform.ANDROID, message.contextId, s"WNSDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }

@@ -32,7 +32,8 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
   override def map: ConnektRequest => List[GCMPayloadEnvelope] = message => {
 
     try {
-      ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelFormatter:: onPush:: Received Message: ${message.getJson}")
+      ConnektLogger(LogFile.PROCESSORS).info(s"AndroidChannelFormatter received message: ${message.id}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"AndroidChannelFormatter received message: ${message.toString}")
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
@@ -53,13 +54,13 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
           case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
         }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceIds, pnInfo.appName, message.contextId.orEmpty , _))
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter:: Dropped message since expired/invalid.")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
         List.empty[GCMPayloadEnvelope]
       }
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter:: OnFormat error", e)
+        ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter error for ${message.id}", e)
         throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, "AndroidChannelFormatter::".concat(e.getMessage), e)
     }
   }

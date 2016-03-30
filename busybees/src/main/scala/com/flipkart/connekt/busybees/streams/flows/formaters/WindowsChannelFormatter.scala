@@ -31,7 +31,8 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
   override def map: (ConnektRequest) => List[WNSPayloadEnvelope] = message => {
 
     try {
-      ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: Received Message: ${message.getJson}")
+      ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter received message: ${message.id}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"WindowsChannelFormatter received message: ${message.getJson}")
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
@@ -50,20 +51,20 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       if(wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0 ) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
         if (!dryRun) {
-          ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: PUSHED downstream for ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).trace(s"WindowsChannelFormatter pushed downstream for: ${message.id}")
           wnsRequestEnvelopes
         } else {
-          ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: Dry Run Dropping msgId: ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter dropping dry-run message: ${message.id}")
           List.empty[WNSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Valid Output for : ${pnInfo.deviceIds}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter dropping ttl-expired message: ${message.id}")
         wnsRequestEnvelopes.map(w => PNCallbackEvent(w.messageId, w.deviceId, InternalStatus.TTLExpired, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
         List.empty[WNSPayloadEnvelope]
       }
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: OnFormat error", e)
+        ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter error for message: ${message.id}", e)
         throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, "WindowsChannelFormatter::".concat(e.getMessage), e)
     }
   }

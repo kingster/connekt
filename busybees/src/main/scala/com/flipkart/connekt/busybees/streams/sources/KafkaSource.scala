@@ -69,11 +69,11 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
             commitOffset(n.offset)
             push(out, m)
           case None =>
-            ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource:: no valid data in 1000 retries.")
+            ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource no valid data in 1000 retries.")
             scheduleOnce(TimerPollTrigger, timerDelayInMs)
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).trace(s"KafkaSource:: pushElement no-data")
+        ConnektLogger(LogFile.PROCESSORS).trace(s"KafkaSource pushElement no-data")
         scheduleOnce(TimerPollTrigger, timerDelayInMs)
       }
 
@@ -85,7 +85,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
         pushElement()
       } catch {
         case e: Exception =>
-          ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource:: iteration error: ${e.getMessage}", e)
+          ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource iteration error: ${e.getMessage}", e)
           kafkaConsumerHelper.returnConnector(kafkaConsumerConnector)
           createKafkaConsumer()
         /*failStage(e)*/
@@ -120,17 +120,17 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
     val consumerStreams = kafkaConnector.createMessageStreams(Map[String, Int](topic -> 1), new DefaultDecoder(), new MessageDecoder[V]())
     val streams = consumerStreams.getOrElse(topic,throw new Exception(s"No KafkaStreams for topic: $topic"))
     Try(streams.map(_.iterator()).head).getOrElse {
-      ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource:: stream could not be created for $topic")
+      ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource stream could not be created for $topic")
       Iterator.empty
     }
   }
 
   private def createKafkaConsumer(): Unit = {
-    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource::createKafkaConsumer")
+    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource create kafka consumer")
 
     kafkaConsumerConnector = kafkaConsumerHelper.getConnector
     iterator = initIterator(kafkaConsumerConnector)
-    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource::initIterator Complete")
+    ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource init iterator complete")
   }
 }
 
@@ -139,7 +139,7 @@ class MessageDecoder[T: ClassTag](implicit tag: ClassTag[T]) extends Decoder[Opt
     Option(objMapper.readValue(bytes.getString, tag.runtimeClass).asInstanceOf[T])
   } catch {
     case e: Exception =>
-      ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource::DeSerialization failure, ${e.getMessage}")
+      ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource de-serialization failure, ${e.getMessage}", e)
       None
   }
 }

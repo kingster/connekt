@@ -72,13 +72,13 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing IOS message: ${ios.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"routing ios message: ${ios.id}")
         0
       case android if "android".equals(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing ANDROID message: ${android.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"routing android message: ${android.id}")
         1
       case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing WINDOWS message: ${windows.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"routing windows message: ${windows.id}")
         2
     }))
 
@@ -154,6 +154,6 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def shutdown() = {
     /* terminate in top-down approach from all Source(s) */
-    sourceSwitches.foreach(_.success("PushTopology:: signal source shutdown."))
+    sourceSwitches.foreach(_.success("PushTopology signal source shutdown"))
   }
 }

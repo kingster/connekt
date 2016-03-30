@@ -14,10 +14,10 @@ package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
 import java.net.URL
 
-import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
+import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -31,23 +31,19 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
 
   override implicit val map: GCMPayloadEnvelope => List[(HttpRequest, GCMRequestTracker)] = message => {
     try {
-      ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: ON_PUSH for ${message.messageId}")
-      ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: onPush:: Received Message: ${message.toString}")
+      ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare received message: ${message.messageId}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"GCMDispatcherPrepare received message: ${message.toString}")
 
       val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))
       val httpRequest = new HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
       val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName, message.contextId)
 
-      ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: onPush:: Request Payload : ${httpRequest.entity.asInstanceOf[Strict].data.decodeString("UTF-8")}")
-      ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare:: onPush:: Relayed (HttpRequest,requestTrace) to next stage for: ${requestTrace.messageId}")
-
       List((httpRequest, requestTrace))
-
     } catch {
       case e: Throwable =>
-        ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare:: onPush :: ${e.getMessage}", e)
-        throw new ConnektPNStageException(message.messageId, message.deviceId, "connekt_gcmprepare_failure", message.appName, MobilePlatform.ANDROID, "TODO/Context", e.getMessage, e)
+        ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare failed with ${e.getMessage}", e)
+        throw new ConnektPNStageException(message.messageId, message.deviceId, InternalStatus.StageError, message.appName, MobilePlatform.ANDROID, message.contextId, s"GCMDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }
