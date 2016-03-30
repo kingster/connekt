@@ -47,7 +47,7 @@ class CallbackServiceTest extends CommonsBaseTest {
     expiryTs = Some(System.currentTimeMillis()),
     channelInfo = PNRequestInfo(platform = callBackEvent.platform,
       appName = callBackEvent.appName,
-      deviceIds = List[String](callBackEvent.deviceId),
+      deviceIds = Set[String](callBackEvent.deviceId),
       ackRequired = true,
       delayWhileIdle = true),
     channelData = PNRequestData(data.getObj[ObjectNode]),
