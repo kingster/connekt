@@ -58,18 +58,18 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
     private def pushElement() = {
       if (safeHasNext) {
         var n: MessageAndMetadata[Array[Byte], Option[V]] = null
-        val retries = new AtomicInteger(1)
+        val retries = new AtomicInteger(0)
 
         do {
           n = iterator.next()
-        } while (((null == n || n.message().isEmpty) && safeHasNext) && retries.getAndIncrement < 100)
+        } while (n.message().isEmpty && safeHasNext && retries.getAndIncrement < 1000)
 
         n.message() match {
           case Some(m) =>
             commitOffset(n.offset)
-            push(out, n.message())
+            push(out, m)
           case None =>
-            ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource:: no valid data in 100 batch-size.")
+            ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource:: no valid data in 1000 retries.")
             scheduleOnce(TimerPollTrigger, timerDelayInMs)
         }
       } else {
