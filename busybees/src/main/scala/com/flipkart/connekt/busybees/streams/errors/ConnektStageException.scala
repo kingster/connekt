@@ -15,7 +15,7 @@ package com.flipkart.connekt.busybees.streams.errors
 class ConnektStageException(message: String, cause: Throwable = null) extends RuntimeException(message, cause) {}
 
 case class ConnektPNStageException(messageId: String,
-                                   deviceId: List[String],
+                                   deviceId: Set[String],
                                    eventType: String,
                                    appName: String,
                                    platform: String,

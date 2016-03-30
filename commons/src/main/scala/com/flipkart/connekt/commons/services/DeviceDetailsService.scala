@@ -108,10 +108,10 @@ object DeviceDetailsService extends Instrumented {
   }
 
   @Timed("mget")
-  def get(appName: String, deviceIds: List[String]): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.mget Failed") {
-    val cacheHitsDevices = DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](deviceIds)
+  def get(appName: String, deviceIds: Set[String]): Try[List[DeviceDetails]] = Try_#(message = "DeviceDetailsService.mget Failed") {
+    val cacheHitsDevices = DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).get[DeviceDetails](deviceIds.toList)
 
-    val cacheMissedIds = deviceIds.diff(cacheHitsDevices.keySet.toList)
+    val cacheMissedIds = deviceIds.diff(cacheHitsDevices.keySet)
     val cacheMissDevices = dao.get(appName, cacheMissedIds)
 
     if (cacheMissDevices.nonEmpty)

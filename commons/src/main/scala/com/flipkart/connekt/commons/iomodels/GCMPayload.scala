@@ -15,7 +15,7 @@ package com.flipkart.connekt.commons.iomodels
 import com.fasterxml.jackson.annotation.JsonInclude
 
 
-case class GCMPayloadEnvelope(messageId: String, deviceId: List[String], appName: String, contextId:String, gcmPayload: GCMPayload)
+case class GCMPayloadEnvelope(messageId: String, deviceId: Set[String], appName: String, contextId:String, gcmPayload: GCMPayload)
 
 abstract class GCMPayload
 

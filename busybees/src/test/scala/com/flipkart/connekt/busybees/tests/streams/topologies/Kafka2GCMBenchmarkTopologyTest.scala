@@ -103,7 +103,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
   private def transform2GCMRequest(request: ConnektRequest) = Future{
     val messageId = UUID.randomUUID().toString
     val pNRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo]
-    val deviceId = List[String](pNRequestInfo.deviceIds.head)
+    val deviceId = Set[String](pNRequestInfo.deviceIds.head)
     val gcmPayload =
       s"""
           |{
@@ -117,7 +117,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
     val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
     val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(pNRequestInfo.appName).get.apiKey))
     val httpRequest = new HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
-    val requestTrace = GCMRequestTracker(messageId, deviceId, pNRequestInfo.appName)
+    val requestTrace = GCMRequestTracker(messageId, deviceId, pNRequestInfo.appName, "")
 //    println("Rinning in thread " + Thread.currentThread().getName)
     (httpRequest, requestTrace)
   }(futureDispatcher)
