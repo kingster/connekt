@@ -69,6 +69,9 @@ object BusyBeesBoot extends BaseApp {
       val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
       DaoFactory.initCouchbaseCluster(couchbaseCf)
 
+      val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
+      DaoFactory.initSpecterSocket(specterConfig)
+
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
 
