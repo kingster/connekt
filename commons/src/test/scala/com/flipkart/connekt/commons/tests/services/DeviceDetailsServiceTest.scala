@@ -48,15 +48,15 @@ class DeviceDetailsServiceTest extends CommonsBaseTest {
   }
 
   "DeviceDetails Service" should "get list of devices for given list of deviceIds" in {
-    DeviceDetailsService.get(appName, List(deviceId)).get.head.deviceId shouldEqual deviceId
+    DeviceDetailsService.get(appName, Set(deviceId)).get.head.deviceId shouldEqual deviceId
   }
 
   "DeviceDetails Service" should "get one device from cache, another from datastore" in {
     val deviceId1: String = UUID.randomUUID().toString
     val device1 = DeviceDetails(deviceId1, userId = accountId, token = tokenId, "osName", "osVersion", appName, "appVersion", "brand", "model")
-    DeviceDetailsService.get(appName, List(deviceId)).get.head.deviceId shouldEqual deviceId
+    DeviceDetailsService.get(appName, Set(deviceId)).get.head.deviceId shouldEqual deviceId
     noException should be thrownBy DeviceDetailsService.add(device1)
-    DeviceDetailsService.get(appName, List(deviceId, deviceId1)).get.size shouldEqual 2
+    DeviceDetailsService.get(appName, Set(deviceId, deviceId1)).get.size shouldEqual 2
   }
 
   "DeviceDetails Service" should "update account" in {
