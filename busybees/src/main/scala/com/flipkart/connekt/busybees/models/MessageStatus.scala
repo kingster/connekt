@@ -45,6 +45,7 @@ object MessageStatus {
     val Received = Value("apns_received")
     val TokenExpired = Value("apns_rejected_token_expired")
     val Rejected = Value("apns_rejected")
+    val UnknownFailure = Value("apns_unknown_failure")
   }
 
   object InternalStatus extends Enumeration {

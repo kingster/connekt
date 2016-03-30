@@ -31,8 +31,8 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
 
   override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
     try {
-
-      ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
+      ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter received message: ${message.id}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"IOSChannelFormatter received message: ${message.getJson}")
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
@@ -52,22 +52,22 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
         if (!dryRun) {
-          ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).trace(s"IOSChannelFormatter pushed downstream for: ${message.id}")
           apnsEnvelopes
         }
         else {
-          ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: Dry Run Dropping msgId: ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter dropping dry-run message: ${message.id}")
           List.empty[APSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Valid Output found for : ${pnInfo.deviceIds}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter dropping ttl-expired message: ${message.id}")
         apnsEnvelopes.map(e => PNCallbackEvent(e.messageId, e.deviceId, InternalStatus.TTLExpired, MobilePlatform.IOS, e.appName, message.contextId.orEmpty)).persist
         List.empty[APSPayloadEnvelope]
       }
 
     } catch {
       case e: Throwable =>
-        ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: OnFormat error", e)
+        ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter error for ${message.id}", e)
         throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, "IOSChannelFormatter::".concat(e.getMessage), e)
     }
   }

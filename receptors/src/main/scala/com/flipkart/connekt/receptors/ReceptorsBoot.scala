@@ -79,6 +79,8 @@ object ReceptorsBoot extends BaseApp {
     if (initialized.get()) {
       ReceptorsServer.shutdown()
       DaoFactory.shutdownHTableDaoFactory()
+
+      ConnektLogger.shutdown()
     }
   }
 

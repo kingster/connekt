@@ -3,7 +3,7 @@
 
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d %p [%t] %m%n"/>
+      <PatternLayout pattern="%d %p %c{1} [%t] %m%n"/>
     </Console>
   </Appenders>
 

@@ -24,7 +24,8 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
 
   override val map: (ConnektRequest) => List[ConnektRequest] = input => {
     try {
-      ConnektLogger(LogFile.PROCESSORS).info(s"RenderFlow:: onPush:: Received Message: ${input.getJson}")
+      ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow received message: ${input.id}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"RenderFlow received message: ${input.getJson}")
       lazy val cRD = input.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, input.channelDataModel)).get
 
       val mRendered = input.copy(channelData = Option(input.channelData) match {
@@ -35,8 +36,8 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
       List(mRendered)
     } catch {
       case e: Throwable =>
-        ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow:: onPush :: Error", e)
-        throw new ConnektPNStageException(input.id, input.deviceId, InternalStatus.RenderFailure, input.appName, input.platform, "", e.getMessage, e)
+        ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow error", e)
+        throw new ConnektPNStageException(input.id, input.deviceId, InternalStatus.RenderFailure, input.appName, input.platform, input.contextId.orEmpty, s"RenderFlow-${e.getMessage}", e)
     }
   }
 }

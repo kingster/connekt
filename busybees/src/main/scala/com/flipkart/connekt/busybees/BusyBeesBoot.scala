@@ -51,7 +51,7 @@ object BusyBeesBoot extends BaseApp {
 
       val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-busybees.xml")
 
-      ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
+      ConnektLogger(LogFile.SERVICE).info(s"BusyBees logging using: $configFile")
       ConnektLogger.init(configFile)
 
       ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-busybees", "fk-connekt-busybees-akka"))
@@ -93,10 +93,12 @@ object BusyBeesBoot extends BaseApp {
   }
 
   def terminate() = {
-    ConnektLogger(LogFile.SERVICE).info("BusyBees Shutting down.")
+    ConnektLogger(LogFile.SERVICE).info("BusyBees shutting down")
     if (initialized.get()) {
       DaoFactory.shutdownHTableDaoFactory()
       Option(pushTopology).foreach(_.shutdown())
+
+      ConnektLogger.shutdown()
     }
   }
 
