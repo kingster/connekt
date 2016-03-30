@@ -16,7 +16,7 @@ import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, Table}
+import org.apache.hadoop.hbase.client.{TableConfiguration, BufferedMutator, Connection, Table}
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 
 class HTableFactoryWrapper(hConnConfig: Config, connProvider: TConnectionProvider) extends HTableFactory {
@@ -25,9 +25,10 @@ class HTableFactoryWrapper(hConnConfig: Config, connProvider: TConnectionProvide
     val hConfig: Configuration = HBaseConfiguration.create()
     hConfig.set(HConstants.ZOOKEEPER_QUORUM, hConnConfig.getString(HConstants.ZOOKEEPER_QUORUM))
     hConfig.set(HConstants.ZOOKEEPER_CLIENT_PORT, hConnConfig.getString(HConstants.ZOOKEEPER_CLIENT_PORT))
-    hConfig.set(HConstants. HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, HConstants.DEFAULT_HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD.toString)
+    hConfig.set(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, HConstants.DEFAULT_HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD.toString)
     hConfig.set(HConstants.HBASE_RPC_TIMEOUT_KEY, HConstants.DEFAULT_HBASE_RPC_TIMEOUT.toString)
     hConfig.set(HConstants.ZOOKEEPER_ZNODE_PARENT, hConnConfig.getString(HConstants.ZOOKEEPER_ZNODE_PARENT))
+    hConfig.set(TableConfiguration.WRITE_BUFFER_SIZE_KEY, hConnConfig.getString(TableConfiguration.WRITE_BUFFER_SIZE_DEFAULT.toString))
     hConfig.set("hbase.zookeeper.watcher.sync.connected.wait", "5000")
     hConfig
   }
