@@ -12,7 +12,9 @@
  */
 package com.flipkart.connekt.busybees.streams.errors
 
-class ConnektStageException(message: String, cause: Throwable = null) extends RuntimeException(message, cause) {}
+import scala.util.control.NoStackTrace
+
+class ConnektStageException(message: String, cause: Throwable = null) extends RuntimeException(message, cause) with NoStackTrace
 
 case class ConnektPNStageException(messageId: String,
                                    deviceId: List[String],
