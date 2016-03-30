@@ -42,7 +42,7 @@ class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
   "RepeatSource2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
     val source = Source.repeat({
       val appName = "ConnektSampleApp"
-      val deviceId = List[String]("b25f2cdce678c67707228818e64fb4a0")
+      val deviceId = Set[String]("b25f2cdce678c67707228818e64fb4a0")
       val messageId = UUID.randomUUID().toString
       val gcmPayload =
         s"""
@@ -64,7 +64,7 @@ class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
       val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(appName).get.apiKey))
       val httpRequest = new HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
-      val requestTrace = GCMRequestTracker(messageId, deviceId, appName)
+      val requestTrace = GCMRequestTracker(messageId, deviceId, appName, "")
       (httpRequest, requestTrace)
     })
 
