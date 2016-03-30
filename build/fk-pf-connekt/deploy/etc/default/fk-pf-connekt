@@ -17,11 +17,11 @@ JAVA_OPTS="$JAVA_OPTS -Djavax.net.ssl.trustStore=/var/lib/fk-pf-connekt/keystore
 ##Ip Settings
 JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
 
-## GC logging
+## GC Setting
 JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC"
 
 ## Memory settings
-JAVA_OPTS="$JAVA_OPTS -Xms1g -Xmx8g"
+JAVA_OPTS="$JAVA_OPTS -Xms1g -Xmx16g"
 
 #Flight Recording
 JAVA_OPTS="$JAVA_OPTS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
