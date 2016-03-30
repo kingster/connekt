@@ -1,6 +1,6 @@
-topology_name: Prod-mp-connekt-pn-callback-realtime-fact
+topology_name: Prod-ep-connekt-pn-callback-realtime-fact
 type: kafka-to-sink-pipeline
-retry_identifier: mp_connket_pn_callback_realtime_fact_retry
+retry_identifier: connket_pn_callback_realtime_fact
 
 enable_reconciliation: false
 reconciliation_config:
@@ -15,7 +15,7 @@ storm_properties:
     topology.workers: 5
 
 spout:
-    name:  LS-mp-connket-pn-callback-realtime-fact-Spout
+    name:  LS-connket-pn-callback-realtime-fact-Spout
     topic: dart.fkint.mp.connekt.PNCallbackEvent
     parallelism_hint: 25
     num_instances: 1
@@ -32,36 +32,38 @@ transformation_bolt:
     parallelism_hint: 50
     schema_map:
         app_name:
-            column_definition: data['data'].get('appName')
+            column_definition: data['data']['appName']
             column_type: java.lang.String
         context_id:
-            column_definition: data['data'].get('contextId')
+            column_definition: data['data']['contextId']
             column_type: java.lang.String
         event_type:
-            column_definition: data['data'].get('eventType')
+            column_definition: data['data']['eventType']
             column_type: java.lang.String
         platform:
-            column_definition: data['data'].get('platform')
+            column_definition: data['data']['platform']
             column_type: java.lang.String
         timestamp:
-            column_definition: data['data'].get('timestamp')
+            column_definition: data['data']['timestamp']
             column_type: java.lang.String
+        ts:
+            column_definition: data['eventTime']
+            column_type: java.lang.Long
         
 sink_bolt:
     name: elastic-storage-bolt
     type: elasticsearch-bolt
-    parallelism_hint: 4
-    host_name: 10.32.201.153
+    parallelism_hint: 25
+    host_name: 10.32.49.55
     port: 9300
-    cluster_name: prod-fdpanalytics-es
-    index_name: connekt::pn_callback_realtime_fact
-    type_name: data
+    cluster_name: fdp-es-prod
+    index_name: connekt
+    type_name: pn_callback_realtime_fact
     id_keys:
         - app_name
         - context_id
         - event_type
         - platform
-        - timestamp
 
 kafka_bolt:
     name: Kafka-bolt
