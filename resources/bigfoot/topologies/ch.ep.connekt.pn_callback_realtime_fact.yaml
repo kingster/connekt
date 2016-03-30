@@ -46,10 +46,7 @@ transformation_bolt:
         timestamp:
             column_definition: data['data']['timestamp']
             column_type: java.lang.String
-        ts:
-            column_definition: data['eventTime']
-            column_type: java.lang.Long
-        
+
 sink_bolt:
     name: elastic-storage-bolt
     type: elasticsearch-bolt
