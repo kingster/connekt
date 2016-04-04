@@ -494,7 +494,7 @@ paths:
         - $ref: '#/parameters/api-key'
         - name: keys
           in: query
-          description: Keys
+          description: Comma Separated Keys for Token Generation.
           required: true
           type: string
       tags:
