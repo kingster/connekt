@@ -32,7 +32,7 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
     pathPrefix("registration" / "push") {
       path(MPlatformSegment / Segment / Segment) {
         (platform: MobilePlatform, appName: String, deviceId: String) =>
-          verifyOTP(appName.toLowerCase, user.apiKey, deviceId) {
+          verifySecureCode(appName.toLowerCase, user.apiKey, deviceId) {
             put {
               authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
                 entity(as[DeviceDetails]) { d =>

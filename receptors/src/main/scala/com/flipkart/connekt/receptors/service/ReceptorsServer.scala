@@ -61,7 +61,7 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
       case TokenAuthenticationFailedRejection(msg) => logTimedRequestResult {
         complete(responseMarshallable[GenericResponse](
           StatusCodes.Forbidden, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.Forbidden.intValue, null, Response("OTP Validation Failed.", msg)))
+          GenericResponse(StatusCodes.Forbidden.intValue, null, Response("Secure Code Validation Failed.", msg)))
         )
       }
     }.handleAll[MethodRejection] { methodRejections =>

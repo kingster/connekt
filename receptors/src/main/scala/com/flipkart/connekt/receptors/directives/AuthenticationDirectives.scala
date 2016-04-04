@@ -28,7 +28,7 @@ trait AuthenticationDirectives {
   case class TokenAuthenticationFailedRejection(message: String) extends Rejection
 
   val X_API_KEY_HEADER = "x-api-key"
-  val X_OTP_TOKEN_HEADER = "x-otp-token"
+  val X_SECURE_CODE_HEADER = "x-secure-code"
 
   def authenticate: Directive1[AppUser] = {
     BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap { headers =>
@@ -47,16 +47,16 @@ trait AuthenticationDirectives {
     }
   }
 
-  def verifyOTP(secretFragments: String*): Directive0 = {
+  def verifySecureCode(secretFragments: String*): Directive0 = {
     BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap { headers =>
-      getHeader(X_OTP_TOKEN_HEADER, headers) match {
+      getHeader(X_SECURE_CODE_HEADER, headers) match {
         case Some(token) =>
-          if (AuthenticationService.authenticateOTP(secretFragments.mkString(":"), token))
+          if (AuthenticationService.authenticateSecureCode(secretFragments.mkString(":"), token))
             BasicDirectives.pass
           else
-            RouteDirectives.reject(TokenAuthenticationFailedRejection("Invalid OTP Token"))
+            RouteDirectives.reject(TokenAuthenticationFailedRejection("Invalid Secure Code"))
         case None =>
-          RouteDirectives.reject(TokenAuthenticationFailedRejection("OTP Missing"))
+          RouteDirectives.reject(TokenAuthenticationFailedRejection("Secure Code Missing"))
       }
     }
   }

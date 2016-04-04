@@ -28,7 +28,7 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
     pathPrefix("push") {
       path("callback" / MPlatformSegment / Segment / Segment) {
         (appPlatform: MobilePlatform, appName: String, deviceId: String) =>
-          verifyOTP(appName.toLowerCase, user.apiKey, deviceId) {
+          verifySecureCode(appName.toLowerCase, user.apiKey, deviceId) {
             authorize(user, "ADD_EVENTS", s"ADD_EVENTS_$appName") {
               post {
                 entity(as[CallbackEvent]) { e =>

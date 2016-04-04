@@ -33,10 +33,10 @@ parameters:
     type: string
     format: string
     default: "sandbox-key-01"
-  otp-token:
-    name: x-otp-token
+  secure-code:
+    name: x-secure-core
     in: header
-    description: OTP token
+    description: Secure Code
     required: true
     type: string
     format: string
@@ -109,7 +109,7 @@ paths:
         Registrion of a new device. The token from this registration data would be used sending pn..
       parameters:
         - $ref: '#/parameters/api-key'
-        - $ref: '#/parameters/otp-token'
+        - $ref: '#/parameters/secure-code'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
@@ -150,7 +150,7 @@ paths:
         - Registration
       parameters:
         - $ref: '#/parameters/api-key'
-        - $ref: '#/parameters/otp-token'
+        - $ref: '#/parameters/secure-code'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId' 
@@ -231,7 +231,7 @@ paths:
         Callback's for notifications
       parameters:
         - $ref: '#/parameters/api-key'
-        - $ref: '#/parameters/otp-token'
+        - $ref: '#/parameters/secure-code'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
@@ -485,11 +485,11 @@ paths:
           description: "no api-key found for clientName"
         400: 
           description: "while user does not existed for user level access"
-  /debugger/otp/generate:
+  /debugger/secure-code/generate:
     get:
-      summary: Generate OTP
+      summary: Generate Secure Code
       description: |
-        Generate OTP for given set of keys
+        Generate Secure Code for given set of keys
       parameters:
         - $ref: '#/parameters/api-key'
         - name: keys
@@ -501,7 +501,7 @@ paths:
         - "Debug"
       responses:
         '200':
-          description:  Debug OTP
+          description:  Secure Code
         default:
           description: Unexpected error
           schema:

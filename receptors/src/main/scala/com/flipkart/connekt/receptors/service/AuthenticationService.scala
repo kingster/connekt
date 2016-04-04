@@ -47,14 +47,14 @@ object AuthenticationService extends Instrumented {
 
   private val otpClock =  new Clock(60)
 
-  @Timed("authenticateOTP")
-  def authenticateOTP(secret:String, token:String): Boolean = {
+  @Timed("authenticateSecureCode")
+  def authenticateSecureCode(secret:String, token:String): Boolean = {
     val totp = new Totp(Base32.encode(secret.getBytes), otpClock)
     totp.verify(token)
   }
 
-  @Timed("generateOTP")
-  def generateOTP(secret:String):String = {
+  @Timed("generateSecureCode")
+  def generateSecureCode(secret:String):String = {
     val totp = new Totp(Base32.encode(secret.getBytes),otpClock)
     totp.now()
   }

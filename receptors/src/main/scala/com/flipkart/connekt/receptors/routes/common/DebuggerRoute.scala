@@ -27,12 +27,12 @@ class DebuggerRoute (implicit am: ActorMaterializer, user: AppUser) extends Base
   val route = pathPrefix("v1") {
     pathPrefix("debugger") {
       authorize(user, "DEBUGGER") {
-        path("otp" / "generate") {
+        path("secure-code" / "generate") {
           get {
             parameters('keys) { k =>
               val keys = k.split(',')
-              val otp = AuthenticationService.generateOTP(keys.mkString(":"))
-              complete(GenericResponse(StatusCodes.OK.intValue, Map("k" -> keys), Response("Your OTP is", otp)))
+              val code = AuthenticationService.generateSecureCode(keys.mkString(":"))
+              complete(GenericResponse(StatusCodes.OK.intValue, Map("k" -> keys), Response("Your Secure Code is", code)))
             }
           }
         }
