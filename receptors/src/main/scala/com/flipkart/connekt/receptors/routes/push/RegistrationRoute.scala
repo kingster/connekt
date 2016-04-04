@@ -32,32 +32,34 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
     pathPrefix("registration" / "push") {
       path(MPlatformSegment / Segment / Segment) {
         (platform: MobilePlatform, appName: String, deviceId: String) =>
-          put {
-            authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
-              entity(as[DeviceDetails]) { d =>
-                val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId, active = true)
+          verifyOTP(appName.toLowerCase, user.apiKey, deviceId) {
+            put {
+              authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
+                entity(as[DeviceDetails]) { d =>
+                  val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId, active = true)
 
-                val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Unit, Unit]]({
+                  val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Unit, Unit]]({
                     case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(Unit))
                     case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(Unit))
                   }, Failure(_)).get
 
-                result match {
-                  case Right(x) =>
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
-                  case Left(x) =>
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                  result match {
+                    case Right(x) =>
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                    case Left(x) =>
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                  }
                 }
               }
-            }
-          } ~ delete {
-            authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
-              DeviceDetailsService.get(appName, deviceId).get match {
-                case Some(device) =>
-                  DeviceDetailsService.delete(appName, deviceId).get
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for $deviceId", null)))
-                case None =>
-                  complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No Device Found for $appName / $deviceId", null)))
+            } ~ delete {
+              authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
+                DeviceDetailsService.get(appName, deviceId).get match {
+                  case Some(device) =>
+                    DeviceDetailsService.delete(appName, deviceId).get
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails deleted for $deviceId", null)))
+                  case None =>
+                    complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No Device Found for $appName / $deviceId", null)))
+                }
               }
             }
           }
