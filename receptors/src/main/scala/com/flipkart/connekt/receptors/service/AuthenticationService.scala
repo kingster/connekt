@@ -19,7 +19,7 @@ import com.flipkart.connekt.commons.services.UserInfoService
 import com.flipkart.connekt.commons.utils.{PasswordGenerator, LdapService}
 import com.flipkart.metrics.Timed
 import org.jboss.aerogear.security.otp.Totp
-import org.jboss.aerogear.security.otp.api.Base32
+import org.jboss.aerogear.security.otp.api.{Clock, Base32}
 
 object AuthenticationService extends Instrumented {
 
@@ -45,16 +45,17 @@ object AuthenticationService extends Instrumented {
     LdapService.authenticate(username, password)
   }
 
+  private val otpClock =  new Clock(60)
 
   @Timed("authenticateOTP")
   def authenticateOTP(secret:String, token:String): Boolean = {
-    val totp = new Totp(Base32.encode(secret.getBytes))
+    val totp = new Totp(Base32.encode(secret.getBytes), otpClock)
     totp.verify(token)
   }
 
   @Timed("generateOTP")
   def generateOTP(secret:String):String = {
-    val totp = new Totp(Base32.encode(secret.getBytes))
+    val totp = new Totp(Base32.encode(secret.getBytes),otpClock)
     totp.now()
   }
 
