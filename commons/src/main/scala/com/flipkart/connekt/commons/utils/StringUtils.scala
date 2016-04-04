@@ -42,6 +42,8 @@ object StringUtils {
     def getUtf8Bytes = s.getBytes(CharEncoding.UTF_8)
 
     def getUtf8BytesNullWrapped = Option(s).map(_.getUtf8Bytes).orNull.wrap
+
+    def hasOnlyAllowedChars = s.forall(allowedCharsSet.contains)
   }
 
   implicit class StringOptionHandyFunctions(val obj: Option[String]) {
@@ -55,7 +57,6 @@ object StringUtils {
       case array if array.isEmpty => null
       case value => new String(value, CharEncoding.UTF_8)
     }
-
   }
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper
@@ -194,4 +195,5 @@ object StringUtils {
     Some(myObj)
   }
 
+  val allowedCharsSet = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Set('_', '-', ':', '.', '|')).toSet
 }

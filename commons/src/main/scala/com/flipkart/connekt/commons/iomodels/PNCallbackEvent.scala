@@ -15,7 +15,7 @@ package com.flipkart.connekt.commons.iomodels
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
 import com.flipkart.connekt.commons.utils.DateTimeUtils
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 case class PNCallbackEvent(@JsonProperty(required = false) messageId: String,
                            @JsonProperty(required = false) deviceId: String,
                            eventType: String,
@@ -28,5 +28,6 @@ case class PNCallbackEvent(@JsonProperty(required = false) messageId: String,
   def toBigfootFormat : fkint.mp.connekt.PNCallbackEvent = {
     fkint.mp.connekt.PNCallbackEvent(messageId = messageId, deviceId = deviceId, platform = platform, eventType = eventType, appName = appName, contextId = contextId, cargo = cargo, timestamp = DateTimeUtils.getStandardFormatted(timestamp))
   }
-  
+
+  def validate() = contextId.hasOnlyAllowedChars
 }
