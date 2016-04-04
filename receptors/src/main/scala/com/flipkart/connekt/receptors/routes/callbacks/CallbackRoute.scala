@@ -32,7 +32,7 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
             post {
               entity(as[CallbackEvent]) { e =>
                 val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app, deviceId = devId)
-                validate(event.validate, "`contextId` field can only contain [A-Za-z0-9_\\.\\-\\:\\|] allowed chars.")
+                event.validate
 
                 List(event).persist //make this available for other api's
                 ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")

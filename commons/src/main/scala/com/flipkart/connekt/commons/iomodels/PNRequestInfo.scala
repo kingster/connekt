@@ -22,4 +22,6 @@ case class PNRequestInfo(@JsonProperty(required = false) platform: String,
   def this() {
     this(null, null, Set.empty[String], false, false)
   }
+
+  def validate() = require(deviceIds.nonEmpty, "deviceIds cannot be empty")
 }

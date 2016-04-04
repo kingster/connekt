@@ -29,5 +29,5 @@ case class PNCallbackEvent(@JsonProperty(required = false) messageId: String,
     fkint.mp.connekt.PNCallbackEvent(messageId = messageId, deviceId = deviceId, platform = platform, eventType = eventType, appName = appName, contextId = contextId, cargo = cargo, timestamp = DateTimeUtils.getStandardFormatted(timestamp))
   }
 
-  def validate() = contextId.hasOnlyAllowedChars
+  def validate() = require(contextId.hasOnlyAllowedChars, "`contextId` field can only contain [A-Za-z0-9_\\.\\-\\:\\|] allowed chars.")
 }
