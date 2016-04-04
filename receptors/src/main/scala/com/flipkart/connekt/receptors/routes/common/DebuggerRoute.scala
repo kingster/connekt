@@ -29,9 +29,10 @@ class DebuggerRoute (implicit am: ActorMaterializer, user: AppUser) extends Base
       authorize(user, "DEBUGGER") {
         path("otp" / "generate") {
           get {
-            parameters('k.*) { keys =>
+            parameters('keys) { k =>
+              val keys = k.split(',')
               val otp = AuthenticationService.generateOTP(keys.mkString(":"))
-              complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Your OTP is", otp)))
+              complete(GenericResponse(StatusCodes.OK.intValue, Map("k" -> keys), Response("Your OTP is", otp)))
             }
           }
         }
