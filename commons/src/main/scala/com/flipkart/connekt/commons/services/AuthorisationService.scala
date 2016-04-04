@@ -67,9 +67,17 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
     read(userName, UserType.USER).map(_.resources.split(',').toList).getOrElse(List())
   }
 
+  def getGroups(userName: String): Option[Array[String]] = {
+    LocalCacheManager.getCache(LocalCacheType.UserGroups).get[Array[String]](userName).orElse {
+      val groups = userInfoDao.getUserInfo(userName).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).getOrElse(Array.empty[String])
+      LocalCacheManager.getCache(LocalCacheType.UserGroups).put(userName, groups)
+      Option(groups)
+    }
+  }
+
   override def getAllPrivileges(userName: String): List[String] = {
     val userPrivs = getUserPrivileges(userName)
-    val groupPrivs = userInfoDao.getUserInfo(userName).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).getOrElse(Array.empty[String]).flatMap(getGroupPrivileges)
+    val groupPrivs =  getGroups(userName).getOrElse(Array.empty[String]).flatMap(getGroupPrivileges)
     userPrivs ++ groupPrivs ++ globalPrivileges
   }
 

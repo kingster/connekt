@@ -16,12 +16,14 @@ import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.UserInfoService
-import com.flipkart.connekt.commons.utils.LdapService
+import com.flipkart.connekt.commons.utils.{PasswordGenerator, LdapService}
 import com.flipkart.metrics.Timed
+import org.jboss.aerogear.security.otp.Totp
+import org.jboss.aerogear.security.otp.api.{Clock, Base32}
 
 object AuthenticationService extends Instrumented {
 
-  val userService: UserInfoService = ServiceFactory.getUserInfoService
+  lazy val userService: UserInfoService = ServiceFactory.getUserInfoService
 
   @Timed("authenticateKey")
   def authenticateKey(apiKey: String): Option[AppUser] = {
@@ -42,4 +44,19 @@ object AuthenticationService extends Instrumented {
   def authenticateLdap(username: String, password: String): Boolean = {
     LdapService.authenticate(username, password)
   }
+
+  private val otpClock =  new Clock(60)
+
+  @Timed("authenticateOTP")
+  def authenticateOTP(secret:String, token:String): Boolean = {
+    val totp = new Totp(Base32.encode(secret.getBytes), otpClock)
+    totp.verify(token)
+  }
+
+  @Timed("generateOTP")
+  def generateOTP(secret:String):String = {
+    val totp = new Totp(Base32.encode(secret.getBytes),otpClock)
+    totp.now()
+  }
+
 }

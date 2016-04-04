@@ -27,16 +27,17 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
   val callback = pathPrefix("v1") {
     pathPrefix("push") {
       path("callback" / MPlatformSegment / Segment / Segment) {
-        (appPlatform: MobilePlatform, app: String, devId: String) =>
-          authorize(user,"ADD_EVENTS", s"ADD_EVENTS_$app") {
-            post {
-              entity(as[CallbackEvent]) { e =>
-                val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = app, deviceId = devId)
-                event.validate
-
-                List(event).persist //make this available for other api's
-                ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
+        (appPlatform: MobilePlatform, appName: String, deviceId: String) =>
+          verifyOTP(appName.toLowerCase, user.apiKey, deviceId) {
+            authorize(user, "ADD_EVENTS", s"ADD_EVENTS_$appName") {
+              post {
+                entity(as[CallbackEvent]) { e =>
+                  val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = appName, deviceId = deviceId)
+                  event.validate
+                  event.persist //make this available for other api's
+                  ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
+                }
               }
             }
           }
