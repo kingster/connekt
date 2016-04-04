@@ -38,42 +38,49 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
               post {
                 getXHeaders { headers =>
                   entity(as[ConnektRequest]) { r =>
+
                     val request = r.copy(channel = "push", meta = headers)
                     request.validate()
-                    ConnektLogger(LogFile.SERVICE).trace(s"Received PN request with payload: ${request.toString}")
+
+                    ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
 
                     val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
-                    pnRequestInfo.validate()
 
-                    val groupedPlatformRequests = ListBuffer[ConnektRequest]()
+                    if (pnRequestInfo.deviceIds.nonEmpty) {
 
-                    /* Find platform for each deviceId, group */
-                    appPlatform match {
-                      case MobilePlatform.UNKNOWN =>
-                        val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceIds).get.groupBy(_.osName).mapValues(_.map(_.deviceId).toSet)
-                        groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                          request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
-                        }
-                      case _ =>
-                        groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
-                    }
+                      val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
-                    val failure = ListBuffer(pnRequestInfo.deviceIds.toList.diff(groupedPlatformRequests.flatMap(_.deviceId)): _ *)
-                    val success = scala.collection.mutable.Map[String, Set[String]]()
+                      /* Find platform for each deviceId, group */
+                      appPlatform match {
+                        case MobilePlatform.UNKNOWN =>
+                          val groupedDevices = DeviceDetailsService.get(pnRequestInfo.appName, pnRequestInfo.deviceIds).get.groupBy(_.osName).mapValues(_.map(_.deviceId).toSet)
+                          groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                            request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
+                          }
+                        case _ =>
+                          groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform))
+                      }
 
-                    if (groupedPlatformRequests.nonEmpty) {
-                      val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
-                      groupedPlatformRequests.foreach { p =>
-                        /* enqueue multiple requests into kafka */
-                        ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
-                          case Success(id) =>
-                            success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
-                          case Failure(t) =>
-                            failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                      val failure = ListBuffer(pnRequestInfo.deviceIds.toList.diff(groupedPlatformRequests.flatMap(_.deviceId)): _ *)
+                      val success = scala.collection.mutable.Map[String, Set[String]]()
+
+                      if (groupedPlatformRequests.nonEmpty) {
+                        val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
+                        groupedPlatformRequests.foreach { p =>
+                          /* enqueue multiple requests into kafka */
+                          ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
+                            case Success(id) =>
+                              success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                            case Failure(t) =>
+                              failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                          }
                         }
                       }
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN Send Request Received", success.toMap, failure.toList)))
+                    } else {
+                      ConnektLogger(LogFile.SERVICE).error(s"Request Validation Failed, $request ")
+                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Request Validation Failed, Please ensure mandatory field values.", null)))
                     }
-                    complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN Send Request Received", success.toMap, failure.toList)))
                   }
                 }
               }
@@ -84,9 +91,11 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
               post {
                 getXHeaders { headers =>
                   entity(as[ConnektRequest]) { r =>
+
                     val request = r.copy(channel = "push")
-                    r.validate()
-                    ConnektLogger(LogFile.SERVICE).trace(s"Received PN request sent for user : $userId with payload: ${request.toString}")
+                    request.validate()
+
+                    ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : $userId with payload: ${request.toString}")
 
                     val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
                     val groupedPlatformRequests = ListBuffer[ConnektRequest]()
@@ -121,6 +130,8 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                     } else {
                       complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No device Found for user: $userId.", null)))
                     }
+
+
                   }
                 }
               }
