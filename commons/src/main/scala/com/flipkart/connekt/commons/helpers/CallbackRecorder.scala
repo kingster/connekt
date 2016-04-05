@@ -25,7 +25,7 @@ object CallbackRecorder {
   implicit class PNListCallbackRecorder(val events: Iterable[PNCallbackEvent]) {
     def persist = Try_ {
       events.foreach(e => {
-        ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName}${e.deviceId}", Channel.PUSH, e)
+        ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName.toLowerCase}${e.deviceId}", Channel.PUSH, e)
         BigfootService.ingest(e.toBigfootFormat)
       })
     }
