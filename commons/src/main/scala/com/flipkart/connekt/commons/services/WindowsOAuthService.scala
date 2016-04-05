@@ -25,9 +25,6 @@ import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.message.BasicNameValuePair
 
-/**
- * @author aman.shrivastava on 15/02/16.
- */
 case class OAuthToken(token: String, expectedExpiry: Long)
 
 trait TWindowsOAuthService {

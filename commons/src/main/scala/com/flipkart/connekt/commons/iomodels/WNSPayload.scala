@@ -18,10 +18,6 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 
 import scala.xml.{Node, XML}
 
-/**
- * @author aman.shrivastava on 08/02/16.
- */
-
 case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, deviceId: String, time_to_live: Long, contextId: String, wnsPayload: WNSPayload)
 
 object WindowsNotificationType extends Enumeration {

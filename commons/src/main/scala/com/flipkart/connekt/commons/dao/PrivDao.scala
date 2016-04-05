@@ -20,9 +20,6 @@ import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
-/**
- * @author aman.shrivastava on 11/12/15.
- */
 class PrivDao(table: String, mysqlFactory: MySQLFactory) extends TPrivDao with MySQLDao {
 
   val mysqlHelper = mysqlFactory

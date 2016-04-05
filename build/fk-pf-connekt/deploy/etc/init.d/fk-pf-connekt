@@ -11,8 +11,6 @@
 #                    and should be placed in /etc/init.d
 ### END INIT INFO
 
-# Author:  Kinshuk Bairagi <kinshuk.bairagi@flipkart.com>
-
 set -x
 PACKAGE=_PACKAGE_
 PACKAGE_USER=_USER_

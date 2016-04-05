@@ -20,10 +20,6 @@ import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform, UserType}
 
-/**
- * @author aman.shrivastava on 18/01/16.
- */
-
 abstract class EnumSegment[T <: Enumeration#Value](clz : Class[_])(implicit manifest : Manifest[T]) extends PathMatcher1[T] {
 
   def apply(path: Path) = path match {

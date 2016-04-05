@@ -26,9 +26,6 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.util.{Failure, Success}
 
-/**
- * @author aman.shrivastava on 19/01/16.
- */
 class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
   val stencils =
     pathPrefix("v1") {
