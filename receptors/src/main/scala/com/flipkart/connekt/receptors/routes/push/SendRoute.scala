@@ -40,11 +40,13 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                   entity(as[ConnektRequest]) { r =>
 
                     val request = r.copy(channel = "push", meta = headers)
+                    request.validate()
+
                     ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
 
                     val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
 
-                    if (request.validate() && pnRequestInfo.deviceIds.nonEmpty) {
+                    if (pnRequestInfo.deviceIds.nonEmpty) {
 
                       val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
@@ -89,49 +91,47 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
               post {
                 getXHeaders { headers =>
                   entity(as[ConnektRequest]) { r =>
+
                     val request = r.copy(channel = "push")
+                    request.validate()
+
                     ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : $userId with payload: ${request.toString}")
 
-                    if (request.validate()) {
+                    val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
+                    val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
-                      val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
-                      val groupedPlatformRequests = ListBuffer[ConnektRequest]()
-
-                      appPlatform match {
-                        case MobilePlatform.UNKNOWN =>
-                          val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.groupBy(_.osName).mapValues(_.map(_.deviceId).toSet)
-                          groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
-                            platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
-                          }.values
-                        case _ =>
-                          val osSpecificDeviceIds = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.filter(_.osName == appPlatform.toLowerCase).map(_.deviceId).toSet
-                          if (osSpecificDeviceIds.nonEmpty)
-                            groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform, deviceIds = osSpecificDeviceIds))
-                      }
-
-                      val failure = ListBuffer[String]()
-                      val success = scala.collection.mutable.Map[String, Set[String]]()
-
-                      if (groupedPlatformRequests.nonEmpty) {
-
-                        val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
-                        groupedPlatformRequests.foreach { p =>
-                          ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
-                            case Success(id) =>
-                              success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
-                            case Failure(t) =>
-                              failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
-                          }
-                        }
-                        complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse(s"PN request processed for user $userId.", success.toMap, failure.toList)))
-                      } else {
-                        complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No device Found for user: $userId.", null)))
-                      }
-
-                    } else {
-                      ConnektLogger(LogFile.SERVICE).error(s"Request Validation Failed, $request ")
-                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Request Validation Failed, Please ensure mandatory field values.", null)))
+                    appPlatform match {
+                      case MobilePlatform.UNKNOWN =>
+                        val groupedDevices = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.groupBy(_.osName).mapValues(_.map(_.deviceId).toSet)
+                        groupedPlatformRequests ++= groupedDevices.map { case (platform, deviceId) =>
+                          platform -> request.copy(channelInfo = pnRequestInfo.copy(platform = platform, deviceIds = deviceId))
+                        }.values
+                      case _ =>
+                        val osSpecificDeviceIds = DeviceDetailsService.getByUserId(appName.toLowerCase, userId).get.filter(_.osName == appPlatform.toLowerCase).map(_.deviceId).toSet
+                        if (osSpecificDeviceIds.nonEmpty)
+                          groupedPlatformRequests += request.copy(channelInfo = pnRequestInfo.copy(platform = appPlatform, deviceIds = osSpecificDeviceIds))
                     }
+
+                    val failure = ListBuffer[String]()
+                    val success = scala.collection.mutable.Map[String, Set[String]]()
+
+                    if (groupedPlatformRequests.nonEmpty) {
+
+                      val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
+                      groupedPlatformRequests.foreach { p =>
+                        ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
+                          case Success(id) =>
+                            success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                          case Failure(t) =>
+                            failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                        }
+                      }
+                      complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse(s"PN request processed for user $userId.", success.toMap, failure.toList)))
+                    } else {
+                      complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No device Found for user: $userId.", null)))
+                    }
+
+
                   }
                 }
               }

@@ -58,6 +58,12 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
           GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> msg))))
         )
       }
+      case TokenAuthenticationFailedRejection(msg) => logTimedRequestResult {
+        complete(responseMarshallable[GenericResponse](
+          StatusCodes.Forbidden, Seq.empty[HttpHeader],
+          GenericResponse(StatusCodes.Forbidden.intValue, null, Response("Secure Code Validation Failed.", msg)))
+        )
+      }
     }.handleAll[MethodRejection] { methodRejections =>
       val names = methodRejections.map(_.supported.name)
       complete(responseMarshallable[GenericResponse](
@@ -67,8 +73,8 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
     }.handleNotFound {
       logTimedRequestResult {
         complete(responseMarshallable[GenericResponse](
-                StatusCodes.NotFound, Seq.empty[HttpHeader],
-                GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)))
+          StatusCodes.NotFound, Seq.empty[HttpHeader],
+          GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)))
         )
       }
     }.result()

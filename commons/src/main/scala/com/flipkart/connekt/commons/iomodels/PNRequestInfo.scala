@@ -22,4 +22,5 @@ case class PNRequestInfo(@JsonProperty(required = false) platform: String,
   def this() {
     this(null, null, Set.empty[String], false, false)
   }
+
 }

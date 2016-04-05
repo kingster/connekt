@@ -17,7 +17,7 @@ apt-get install fk-ops-auth-client --yes --allow-unauthenticated
 # source /etc/default/megh/env_var
 #/bin/sed -i "/${MEGH_HOSTNAME}/s/^/#/" /etc/hosts
 
-env_bucket_name=fk-connekt-ambari-hostnames
+env_bucket_name=fk-connekt-ambari
 
 # Add IP mappings for all services used.
 mirror_ip="10.65.208.107"

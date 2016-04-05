@@ -20,6 +20,8 @@ tags:
   description: "manage platform clients and privileges"
 - name: "Fetch"
   description: "pull based messaging operations"
+- name: "Debug"
+  description: "Debugger"
 produces:
   - application/json
 parameters:
@@ -31,6 +33,13 @@ parameters:
     type: string
     format: string
     default: "sandbox-key-01"
+  secure-code:
+    name: x-secure-core
+    in: header
+    description: Secure Code
+    required: true
+    type: string
+    format: string
   MPlatform:
     name: MPlatform
     in: path
@@ -100,6 +109,7 @@ paths:
         Registrion of a new device. The token from this registration data would be used sending pn..
       parameters:
         - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/secure-code'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
@@ -140,6 +150,7 @@ paths:
         - Registration
       parameters:
         - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/secure-code'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId' 
@@ -220,6 +231,7 @@ paths:
         Callback's for notifications
       parameters:
         - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/secure-code'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
@@ -473,7 +485,27 @@ paths:
           description: "no api-key found for clientName"
         400: 
           description: "while user does not existed for user level access"
-        
+  /debugger/secure-code/generate:
+    get:
+      summary: Generate Secure Code
+      description: |
+        Generate Secure Code for given set of keys
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - name: keys
+          in: query
+          description: Comma Separated Keys for Token Generation.
+          required: true
+          type: string
+      tags:
+        - "Debug"
+      responses:
+        '200':
+          description:  Secure Code
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   DeviceDetails:
     type: object
