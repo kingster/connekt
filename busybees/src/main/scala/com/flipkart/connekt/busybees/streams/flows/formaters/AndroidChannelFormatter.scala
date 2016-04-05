@@ -19,10 +19,10 @@ import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
+import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
@@ -38,7 +38,8 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
 
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
-      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
+      val validDeviceIds = devicesInfo.map(_.deviceId).toSet
+      val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds)
       invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val tokens = devicesInfo.map(_.token)
@@ -52,7 +53,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         tokens.map(t => pnInfo.platform.toUpperCase match {
           case "ANDROID" => GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(ttl), dry_run = dryRun)
           case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
-        }).map(GCMPayloadEnvelope(message.id, pnInfo.deviceIds, pnInfo.appName, message.contextId.orEmpty , _))
+        }).map(GCMPayloadEnvelope(message.id, validDeviceIds, pnInfo.appName, message.contextId.orEmpty, _))
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
