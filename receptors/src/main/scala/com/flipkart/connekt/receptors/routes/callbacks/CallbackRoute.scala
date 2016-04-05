@@ -21,7 +21,7 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
 
   val callback = pathPrefix("v1") {
@@ -31,9 +31,9 @@ class CallbackRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
           verifySecureCode(appName.toLowerCase, user.apiKey, deviceId) {
             authorize(user, "ADD_EVENTS", s"ADD_EVENTS_$appName") {
               post {
-                entity(as[CallbackEvent]) { e =>
-                  val event = e.asInstanceOf[PNCallbackEvent].copy(platform = appPlatform.toString, appName = appName, deviceId = deviceId)
-                  event.validate
+                entity(as[PNCallbackEvent]) { e =>
+                  val event = e.copy(platform = appPlatform.toString, appName = appName, deviceId = deviceId, messageId = Option(e.messageId).orEmpty)
+                  event.validate()
                   event.persist //make this available for other api's
                   ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
