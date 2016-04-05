@@ -37,6 +37,7 @@ class RegistrationRoute(implicit am: ActorMaterializer, user: AppUser) extends B
               authorize(user, "REGISTRATION", s"REGISTRATION_$appName") {
                 entity(as[DeviceDetails]) { d =>
                   val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId, active = true)
+                  newDeviceDetails.validate()
 
                   val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Unit, Unit]]({
                     case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(Unit))
