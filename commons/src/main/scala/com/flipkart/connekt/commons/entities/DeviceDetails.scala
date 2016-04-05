@@ -17,6 +17,8 @@ import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
 import com.flipkart.connekt.commons.utils.DateTimeUtils
 import com.roundeights.hasher.Implicits._
 
+import scala.util.Try
+
 case class DeviceDetails(deviceId: String,
                          userId: String,
                          @JsonProperty(required = true) token: String,
@@ -37,4 +39,5 @@ case class DeviceDetails(deviceId: String,
     )
   }
 
+  def validate() = require(Try(MobilePlatform.withName(osName)).map(!_.equals(MobilePlatform.UNKNOWN)).getOrElse(false), "a device's platform cannot be unknown")
 }
