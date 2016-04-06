@@ -34,7 +34,7 @@ class ChannelToStringDeserializer extends JsonDeserializer[Channel.Value] {
   @Override
   override def deserialize(parser:JsonParser, context:DeserializationContext):Channel.Value={
     try {
-      com.flipkart.connekt.commons.entities.Channel.withName(parser.getValueAsString)
+      com.flipkart.connekt.commons.entities.Channel.withName(parser.getValueAsString.toLowerCase)
     } catch {
       case e: NoSuchElementException =>
         null
