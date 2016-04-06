@@ -29,7 +29,8 @@ class UserInfoService( userInfoDao: TUserInfo) extends TService {
     getUserInfo(user.userId).get match {
       case None =>
         user.apiKey = PasswordGenerator.generate(48,48,20,20,8,0)
-      case Some(_) =>
+      case Some(u) =>
+        user.apiKey = u.apiKey
     }
 
     Option(user.groups).foreach(_.split(",").map(_.trim).find(ServiceFactory.getAuthorisationService.getGroupPrivileges(_).isEmpty).
