@@ -37,8 +37,9 @@ class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
           authorize(user, "FETCH", s"FETCH_$appName") {
             get {
               parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) { (startTs, endTs, skipIds) =>
+                require(startTs < endTs, "startTs must be prior to endTs")
                 require(startTs > (System.currentTimeMillis - 7.days.toMillis), "Invalid startTs : startTs can be max 7 days from now")
-                
+
                 val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
                 val messageService = ServiceFactory.getPNMessageService
 
