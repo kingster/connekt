@@ -18,7 +18,7 @@ import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromE
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-
+import GenericJsonSupport._
 /**
  * Derives on [[akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers]] and [[akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers]]
  * to provide implicit generic json un/marshallers. As per akka-http documentation `akka-http-spray-json`
@@ -34,7 +34,7 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
  * http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0-M1/scala/http/common/unmarshalling.html
  *
  */
-trait GenericJsonSupport {
+object GenericJsonSupport {
 
   val jacksonModules = Seq(DefaultScalaModule)
 
@@ -42,14 +42,14 @@ trait GenericJsonSupport {
   mapper.registerModules(jacksonModules: _*)
 }
 
-trait JsonToEntityMarshaller extends GenericJsonSupport with PredefinedToEntityMarshallers {
+trait JsonToEntityMarshaller extends PredefinedToEntityMarshallers {
 
   implicit def genericMarshaller[T <: AnyRef]: ToEntityMarshaller[T] =
     stringMarshaller(MediaTypes.`application/json`)
       .compose[T](mapper.writeValueAsString)
 }
 
-trait JsonFromEntityUnmarshaller extends GenericJsonSupport with PredefinedFromEntityUnmarshallers {
+trait JsonFromEntityUnmarshaller extends PredefinedFromEntityUnmarshallers {
 
   implicit def genericUnmarshaller[T: Manifest]: FromEntityUnmarshaller[T] =
     stringUnmarshaller.forContentTypes(MediaTypes.`application/json`)

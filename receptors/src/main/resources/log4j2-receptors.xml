@@ -12,12 +12,12 @@
   <Appenders>
 
     <Console name="STDOUT" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d %p %c{1.} [%t] %m%n"/>
+      <PatternLayout pattern="%d %p %c{1} [%t] %m%n"/>
     </Console>
 
     <RollingRandomAccessFile name="ACCESS" fileName="${accessLogFile}" filePattern="${accessLogFile}.%i" immediateFlush="false" >
       <PatternLayout>
-        <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+        <Pattern>%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
         <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -27,7 +27,7 @@
 
     <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
-        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+        <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
         <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -37,7 +37,7 @@
 
     <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
-        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+        <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
         <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -47,7 +47,7 @@
 
     <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
-        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+        <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
         <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -57,7 +57,7 @@
 
     <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
-        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+        <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
         <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -67,7 +67,7 @@
 
     <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
-        <Pattern>%n%d %p %c{1.} [%t] %m%n</Pattern>
+        <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
         <SizeBasedTriggeringPolicy size="100 MB"/>

@@ -15,8 +15,8 @@ package com.flipkart.connekt.receptors.directives
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.server.RouteResult.Complete
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.directives.{LogEntry, BasicDirectives, LoggingMagnet}
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import akka.http.scaladsl.server.directives.BasicDirectives
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 trait AccessLogDirective extends BasicDirectives {
 

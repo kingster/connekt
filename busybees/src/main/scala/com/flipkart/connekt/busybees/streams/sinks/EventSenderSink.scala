@@ -29,18 +29,17 @@ class EventSenderSink extends GraphStage[SinkShape[fkint.mp.connekt.PNCallbackEv
     setHandler(in, new InHandler {
 
       override def onPush(): Unit = {
-        ConnektLogger(LogFile.PROCESSORS).info(s"EventSenderSink:: onPush::")
         val event = grab(in)
+        ConnektLogger(LogFile.PROCESSORS).debug(s"EventSenderSink on push for: ${event.messageId}")
         BigfootService.ingest(event) match {
           case Success(true) =>
-            ConnektLogger(LogFile.PROCESSORS).info(s"EventSenderSink:: ${event.messageId} | SUCCESS")
+            ConnektLogger(LogFile.PROCESSORS).info(s"EventSenderSink ${event.messageId} | SUCCESS")
           case Success(false) =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"EventSenderSink:: Event: [${event.getJson}] ingestion failed (Unknown)")
+            ConnektLogger(LogFile.PROCESSORS).error(s"EventSenderSink event ingestion failed for: ${event.getJson}")
           case Failure(t) =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"EventSenderSink:: Event: [${event.getJson}] ingestion failed. ${t.getMessage}")
+            ConnektLogger(LogFile.PROCESSORS).error(s"EventSenderSink event ingestion failed for: ${event.getJson}", t)
         }
       }
-
     })
   }
 

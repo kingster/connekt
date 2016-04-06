@@ -58,6 +58,12 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
           GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> msg))))
         )
       }
+      case TokenAuthenticationFailedRejection(msg) => logTimedRequestResult {
+        complete(responseMarshallable[GenericResponse](
+          StatusCodes.Forbidden, Seq.empty[HttpHeader],
+          GenericResponse(StatusCodes.Forbidden.intValue, null, Response("Secure Code Validation Failed.", msg)))
+        )
+      }
     }.handleAll[MethodRejection] { methodRejections =>
       val names = methodRejections.map(_.supported.name)
       complete(responseMarshallable[GenericResponse](
@@ -67,13 +73,19 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
     }.handleNotFound {
       logTimedRequestResult {
         complete(responseMarshallable[GenericResponse](
-                StatusCodes.NotFound, Seq.empty[HttpHeader],
-                GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)))
+          StatusCodes.NotFound, Seq.empty[HttpHeader],
+          GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)))
         )
       }
     }.result()
 
   implicit def exceptionHandler: ExceptionHandler = ExceptionHandler {
+    case rejection: IllegalArgumentException => logTimedRequestResult {
+      complete(responseMarshallable[GenericResponse](
+          StatusCodes.BadRequest, Seq.empty[HttpHeader],
+          GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> rejection.getMessage))))
+      )
+    }
     case e: Throwable =>
       val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
       ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- $errorUID  --  Reason [ ${e.getMessage} ]", e)

@@ -14,7 +14,7 @@ package com.flipkart.connekt.commons.utils
 
 import java.lang.reflect.{ParameterizedType, Type => JType}
 import java.math.BigInteger
-import java.security.{MessageDigest, SecureRandom}
+import java.security.SecureRandom
 
 import akka.http.scaladsl.model.HttpEntity
 import akka.stream.Materializer
@@ -42,6 +42,12 @@ object StringUtils {
     def getUtf8Bytes = s.getBytes(CharEncoding.UTF_8)
 
     def getUtf8BytesNullWrapped = Option(s).map(_.getUtf8Bytes).orNull.wrap
+
+    def hasOnlyAllowedChars = s.forall(allowedCharsSet.contains)
+  }
+
+  implicit class StringOptionHandyFunctions(val obj: Option[String]) {
+    def orEmpty = obj.getOrElse("")
   }
 
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
@@ -51,7 +57,6 @@ object StringUtils {
       case array if array.isEmpty => null
       case value => new String(value, CharEncoding.UTF_8)
     }
-
   }
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper
@@ -67,7 +72,7 @@ object StringUtils {
 
     def getObj(implicit cType: Class[_]) = objMapper.readValue(s, cType)
 
-    def getObj[T](tTag: TypeTag[T]) = objMapper.readValue(s, typeReference[T](tTag)).asInstanceOf[T]
+    def getObj[T](tTag: TypeTag[T]): T = objMapper.readValue(s, typeReference[T](tTag))
 
     private def typeReference[T](tag: TypeTag[T]): TypeReference[_] = new TypeReference[T] {
       override val getType = jTypeFromType(tag.tpe)
@@ -117,11 +122,11 @@ object StringUtils {
     for (i <- 1 to len) {
       var n = (36.0 * Math.random).asInstanceOf[Int]
       if (n < 10) {
-        n = (ZERO + n)
+        n = ZERO + n
       }
       else {
         n -= 10
-        n = (A + n)
+        n = A + n
       }
       sb.append(new Character(n.asInstanceOf[Char]))
     }
@@ -141,7 +146,7 @@ object StringUtils {
     do {
       var index = parts(i)
       var negated = false
-      if (parts(i).toString.startsWith("~")) {
+      if (parts(i).startsWith("~")) {
         index = parts(i).split("~").tail.head
         negated = true
       }
@@ -149,13 +154,13 @@ object StringUtils {
         case true => myObj match {
           case _: Map[_, _] => myObj.asInstanceOf[Map[String, Any]].filter(_._1 != index)
           case _: List[_] =>
-            if (myObj.asInstanceOf[List[Any]].length > 0)
+            if (myObj.asInstanceOf[List[Any]].nonEmpty)
               myObj.asInstanceOf[List[Any]] diff List[Any](myObj.asInstanceOf[List[Any]].get(index.toInt))
             else
               return None
           case _: java.util.Map[_, _] => myObj.asInstanceOf[java.util.Map[String, AnyRef]].filter(_._1 != index)
           case _: java.util.List[_] =>
-            if (myObj.asInstanceOf[java.util.List[Any]].length > 0)
+            if (myObj.asInstanceOf[java.util.List[Any]].nonEmpty)
               myObj.asInstanceOf[java.util.List[Any]] diff List[Any](myObj.asInstanceOf[java.util.List[Any]].get(index.toInt))
             else
               return None
@@ -190,4 +195,5 @@ object StringUtils {
     Some(myObj)
   }
 
+  val allowedCharsSet = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Set('_', '-', ':', '.', '|')).toSet
 }

@@ -15,6 +15,9 @@ package com.flipkart.connekt.commons.entities
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
 import com.flipkart.connekt.commons.utils.DateTimeUtils
+import com.roundeights.hasher.Implicits._
+
+import scala.util.Try
 
 case class DeviceDetails(deviceId: String,
                          userId: String,
@@ -30,10 +33,11 @@ case class DeviceDetails(deviceId: String,
 
   def toBigfootFormat: fkint.mp.connekt.DeviceDetails = {
     fkint.mp.connekt.DeviceDetails(
-      deviceId = deviceId, userId = userId, token = token, osName = osName, osVersion = osVersion,
+      deviceId = deviceId, userId = userId, token = token.sha256.hash.hex, osName = osName, osVersion = osVersion,
       appName = appName, appVersion = appVersion, brand = brand, model = model, state = state,
       ts = DateTimeUtils.getStandardFormatted(), active = active
     )
   }
 
+  def validate() = require(Try(MobilePlatform.withName(osName)).map(!_.equals(MobilePlatform.UNKNOWN)).getOrElse(false), "a device's platform cannot be unknown")
 }

@@ -16,15 +16,15 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.bigfoot.{EntityBaseSchema, EventBaseSchema}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.utils._
 import com.flipkart.metrics.Timed
 import com.flipkart.phantom.client.exceptions.PhantomClientException
-import com.flipkart.seraph.schema.BaseSchema
 import com.flipkart.specter.ingestion.IngestionMetadata
 import com.flipkart.specter.ingestion.entities.Entity
 import com.flipkart.specter.ingestion.events.Event
 import com.flipkart.specter.{SpecterClient, SpecterRequest}
-import com.flipkart.connekt.commons.utils.StringUtils._
+
 import scala.util.{Failure, Success, Try}
 
 object BigfootService extends Instrumented {
@@ -32,7 +32,6 @@ object BigfootService extends Instrumented {
   val socketClient = DaoFactory.phantomClientSocket
 
   val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(false)
-
   private def ingest(request: SpecterRequest): Try[Boolean] = {
     if (ingestionEnabled) {
       try {
@@ -50,7 +49,7 @@ object BigfootService extends Instrumented {
         case ie: InterruptedException =>
           ConnektLogger(LogFile.SERVICE).error(s"Interrupt Exception , FAILED_TO_INGEST [${request.getObject.getJson}]", ie)
           Failure(ie)
-        case e: Exception =>
+        case e: Throwable =>
           ConnektLogger(LogFile.SERVICE).error(s"Unknown ERROR, FAILED_TO_INGEST [${request.getObject.getJson}]", e)
           Failure(e)
       }

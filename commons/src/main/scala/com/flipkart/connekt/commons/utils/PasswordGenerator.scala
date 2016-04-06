@@ -25,7 +25,7 @@ object PasswordGenerator {
   val LCaseChars = "abcdefgijkmnopqrstwxyz"
   val UCaseChars = "ABCDEFGHJKLMNPQRSTWXYZ"
   val NumericChars = "23456789"
-  val SpecialChars = "*$-+_&=!%{}"
+  val SpecialChars = "-+_&=%{}"
 
   def generate(minLength: Int,
                            maxLength: Int,

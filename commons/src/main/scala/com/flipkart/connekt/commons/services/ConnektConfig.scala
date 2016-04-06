@@ -12,7 +12,6 @@
  */
 package com.flipkart.connekt.commons.services
 
-import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.utils.config.KloudConfig
 import com.typesafe.config.Config
 

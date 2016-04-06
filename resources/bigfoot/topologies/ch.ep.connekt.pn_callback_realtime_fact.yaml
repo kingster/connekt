@@ -1,0 +1,80 @@
+topology_name: Prod-ep-connekt-pn-callback-realtime-fact
+type: kafka-to-sink-pipeline
+retry_identifier: connket_pn_callback_realtime_fact
+
+enable_reconciliation: false
+reconciliation_config:
+    redis_host: 10.32.233.183
+    redis_port: 6379
+
+storm_properties:
+    topology.max.spout.pending: 1
+    nimbus.task.timeout.secs: 240
+    supervisor.worker.timeout.secs: 240
+    topology.message.timeout.secs: 180
+    topology.workers: 5
+
+spout:
+    name:  LS-connket-pn-callback-realtime-fact-Spout
+    topic: dart.fkint.mp.connekt.PNCallbackEvent
+    parallelism_hint: 25
+    num_instances: 1
+    poll_interval_ms: 5000
+    zk_hosts:
+        - "10.32.185.202:2181"
+        - "10.32.41.70:2181"
+        - "10.32.45.164:2181/prod-fdpflow-kafka-c"
+    start_offset: -2
+
+transformation_bolt:
+    name: Transformation-bolt
+    type: transformation-bolt
+    parallelism_hint: 50
+    schema_map:
+        app_name:
+            column_definition: data['data']['appName']
+            column_type: java.lang.String
+        context_id:
+            column_definition: data['data']['contextId']
+            column_type: java.lang.String
+        event_type:
+            column_definition: data['data']['eventType']
+            column_type: java.lang.String
+        platform:
+            column_definition: data['data']['platform']
+            column_type: java.lang.String
+        timestamp:
+            column_definition: data['data']['timestamp']
+            column_type: java.lang.String
+
+sink_bolt:
+    name: elastic-storage-bolt
+    type: elasticsearch-bolt
+    parallelism_hint: 25
+    host_name: 10.32.49.55
+    port: 9300
+    cluster_name: fdp-es-prod
+    index_name: connekt
+    type_name: pn_callback_realtime_fact
+    id_keys:
+        - app_name
+        - context_id
+        - event_type
+        - platform
+
+kafka_bolt:
+    name: Kafka-bolt
+    type: kafka-bolt
+    parallelism_hint: 12
+    zk_hosts:
+        - "10.32.185.202:2181"
+        - "10.32.41.70:2181"
+        - "10.32.45.164:2181/prod-fdpflow-kafka-b"
+    producer_type: sync
+    request_required_acks: 2
+    serializer_class: kafka.serializer.DefaultEncoder
+    partitioner_class: com.flipkart.bigfoot.fireball.engine.pipeline.bolt.utils.RetryKafkaPartitioner
+    compression_codec: snappy
+    connect_timeout_ms: 30000
+    socket_timeout_ms: 120000
+    storage_batch_size: 10

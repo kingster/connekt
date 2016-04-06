@@ -20,30 +20,30 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 class MessageServiceTest extends CommonsBaseTest {
   val data = "{        \"message\": \"Hello World\",        \"title\": \"Hello world\",        \"id\": \"pqwx2p2x321122228w2t1wxt\",        \"triggerSound\" : true,        \"notificationType\" : \"Text\"}"
-  val pnRequestInfo = PNRequestInfo("android", "connekt", List[String]("bbd505411b210e38b15142bd6a0de0f6"), true, true)
+  val pnRequestInfo = PNRequestInfo("android", "connekt", Set[String]("bbd505411b210e38b15142bd6a0de0f6"), true, true)
   val pnRequestData = PNRequestData(data.getObj[ObjectNode])
-  val request = ConnektRequest(null, "PN", "H", Option("retail-app-base-0x23"), Option(1231231), Option(324324), pnRequestInfo, pnRequestData, StringUtils.getObjectNode, Map())
+  val request = ConnektRequest(null, contextId = None, "PN", "H", Option("retail-app-base-0x23"), Option(1231231), Option(324324), pnRequestInfo, pnRequestData, StringUtils.getObjectNode, Map())
   var id: String = null
 
-/*
-  "IMessage Service Test" should "persist/get/update request" in {
-    val messageService = ServiceFactory.getMessageService
-    val persistResult = messageService.persistRequest(request, "fk-connekt-pn", isCrucial = true)
-    persistResult.isSuccess shouldEqual true
-    id = persistResult.get
-    messageService.updateRequestStatus(id, pnSendStatus).isSuccess shouldEqual true
+  /*
+    "IMessage Service Test" should "persist/get/update request" in {
+      val messageService = ServiceFactory.getMessageService
+      val persistResult = messageService.persistRequest(request, "fk-connekt-pn", isCrucial = true)
+      persistResult.isSuccess shouldEqual true
+      id = persistResult.get
+      messageService.updateRequestStatus(id, pnSendStatus).isSuccess shouldEqual true
 
-  }
+    }
 
-  "IMessage Service Test" should "get request" in {
-    val messageService = ServiceFactory.getMessageService
-    messageService.getRequestInfo(id).isSuccess shouldEqual true
-  }
+    "IMessage Service Test" should "get request" in {
+      val messageService = ServiceFactory.getMessageService
+      messageService.getRequestInfo(id).isSuccess shouldEqual true
+    }
 
-  "IMessage Service Test" should "update request" in {
-    val messageService = ServiceFactory.getMessageService
-    messageService.updateRequestStatus(id, pnSendStatus).isSuccess shouldEqual true
-  }
-*/
+    "IMessage Service Test" should "update request" in {
+      val messageService = ServiceFactory.getMessageService
+      messageService.updateRequestStatus(id, pnSendStatus).isSuccess shouldEqual true
+    }
+  */
 
 }

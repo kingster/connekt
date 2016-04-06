@@ -16,9 +16,9 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.entities.{AppUser, Channel}
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
+import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.services.{ConnektConfig, StencilService}
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
@@ -26,7 +26,7 @@ import scala.collection.immutable.Seq
 import scala.concurrent.duration._
 import scala.util.Try
 
-class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
+class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events")
 
@@ -48,11 +48,14 @@ class FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                   val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
                     val messageIds = res.map(_.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
                     val fetchedMessages = messageIds.filterNot(skipMessageIds.contains).flatMap(mId => messageService.getRequestInfo(mId).getOrElse(None))
-                    val validMessages = fetchedMessages.filter(_.expiryTs.map(t => t  < System.currentTimeMillis).getOrElse(true))
+                    val validMessages = fetchedMessages.filter(_.expiryTs.map(t => t > System.currentTimeMillis).getOrElse(true))
                     validMessages
                   })
 
-                  val pushRequests = messages.get.map(r => r.id -> r.channelData.asInstanceOf[PNRequestData].data).toMap
+                  val pushRequests = messages.get.map(r => {
+                    val channelRequestData = r.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, r.channelDataModel)).getOrElse(r.channelData)
+                    r.id -> channelRequestData
+                  }).toMap
 
                   //TODO: Cleanup this.
                   val finalTs = requestEvents.get.isEmpty match {

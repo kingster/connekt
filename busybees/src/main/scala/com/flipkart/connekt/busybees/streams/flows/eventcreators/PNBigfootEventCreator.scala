@@ -27,18 +27,16 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.
     setHandler(in, new InHandler {
       override def onPush(): Unit = {
         val event = grab(in)
-        ConnektLogger(LogFile.PROCESSORS).debug(s"PNBigfootEventCreator:: ON_PUSH for ${event.messageId}")
+        ConnektLogger(LogFile.PROCESSORS).info(s"PNBigfootEventCreator received event: ${event.messageId}")
         try {
-          if(isAvailable(out)) {
-            ConnektLogger(LogFile.PROCESSORS).debug(s"PNBigfootEventCreator:: PUSHED downstream for ${event.messageId}")
+          if(isAvailable(out))
             push(out, event.toBigfootFormat)
-          }
         }catch {
           case e:Throwable =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator:: onPush :: Error", e)
+            ConnektLogger(LogFile.PROCESSORS).error(s"PNBigfootEventCreator error", e)
             if(!hasBeenPulled(in)) {
               pull(in)
-              ConnektLogger(LogFile.PROCESSORS).debug(s"PNBigfootEventCreator:: PULLED upstream for ${event.messageId}")
+              ConnektLogger(LogFile.PROCESSORS).trace(s"PNBigfootEventCreator pulled upstream for: ${event.messageId}")
             }
         }
       }
@@ -48,7 +46,7 @@ class PNBigfootEventCreator extends GraphStage[FlowShape[PNCallbackEvent, fkint.
       override def onPull(): Unit = {
         if(!hasBeenPulled(in)) {
           pull(in)
-          ConnektLogger(LogFile.PROCESSORS).info(s"PNBigfootEventCreator:: PULLED upstream on downstream pull.")
+          ConnektLogger(LogFile.PROCESSORS).trace(s"PNBigfootEventCreator:: PULLED upstream on downstream pull.")
         }
       }
     })

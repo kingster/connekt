@@ -11,8 +11,6 @@
 #                    and should be placed in /etc/init.d
 ### END INIT INFO
 
-# Author:  Kinshuk Bairagi <kinshuk.bairagi@flipkart.com>
-
 set -x
 PACKAGE=_PACKAGE_
 PACKAGE_USER=_USER_
@@ -73,7 +71,7 @@ stop()
 
 usage()
 {
-    echo "Usage: ${0} {start <which> |stop |restart <which>|status <which>|force-stop } "
+    echo "Usage: ${0} {start <which> |stop |restart <which>|status <which>|force-stop |set-env <env-name>} "
     exit 0
 }
 

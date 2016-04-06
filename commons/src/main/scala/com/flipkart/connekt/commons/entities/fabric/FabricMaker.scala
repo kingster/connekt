@@ -13,8 +13,8 @@
 package com.flipkart.connekt.commons.entities.fabric
 
 import com.flipkart.connekt.commons.utils.StringUtils._
-import groovy.lang.GroovyClassLoader
 import com.roundeights.hasher.Implicits._
+import groovy.lang.GroovyClassLoader
 
 object FabricMaker {
 
@@ -30,8 +30,6 @@ object FabricMaker {
     val groovyFabricKey = s"""G${groovyFabric.md5.hash.hex}"""
     val gcl: GroovyClassLoader = new GroovyClassLoader()
     gcl.parseClass(groovyFabric, groovyFabricKey).newInstance().asInstanceOf[T]
-
-
   }
 
   def createVtlFabric(stencilId: String, objRep: String): VelocityFabric = {

@@ -12,14 +12,14 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import java.lang.reflect.{Modifier, Field}
+import java.lang.reflect.{Field, Modifier}
 import java.sql.ResultSet
 import javax.persistence.Column
 
 import com.flipkart.connekt.commons.entities.EnumTypeHint
 import org.springframework.jdbc.core.{JdbcTemplate, RowMapper}
-import scala.collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 trait MySQLDao extends Dao {

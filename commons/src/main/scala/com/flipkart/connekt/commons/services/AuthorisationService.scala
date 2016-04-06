@@ -22,9 +22,6 @@ import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 
 import scala.util.{Failure, Success, Try}
-/**
- * @author aman.shrivastava on 12/12/15.
- */
 
 class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAuthorisationService with SyncDelegate {
 
@@ -70,13 +67,23 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
     read(userName, UserType.USER).map(_.resources.split(',').toList).getOrElse(List())
   }
 
+  def getGroups(userName: String): Option[Array[String]] = {
+    LocalCacheManager.getCache(LocalCacheType.UserGroups).get[Array[String]](userName).orElse {
+      val groups = userInfoDao.getUserInfo(userName).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).getOrElse(Array.empty[String])
+      LocalCacheManager.getCache(LocalCacheType.UserGroups).put(userName, groups)
+      Option(groups)
+    }
+  }
+
+  override def getAllPrivileges(userName: String): List[String] = {
+    val userPrivs = getUserPrivileges(userName)
+    val groupPrivs =  getGroups(userName).getOrElse(Array.empty[String]).flatMap(getGroupPrivileges)
+    userPrivs ++ groupPrivs ++ globalPrivileges
+  }
+
   override def isAuthorized(username: String, resource: String*): Try[Boolean] = {
     try {
-      val userPrivs = getUserPrivileges(username)
-      val groupPrivs = userInfoDao.getUserInfo(username).map(_.groups.split(',').map(_.trim)).get.flatMap(getGroupPrivileges)
-      val allowedPrivileges = (userPrivs ++ groupPrivs ++ globalPrivileges).toSet
-
-      Success(allowedPrivileges.intersect(resource.toSet[String].map(_.toUpperCase)).nonEmpty)
+      Success(getAllPrivileges(username).intersect(resource.map(_.toUpperCase)).nonEmpty)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Error isAuthorized user [$username] info: ${e.getMessage}", e)

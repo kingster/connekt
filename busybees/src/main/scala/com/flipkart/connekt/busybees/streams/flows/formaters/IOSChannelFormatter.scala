@@ -12,57 +12,63 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import java.util.concurrent.TimeUnit
-
-import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
-import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
-import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
-import scala.collection.immutable
 import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.duration._
 
 class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
 
-  def getExpiry(ts: Option[Long]): Long = {
-    ts.getOrElse(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(6))
-  }
-
   override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
-
     try {
-
-      ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter:: Received Message: ${message.getJson}")
+      ConnektLogger(LogFile.PROCESSORS).info(s"IOSChannelFormatter received message: ${message.id}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"IOSChannelFormatter received message: ${message.getJson}")
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-      val listOfTokenDeviceId = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None)).map(r => (r.token, r.deviceId))
+
+      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
+      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
+      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmpty)).persist
+
+      val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
+      val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
+
+      val ttlInMillis =  message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
-        val apnsPayload = iOSPNPayload(td._1, getExpiry(message.expiryTs), Map("aps" -> message.channelData.asInstanceOf[PNRequestData].data))
-        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, apnsPayload)
+        val payloadData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
+        val apnsPayload = iOSPNPayload(td._1, ttlInMillis, payloadData)
+        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload)
       })
 
-      if (apnsEnvelopes.nonEmpty) {
+      if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
         if (!dryRun) {
-          ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: PUSHED downstream for ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).trace(s"IOSChannelFormatter pushed downstream for: ${message.id}")
           apnsEnvelopes
         }
         else {
-          ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter:: Dry Run Dropping msgId: ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter dropping dry-run message: ${message.id}")
           List.empty[APSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter dropping ttl-expired message: ${message.id}")
+        apnsEnvelopes.map(e => PNCallbackEvent(e.messageId, e.deviceId, InternalStatus.TTLExpired, MobilePlatform.IOS, e.appName, message.contextId.orEmpty)).persist
         List.empty[APSPayloadEnvelope]
       }
 
     } catch {
       case e: Throwable =>
-        ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter:: OnFormat error", e)
-        List.empty[APSPayloadEnvelope]
+        ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter error for ${message.id}", e)
+        throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, "IOSChannelFormatter::".concat(e.getMessage), e)
     }
   }
 }

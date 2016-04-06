@@ -67,18 +67,18 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
 
-    val render = b.add(new RenderFlow)
+    val render = b.add(new RenderFlow().flow)
     val merger = b.add(Merge[PNCallbackEvent](3))
 
     val platformPartition = b.add(new Partition[ConnektRequest](3, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing IOS message: ${ios.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"routing ios message: ${ios.id}")
         0
       case android if "android".equals(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing ANDROID message: ${android.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"routing android message: ${android.id}")
         1
       case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"Routing WINDOWS message: ${windows.id}")
+        ConnektLogger(LogFile.PROCESSORS).debug(s"routing windows message: ${windows.id}")
         2
     }))
 
@@ -102,11 +102,11 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      */
     val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
     val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare())
+    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare().flow)
 
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
 
-    val gcmResponseHandle = b.add(new GCMResponseHandler())
+    val gcmResponseHandle = b.add(new GCMResponseHandler().flow)
 
     platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle ~> merger.in(1)
 
@@ -123,7 +123,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      *                                      |~~~~~~~~~~~~~~~~~~~~~~~~~~~  wnsRetryMapper <~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
      */
 
-    val wnsHttpPrepare = b.add(new WNSDispatcherPrepare())
+    val wnsHttpPrepare = b.add(new WNSDispatcherPrepare().flow)
     val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow)
 
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
@@ -146,7 +146,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create(){ implicit b =>
 
     val evtCreator = b.add(new PNBigfootEventCreator)
-    val metrics = b.add(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH))
+    val metrics = b.add(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH).flow)
     evtCreator.out ~> metrics ~> Sink.ignore
 
     SinkShape(evtCreator.in)
@@ -154,6 +154,6 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def shutdown() = {
     /* terminate in top-down approach from all Source(s) */
-    sourceSwitches.foreach(_.success("PushTopology:: signal source shutdown."))
+    sourceSwitches.foreach(_.success("PushTopology signal source shutdown"))
   }
 }

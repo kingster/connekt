@@ -12,4 +12,4 @@
  */
 package com.flipkart.connekt.busybees.models
 
-case class GCMRequestTracker(messageId: String, deviceId: List[String], appName: String) extends HTTPRequestTracker
+case class GCMRequestTracker(messageId: String, deviceId: Seq[String], appName: String, contextId:String) extends HTTPRequestTracker

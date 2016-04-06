@@ -14,7 +14,7 @@ package com.flipkart.connekt.commons.entities.fabric
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, EmailRequestData, PNRequestData}
-
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 sealed trait ChannelFabric {
 }
@@ -29,8 +29,8 @@ trait EmailFabric extends ChannelFabric {
 }
 
 trait PNFabric extends ChannelFabric {
-  def getData(id: String, context: ObjectNode): ObjectNode
+  def getData(id: String, context: ObjectNode): String
 
   def renderData(id: String, context: ObjectNode): ChannelRequestData =
-    PNRequestData(getData(id, context))
+    PNRequestData(getData(id, context).getObj[ObjectNode])
 }

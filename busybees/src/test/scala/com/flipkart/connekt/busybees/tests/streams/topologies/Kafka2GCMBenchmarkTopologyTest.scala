@@ -73,7 +73,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
         |    	"delayWhileIdle": true,
         |     "platform" :  "android",
         |     "appName" : "ConnectSampleApp",
-        |     "deviceId" : ["513803e45cf1b344ef494a04c9fb650a"]
+        |     "deviceIds" : ["513803e45cf1b344ef494a04c9fb650a"]
         |	},
         |	"meta": {
         |   "x-perf-test" : "true"
@@ -103,11 +103,11 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
   private def transform2GCMRequest(request: ConnektRequest) = Future{
     val messageId = UUID.randomUUID().toString
     val pNRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo]
-    val deviceId = List[String](pNRequestInfo.deviceId.head)
+    val deviceId = Seq[String](pNRequestInfo.deviceIds.head)
     val gcmPayload =
       s"""
           |{
-          |	"registration_ids": ["${DeviceDetailsService.get(pNRequestInfo.appName, pNRequestInfo.deviceId.head).get.get.token}"],
+          |	"registration_ids": ["${DeviceDetailsService.get(pNRequestInfo.appName, pNRequestInfo.deviceIds.head).get.get.token}"],
           |	"delay_while_idle": false,
           | "dry_run" : true,
           |	"data": ${request.channelData.asInstanceOf[PNRequestData].data.toString}
@@ -117,7 +117,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
     val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
     val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(pNRequestInfo.appName).get.apiKey))
     val httpRequest = new HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
-    val requestTrace = GCMRequestTracker(messageId, deviceId, pNRequestInfo.appName)
+    val requestTrace = GCMRequestTracker(messageId, deviceId, pNRequestInfo.appName, "")
 //    println("Rinning in thread " + Thread.currentThread().getName)
     (httpRequest, requestTrace)
   }(futureDispatcher)

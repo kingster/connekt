@@ -49,4 +49,4 @@ abstract class Caches {
   def flush(): Unit
 }
 
-case class CacheProperty(size: Int, ttl: Duration)
+case class CacheProperty(size: Long, ttl: Duration)

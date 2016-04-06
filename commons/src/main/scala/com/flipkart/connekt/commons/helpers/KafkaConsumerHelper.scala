@@ -19,8 +19,8 @@ import com.typesafe.config.Config
 import kafka.consumer.{ConsumerConnector, KafkaStream}
 import org.apache.commons.pool.impl.GenericObjectPool
 
-import scala.util.{Success, Failure, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 trait KafkaConsumer {
   def readMessage(topic: String): Option[String]

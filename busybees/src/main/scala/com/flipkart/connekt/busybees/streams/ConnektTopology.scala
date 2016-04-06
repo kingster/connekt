@@ -19,6 +19,7 @@ import akka.stream.{ActorAttributes, Attributes, Materializer}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest}
 
 trait ConnektTopology[E <:CallbackEvent] {
+
   def source: Source[ConnektRequest, NotUsed]
   def transform: Flow[ConnektRequest, E, NotUsed]
   def sink: Sink[E, NotUsed]
@@ -29,4 +30,6 @@ trait ConnektTopology[E <:CallbackEvent] {
 
   def run(implicit mat: Materializer) = graph().run()
   def shutdown()
+
+
 }

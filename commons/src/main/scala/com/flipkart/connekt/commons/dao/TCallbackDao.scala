@@ -17,6 +17,8 @@ import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import scala.util.Try
 
 trait TCallbackDao extends Dao {
+  def asyncSaveCallbackEvent(requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String]
+
   def saveCallbackEvent(requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String]
 
   def deleteCallbackEvents(requestId: String, forContact: String ): List[CallbackEvent]

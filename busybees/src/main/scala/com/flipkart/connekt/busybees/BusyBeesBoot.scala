@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider
@@ -36,9 +37,11 @@ object BusyBeesBoot extends BaseApp {
 
   val settings = ActorMaterializerSettings(system)
     .withDispatcher("akka.actor.default-dispatcher")
-    .withAutoFusing(enable = false)
+    .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
+    .withSupervisionStrategy(StageSupervision.decider)
 
   lazy implicit val mat = ActorMaterializer(settings)
+
   var pushTopology: PushTopology = _
 
   def start() {
@@ -48,7 +51,7 @@ object BusyBeesBoot extends BaseApp {
 
       val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-busybees.xml")
 
-      ConnektLogger(LogFile.SERVICE).info(s"BusyBees Logging using $configFile")
+      ConnektLogger(LogFile.SERVICE).info(s"BusyBees logging using: $configFile")
       ConnektLogger.init(configFile)
 
       ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-busybees", "fk-connekt-busybees-akka"))
@@ -65,6 +68,9 @@ object BusyBeesBoot extends BaseApp {
 
       val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
       DaoFactory.initCouchbaseCluster(couchbaseCf)
+
+      val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
+      DaoFactory.initSpecterSocket(specterConfig)
 
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
@@ -87,10 +93,12 @@ object BusyBeesBoot extends BaseApp {
   }
 
   def terminate() = {
-    ConnektLogger(LogFile.SERVICE).info("BusyBees Shutting down.")
+    ConnektLogger(LogFile.SERVICE).info("BusyBees shutting down")
     if (initialized.get()) {
       DaoFactory.shutdownHTableDaoFactory()
       Option(pushTopology).foreach(_.shutdown())
+
+      ConnektLogger.shutdown()
     }
   }
 

@@ -15,14 +15,10 @@ package com.flipkart.connekt.commons.iomodels
 import akka.http.scaladsl.model.{ContentType, ContentTypes}
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-import com.fasterxml.jackson.databind.node.ObjectNode
-import scala.xml.Node
 
-/**
- * @author aman.shrivastava on 08/02/16.
- */
+import scala.xml.{Node, XML}
 
-case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, deviceId: String, wnsPayload: WNSPayload)
+case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, deviceId: String, time_to_live: Long, contextId: String, wnsPayload: WNSPayload)
 
 object WindowsNotificationType extends Enumeration {
   val toast, tile, badge, raw = Value
@@ -45,58 +41,38 @@ abstract class WNSPayload {
   def getContentType: ContentType
 
   def getBody: Array[Byte]
-
 }
 
-abstract class WNSXMLPayload extends WNSPayload {
-  def toXML: Node
+abstract class WNSXMLPayload(xml: Node) extends WNSPayload {
 
-  def getBody = toXML.toString.getBytes
+  def getBody = xml.toString().getBytes
 
   def getContentType = ContentTypes.`text/xml(UTF-8)`
-
 }
 
-abstract class WNSBinaryPayload extends WNSPayload {
-  def toOctetStream: String
+abstract class WNSBinaryPayload(octetStream: String) extends WNSPayload {
 
-  def getBody = toOctetStream.toString.getBytes
+  def getBody = octetStream.getBytes
 
   def getContentType = ContentTypes.`application/octet-stream`
 }
 
-case class WNSToastPayload(title: String, message: String, actions: ObjectNode) extends WNSXMLPayload {
-
-  def toXML: Node =
-    <toast launch={actions.toString}>
-      <visual>
-        <binding template="ToastText02">
-          <text id="1">{title}</text>
-          <text id="2">{message}</text>
-        </binding>
-      </visual>
-    </toast>
+case class WNSToastPayload(body: String) extends WNSXMLPayload(XML.loadString(body)) {
 
   override def getType: String = "wns/toast"
-
 }
 
-case class WNSTilePayload(title: String, message: String, actions: ObjectNode) extends WNSXMLPayload {
-  def toXML: Node = ???
+case class WNSTilePayload(body: String) extends WNSXMLPayload(XML.loadString(body)) {
 
   override def getType: String = "wns/tile"
-
 }
 
-case class WNSBadgePayload(title: String, message: String, actions: ObjectNode) extends WNSXMLPayload {
-  def toXML: Node = ???
+case class WNSBadgePayload(body: String) extends WNSXMLPayload(XML.loadString(body)) {
 
   override def getType: String = "wns/badge"
-
 }
 
-case class WNSRawPayload(title: String, message: String, actions: ObjectNode) extends WNSBinaryPayload {
-  override def toOctetStream: String = ???
+case class WNSRawPayload(body: String) extends WNSBinaryPayload(body) {
 
   override def getType: String = "wns/raw"
 }

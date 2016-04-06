@@ -26,9 +26,6 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
 import scala.util.{Failure, Success}
 
-/**
- * @author aman.shrivastava on 19/01/16.
- */
 class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
   val stencils =
     pathPrefix("v1") {
@@ -59,10 +56,10 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
               }
             }
         } ~ path("bucket" / "touch" / Segment) {
-          (name: String) =>
+          (id: String) =>
             post {
-              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(name)))
-              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $name", null)))
+              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(id)))
+              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
             }
         } ~ pathPrefix(Segment) {
           (id: String) =>
@@ -94,6 +91,11 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                           }
                         }
                       }
+                    }  ~ path("touch") {
+                      post {
+                        SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id, version)))
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
+                      }
                     } ~ pathEndOrSingleSlash {
                       get {
                         authorize(user, bucketIds.map("STENCIL_GET_" + _): _*) {
@@ -110,7 +112,11 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                   put {
                     authorize(user, bucketIds.map("STENCIL_UPDATE_" + _): _*) {
                       entity(as[Stencil]) { stnc =>
+                        stnc.createdBy = stencil.createdBy
+                        stnc.creationTS = stencil.creationTS
+                        stnc.lastUpdatedTS = new Date(System.currentTimeMillis())
                         stnc.id = id
+                        stnc.version = stencil.version + 1
                         stnc.updatedBy = user.userId
                         stnc.bucket = stencil.bucket.split(",").map(StencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "").mkString(",")
                         StencilService.update(stnc) match {
@@ -131,12 +137,6 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                 complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id", null)))
 
             }
-        } ~ path("touch" / Segment) {
-          (stencilId: String) =>
-            post {
-              SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(stencilId)))
-              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $stencilId", null)))
-            }
         } ~ pathEndOrSingleSlash {
           post {
             entity(as[Stencil]) { stencil =>
@@ -149,6 +149,7 @@ class StencilsRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJ
                 stencil.updatedBy = user.userId
                 stencil.version = 1
                 stencil.creationTS = new Date(System.currentTimeMillis())
+                stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
 
                 StencilService.add(stencil) match {
                   case Success(sten) =>

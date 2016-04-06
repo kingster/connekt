@@ -12,61 +12,60 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
+import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.Try
+import scala.concurrent.duration._
 
-/**
- * @author aman.shrivastava on 08/02/16.
- */
 class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, WNSPayloadEnvelope](parallelism)(ec) {
 
   override def map: (ConnektRequest) => List[WNSPayloadEnvelope] = message => {
 
     try {
-      ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: Received Message: ${message.getJson}")
+      ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter received message: ${message.id}")
+      ConnektLogger(LogFile.PROCESSORS).trace(s"WindowsChannelFormatter received message: ${message.getJson}")
 
       val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
-      val payload = message.channelData.asInstanceOf[PNRequestData].data
-      val wnsPayload = makeWNSPayload("toast" /* wnsPayload `type` has to be dynamically available */, payload).get
 
-      val devices = pnInfo.deviceId.flatMap(DeviceDetailsService.get(pnInfo.appName, _).getOrElse(None))
-      ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: onPush:: devices: ${devices.getJson}")
+      val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
+      val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
+      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
 
-      val wnsRequestEnvelopes = devices.map(d => WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, wnsPayload))
+      val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-windows").get
+      val ttlInSeconds = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis)/1000).getOrElse(6.hours.toSeconds)
 
-      if(wnsRequestEnvelopes.nonEmpty) {
+      val wnsRequestEnvelopes = devicesInfo.map(d => {
+        val wnsPayload = WNSToastPayload(PNStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
+        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty,  wnsPayload)
+      })
+
+      if(wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0 ) {
         val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
         if (!dryRun) {
-          ConnektLogger(LogFile.PROCESSORS).info(s"WindowsChannelFormatter:: PUSHED downstream for ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).trace(s"WindowsChannelFormatter pushed downstream for: ${message.id}")
           wnsRequestEnvelopes
         } else {
-          ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter:: Dry Run Dropping msgId: ${message.id}")
+          ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter dropping dry-run message: ${message.id}")
           List.empty[WNSPayloadEnvelope]
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter:: No Device Details found for : ${pnInfo.deviceId}, msgId: ${message.id}")
+        ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter dropping ttl-expired message: ${message.id}")
+        wnsRequestEnvelopes.map(w => PNCallbackEvent(w.messageId, w.deviceId, InternalStatus.TTLExpired, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
         List.empty[WNSPayloadEnvelope]
       }
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter:: OnFormat error", e)
-        List.empty[WNSPayloadEnvelope]
-    }
-  }
-
-  private def makeWNSPayload(notificationType: String, input: ObjectNode) = Try {
-    WindowsNotificationType.withName(notificationType) match {
-      case WindowsNotificationType.toast => WNSToastPayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
-      case WindowsNotificationType.tile => WNSTilePayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
-      case WindowsNotificationType.badge => WNSBadgePayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
-      case WindowsNotificationType.raw => WNSRawPayload(input.get("title").asText(), input.get("message").asText(), input.get("actions").asInstanceOf[ObjectNode])
+        ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter error for message: ${message.id}", e)
+        throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, "WindowsChannelFormatter::".concat(e.getMessage), e)
     }
   }
 }

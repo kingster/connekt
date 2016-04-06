@@ -23,7 +23,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
 
     val m = scala.collection.mutable.Map[String, Array[Byte]]()
 
-    Option(pnRequestInfo.deviceId).foreach(m += "deviceId" -> _.mkString(",").getUtf8Bytes)
+    Option(pnRequestInfo.deviceIds).foreach(m += "deviceId" -> _.mkString(",").getUtf8Bytes)
     Option(pnRequestInfo.platform).foreach(m += "platform" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.appName).foreach(m += "appName" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.ackRequired).foreach(m += "ackRequired" -> _.getBytes)
@@ -32,15 +32,13 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     m.toMap
   }
 
-  override protected def getChannelRequestInfo(reqInfoProps: Map[String, Array[Byte]]): ChannelRequestInfo = {
-    PNRequestInfo(
-      platform = reqInfoProps.getS("platform"),
-      appName = reqInfoProps.getS("appName"),
-      deviceId = reqInfoProps.getS("deviceId").split(",").toList,
-      ackRequired = reqInfoProps.getB("ackRequired"),
-      delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
-    )
-  }
+  override protected def getChannelRequestInfo(reqInfoProps: Map[String, Array[Byte]]): ChannelRequestInfo = PNRequestInfo(
+    platform = reqInfoProps.getS("platform"),
+    appName = reqInfoProps.getS("appName"),
+    deviceIds = reqInfoProps.getS("deviceId").split(",").toSet,
+    ackRequired = reqInfoProps.getB("ackRequired"),
+    delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
+  )
 
   override protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]] = {
     Option(channelRequestData).map(d => {
