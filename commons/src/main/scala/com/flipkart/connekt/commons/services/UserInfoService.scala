@@ -21,17 +21,12 @@ import com.flipkart.connekt.commons.utils.PasswordGenerator
 
 import scala.util.Try
 
-class UserInfoService( userInfoDao: TUserInfo) extends TService {
+class UserInfoService(userInfoDao: TUserInfo) extends TService {
 
 
-  def addUserInfo(user: AppUser):Try[Unit] = Try_ {
+  def addUserInfo(user: AppUser): Try[Unit] = Try_ {
 
-    getUserInfo(user.userId).get match {
-      case None =>
-        user.apiKey = PasswordGenerator.generate(48,48,20,20,8,0)
-      case Some(u) =>
-        user.apiKey = u.apiKey
-    }
+    user.apiKey = getUserInfo(user.userId).get.map(_.apiKey).getOrElse(PasswordGenerator.generate(48, 48, 20, 20, 8, 0))
 
     Option(user.groups).foreach(_.split(",").map(_.trim).find(ServiceFactory.getAuthorisationService.getGroupPrivileges(_).isEmpty).
       foreach(group => throw new RuntimeException(s"AppUser ${user.userId} is part of a non-existent group $group"))
@@ -40,24 +35,24 @@ class UserInfoService( userInfoDao: TUserInfo) extends TService {
     userInfoDao.addUserInfo(user)
   }
 
-  def getUserInfo(userId: String): Try[Option[AppUser]]  = Try_ {
+  def getUserInfo(userId: String): Try[Option[AppUser]] = Try_ {
     val key = s"id_$userId"
     LocalCacheManager.getCache(LocalCacheType.UserInfo).get[AppUser](key) match {
       case p: Some[AppUser] => p
       case None =>
         val user = userInfoDao.getUserInfo(userId)
-        user.foreach( p => LocalCacheManager.getCache(LocalCacheType.UserInfo).put[AppUser](key, p))
+        user.foreach(p => LocalCacheManager.getCache(LocalCacheType.UserInfo).put[AppUser](key, p))
         user
     }
   }
 
-  def getUserByKey(apiKey: String): Try[ Option[AppUser]] = Try_ {
+  def getUserByKey(apiKey: String): Try[Option[AppUser]] = Try_ {
     val key = s"key_$apiKey"
     LocalCacheManager.getCache(LocalCacheType.UserInfo).get[AppUser](key) match {
       case p: Some[AppUser] => p
       case None =>
         val user = userInfoDao.getUserByKey(apiKey)
-        user.foreach( p => LocalCacheManager.getCache(LocalCacheType.UserInfo).put[AppUser](key, p))
+        user.foreach(p => LocalCacheManager.getCache(LocalCacheType.UserInfo).put[AppUser](key, p))
         user
     }
   }
