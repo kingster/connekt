@@ -28,7 +28,7 @@ import scala.util.Try
 
 class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
 
-  val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events")
+  val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events").map(_.toLowerCase)
 
   val fetch =
     pathPrefix("v1") {
@@ -44,7 +44,7 @@ class   FetchRoute(implicit user: AppUser) extends BaseJsonHandler {
                 val messageService = ServiceFactory.getPNMessageService
 
                 //Skip all messages which are either read/dismissed or passed in skipIds
-                val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_.asInstanceOf[PNCallbackEvent]).filter(seenEventTypes.contains).map(_.messageId)).get.toSet
+                val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_.asInstanceOf[PNCallbackEvent]).filter(e => seenEventTypes.contains(e.eventType.toLowerCase)).map(_.messageId)).get.toSet
                 val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
                   val messageIds = res.map(_.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
                   val fetchedMessages = messageIds.filterNot(skipMessageIds.contains).flatMap(mId => messageService.getRequestInfo(mId).getOrElse(None))
