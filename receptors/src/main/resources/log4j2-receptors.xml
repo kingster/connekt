@@ -15,7 +15,7 @@
       <PatternLayout pattern="%d %p %c{1} [%t] %m%n"/>
     </Console>
 
-    <RollingRandomAccessFile name="ACCESS" fileName="${accessLogFile}" filePattern="${accessLogFile}.%i" immediateFlush="false" >
+    <RollingRandomAccessFile name="ACCESS" fileName="${accessLogFile}" filePattern="${accessLogFile}.%i" immediateFlush="false" bufferSize="1048576">
       <PatternLayout>
         <Pattern>%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
