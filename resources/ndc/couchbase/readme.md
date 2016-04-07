@@ -8,9 +8,9 @@ Password : connekt@123
 
 Cluster
 -----------
-Master: 10.33.141.22
+Master: 10.32.161.203
 
-Admin : http://10.33.141.22:8091/index.html
+Admin : http://10.32.161.203:8091/index.html
 
 NM
 -----------

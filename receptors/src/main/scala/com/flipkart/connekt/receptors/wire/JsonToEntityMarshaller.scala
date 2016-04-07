@@ -18,7 +18,11 @@ import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromE
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-import GenericJsonSupport._
+import com.flipkart.connekt.receptors.wire.GenericJsonSupport._
+
+import scala.collection.mutable
+import scala.reflect.ClassTag
+
 /**
  * Derives on [[akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers]] and [[akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers]]
  * to provide implicit generic json un/marshallers. As per akka-http documentation `akka-http-spray-json`
@@ -44,14 +48,24 @@ object GenericJsonSupport {
 
 trait JsonToEntityMarshaller extends PredefinedToEntityMarshallers {
 
-  implicit def genericMarshaller[T <: AnyRef]: ToEntityMarshaller[T] =
+  private val m: mutable.Map[Class[_], ToEntityMarshaller[_]] = mutable.Map.empty[Class[_], ToEntityMarshaller[_]]
+
+  implicit def findMarshaller[T](implicit cTag: ClassTag[T]): ToEntityMarshaller[T] =
+    m.getOrElseUpdate(cTag.runtimeClass, genericMarshaller[T]).asInstanceOf[ToEntityMarshaller[T]]
+
+  def genericMarshaller[T]: ToEntityMarshaller[T] =
     stringMarshaller(MediaTypes.`application/json`)
       .compose[T](mapper.writeValueAsString)
 }
 
 trait JsonFromEntityUnmarshaller extends PredefinedFromEntityUnmarshallers {
 
-  implicit def genericUnmarshaller[T: Manifest]: FromEntityUnmarshaller[T] =
+  private val um: mutable.Map[Class[_], FromEntityUnmarshaller[_]] = mutable.Map.empty[Class[_], FromEntityUnmarshaller[_]]
+
+  implicit def findUnmarshaller[T](implicit cTag: ClassTag[T]): FromEntityUnmarshaller[T] =
+    um.getOrElseUpdate(cTag.runtimeClass, genericUnmarshaller[T](cTag)).asInstanceOf[FromEntityUnmarshaller[T]]
+
+  def genericUnmarshaller[T](cTag: ClassTag[T]): FromEntityUnmarshaller[T] =
     stringUnmarshaller.forContentTypes(MediaTypes.`application/json`)
-      .map(mapper.readValue[T])
+      .map(mapper.readValue(_, cTag.runtimeClass).asInstanceOf[T])
 }

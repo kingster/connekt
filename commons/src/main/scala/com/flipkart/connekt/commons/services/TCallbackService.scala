@@ -21,9 +21,9 @@ trait TCallbackService extends TService {
 
   def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String]
 
-  def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]]
+  def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[(CallbackEvent, Long)]]
 
-  def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]]
+  def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[(CallbackEvent, Long)]]
 
   def fetchEventsMapForContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]]
 
