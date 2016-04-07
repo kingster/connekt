@@ -1,0 +1,40 @@
+{
+	"dynamic_templates": [{
+		"properties_template": {
+			"mapping": {
+				"index": "not_analysed",
+				"type": "{dynamic_type}"
+			},
+			"path_match": "*"
+		}
+	}],
+	"_source": {
+		"enabled": "true"
+	},
+	"_ttl": {
+		"enabled": "true",
+		"default": 1296000000
+	},
+	"properties": {
+		"app_name": {
+			"format": "not_analysed",
+			"type": "string"
+		},
+		"context_id": {
+			"format": "not_analysed",
+			"type": "string"
+		},
+		"event_type": {
+			"format": "not_analysed",
+			"type": "string"
+		},
+		"platform": {
+			"format": "not_analysed",
+			"type": "string"
+		},
+		"timestamp": {
+			"format": "dateOptionalTime",
+			"type": "date"
+		}
+	}
+}
