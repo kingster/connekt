@@ -14,29 +14,29 @@ package com.flipkart.connekt.receptors.routes.common
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.iomodels.{Response, SendResponse, GenericResponse}
+import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.service.AuthenticationService
 
-/**
- * Created by kinshuk.bairagi on 04/04/16.
- */
-class DebuggerRoute (implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
+class DebuggerRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  val route = pathPrefix("v1") {
-    pathPrefix("debugger") {
-      authorize(user, "DEBUGGER") {
-        path("secure-code" / "generate") {
-          get {
-            parameters('keys) { k =>
-              val keys = k.split(',')
-              val code = AuthenticationService.generateSecureCode(keys.mkString(":"))
-              complete(GenericResponse(StatusCodes.OK.intValue, Map("k" -> keys), Response("Your Secure Code is", code)))
+  val route =
+    authenticate {
+      user =>
+        pathPrefix("v1") {
+          pathPrefix("debugger") {
+            authorize(user, "DEBUGGER") {
+              path("secure-code" / "generate") {
+                get {
+                  parameters('keys) { k =>
+                    val keys = k.split(',')
+                    val code = AuthenticationService.generateSecureCode(keys.mkString(":"))
+                    complete(GenericResponse(StatusCodes.OK.intValue, Map("k" -> keys), Response("Your Secure Code is", code)))
+                  }
+                }
+              }
             }
           }
         }
-      }
     }
-  }
 }

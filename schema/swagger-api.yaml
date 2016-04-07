@@ -34,7 +34,7 @@ parameters:
     format: string
     default: "sandbox-key-01"
   secure-code:
-    name: x-secure-core
+    name: x-secure-code
     in: header
     description: Secure Code
     required: true

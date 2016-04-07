@@ -14,9 +14,6 @@ package com.flipkart.connekt.commons.entities
 
 import javax.persistence.Column
 
-/**
- * @author aman.shrivastava on 27/01/16.
- */
 class Bucket {
   @Column(name = "name")
   var name: String = _

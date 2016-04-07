@@ -4,9 +4,6 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{StatusCodes, MediaTypes, HttpEntity}
 import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 
-/**
- * Created by nidhi.mehla on 22/03/16.
- */
 class ClientRouteTest extends BaseRouteTest {
 
   val clientName = "clientId"

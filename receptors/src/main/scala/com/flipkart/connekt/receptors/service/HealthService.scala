@@ -14,9 +14,6 @@ package com.flipkart.connekt.receptors.service
 
 import java.lang.management.ManagementFactory
 
-/**
- * Created by kinshuk.bairagi on 28/03/16.
- */
 object HealthService {
 
   private [receptors] object ServiceStatus extends Enumeration {

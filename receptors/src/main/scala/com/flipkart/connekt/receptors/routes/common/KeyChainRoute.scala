@@ -26,7 +26,7 @@ import com.flipkart.connekt.receptors.routes.BaseHandler
 
 import scala.util.{Failure, Success}
 
-class KeyChainRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseHandler with FileDirective {
+class KeyChainRoute(implicit am: ActorMaterializer) extends BaseHandler with FileDirective {
 
   /**
    * formFields doesn't work now.
@@ -38,114 +38,116 @@ class KeyChainRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseH
    */
 
   val route =
-    pathPrefix("v1" / "keychain") {
-      authorize(user, "ADMIN_KEYCHAIN") {
-        path(Segment / MPlatformSegment) {
-          (appName: String, platform: MobilePlatform) =>
-            platform match {
-              case IOS =>
-                post {
-                  extractFormData { postMap =>
+    authenticate {
+      user =>
+        pathPrefix("v1" / "keychain") {
+          authorize(user, "ADMIN_KEYCHAIN") {
+            path(Segment / MPlatformSegment) {
+              (appName: String, platform: MobilePlatform) =>
+                platform match {
+                  case IOS =>
+                    post {
+                      extractFormData { postMap =>
 
-                    val fileInfo = postMap("file").right.get
-                    val password = postMap("password").left.get
+                        val fileInfo = postMap("file").right.get
+                        val password = postMap("password").left.get
 
-                    fileInfo.status match {
+                        fileInfo.status match {
 
-                      case Success(x) =>
-                        val credential = AppleCredential(new File(fileInfo.tmpFilePath), password)
-                        KeyChainManager.addAppleCredentials(appName, credential)
-                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
+                          case Success(x) =>
+                            val credential = AppleCredential(new File(fileInfo.tmpFilePath), password)
+                            KeyChainManager.addAppleCredentials(appName, credential)
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
 
-                      case Failure(e) =>
-                        //There was some isse processing the fileupload.
-                        ConnektLogger(LogFile.SERVICE).error("Credentials Upload File Error", e)
-                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("There was some error processing your request", Map("debug" -> e.getMessage))))
+                          case Failure(e) =>
+                            //There was some isse processing the fileupload.
+                            ConnektLogger(LogFile.SERVICE).error("Credentials Upload File Error", e)
+                            complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("There was some error processing your request", Map("debug" -> e.getMessage))))
+                        }
+
+                      }
+                    } ~ get {
+                      KeyChainManager.getAppleCredentials(appName) match {
+                        case Some(x) =>
+                          //TODO : Serve the file here.
+                          complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
+                        case None =>
+                          complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
+                      }
                     }
 
-                  }
-                } ~ get {
-                  KeyChainManager.getAppleCredentials(appName) match {
-                    case Some(x) =>
-                      //TODO : Serve the file here.
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
-                    case None =>
-                      complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
-                  }
+                  case ANDROID =>
+                    post {
+                      //TODO : Fix when the issue is resolved.
+                      //formFields('appId, 'appKey) { (appId, appKey) =>
+                      extractFormData { postMap =>
+                        val appId: String = postMap("appId").left.get
+                        val appKey: String = postMap("appKey").left.get
+
+                        val credential = GoogleCredential(appId, appKey)
+                        KeyChainManager.addGoogleCredential(appName, credential)
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
+                      }
+                    } ~ get {
+                      KeyChainManager.getGoogleCredential(appName) match {
+                        case Some(x) =>
+                          complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
+                        case None =>
+                          complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
+                      }
+                    }
+
+                  case WINDOWS =>
+                    post {
+                      //TODO : Fix when the issue is resolved.
+                      //formFields('clientId, 'secret) { (clientId, clientSecret) =>
+                      extractFormData { postMap =>
+                        val clientId: String = postMap("clientId").left.get
+                        val clientSecret: String = postMap("secret").left.get
+                        val credential = MicrosoftCredential(clientId, clientSecret)
+                        KeyChainManager.addMicrosoftCredential(appName, credential)
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
+                      }
+                    } ~ get {
+                      KeyChainManager.getMicrosoftCredential(appName) match {
+                        case Some(x) =>
+                          complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
+                        case None =>
+                          complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
+                      }
+                    }
+
+
+                  case _ =>
+                    post {
+                      complete(GenericResponse(StatusCodes.NotImplemented.intValue, null, Response("Not Supported.", null)))
+                    } ~ get {
+                      complete(GenericResponse(StatusCodes.NotImplemented.intValue, null, Response("Not Supported.", null)))
+                    }
+
                 }
 
-              case ANDROID =>
+            } ~ path(Segment) {
+              key: String =>
                 post {
-                  //TODO : Fix when the issue is resolved.
-                  //formFields('appId, 'appKey) { (appId, appKey) =>
                   extractFormData { postMap =>
-                    val appId: String = postMap("appId").left.get
-                    val appKey: String = postMap("appKey").left.get
-
-                    val credential = GoogleCredential(appId, appKey)
-                    KeyChainManager.addGoogleCredential(appName, credential)
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
+                    val username: String = postMap("username").left.get
+                    val password: String = postMap("password").left.get
+                    val credential = SimpleCredential(username, password)
+                    KeyChainManager.addSimpleCredential(key, credential)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $key", credential)))
                   }
                 } ~ get {
-                  KeyChainManager.getGoogleCredential(appName) match {
+                  KeyChainManager.getSimpleCredential(key) match {
                     case Some(x) =>
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
                     case None =>
                       complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
                   }
-                }
-
-              case WINDOWS =>
-                post {
-                  //TODO : Fix when the issue is resolved.
-                  //formFields('clientId, 'secret) { (clientId, clientSecret) =>
-                  extractFormData { postMap =>
-                    val clientId: String = postMap("clientId").left.get
-                    val clientSecret: String = postMap("secret").left.get
-                    val credential = MicrosoftCredential(clientId, clientSecret)
-                    KeyChainManager.addMicrosoftCredential(appName, credential)
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $platform / $appName", credential)))
-                  }
-                } ~ get {
-                  KeyChainManager.getMicrosoftCredential(appName) match {
-                    case Some(x) =>
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
-                    case None =>
-                      complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
-                  }
-                }
-
-
-              case _ =>
-                post {
-                  complete(GenericResponse(StatusCodes.NotImplemented.intValue, null, Response("Not Supported.", null)))
-                } ~ get {
-                  complete(GenericResponse(StatusCodes.NotImplemented.intValue, null, Response("Not Supported.", null)))
                 }
 
             }
-
-        } ~ path(Segment) {
-          key: String =>
-            post {
-              extractFormData { postMap =>
-                val username: String = postMap("username").left.get
-                val password: String = postMap("password").left.get
-                val credential = SimpleCredential(username, password)
-                KeyChainManager.addSimpleCredential(key, credential)
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Succesfully stored $key", credential)))
-              }
-            } ~ get {
-              KeyChainManager.getSimpleCredential(key) match {
-                case Some(x) =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Credentials Found.", x)))
-                case None =>
-                  complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
-              }
-            }
-
+          }
         }
-      }
-
     }
 }

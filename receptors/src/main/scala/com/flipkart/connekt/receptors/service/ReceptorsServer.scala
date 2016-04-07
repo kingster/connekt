@@ -80,6 +80,12 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
     }.result()
 
   implicit def exceptionHandler: ExceptionHandler = ExceptionHandler {
+    case rejection: IllegalArgumentException => logTimedRequestResult {
+      complete(responseMarshallable[GenericResponse](
+          StatusCodes.BadRequest, Seq.empty[HttpHeader],
+          GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> rejection.getMessage))))
+      )
+    }
     case e: Throwable =>
       val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
       ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- $errorUID  --  Reason [ ${e.getMessage} ]", e)

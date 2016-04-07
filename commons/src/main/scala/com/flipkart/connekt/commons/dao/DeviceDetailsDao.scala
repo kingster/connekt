@@ -111,16 +111,18 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 
   @Timed("mget")
   def get(appName: String, deviceIds: Set[String]): List[DeviceDetails] = {
-    implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
-    try {
-      fetchMultiRows(deviceIds.toList.map(getRowKey(appName, _)), dataColFamilies).values.flatMap(extractDeviceDetails).toList
-    } catch {
-      case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceIds, ${e.getMessage}")
-        throw new IOException("Fetching DeviceDetails failed for %s".format(deviceIds), e)
-    } finally {
-      hTableConnFactory.releaseTableInterface(hTableInterface)
-    }
+    if(deviceIds.nonEmpty) {
+      implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
+      try {
+        fetchMultiRows(deviceIds.toList.map(getRowKey(appName, _)), dataColFamilies).values.flatMap(extractDeviceDetails).toList
+      } catch {
+        case e: IOException =>
+          ConnektLogger(LogFile.DAO).error(s"Fetching DeviceDetails failed for $deviceIds, ${e.getMessage}")
+          throw new IOException("Fetching DeviceDetails failed for %s".format(deviceIds), e)
+      } finally {
+        hTableConnFactory.releaseTableInterface(hTableInterface)
+      }
+    } else Nil
   }
 
   @Timed("getAll")

@@ -42,7 +42,7 @@ class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
   "RepeatSource2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
     val source = Source.repeat({
       val appName = "ConnektSampleApp"
-      val deviceId = Set[String]("b25f2cdce678c67707228818e64fb4a0")
+      val deviceId = Seq[String]("b25f2cdce678c67707228818e64fb4a0")
       val messageId = UUID.randomUUID().toString
       val gcmPayload =
         s"""

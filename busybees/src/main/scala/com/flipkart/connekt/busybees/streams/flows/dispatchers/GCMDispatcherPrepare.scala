@@ -25,7 +25,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.GCMPayloadEnvelope
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
- 
+
 class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com", 443, "/gcm/send"))
   extends MapFlowStage[GCMPayloadEnvelope, (HttpRequest, GCMRequestTracker)] {
 
@@ -43,7 +43,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare failed with ${e.getMessage}", e)
-        throw new ConnektPNStageException(message.messageId, message.deviceId, InternalStatus.StageError, message.appName, MobilePlatform.ANDROID, message.contextId, s"GCMDispatcherPrepare-${e.getMessage}", e)
+        throw new ConnektPNStageException(message.messageId, message.deviceId.toSet, InternalStatus.StageError, message.appName, MobilePlatform.ANDROID, message.contextId, s"GCMDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }

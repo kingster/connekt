@@ -103,7 +103,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
   private def transform2GCMRequest(request: ConnektRequest) = Future{
     val messageId = UUID.randomUUID().toString
     val pNRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo]
-    val deviceId = Set[String](pNRequestInfo.deviceIds.head)
+    val deviceId = Seq[String](pNRequestInfo.deviceIds.head)
     val gcmPayload =
       s"""
           |{

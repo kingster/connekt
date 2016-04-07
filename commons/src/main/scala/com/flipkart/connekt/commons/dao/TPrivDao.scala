@@ -15,9 +15,6 @@ package com.flipkart.connekt.commons.dao
 import com.flipkart.connekt.commons.entities.ResourcePriv
 import com.flipkart.connekt.commons.entities.UserType.UserType
 
-/**
- * @author aman.shrivastava on 11/12/15.
- */
 trait TPrivDao {
   def getPrivileges(identifier: String , _type : UserType) : Option[ResourcePriv]
 
