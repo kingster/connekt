@@ -67,9 +67,9 @@ class AppUser {
   }
 
   def validate() = {
-    require(userId.isDefined, "user creation must have `userId` specified")
-    require(groups.isDefined, "user creation must have `groups` specified")
-    require(contact.isDefined, "user creation must have `contact` specified")
+    require(userId.isDefined, "user must have `userId` specified")
+    require(groups.isDefined, "user must have `groups` specified")
+    require(contact.isDefined, "user must have `contact` specified")
   }
 
 }
