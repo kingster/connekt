@@ -46,7 +46,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   }
 
   @Timed("fetchCallbackEvent")
-  override def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
+  override def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[(CallbackEvent, Long)]] = {
     Try {
       channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None, MAX_FETCH_EVENTS)
     }
@@ -55,7 +55,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 
   @Timed("fetchCallbackEventByContactId")
-  def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[CallbackEvent]] = {
+  def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[(CallbackEvent, Long)]] = {
     Try {
       channelEventsDao(channel).fetchCallbackEvents("", contactId, Some(Tuple2(minTimestamp, maxTimestamp)), MAX_FETCH_EVENTS)
     }
@@ -91,7 +91,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   override def fetchEventsMapForContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[Map[String, List[CallbackEvent]]] = {
     Try {
       val eventList = fetchCallbackEventByContactId(contactId, channel, minTimestamp, maxTimestamp)
-      channelEventsDao(channel).fetchEventMapFromList(eventList.get)
+      channelEventsDao(channel).fetchEventMapFromList(eventList.get.map(_._1))
     }
   }
 }
