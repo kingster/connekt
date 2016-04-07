@@ -45,12 +45,12 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
 
   private def read(identifier: String, level: UserType): Option[ResourcePriv] = {
     val key = cacheKey(identifier, level)
-    LocalCacheManager.getCache(LocalCacheType.ResourcePriv).get[ResourcePriv](key) match {
-      case p: Some[ResourcePriv] => p
+    LocalCacheManager.getCache(LocalCacheType.ResourcePriv).get[Option[ResourcePriv]](key) match {
+      case Some(p: Option[ResourcePriv]) => p
       case None =>
         try {
           val accessPrivilege = privDao.getPrivileges(identifier, level)
-          accessPrivilege.foreach(p => LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[ResourcePriv](key, p))
+          LocalCacheManager.getCache(LocalCacheType.ResourcePriv).put[Option[ResourcePriv]](key, accessPrivilege)
           accessPrivilege
         } catch {
           case e: Exception =>
