@@ -22,6 +22,7 @@ import com.flipkart.connekt.commons.services.UserConfigurationService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.receptors.directives.UserTypeSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 

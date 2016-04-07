@@ -18,6 +18,7 @@ import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.service.HealthService
 import com.flipkart.connekt.receptors.service.HealthService.ServiceStatus
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 import scala.collection.immutable.Seq
 
@@ -28,9 +29,9 @@ class SystemStatus(implicit am: ActorMaterializer) extends BaseJsonHandler {
       get {
         HealthService.getStatus match {
           case ServiceStatus.IN_ROTATION =>
-            complete(responseMarshallable(StatusCodes.OK.intValue,Seq.empty[HttpHeader],HealthService.elbResponse()))
+            complete(responseMarshallable(StatusCodes.OK.intValue,Seq.empty[HttpHeader], HealthService.elbResponse()))
           case ServiceStatus.OUT_OF_ROTATION =>
-            complete(responseMarshallable(StatusCodes.ServiceUnavailable.intValue,Seq.empty[HttpHeader],HealthService.elbResponse()))
+            complete(responseMarshallable(StatusCodes.ServiceUnavailable.intValue,Seq.empty[HttpHeader], HealthService.elbResponse()))
         }
       }
     } ~ pathPrefix("service") {

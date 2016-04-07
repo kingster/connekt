@@ -20,7 +20,7 @@ import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, PNCallbackEvent, Response}
 import com.flipkart.connekt.receptors.directives.ChannelSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
-
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 class ReportsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 

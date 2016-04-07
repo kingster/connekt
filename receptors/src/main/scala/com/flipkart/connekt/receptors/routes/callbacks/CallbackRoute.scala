@@ -22,6 +22,7 @@ import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 class CallbackRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
