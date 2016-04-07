@@ -23,7 +23,6 @@ import scala.util.Try
 
 class UserInfoService(userInfoDao: TUserInfo) extends TService {
 
-
   def addUserInfo(user: AppUser): Try[Unit] = Try_ {
 
     user.apiKey = getUserInfo(user.userId).get.map(_.apiKey).getOrElse(PasswordGenerator.generate(48, 48, 20, 20, 8, 0))
