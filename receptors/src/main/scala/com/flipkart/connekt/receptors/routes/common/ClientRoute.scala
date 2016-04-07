@@ -52,6 +52,7 @@ class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   post {
                     entity(as[AppUser]) { au =>
                       au.updatedBy = user.userId
+                      au.validate()
                       ServiceFactory.getUserInfoService.addUserInfo(au).get
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${au.userId} has been added.", au)))
                     }
