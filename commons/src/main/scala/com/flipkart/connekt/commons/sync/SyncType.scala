@@ -31,7 +31,7 @@ class SyncTypeToStringDeserializer extends JsonDeserializer[SyncType.Value] {
   @Override
   override def deserialize(parser: JsonParser, context: DeserializationContext): SyncType.Value = {
     try {
-      SyncType.withName(parser.getValueAsString)
+      SyncType.withName(parser.getValueAsString.toUpperCase)
     } catch {
       case e: NoSuchElementException =>
         null

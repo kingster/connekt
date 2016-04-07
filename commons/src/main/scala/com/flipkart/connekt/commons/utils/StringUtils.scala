@@ -44,6 +44,8 @@ object StringUtils {
     def getUtf8BytesNullWrapped = Option(s).map(_.getUtf8Bytes).orNull.wrap
 
     def hasOnlyAllowedChars = s.forall(allowedCharsSet.contains)
+
+    def isDefined = null != s && s.nonEmpty
   }
 
   implicit class StringOptionHandyFunctions(val obj: Option[String]) {

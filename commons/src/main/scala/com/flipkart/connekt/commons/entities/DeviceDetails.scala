@@ -16,8 +16,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
 import com.flipkart.connekt.commons.utils.DateTimeUtils
 import com.roundeights.hasher.Implicits._
-
 import scala.util.Try
+import com.flipkart.connekt.commons.utils.StringUtils._
+
 
 case class DeviceDetails(deviceId: String,
                          userId: String,
@@ -39,5 +40,9 @@ case class DeviceDetails(deviceId: String,
     )
   }
 
-  def validate() = require(Try(MobilePlatform.withName(osName)).map(!_.equals(MobilePlatform.UNKNOWN)).getOrElse(false), "a device's platform cannot be unknown")
+  def validate() = {
+    require(Try(MobilePlatform.withName(osName)).map(!_.equals(MobilePlatform.UNKNOWN)).getOrElse(false), "a device's platform cannot be unknown")
+    require(token.isDefined, "device detail's token cannot be null/empty")
+    require(appName.isDefined, "device detail's app name cannot be null/empty")
+  }
 }

@@ -48,6 +48,11 @@ trait AuthenticationDirectives {
   }
 
   def verifySecureCode(secretFragments: String*): Directive0 = {
+    BasicDirectives.pass
+    /**
+     * Disabling this for now. We will enable this once we discuss this org-wide for other registration api's also.
+     * Pending on EWS Session.
+     *
     BasicDirectives.extract[Seq[HttpHeader]](_.request.headers) flatMap { headers =>
       getHeader(X_SECURE_CODE_HEADER, headers) match {
         case Some(token) =>
@@ -59,6 +64,7 @@ trait AuthenticationDirectives {
           RouteDirectives.reject(TokenAuthenticationFailedRejection("Secure Code Missing"))
       }
     }
+    */
   }
 
 }

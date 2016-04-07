@@ -14,8 +14,8 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
-import com.flipkart.connekt.commons.entities.{AppUser, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels._
@@ -27,9 +27,10 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 
-class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonHandler {
+class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  val route =
+  val route = authenticate {
+    user =>
     pathPrefix("v1") {
       pathPrefix("send" / "push") {
         path(MPlatformSegment / Segment) {
@@ -116,8 +117,8 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                     val success = scala.collection.mutable.Map[String, Set[String]]()
 
                     if (groupedPlatformRequests.nonEmpty) {
-
                       val queueName = ServiceFactory.getPNMessageService.getRequestBucket(request, user)
+
                       groupedPlatformRequests.foreach { p =>
                         ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                           case Success(id) =>
@@ -126,19 +127,17 @@ class SendRoute(implicit am: ActorMaterializer, user: AppUser) extends BaseJsonH
                             failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                         }
                       }
+
                       complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse(s"PN request processed for user $userId.", success.toMap, failure.toList)))
                     } else {
                       complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response(s"No device Found for user: $userId.", null)))
                     }
-
-
                   }
                 }
               }
-
             }
         }
       }
     }
-
+  }
 }
