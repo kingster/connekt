@@ -33,6 +33,6 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
   def validate() = {
     require(templateId.map(StencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
     require(contextId.map(_.hasOnlyAllowedChars).getOrElse(true), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
-    require(!StringUtils.isNullOrEmpty(sla), "`sla` field can cannot be null or empty.")
+    require(sla.isDefined, "`sla` field can cannot be null or empty.")
   }
 }

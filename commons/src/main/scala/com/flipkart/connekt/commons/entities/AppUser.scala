@@ -15,7 +15,7 @@ package com.flipkart.connekt.commons.entities
 import java.util.Date
 import javax.persistence.Column
 
-import com.flipkart.connekt.commons.utils.StringUtils
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 class AppUser {
 
@@ -67,9 +67,9 @@ class AppUser {
   }
 
   def validate() = {
-    require(!StringUtils.isNullOrEmpty(userId), "user creation must have `userId` specified")
-    require(!StringUtils.isNullOrEmpty(groups), "user creation must have `groups` specified")
-    require(!StringUtils.isNullOrEmpty(contact), "user creation must have `contact` specified")
+    require(userId.isDefined, "user creation must have `userId` specified")
+    require(groups.isDefined, "user creation must have `groups` specified")
+    require(contact.isDefined, "user creation must have `contact` specified")
   }
 
 }
