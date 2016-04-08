@@ -2,7 +2,7 @@
 	"dynamic_templates": [{
 		"properties_template": {
 			"mapping": {
-				"index": "not_analysed",
+				"index": "not_analyzed",
 				"type": "{dynamic_type}"
 			},
 			"path_match": "*"
@@ -17,19 +17,19 @@
 	},
 	"properties": {
 		"app_name": {
-			"format": "not_analysed",
+			"index": "not_analyzed",
 			"type": "string"
 		},
 		"context_id": {
-			"format": "not_analysed",
+			"index": "not_analyzed",
 			"type": "string"
 		},
 		"event_type": {
-			"format": "not_analysed",
+			"index": "not_analyzed",
 			"type": "string"
 		},
 		"platform": {
-			"format": "not_analysed",
+			"index": "not_analyzed",
 			"type": "string"
 		},
 		"timestamp": {

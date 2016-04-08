@@ -306,14 +306,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /reports/push/{appName}/message/{contactId}:
+  /reports/push/{appName}/message/{deviceId}:
     get:
       summary: Fetch Notifications by account id
       description: |
         Fetch messages send for given account
       parameters:
         - $ref: '#/parameters/appName'
-        - $ref: '#/parameters/contactId'
+        - $ref: '#/parameters/deviceId'
         - name: startTs
           in: query
           description: StartTS.
