@@ -17,6 +17,7 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.service.AuthenticationService
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 class DebuggerRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 

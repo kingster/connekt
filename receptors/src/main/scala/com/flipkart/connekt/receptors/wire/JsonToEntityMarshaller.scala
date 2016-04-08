@@ -44,11 +44,12 @@ object GenericJsonSupport {
 
   val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModules(jacksonModules: _*)
+
+  val m: mutable.Map[Class[_], ToEntityMarshaller[_]] = mutable.Map.empty[Class[_], ToEntityMarshaller[_]]
+  val um: mutable.Map[Class[_], FromEntityUnmarshaller[_]] = mutable.Map.empty[Class[_], FromEntityUnmarshaller[_]]
 }
 
 trait JsonToEntityMarshaller extends PredefinedToEntityMarshallers {
-
-  private val m: mutable.Map[Class[_], ToEntityMarshaller[_]] = mutable.Map.empty[Class[_], ToEntityMarshaller[_]]
 
   implicit def findMarshaller[T](implicit cTag: ClassTag[T]): ToEntityMarshaller[T] =
     m.getOrElseUpdate(cTag.runtimeClass, genericMarshaller[T]).asInstanceOf[ToEntityMarshaller[T]]
@@ -59,8 +60,6 @@ trait JsonToEntityMarshaller extends PredefinedToEntityMarshallers {
 }
 
 trait JsonFromEntityUnmarshaller extends PredefinedFromEntityUnmarshallers {
-
-  private val um: mutable.Map[Class[_], FromEntityUnmarshaller[_]] = mutable.Map.empty[Class[_], FromEntityUnmarshaller[_]]
 
   implicit def findUnmarshaller[T](implicit cTag: ClassTag[T]): FromEntityUnmarshaller[T] =
     um.getOrElseUpdate(cTag.runtimeClass, genericUnmarshaller[T](cTag)).asInstanceOf[FromEntityUnmarshaller[T]]

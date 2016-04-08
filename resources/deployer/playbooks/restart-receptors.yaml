@@ -2,5 +2,8 @@
   serial: 5
   gather_facts: no
   tasks:
-  - include: tasks/start-receptors.yaml
+  - name: Set Service
+    set_fact:
+      app: receptors
+  - include: tasks/start-service.yaml
   - include: tasks/verify-service-up.yaml

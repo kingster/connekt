@@ -41,60 +41,36 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
   implicit def rejectionHandler: RejectionHandler = RejectionHandler.newBuilder()
     .handle{
       case AuthenticationFailedRejection(cause, _ ) =>  logTimedRequestResult {
-        complete(responseMarshallable[GenericResponse](
-          StatusCodes.Unauthorized, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Authentication Failed, Please Contact connekt-dev@flipkart.com", null)))
-        )
+        complete(GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Authentication Failed, Please Contact connekt-dev@flipkart.com", null)))
       }
       case AuthorizationFailedRejection => logTimedRequestResult {
-        complete(responseMarshallable[GenericResponse](
-          StatusCodes.Forbidden, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.Forbidden.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)))
-        )
+        complete(GenericResponse(StatusCodes.Forbidden.intValue, null, Response("UnAuthorised Access, Please Contact connekt-dev@flipkart.com", null)))
       }
       case MalformedRequestContentRejection(msg, _) => logTimedRequestResult {
-        complete(responseMarshallable[GenericResponse](
-          StatusCodes.BadRequest, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> msg))))
-        )
+        complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> msg))))
       }
       case TokenAuthenticationFailedRejection(msg) => logTimedRequestResult {
-        complete(responseMarshallable[GenericResponse](
-          StatusCodes.Forbidden, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.Forbidden.intValue, null, Response("Secure Code Validation Failed.", msg)))
-        )
+        complete(GenericResponse(StatusCodes.Forbidden.intValue, null, Response("Secure Code Validation Failed.", msg)))
       }
     }.handleAll[MethodRejection] { methodRejections =>
       val names = methodRejections.map(_.supported.name)
-      complete(responseMarshallable[GenericResponse](
-        StatusCodes.MethodNotAllowed, Seq.empty[HttpHeader],
-        GenericResponse(StatusCodes.MethodNotAllowed.intValue, null, Response(s"Can't do that! Supported: ${names mkString " or "}!", null)))
-       )
+      complete(GenericResponse(StatusCodes.MethodNotAllowed.intValue, null, Response(s"Can't do that! Supported: ${names mkString " or "}!", null)))
     }.handleNotFound {
       logTimedRequestResult {
-        complete(responseMarshallable[GenericResponse](
-          StatusCodes.NotFound, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)))
-        )
+        complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Oh man, what you are looking for is long gone.", null)))
       }
     }.result()
 
   implicit def exceptionHandler: ExceptionHandler = ExceptionHandler {
     case rejection: IllegalArgumentException => logTimedRequestResult {
-      complete(responseMarshallable[GenericResponse](
-          StatusCodes.BadRequest, Seq.empty[HttpHeader],
-          GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> rejection.getMessage))))
-      )
+      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Malformed Content, Unable to Process Request", Map("debug" -> rejection.getMessage))))
     }
     case e: Throwable =>
       val errorUID: String = UUID.randomUUID.getLeastSignificantBits.abs.toString
       ConnektLogger(LogFile.SERVICE).error(s"API ERROR # -- $errorUID  --  Reason [ ${e.getMessage} ]", e)
       val response = Map("message" -> ("Server Error # " + errorUID), "reason" -> e.getMessage)
       logTimedRequestResult {
-        complete(responseMarshallable[GenericResponse](
-              StatusCodes.InternalServerError, Seq.empty[HttpHeader],
-              GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Internal Server Error", response)))
-        )
+        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Internal Server Error", response)))
       }
   }
 

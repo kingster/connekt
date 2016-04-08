@@ -22,6 +22,7 @@ import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{ConnektConfig, StencilService}
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration._
