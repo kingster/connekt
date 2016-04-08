@@ -24,6 +24,7 @@ import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.receptors.directives.{AccessLogDirective, CORSDirectives}
 import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 import scala.collection.immutable.Seq
 
