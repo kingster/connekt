@@ -50,18 +50,16 @@ object WindowsOAuthService extends TWindowsOAuthService {
   def getToken(appName: String): Option[OAuthToken] = {
     rwl.readLock().lock()
     try {
-      LocalCacheManager.getCache[OAuthToken](LocalCacheType.WnsAccessToken).get(appName)
+      LocalCacheManager.getCache[OAuthToken](LocalCacheType.WnsAccessToken).get(appName.trim.toLowerCase)
     } finally {
       rwl.readLock().unlock()
     }
   }
 
   def refreshToken(appName: String, requestTime: Long = System.currentTimeMillis()): Unit = {
-    val tokenExpiryTime = getToken(appName).map(_.expectedExpiry).getOrElse(Long.MinValue)
+    val tokenExpiryTime = getToken(appName.trim.toLowerCase).map(_.expectedExpiry).getOrElse(Long.MinValue)
     if (requestTime > tokenExpiryTime)
       requestNewToken(appName, requestTime)
-    else
-      ConnektLogger(LogFile.CLIENTS).debug(s"Windows token request for App $appName dropped since requestTime [$requestTime] < tokenExpiryTime [$tokenExpiryTime]")
   }
 
   private def requestNewToken(appName: String, requestTime: Long): Unit = {
@@ -85,7 +83,7 @@ object WindowsOAuthService extends TWindowsOAuthService {
 
             ConnektLogger(LogFile.CLIENTS).debug(s"Windows token request response for App $appName Response $response")
 
-            LocalCacheManager.getCache[OAuthToken](LocalCacheType.WnsAccessToken).put(appName, OAuthToken(response.get("access_token").asText(), response.get("expires_in").asLong * 1000 + requestTime))
+            LocalCacheManager.getCache[OAuthToken](LocalCacheType.WnsAccessToken).put(appName.trim.toLowerCase, OAuthToken(response.get("access_token").asText(), response.get("expires_in").asLong * 1000 + requestTime))
 
             ConnektLogger(LogFile.CLIENTS).debug(s"Windows token updated for App $appName")
 
