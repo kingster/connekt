@@ -30,7 +30,7 @@ object HttpUtils {
   
   implicit class HttpHeaderUtil(val h: HttpMessage) {
     def optHeader(headerName: String): String = {
-      h.headers.find(_.is(headerName)).map(_.value()).orNull
+      h.headers.find(_.is(headerName.toLowerCase)).map(_.value()).orNull
     }
   }
 }
