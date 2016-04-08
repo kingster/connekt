@@ -29,7 +29,7 @@ class HttpDispatcher(actorSystemConf: Config) {
 
   private val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("android.googleapis.com",443)(httpMat)
 
-  private val wnsPoolClientFlow = Http().cachedHostConnectionPoolHttps[WNSRequestTracker]("hk2.notify.windows.com")(httpMat)
+  private val wnsPoolClientFlow = Http().superPool[WNSRequestTracker]()(httpMat)
 }
 
 object HttpDispatcher {
