@@ -31,10 +31,10 @@ class ReportsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
           authorize(user, "REPORTS") {
             pathPrefix("push") {
               path(Segment / "messages" / Segment / Segment / "events") {
-                (appName: String, contactId: String, messageId: String) =>
+                (appName: String, deviceId: String, messageId: String) =>
                   get {
-                    val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"${appName.toLowerCase}$contactId", Channel.PUSH).get
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $contactId fetched.", Map(contactId -> events.map(_._1)))))
+                    val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"${appName.toLowerCase}$deviceId", Channel.PUSH).get
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $deviceId fetched.", Map(deviceId -> events.map(_._1)))))
                   }
               } ~ path(Segment / "messages" / Segment) {
                 (appName: String, contactId: String) =>
