@@ -36,6 +36,7 @@ object MessageStatus {
     val ThrottleLimitExceeded = Value("wns_throttle_limit_exceeded")
     val ChannelExpired = Value("wns_channel_expired")
     val EntityTooLarge = Value("wns_entity_too_large")
+    val PreConditionFailed = Value("wns_precondition_failed")
     val InternalError = Value("wns_internal_error")
   }
 
