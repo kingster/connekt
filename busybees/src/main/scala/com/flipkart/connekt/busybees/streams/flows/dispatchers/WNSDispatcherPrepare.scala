@@ -34,14 +34,13 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
       ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher received message: ${message.messageId}")
       ConnektLogger(LogFile.PROCESSORS).trace(s"WNSDispatcher received message: $message")
 
-      val uri = new URI(message.token).toURL
       val bearerToken = WindowsOAuthService.getToken(message.appName).map(_.token).getOrElse("INVALID")
       val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken),
         RawHeader("X-WNS-Type", message.wnsPayload.getType), RawHeader("X-WNS-TTL", message.time_to_live.toString)
       )
 
       val payload = HttpEntity(message.wnsPayload.getContentType, message.wnsPayload.getBody)
-      val request = new HttpRequest(HttpMethods.POST, uri.getFile, headers, payload)
+      val request = new HttpRequest(HttpMethods.POST, message.token, headers, payload)
 
       List((request, WNSRequestTracker(message.appName, message.messageId, message)))
 
