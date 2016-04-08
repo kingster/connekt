@@ -44,7 +44,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
   }
 
   lazy val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
-  lazy val fmtAndroidParallelism = ConnektConfig.getInt("busybees.topology.push.androidFormatter.parallelism").get
+  lazy val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
 
   "FlatAndroidBenchmarkTopology with responseHandler" should "log throughput rates" in {
     val counter: AtomicLong = new AtomicLong(0)
