@@ -58,7 +58,9 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[
     ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher starting $appName apns-client")
     val credential = KeyChainManager.getAppleCredentials(appName).get
     val client = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey)
-    client.connect(ApnsClient.PRODUCTION_APNS_HOST).await(30, TimeUnit.SECONDS)
+    client.connect(ApnsClient.PRODUCTION_APNS_HOST).await(120, TimeUnit.SECONDS)
+    if(!client.isConnected)
+      ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher Unable to Connekt [$appName] apns-client in 2minutes")
     client
   }
 
