@@ -60,6 +60,8 @@ object WindowsOAuthService extends TWindowsOAuthService {
     val tokenExpiryTime = getToken(appName.trim.toLowerCase).map(_.expectedExpiry).getOrElse(Long.MinValue)
     if (requestTime > tokenExpiryTime)
       requestNewToken(appName, requestTime)
+    else
+      ConnektLogger(LogFile.CLIENTS).debug(s"Windows token request for App $appName dropped since requestTime [$requestTime] < tokenExpiryTime [$tokenExpiryTime]")
   }
 
   private def requestNewToken(appName: String, requestTime: Long): Unit = {
