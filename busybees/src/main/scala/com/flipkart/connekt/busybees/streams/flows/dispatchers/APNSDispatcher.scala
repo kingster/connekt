@@ -107,8 +107,8 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[
           if (e.getCause.isInstanceOf[ClientNotConnectedException]) {
             ConnektLogger(LogFile.PROCESSORS).debug("APNSDispatcher waiting for apns-client to reconnect")
             client.getReconnectionFuture.await()
-            ConnektLogger(LogFile.PROCESSORS).debug("APNSDispatcher apns-client reconnected")
-          }
+            ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher apns-client reconnected with status [${client.isConnected}]")
+           }
       }
 
     } catch {
