@@ -85,16 +85,15 @@ class APNSDispatcher(appNames: List[String] = List.empty) extends MapGraphStage[
             events += PNCallbackEvent(envelope.messageId, envelope.deviceId, APNSResponseStatus.Received, MobilePlatform.IOS.toString, envelope.appName, "")
 
           case false =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher notification rejected by the apns gateway: ${pushNotificationResponse.getRejectionReason}")
-
             if (pushNotificationResponse.getTokenInvalidationTimestamp != null) {
+              ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher token invalid [${message.token}] since ${pushNotificationResponse.getTokenInvalidationTimestamp}")
               //This device is now invalid remove device registration.
               DeviceDetailsService.get(envelope.appName, envelope.deviceId).map {
                 _.filter(_.osName == MobilePlatform.IOS.toString).foreach(d => DeviceDetailsService.delete(envelope.appName, d.deviceId))
               }.get
               events += PNCallbackEvent(envelope.messageId, envelope.deviceId, APNSResponseStatus.TokenExpired, MobilePlatform.IOS.toString, envelope.appName, "")
-              ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher token invalid [${message.token}] since ${pushNotificationResponse.getTokenInvalidationTimestamp}")
             } else {
+              ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher notification rejected by the apns gateway: ${pushNotificationResponse.getRejectionReason}")
               events += PNCallbackEvent(envelope.messageId, envelope.deviceId, APNSResponseStatus.Rejected, MobilePlatform.IOS.toString, envelope.appName, "")
             }
 
