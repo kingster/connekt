@@ -1,0 +1,8 @@
+- hosts: busybees
+  serial: 5
+  gather_facts: no
+  tasks:
+  - name: Set Service
+    set_fact:
+      app: busybees
+  - include: tasks/start-service.yaml
