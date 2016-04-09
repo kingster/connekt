@@ -50,8 +50,8 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "asm")
     ),
   /* include specific netty for hbase, since we need our fork of netty-tcnative. */
-  "io.netty" % "netty-transport" % "4.1.0.CR3",
-  "io.netty" % "netty-handler" % "4.1.0.CR3",
+  "io.netty" % "netty-transport" % "4.1.0.CR4",
+  "io.netty" % "netty-handler" % "4.1.0.CR4",
   /* netty-ends */
   "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll (
     ExclusionRule("log4j"),
