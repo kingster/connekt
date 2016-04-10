@@ -86,7 +86,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             }
 
           case 400 =>
-            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InvalidJsonError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InvalidJsonError, MobilePlatform.ANDROID, appName, requestTracker.contextId, stringResponse, eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - invalid json sent for: $messageId")
           case 401 =>
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.AuthError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
@@ -95,7 +95,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InternalError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - the gcm server encountered an error while trying to process the request for: $messageId")
           case _ =>
-            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, stringResponse, eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - gcm response unhandled for: $messageId")
         }
 
