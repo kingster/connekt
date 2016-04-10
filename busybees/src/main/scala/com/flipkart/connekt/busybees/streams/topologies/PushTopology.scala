@@ -19,10 +19,10 @@ import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.ConnektTopology
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare, HttpDispatcher, WNSDispatcherPrepare}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers._
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
-import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{GCMResponseHandler, WNSResponseHandler}
+import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{APNSResponseHandler, GCMResponseHandler, WNSResponseHandler}
 import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.entities.Channel
@@ -31,6 +31,8 @@ import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.relayrides.pushy.apns.ApnsPushNotification
+import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
@@ -92,10 +94,13 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      */
 
     val fmtIOSParallelism = ConnektConfig.getInt("topology.push.iosFormatter.parallelism").get
+    val apnsDispatcherParallelism = ConnektConfig.getInt("topology.push.apnsDispatcher.parallelism").getOrElse(1024)
     val fmtIOS = b.add(new IOSChannelFormatter(fmtIOSParallelism)(ioDispatcher).flow)
-    val apnsDispatcher = b.add(new APNSDispatcher)
+    val apnsPrepare = b.add(new APNSDispatcherPrepare().flow)
+    val apnsDispatcher = b.add(new APNSDispatcher(apnsDispatcherParallelism)(ioDispatcher).flow)
+    val apnsResponseHandle = b.add(new APNSResponseHandler().flow)
 
-    platformPartition.out(0) ~> fmtIOS ~> apnsDispatcher ~> merger.in(0)
+    platformPartition.out(0) ~> fmtIOS ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle ~> merger.in(0)
 
     /**
      * Android Topology

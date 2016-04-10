@@ -12,8 +12,10 @@
     <Logger name="io" level="INFO"/>
     <Logger name="com" level="INFO"/>
     <Logger name="kafka" level="WARN"/>
+    <Logger name="com.relayrides.pushy" level="TRACE"/>
 
-    <Logger name="com.flipkart" level="ALL"/>
+    <Logger name="com.flipkart" level="TRACE"/>
+    <Logger name="io.netty" level="TRACE"/>
 
     <Root level="ALL">
       <AppenderRef ref="STDOUT"/>

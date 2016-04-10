@@ -12,4 +12,4 @@
  */
 package com.flipkart.connekt.busybees.models
 
-abstract class HTTPRequestTracker
+abstract class RequestTracker
