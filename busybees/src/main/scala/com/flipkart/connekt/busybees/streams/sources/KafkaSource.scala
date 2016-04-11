@@ -73,7 +73,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
             scheduleOnce(TimerPollTrigger, timerDelayInMs)
         }
       } else {
-        ConnektLogger(LogFile.PROCESSORS).trace(s"KafkaSource pushElement no-data")
+        //ConnektLogger(LogFile.PROCESSORS).trace(s"KafkaSource pushElement no-data")
         scheduleOnce(TimerPollTrigger, timerDelayInMs)
       }
 

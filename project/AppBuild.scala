@@ -38,7 +38,7 @@ object AppBuild extends Build  {
       "Akka Snapshot Repository" at "http://repo.typesafe.com/typesafe/snapshots/",
       "RoundEights" at "http://maven.spikemark.net/roundeights",
       "flipkart local-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local",
-      "flipkart ext-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/ext-releases-local",
+      "flipkart ext-releases" at "http://artifactory.nm.flipkart.com:8081/artifactory/ext-release-local",
       "flipkart central" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-release",
       "flipkart snapshorts" at "http://artifactory.nm.flipkart.com:8081/artifactory/libs-snapshot",
       "flipkart clojars" at "http://artifactory.nm.flipkart.com:8081/artifactory/clojars-repo"

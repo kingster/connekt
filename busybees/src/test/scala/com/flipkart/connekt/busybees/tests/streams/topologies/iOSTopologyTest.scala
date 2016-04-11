@@ -14,8 +14,9 @@ package com.flipkart.connekt.busybees.tests.streams.topologies
 
 import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.APNSDispatcher
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcherPrepare, APNSDispatcher}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
+import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.APNSResponseHandler
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
@@ -65,17 +66,19 @@ class iOSTopologyTest extends TopologyUTSpec {
                    """.stripMargin.getObj[ConnektRequest]
 
 
-    val result = Source.single(cRequest)
-      .via(new RenderFlow().flow)
-      .via(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
-      .via(new APNSDispatcher())
-      .runWith(Sink.head)
+    lazy val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
 
-    val response = Await.result(result, 60.seconds)
+    val result = Source.tick(0.seconds, 1000.milliseconds, cRequest)
+      .via(new RenderFlow().flow)
+      .via(new IOSChannelFormatter(16)(ioDispatcher).flow)
+      .via(new APNSDispatcherPrepare().flow)
+      .via(new APNSDispatcher(32)(ioDispatcher).flow)
+      .via(new APNSResponseHandler().flow)
+      .runWith(Sink.foreach(println))
+
+    val response = Await.result(result, 120.seconds)
 
     println(response)
-
-    Thread.sleep(2000)
 
     assert(null != response)
 

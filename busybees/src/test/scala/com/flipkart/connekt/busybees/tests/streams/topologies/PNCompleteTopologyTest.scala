@@ -18,8 +18,9 @@ import akka.stream.ClosedShape
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcher, GCMDispatcherPrepare}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcherPrepare, APNSDispatcher, GCMDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
+import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.APNSResponseHandler
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.iomodels._
@@ -144,7 +145,10 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
         val render = b.add(new RenderFlow().flow)
 
         val iosFormat = b.add(new IOSChannelFormatter(16)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
-        val iosDispatch = b.add(new APNSDispatcher)
+
+        val apnsPrepare = b.add(new APNSDispatcherPrepare().flow)
+        val apnsDispatcher = b.add(new APNSDispatcher(1024)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
+        val apnsResponseHandle = b.add(new APNSResponseHandler().flow)
 
         //        val androidFormat = b.add(new AndroidChannelFormatter)
         //        val httpPrepare = b.add(httpDispatcher)
@@ -166,7 +170,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
 
 
         Source(List(cRequest1, cRequest2)) ~> render ~> partition.in
-        partition.out(0) ~> iosFormat ~> iosDispatch ~> proxy3 ~> resultsMerge.in(0)
+        partition.out(0) ~> iosFormat ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle ~> proxy3 ~> resultsMerge.in(0)
         //        partition.out(0) ~> proxy1 ~> resultsMerge.in(0)
         //        partition.out(1) ~> new AndroidChannelFormatter  ~> httpDispatcher ~> poolClientFlow ~> hRead ~> resultsMerge.in(1)
         partition.out(1) ~> proxy2 ~> resultsMerge.in(1)
