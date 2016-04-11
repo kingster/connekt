@@ -16,7 +16,7 @@ envKey := {
 val akkaVersion = "2.4.3"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion withSources() withJavadoc(),
-  "com.typesafe.akka" %% "akka-stream" % akkaVersion withSources() withJavadoc(),
+  "com.typesafe.akka" %% "akka-stream" % akkaVersion.concat("-P1") withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-http-core" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion withSources(),
   "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion withSources() withJavadoc(),
