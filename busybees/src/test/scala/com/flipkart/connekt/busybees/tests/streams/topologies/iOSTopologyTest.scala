@@ -31,7 +31,7 @@ class iOSTopologyTest extends TopologyUTSpec {
 
   "iOSTopology Test" should "run" in {
 
-    val deviceId = StringUtils.generateRandomStr(32)
+    val deviceId = "TEST-123-IOS"
 
     DeviceDetailsService.add(
       DeviceDetails(
@@ -76,7 +76,7 @@ class iOSTopologyTest extends TopologyUTSpec {
       .via(new APNSResponseHandler().flow)
       .runWith(Sink.foreach(println))
 
-    val response = Await.result(result, 120.seconds)
+    val response = Await.result(result, 20.seconds)
 
     println(response)
 
