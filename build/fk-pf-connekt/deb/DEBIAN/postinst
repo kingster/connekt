@@ -10,22 +10,25 @@ HOST=$(hostname -f)
 variant=base
 if [ "$1" == "configure" ] ; then
 
-       #creating user if it doesnt exist
-       if ! getent group $GROUP > /dev/null; then
-            groupadd -g $USER_GID $GROUP
-       fi
+    # Source debconf library.
+    . /usr/share/debconf/confmodule
 
-       if ! getent passwd $USER_UID > /dev/null; then
-           adduser --system --uid $USER_UID --home /usr/share/$PAC --no-create-home \
-           --ingroup $GROUP --disabled-password --shell /bin/false \
-           $USER
-       fi
+    #creating user if it doesnt exist
+    if ! getent group $GROUP > /dev/null; then
+        groupadd -g $USER_GID $GROUP
+    fi
 
-     # Create log directory if needed
-     for f in /var/cache/$PAC  /var/log/flipkart/pf/$PAC /var/lib/$PAC ; do
-     [ ! -d "$f" ] && mkdir -p "$f"
-     chown -Rf $USER:$GROUP "$f" || true
-     done
+    if ! getent passwd $USER_UID > /dev/null; then
+       adduser --system --uid $USER_UID --home /usr/share/$PAC --no-create-home \
+       --ingroup $GROUP --disabled-password --shell /bin/false \
+       $USER
+    fi
+
+    # Create log directory if needed
+    for f in /var/cache/$PAC  /var/log/flipkart/pf/$PAC /var/lib/$PAC ; do
+    [ ! -d "$f" ] && mkdir -p "$f"
+    chown -Rf $USER:$GROUP "$f" || true
+    done
 
     # Give world read permission on the logs
     chmod -Rf go+r /var/log/flipkart/pf/$PAC || true
@@ -33,6 +36,19 @@ if [ "$1" == "configure" ] ; then
     chmod -Rf g+w /var/log/flipkart/pf/$PAC || true
 
     chown root:root /etc/logrotate.d/fk-pf-connekt || true
+
+    #config
+    db_input medium fk-pf-connekt/specter-bucket || true
+    db_go  || true
+
+    db_get fk-pf-connekt/specter-bucket
+    BUCKET_NAME="$RET"
+    if [ ! -z "$BUCKET_NAME" ]; then
+        echo "Overwriting Specter Bucket with [$BUCKET_NAME]"
+        echo "export DART_CONFIG_SVC_BUCKETS=$BUCKET_NAME" > /etc/default/fk-bigfoot-dart.env
+    fi
+
+    db_stop || true
 
     ## SetUp Cosmos
     sed -i -e "s/_HOSTNAME_/$HOST/g" /etc/cosmos-jmx/connekt.json
