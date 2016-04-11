@@ -47,10 +47,10 @@ object DeviceDetailsService extends Instrumented {
       case Some(device) =>
         Try_#(message = "DeviceDetailsService.update Failed") {
           dao.update(deviceDetails.appName, deviceId, deviceDetails)
+          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(device.appName, device.deviceId), deviceDetails)
           if (device.userId != null)
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
-          DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
           if (deviceDetails.userId != null)
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
           BigfootService.ingest(deviceDetails.toBigfootFormat).get

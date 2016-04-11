@@ -99,8 +99,8 @@ object StringUtils {
   }
 
   implicit class HttpEntity2String(val entity: HttpEntity) {
-    def getString(implicit materializer: Materializer, ec: scala.concurrent.ExecutionContext): String = {
-      Await.result(entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => {u ++= bs}).map(bb => new String(bb.result().toArray)), 30.seconds)
+    def getString(implicit mat: Materializer, ec: scala.concurrent.ExecutionContext): String = {
+      Await.result(entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => u ++= bs).map(bb => new String(bb.result().toArray)), 60.seconds)
     }
   }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" name="log4j2Receptors">
+<Configuration status="WARN" name="log4j2Receptors" shutdownHook="disable">
   <Properties>
     <Property name="defaultLogFile">/var/log/flipkart/pf/fk-pf-connekt/receptors-default.log</Property>
     <Property name="accessLogFile">/var/log/flipkart/pf/fk-pf-connekt/receptors-access.log</Property>

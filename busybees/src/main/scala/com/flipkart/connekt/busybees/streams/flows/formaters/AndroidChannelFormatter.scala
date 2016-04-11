@@ -50,10 +50,11 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 
       if (tokens.nonEmpty && ttl > 0) {
-        tokens.map(t => pnInfo.platform.toUpperCase match {
+        val payload = pnInfo.platform.toUpperCase match {
           case "ANDROID" => GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(ttl), dry_run = dryRun)
           case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
-        }).map(GCMPayloadEnvelope(message.id,validDeviceIds, pnInfo.appName, message.contextId.orEmpty , _)).toList
+        }
+        List(GCMPayloadEnvelope(message.id,validDeviceIds, pnInfo.appName, message.contextId.orEmpty , payload))
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist

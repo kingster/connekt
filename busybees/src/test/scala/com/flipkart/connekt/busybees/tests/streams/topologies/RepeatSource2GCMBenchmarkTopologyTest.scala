@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.{ConnektConfig, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.scalatest.Ignore
@@ -31,7 +31,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 @Ignore
-class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
+class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
 
   override def beforeAll() = {
     super.beforeAll()
@@ -63,16 +63,19 @@ class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec {
 
       val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(appName).get.apiKey))
-      val httpRequest = new HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
+      val httpRequest = HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
       val requestTrace = GCMRequestTracker(messageId, deviceId, appName, "")
       (httpRequest, requestTrace)
     })
 
+    val qps = meter("android.send")
+
 
     val requestExecutor = HttpDispatcher.gcmPoolClientFlow.map(rT => {
+      qps.mark()
       rT._1.foreach(_.entity.getString.getObj[ObjectNode])
       if(0 == (counter.incrementAndGet() % 1000))
-        ConnektLogger(LogFile.SERVICE).info(s"######## Processed ${counter.get()} messages by ${System.currentTimeMillis()}")
+        println(s"RepeatAndroidBenchmarkTopology #Rate: MR[${qps.getMeanRate}}], 1MR[${qps.getOneMinuteRate}}] upto ${counter.get()} messages")
     })
 
     //Run the benchmark topology

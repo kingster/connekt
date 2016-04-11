@@ -306,6 +306,31 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /reports/push/{appName}/message/{deviceId}:
+    get:
+      summary: Fetch Notifications by account id
+      description: |
+        Fetch messages send for given account
+      parameters:
+        - $ref: '#/parameters/appName'
+        - $ref: '#/parameters/deviceId'
+        - name: startTs
+          in: query
+          description: StartTS.
+          required: false
+          type: number
+          format: long
+      tags:
+        - "Report"
+      responses:
+        '200':
+          description:  List of PN
+        '400':
+          description:  Invalid StartTS
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /reports/push/{appName}/messages/{deviceId}/{messageId}/events:
     get:
       summary: MessageId/DeviceId Events

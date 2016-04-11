@@ -16,7 +16,6 @@ import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.unmarshalling.PredefinedFromEntityUnmarshallers
-import com.flipkart.connekt.commons.iomodels.GenericResponse
 import com.flipkart.connekt.receptors.directives.{AsyncDirectives, AuthenticationDirectives, AuthorizationDirectives, HeaderDirectives}
 import com.flipkart.connekt.receptors.wire.JsonToEntityMarshaller
 
@@ -43,12 +42,4 @@ abstract class BaseHandler extends Directives with HeaderDirectives with Authent
 
     ToResponseMarshallable(responseObj)
   }
-
-  implicit class RouteUtil(r: GenericResponse) {
-    def respondWithHeaders(headers: Seq[HttpHeader]) = responseMarshallable[GenericResponse](r.status, headers, r)
-  }
-
-  implicit def GenericResponse2Marshallable(r: GenericResponse): ToResponseMarshallable = responseMarshallable[GenericResponse](r.status, Seq.empty[HttpHeader], r)
-
-
 }

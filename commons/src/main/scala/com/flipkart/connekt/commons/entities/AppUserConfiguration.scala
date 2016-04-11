@@ -73,6 +73,6 @@ class AppUserConfiguration {
   def validate() = {
     require(null != userId && !userId.isEmpty, "user configuration must have `userId` specified")
     require(null != channel, "user configuration `channel` cannot be un-defined")
-    require(maxRate > 0, "user configuration `max-rate` > 0")
+    require(maxRate > 0, "user configuration `maxRate` > 0")
   }
 }

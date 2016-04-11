@@ -22,6 +22,7 @@ import com.flipkart.connekt.commons.services.UserConfigurationService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.receptors.directives.UserTypeSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -52,6 +53,7 @@ class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   post {
                     entity(as[AppUser]) { au =>
                       au.updatedBy = user.userId
+                      au.validate()
                       ServiceFactory.getUserInfoService.addUserInfo(au).get
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${au.userId} has been added.", au)))
                     }

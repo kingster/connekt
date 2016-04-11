@@ -15,7 +15,7 @@ package com.flipkart.connekt.commons.entities
 import java.util.Date
 import javax.persistence.Column
 
-import org.apache.commons.lang.StringUtils
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 class AppUser {
 
@@ -35,7 +35,7 @@ class AppUser {
   var lastUpdatedTs: Date = new Date(System.currentTimeMillis())
 
   @Column(name = "updatedBy")
-  var updatedBy: String = StringUtils.EMPTY
+  var updatedBy: String = org.apache.commons.lang.StringUtils.EMPTY
 
   def this(userId: String,
            apiKey: String,
@@ -65,4 +65,11 @@ class AppUser {
     val state = Seq(userId, apiKey, groups, updatedBy)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
+  def validate() = {
+    require(userId.isDefined, "user must have `userId` specified")
+    require(groups.isDefined, "user must have `groups` specified")
+    require(contact.isDefined, "user must have `contact` specified")
+  }
+
 }

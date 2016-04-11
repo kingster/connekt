@@ -15,6 +15,7 @@ package com.flipkart.connekt.commons.iomodels
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.services.StencilService
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 case class ConnektRequest(@JsonProperty(required = false) id: String,
@@ -32,5 +33,6 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
   def validate() = {
     require(templateId.map(StencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
     require(contextId.map(_.hasOnlyAllowedChars).getOrElse(true), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
+    require(sla.isDefined, "`sla` field can cannot be null or empty.")
   }
 }

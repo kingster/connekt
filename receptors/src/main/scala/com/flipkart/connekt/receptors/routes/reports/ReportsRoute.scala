@@ -17,9 +17,10 @@ import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.entities.Channel._
 import com.flipkart.connekt.commons.factories.ServiceFactory
-import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
+import com.flipkart.connekt.commons.iomodels.{GenericResponse, PNCallbackEvent, Response}
 import com.flipkart.connekt.receptors.directives.ChannelSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 class ReportsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -30,10 +31,21 @@ class ReportsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
           authorize(user, "REPORTS") {
             pathPrefix("push") {
               path(Segment / "messages" / Segment / Segment / "events") {
-                (appName: String, contactId: String, messageId: String) =>
+                (appName: String, deviceId: String, messageId: String) =>
                   get {
-                    val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"${appName.toLowerCase}$contactId", Channel.PUSH).get
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $contactId fetched.", Map(contactId -> events))))
+                    val events = ServiceFactory.getCallbackService.fetchCallbackEvent(messageId, s"${appName.toLowerCase}$deviceId", Channel.PUSH).get
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Events fetched for messageId: $messageId contactId: $deviceId fetched.", Map(deviceId -> events.map(_._1)))))
+                  }
+              } ~ path(Segment / "messages" / Segment) {
+                (appName: String, contactId: String) =>
+                  get {
+                    parameters("startTs" ? 0L) { (startTs) =>
+                      val events = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$contactId", Channel.PUSH, startTs, System.currentTimeMillis()).getOrElse(Nil)
+                      val messages = events.map(e => ServiceFactory.getPNMessageService.getRequestInfo(e._1.asInstanceOf[PNCallbackEvent].messageId).getOrElse(None).orNull)
+                      val finalTs = events.map(_._2).reduceLeftOption(_ max _).getOrElse(System.currentTimeMillis)
+
+                      complete(GenericResponse(StatusCodes.OK.intValue, Map("contactId" -> contactId, "appName" -> appName, "startTs" -> startTs ), Response(s"messages fetched for $appName / $contactId", Map("messages" -> messages, "endTs" -> finalTs, "count" -> messages.size))))
+                    }
                   }
               }
             } ~ path(ChannelSegment / "messages" / Segment / Segment / "events") {

@@ -190,7 +190,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
       if (existingDetails.token != update.token)
         deleteTokenIdIndex(appName, deviceId, existingDetails.token)
       if (!StringUtils.isNullOrEmpty(existingDetails.userId) && existingDetails.userId != update.userId)
-        deleteUserIdIndex(appName, deviceId, existingDetails.token)
+        deleteUserIdIndex(appName, deviceId, existingDetails.userId)
       add(appName, update)
     })
   }

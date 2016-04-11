@@ -23,6 +23,7 @@ import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.receptors.directives.{FileDirective, MPlatformSegment}
 import com.flipkart.connekt.receptors.routes.BaseHandler
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 import scala.util.{Failure, Success}
 

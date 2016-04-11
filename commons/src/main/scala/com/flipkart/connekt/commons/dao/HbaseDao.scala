@@ -116,7 +116,7 @@ trait HbaseDao extends Instrumented {
    */
   @throws[IOException]
   @Timed("scan")
-  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTable: Table): Map[String, RowData] = {
+  def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTable: Table): Map[String, HRowData] = {
 
     val scan = new Scan()
     scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
@@ -126,10 +126,12 @@ trait HbaseDao extends Instrumented {
       scan.setTimeRange(timeRange.get._1, timeRange.get._2)
 
     val resultScanner = hTable.getScanner(scan)
-    var rowMap = Map[String,RowData]()
+    var rowMap = Map[String, HRowData]()
 
     resultScanner.iterator().toIterator.take(maxRowLimit.getOrElse(Int.MaxValue))
-      .foreach(rowResult => rowMap += rowResult.getRow.getString -> getRowData(rowResult, colFamilies))
+      .foreach(rowResult => {
+        rowMap += rowResult.getRow.getString -> HRowData(getRowData(rowResult, colFamilies), rowResult.rawCells().head.getTimestamp)
+      })
 
     rowMap
   }
@@ -169,6 +171,8 @@ object HbaseDao {
   type ColumnData = scala.collection.immutable.Map[String, Array[Byte]]
   // ColumnQualifer -> Data
   type RowData = scala.collection.immutable.Map[String, ColumnData] // ColumnFamily -> ColumnData
+
+  private [connekt] case class HRowData (data:RowData, timestamp:Long)
 
   val emptyRowData = Map[String, ColumnData]("d" -> Map("empty" -> Bytes.toBytes(1)))
 
