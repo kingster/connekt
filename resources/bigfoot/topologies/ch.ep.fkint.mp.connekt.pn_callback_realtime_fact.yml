@@ -45,7 +45,12 @@ transformation_bolt:
             column_definition: data['data']['platform']
             column_type: java.lang.String
         timestamp:
-            column_definition: data['data']['timestamp']
+            column_definition: |
+                from java.util import Date
+                from java.text import SimpleDateFormat
+                sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                ts = Date(data['eventTime'])
+                result = sdf.format(ts)
             column_type: java.lang.String
 
 sink_bolt:
