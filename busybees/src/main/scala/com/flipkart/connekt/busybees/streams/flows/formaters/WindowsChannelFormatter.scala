@@ -57,11 +57,12 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
           ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter dropping dry-run message: ${message.id}")
           List.empty[WNSPayloadEnvelope]
         }
-      } else {
+      } else if(wnsRequestEnvelopes.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter dropping ttl-expired message: ${message.id}")
         wnsRequestEnvelopes.map(w => PNCallbackEvent(w.messageId, w.deviceId, InternalStatus.TTLExpired, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
         List.empty[WNSPayloadEnvelope]
-      }
+      } else
+        List.empty[WNSPayloadEnvelope]
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter error for message: ${message.id}", e)

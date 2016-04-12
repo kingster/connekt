@@ -59,11 +59,12 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
           ConnektLogger(LogFile.PROCESSORS).debug(s"IOSChannelFormatter dropping dry-run message: ${message.id}")
           List.empty[APSPayloadEnvelope]
         }
-      } else {
+      } else if (apnsEnvelopes.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter dropping ttl-expired message: ${message.id}")
         apnsEnvelopes.map(e => PNCallbackEvent(e.messageId, e.deviceId, InternalStatus.TTLExpired, MobilePlatform.IOS, e.appName, message.contextId.orEmpty)).persist
         List.empty[APSPayloadEnvelope]
-      }
+      } else
+        List.empty[APSPayloadEnvelope]
 
     } catch {
       case e: Throwable =>
