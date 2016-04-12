@@ -1,0 +1,3 @@
+# kafkaCountCheck.job
+type=command
+command=bash kafkaCountCheck.sh
