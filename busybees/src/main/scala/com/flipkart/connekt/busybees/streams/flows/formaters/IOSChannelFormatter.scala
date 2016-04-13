@@ -19,10 +19,10 @@ import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
+import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
@@ -42,10 +42,11 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
       val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
 
-      val ttlInMillis =  message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
+      val ttlInMillis = message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
-        val payloadData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
-        val apnsPayload = iOSPNPayload(td._1, ttlInMillis, payloadData)
+        val requestData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
+        val apnsTopic = requestData.get("topic").asText(null)
+        val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData.get("data"))
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload)
       })
 
