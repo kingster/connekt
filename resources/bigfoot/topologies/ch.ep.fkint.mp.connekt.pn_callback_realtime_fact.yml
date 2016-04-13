@@ -44,6 +44,12 @@ transformation_bolt:
         platform:
             column_definition: data['data']['platform']
             column_type: java.lang.String
+        message_id:
+            column_definition: data['data']['messageId']
+            column_type: java.lang.String
+        device_id:
+            column_definition: data['data']['deviceId']
+            column_type: java.lang.String
         timestamp:
             column_definition: |
                 from java.util import Date
@@ -64,9 +70,9 @@ sink_bolt:
     type_name: data
     id_keys:
         - app_name
-        - context_id
+        - device_id
         - event_type
-        - platform
+        - message_id
 
 kafka_bolt:
     name: Kafka-bolt
