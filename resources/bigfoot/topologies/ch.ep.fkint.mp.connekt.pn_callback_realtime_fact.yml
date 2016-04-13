@@ -24,8 +24,8 @@ spout:
         - "10.32.153.71:2181"
         - "10.32.173.51:2181"
         - "10.33.245.240:2181"
-        - "10.32.189.5:2181/prod-fdpingestion-kafka-p"
-    start_offset: -2
+        - "10.32.189.5:2181/prod-fdpingestion-kafka-j"
+    start_offset: -1
 
 transformation_bolt:
     name: Transformation-bolt
