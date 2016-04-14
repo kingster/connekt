@@ -87,7 +87,9 @@ libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.3",
   "com.flipkart" %% "util-config" % "0.0.1" excludeAll ExclusionRule("com.google.guava", "guava"),
   "com.flipkart" %% "espion" % "1.0.1",
-  "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT"
+  "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT",
+  "commons-validator" % "commons-validator" % "1.3.1",
+  "org.apache.servicemix.bundles" % "org.apache.servicemix.bundles.oro" % "2.0.8_5"
 )
 
 

@@ -54,6 +54,7 @@ object MessageStatus {
 
     val RenderFailure = Value("connekt_render_failure")
     val MissingDeviceInfo = Value("connekt_missing_device")
+    val InvalidTokenDevice = Value("connekt_invalid_token_device")
     val ParseError = Value("connekt_gcm_response_parse_error")
     val TTLExpired = Value("connekt_ttl_expired")
     val StageError = Value("connekt_stage_error")
