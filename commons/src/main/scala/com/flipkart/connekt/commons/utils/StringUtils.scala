@@ -37,6 +37,8 @@ object StringUtils {
 
   val currentMirror = runtimeMirror(getClass.getClassLoader)
 
+  private val urlValidator = new UrlValidator(Array("http","https"))
+
   implicit def enum2String(enumValue: Enumeration#Value): String = enumValue.toString
 
   implicit class StringHandyFunctions(val s: String) {
@@ -47,8 +49,6 @@ object StringUtils {
     def hasOnlyAllowedChars = s.forall(allowedCharsSet.contains)
 
     def isDefined = null != s && s.nonEmpty
-
-    private val urlValidator = new UrlValidator(Array("http","https"))
 
     def isValidUrl = urlValidator.isValid(s)
   }
