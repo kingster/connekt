@@ -32,7 +32,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 class WindowsTopologyTest extends TopologyUTSpec {
   "WindowsTopology Test" should "run" in {
 
-    val deviceId = StringUtils.generateRandomStr(32)
+    val deviceId = "TEST-WIN-102"
 
     DeviceDetailsService.add(
       DeviceDetails(
@@ -48,8 +48,6 @@ class WindowsTopologyTest extends TopologyUTSpec {
                       |	"channel": "PN",
                       |	"sla": "H",
                       |	"templateId": "retail-app-base-0x23",
-                      |	"scheduleTs": 12312312321,
-                      |	"expiryTs": 3243243224,
                       |	"channelData": {
                       |		"type": "PN",
                       |		"data": {
@@ -88,7 +86,7 @@ class WindowsTopologyTest extends TopologyUTSpec {
                       |}
                    """.stripMargin.getObj[ConnektRequest]
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[WNSRequestTracker]("hk2.notify.windows.com")
+    lazy implicit val poolClientFlow = Http().superPool[WNSRequestTracker]()
 
     lazy val graph = GraphDSL.create() {
       implicit b ⇒
