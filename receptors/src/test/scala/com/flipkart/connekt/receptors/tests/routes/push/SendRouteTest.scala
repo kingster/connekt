@@ -21,7 +21,7 @@ import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 
 class SendRouteTest extends BaseRouteTest {
 
-  val appName = "retailqa"
+  val appName = "CONNEKTSAMPLEAPP"
   val platform = "android"
   val unknownPlatfrom = "unknown"
   val deviceId = "bbd505411b210e38b15142bd6a0de0f6"
@@ -42,7 +42,7 @@ class SendRouteTest extends BaseRouteTest {
          |	"channelInfo": {
          |		"type": "PN",
          |		"ackRequired": true,
-         |   "deviceId" : ["$deviceId", "nfkjadnfkl"],
+         |   "deviceIds" : ["$deviceId", "nfkjadnfkl"],
          |		"delayWhileIdle": true
          |	},
          |	"channelData": {

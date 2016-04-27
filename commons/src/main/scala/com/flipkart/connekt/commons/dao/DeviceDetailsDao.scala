@@ -201,16 +201,22 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     val hUserIndexTableInterface = hTableConnFactory.getTableInterface(hUserIndexTableName)
     val hTokenIndexTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
 
-    get(appName, deviceId) match {
-      case Some(device) =>
-        removeRow(getRowKey(appName, deviceId))(hTableInterface)
-        removeRow(getTokenIndexRowKey(appName, deviceId, device.token))(hTokenIndexTableInterface)
-        StringUtils.isNullOrEmpty(device.userId) match {
-          case false =>
-            removeRow(getUserIndexRowKey(appName, deviceId, device.userId))(hUserIndexTableInterface)
-          case true =>
-        }
-      case None =>
+    try {
+      get(appName, deviceId) match {
+        case Some(device) =>
+          removeRow(getRowKey(appName, deviceId))(hTableInterface)
+          removeRow(getTokenIndexRowKey(appName, deviceId, device.token))(hTokenIndexTableInterface)
+          StringUtils.isNullOrEmpty(device.userId) match {
+            case false =>
+              removeRow(getUserIndexRowKey(appName, deviceId, device.userId))(hUserIndexTableInterface)
+            case true =>
+          }
+        case None =>
+      }
+    } finally {
+      hTableConnFactory.releaseTableInterface(hTableInterface)
+      hTableConnFactory.releaseTableInterface(hUserIndexTableInterface)
+      hTableConnFactory.releaseTableInterface(hTokenIndexTableInterface)
     }
   }
 

@@ -1,7 +1,7 @@
 Connekt Deployment
 =======================
 
-1. To Deploy Receptors's update the inventory with the updated host's.
+To Deploy update the inventory with the updated host's.
 
 Receptors
 ---------
@@ -15,12 +15,12 @@ Receptors
   ```bash
   ansible-playbook -i inventory.txt playbooks/restart-receptors.yaml
   ```
-  
+ 
 Busybees
 ---------
 - Deployment
 
   ```bash
-  ansible-playbook -i inventory.txt playbooks/deploy-busybees.yaml`
+  ansible-playbook -i inventory.txt playbooks/deploy-busybees.yaml
   ```
 

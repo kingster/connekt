@@ -22,6 +22,8 @@ tags:
   description: "pull based messaging operations"
 - name: "Debug"
   description: "Debugger"
+- name: "Stencil"
+  description: "Stencil"
 produces:
   - application/json
 parameters:
@@ -98,6 +100,27 @@ parameters:
       - USER
       - GLOBAL
       - GROUP
+    format: string
+  stencilName:
+    name: stencilName
+    in: path
+    description: StencilName.
+    required: true
+    type: string
+    format: string
+  stencilVersion:
+    name: stencilVersion
+    in: path
+    description: stencilVersion.
+    required: true
+    type: string
+    format: string
+  bucketName:
+    name: bucketName
+    in: path
+    description: bucketName.
+    required: true
+    type: string
     format: string
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
@@ -531,6 +554,154 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /stencil/bucket/{bucketName}:
+    post:
+      summary: creating bucket
+      description: |
+        creating bucket for user
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/bucketName'
+        - name: createStencilBucket
+          in: body
+          description: createStencilBucket.
+          required: true
+          schema:
+            type: object
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  bucket Create
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: get bucket data
+      description: |
+        get bucket data
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/bucketName'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  Original Request
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /stencil:
+    post:
+      summary: creating stencil
+      description: |
+        creating stencil
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - name: createStencil
+          in: body
+          description: createStencil.
+          required: true
+          schema:
+            $ref: '#/definitions/Stencil'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  stencil Create
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /stencil/{stencilName}:
+    get:
+      summary: get stencil data
+      description: |
+        get stencil data
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/stencilName'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  Original Request
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: updating stencil
+      description: |
+        updating stencil
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - name: updateStencil
+          in: body
+          description: updateStencil.
+          required: true
+          schema:
+            $ref: '#/definitions/Stencil'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  stencil Create
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /stencil/{stencilName}/preview:
+    post:
+      summary: previewing stencil
+      description: |
+        previewing stencil
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/stencilName'
+        - name: previewStencil
+          in: body
+          description: previewStencil.
+          required: true
+          schema:
+            type: object
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  stencil preview
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /stencil/{stencilName}/{stencilVersion}/preview:
+    post:
+      summary: previewing stencil
+      description: |
+        previewing stencil for particular version
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/stencilName'
+        - $ref: '#/parameters/stencilVersion'
+        - name: previewStencil
+          in: body
+          description: previewStencil.
+          required: true
+          schema:
+            type: object
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  stencil preview
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+            
 definitions:
   DeviceDetails:
     type: object
@@ -658,4 +829,21 @@ definitions:
     properties:
       resources:
         type: string
-        description: resource list 
+        description: resource list
+  Stencil:
+    type: object
+    properties:
+      id:
+        type: string
+        description: stencil id
+      engine:
+        type: string
+        enum:
+        - GROOVY
+        - VELOCITY
+        description: engine GROOVY/VELOCITY
+      engineFabric:
+        type: string
+        description: VELOCITY/GROOVY script
+
+

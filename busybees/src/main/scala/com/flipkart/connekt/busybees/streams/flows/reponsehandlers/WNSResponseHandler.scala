@@ -100,7 +100,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
     val maybePNCallbackEvent: Option[PNCallbackEvent] = tryResponse match {
       case Success(r) =>
-        r.entity.dataBytes.to(Sink.ignore)
+        r.entity.dataBytes.runWith(Sink.ignore)
         ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler received http response for r: $requestId")
         Option(r.status.intValue() match {
           case 200 =>

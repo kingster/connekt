@@ -1,0 +1,3 @@
+Template: fk-pf-connekt/specter-bucket
+Type: string
+Description: Config Bucket for Specter (skip to use default) ?

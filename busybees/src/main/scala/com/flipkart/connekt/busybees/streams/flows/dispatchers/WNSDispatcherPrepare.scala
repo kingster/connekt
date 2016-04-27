@@ -42,8 +42,6 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
       val payload = HttpEntity(message.wnsPayload.getContentType, message.wnsPayload.getBody)
       val request = HttpRequest(HttpMethods.POST, message.token, headers, payload)
 
-      ConnektLogger(LogFile.PROCESSORS).info(s"WNSDispatcher prepared wns request: ${request.toString}")
-
       List((request, WNSRequestTracker(message.appName, message.messageId, message)))
 
     } catch {

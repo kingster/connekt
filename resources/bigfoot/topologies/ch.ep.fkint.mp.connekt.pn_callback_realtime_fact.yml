@@ -24,8 +24,8 @@ spout:
         - "10.32.153.71:2181"
         - "10.32.173.51:2181"
         - "10.33.245.240:2181"
-        - "10.32.189.5:2181/prod-fdpingestion-kafka-p"
-    start_offset: -2
+        - "10.32.189.5:2181/prod-fdpingestion-kafka-j"
+    start_offset: -1
 
 transformation_bolt:
     name: Transformation-bolt
@@ -44,8 +44,19 @@ transformation_bolt:
         platform:
             column_definition: data['data']['platform']
             column_type: java.lang.String
+        message_id:
+            column_definition: data['data']['messageId']
+            column_type: java.lang.String
+        device_id:
+            column_definition: data['data']['deviceId']
+            column_type: java.lang.String
         timestamp:
-            column_definition: data['data']['timestamp']
+            column_definition: |
+                from java.util import Date
+                from java.text import SimpleDateFormat
+                sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                ts = Date(data['eventTime'])
+                result = sdf.format(ts)
             column_type: java.lang.String
 
 sink_bolt:
@@ -59,9 +70,9 @@ sink_bolt:
     type_name: data
     id_keys:
         - app_name
-        - context_id
+        - device_id
         - event_type
-        - platform
+        - message_id
 
 kafka_bolt:
     name: Kafka-bolt

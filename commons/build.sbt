@@ -13,7 +13,7 @@ envKey := {
 
 
 /** all akka only **/
-val akkaVersion = "2.4.3"
+val akkaVersion = "2.4.4"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion withSources() withJavadoc(),
   "com.typesafe.akka" %% "akka-stream" % akkaVersion withSources() withJavadoc(),
@@ -87,7 +87,8 @@ libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.3",
   "com.flipkart" %% "util-config" % "0.0.1" excludeAll ExclusionRule("com.google.guava", "guava"),
   "com.flipkart" %% "espion" % "1.0.1",
-  "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT"
+  "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT",
+  "commons-validator" % "commons-validator" % "1.5.0" excludeAll ExclusionRule("commons-beanutils", "commons-beanutils")
 )
 
 

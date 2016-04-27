@@ -25,6 +25,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.commons.utils.NullWrapper._
 import org.apache.commons.codec.CharEncoding
+import org.apache.commons.validator.routines.UrlValidator
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Await
@@ -36,6 +37,8 @@ object StringUtils {
 
   val currentMirror = runtimeMirror(getClass.getClassLoader)
 
+  private val urlValidator = new UrlValidator(Array("http","https"))
+
   implicit def enum2String(enumValue: Enumeration#Value): String = enumValue.toString
 
   implicit class StringHandyFunctions(val s: String) {
@@ -46,6 +49,8 @@ object StringUtils {
     def hasOnlyAllowedChars = s.forall(allowedCharsSet.contains)
 
     def isDefined = null != s && s.nonEmpty
+
+    def isValidUrl = urlValidator.isValid(s)
   }
 
   implicit class StringOptionHandyFunctions(val obj: Option[String]) {

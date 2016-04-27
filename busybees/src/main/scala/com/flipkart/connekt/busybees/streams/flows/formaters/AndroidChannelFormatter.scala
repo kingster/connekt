@@ -55,11 +55,12 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
           case "OPENWEB" => OpenWebGCMPayload(registration_ids = tokens, dry_run = None)
         }
         List(GCMPayloadEnvelope(message.id,validDeviceIds, pnInfo.appName, message.contextId.orEmpty , payload))
-      } else {
+      } else if (tokens.nonEmpty){
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
         List.empty[GCMPayloadEnvelope]
-      }
+      } else
+        List.empty[GCMPayloadEnvelope]
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter error for ${message.id}", e)
