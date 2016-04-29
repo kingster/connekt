@@ -137,7 +137,7 @@ paths:
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
         - name: deviceData
-          in: body  
+          in: body
           description: deviceData Defination.
           required: true
           schema:
@@ -159,14 +159,14 @@ paths:
         - $ref: '#/parameters/api-key'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
-        - $ref: '#/parameters/deviceId' 
+        - $ref: '#/parameters/deviceId'
       tags:
         - Registration
       responses:
         '200':
-          description: Device details 
+          description: Device details
     delete:
-      summary: Delete Device 
+      summary: Delete Device
       description: |
        Delete specific device
       tags:
@@ -176,10 +176,10 @@ paths:
         - $ref: '#/parameters/secure-code'
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
-        - $ref: '#/parameters/deviceId' 
+        - $ref: '#/parameters/deviceId'
       responses:
         '200':
-          description: Device deleted succesfully 
+          description: Device deleted succesfully
   /registration/push/{appName}/users/{userId}:
     get:
       tags:
@@ -208,7 +208,7 @@ paths:
         - $ref: '#/parameters/MPlatform'
         - $ref: '#/parameters/appName'
         - name: ConnektRequest
-          in: body  
+          in: body
           description: ConnektRequest.
           required: true
           schema:
@@ -259,7 +259,7 @@ paths:
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
         - name: callbackEvent
-          in: body  
+          in: body
           description: CallbackEvent.
           required: true
           schema:
@@ -268,7 +268,7 @@ paths:
         - "Callback"
       responses:
         '200':
-          description:  Callback Accepted 
+          description:  Callback Accepted
         default:
           description: Unexpected error
           schema:
@@ -302,19 +302,19 @@ paths:
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
         - name: startTs
-          in: query  
+          in: query
           description: StartTS.
           required: true
           type: number
           format: long
         - name: endTs
-          in: query  
+          in: query
           description: EndTS.
           required: false
           type: number
           format: long
         - name: skipIds
-          in: query  
+          in: query
           description: Skip Specific MessageIds
           required: false
           type: string
@@ -497,16 +497,16 @@ paths:
           in: body
           description: grantResourceAccess
           required: true
-          schema: 
+          schema:
             $ref: '#/definitions/ResourcePriv'
       responses:
         201:
           description: "granted access to requested resources"
         404:
           description: "no api-key found for clientName"
-        400: 
+        400:
           description: "while user does not existed for user level access"
-        
+
   /revoke/{userType}/{userId}:
    post:
     tags:
@@ -524,14 +524,14 @@ paths:
           in: body
           description: revokeResourceAccess
           required: true
-          schema: 
+          schema:
             $ref: '#/definitions/ResourcePriv'
     responses:
         201:
           description: "revoked access to requested resources"
         404:
           description: "no api-key found for clientName"
-        400: 
+        400:
           description: "while user does not existed for user level access"
   /debugger/secure-code/generate:
     get:
@@ -638,6 +638,7 @@ paths:
         updating stencil
       parameters:
         - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/stencilName'
         - name: updateStencil
           in: body
           description: updateStencil.
@@ -700,8 +701,8 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-            
-            
+
+
 definitions:
   DeviceDetails:
     type: object
@@ -823,7 +824,7 @@ definitions:
         type: integer
         format: int32
         description: max-rate for channel
-        
+
   ResourcePriv:
     type: object
     properties:
