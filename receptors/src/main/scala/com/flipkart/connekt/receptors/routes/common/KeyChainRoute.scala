@@ -65,7 +65,6 @@ class KeyChainRoute(implicit am: ActorMaterializer) extends BaseHandler with Fil
                             ConnektLogger(LogFile.SERVICE).error("Credentials Upload File Error", e)
                             complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("There was some error processing your request", Map("debug" -> e.getMessage))))
                         }
-
                       }
                     } ~ get {
                       KeyChainManager.getAppleCredentials(appName) match {
@@ -76,7 +75,6 @@ class KeyChainRoute(implicit am: ActorMaterializer) extends BaseHandler with Fil
                           complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
                       }
                     }
-
                   case ANDROID =>
                     post {
                       //TODO : Fix when the issue is resolved.
@@ -97,7 +95,6 @@ class KeyChainRoute(implicit am: ActorMaterializer) extends BaseHandler with Fil
                           complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
                       }
                     }
-
                   case WINDOWS =>
                     post {
                       //TODO : Fix when the issue is resolved.
@@ -117,17 +114,13 @@ class KeyChainRoute(implicit am: ActorMaterializer) extends BaseHandler with Fil
                           complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
                       }
                     }
-
-
                   case _ =>
                     post {
                       complete(GenericResponse(StatusCodes.NotImplemented.intValue, null, Response("Not Supported.", null)))
                     } ~ get {
                       complete(GenericResponse(StatusCodes.NotImplemented.intValue, null, Response("Not Supported.", null)))
                     }
-
                 }
-
             } ~ path(Segment) {
               key: String =>
                 post {
@@ -146,7 +139,6 @@ class KeyChainRoute(implicit am: ActorMaterializer) extends BaseHandler with Fil
                       complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Not Found.", null)))
                   }
                 }
-
             }
           }
         }

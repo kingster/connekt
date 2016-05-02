@@ -12,6 +12,20 @@
  */
 package com.flipkart.connekt.receptors.directives
 
-trait SegmentDirectives {
+import akka.http.scaladsl.server.Directive0
+import akka.http.scaladsl.server.directives.BasicDirectives
+import com.codahale.metrics.Timer
+import com.flipkart.connekt.commons.metrics.Instrumented
 
+trait MetricsDirectives extends BasicDirectives with Instrumented {
+
+  def meteredResource(resourceId: String): Directive0 =
+    extractRequestContext.flatMap { ctx =>
+      val context: Timer.Context = registry.timer(resourceId).time()
+      mapResponse { r =>
+        context.stop()
+        registry.counter(s"$resourceId.${r.status.intValue()}").inc()
+        r
+      }
+    }
 }

@@ -40,31 +40,33 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
             (platform: MobilePlatform, appName: String, instanceId: String) =>
               authorize(user, "FETCH", s"FETCH_$appName") {
                 get {
-                  parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) { (startTs, endTs, skipIds) =>
-                    require(startTs < endTs, "startTs must be prior to endTs")
-                    require(startTs > (System.currentTimeMillis - 7.days.toMillis), "Invalid startTs : startTs can be max 7 days from now")
+                  meteredResource(s"fetch.$platform.$appName") {
+                    parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) { (startTs, endTs, skipIds) =>
+                      require(startTs < endTs, "startTs must be prior to endTs")
+                      require(startTs > (System.currentTimeMillis - 7.days.toMillis), "Invalid startTs : startTs can be max 7 days from now")
 
-                    val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
-                    val messageService = ServiceFactory.getPNMessageService
+                      val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
+                      val messageService = ServiceFactory.getPNMessageService
 
-                    //Skip all messages which are either read/dismissed or passed in skipIds
-                    val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_._1.asInstanceOf[PNCallbackEvent]).filter(e => seenEventTypes.contains(e.eventType.toLowerCase)).map(_.messageId)).get.toSet
-                    val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
-                      val messageIds = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
-                      val fetchedMessages = messageIds.filterNot(skipMessageIds.contains).flatMap(mId => messageService.getRequestInfo(mId).getOrElse(None))
-                      val validMessages = fetchedMessages.filter(_.expiryTs.map(t => t > System.currentTimeMillis).getOrElse(true))
-                      validMessages
-                    })
+                      //Skip all messages which are either read/dismissed or passed in skipIds
+                      val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_._1.asInstanceOf[PNCallbackEvent]).filter(e => seenEventTypes.contains(e.eventType.toLowerCase)).map(_.messageId)).get.toSet
+                      val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
+                        val messageIds = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
+                        val fetchedMessages = messageIds.filterNot(skipMessageIds.contains).flatMap(mId => messageService.getRequestInfo(mId).getOrElse(None))
+                        val validMessages = fetchedMessages.filter(_.expiryTs.map(t => t > System.currentTimeMillis).getOrElse(true))
+                        validMessages
+                      })
 
-                    val pushRequests = messages.get.map(r => {
-                      val channelRequestData = r.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, r.channelDataModel)).getOrElse(r.channelData)
-                      r.id -> channelRequestData
-                    }).toMap
+                      val pushRequests = messages.get.map(r => {
+                        val channelRequestData = r.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, r.channelDataModel)).getOrElse(r.channelData)
+                        r.id -> channelRequestData
+                      }).toMap
 
-                    val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
+                      val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
 
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))
-                      .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString))))
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))
+                        .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString))))
+                    }
                   }
                 }
               }
