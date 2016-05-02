@@ -35,7 +35,7 @@ import org.scalatest.Ignore
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 
-@Ignore
+//@Ignore
 class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
 
   override def beforeAll() = {
@@ -73,7 +73,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
         |	    "ackRequired": true,
         |    	"delayWhileIdle": true,
         |     "platform" :  "android",
-        |     "appName" : "ConnectSampleApp",
+        |     "appName" : "ConnektSampleApp",
         |     "deviceIds" : ["513803e45cf1b344ef494a04c9fb650a"]
         |	},
         |	"meta": {
@@ -93,7 +93,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
 
     val complexSource = Source.fromGraph(GraphDSL.create() { implicit b =>
       val merge = b.add(Merge[ConnektRequest](3))
-      kSource ~> merge.in(0)
+      repeatSource ~> merge.in(0)
       Source.empty[ConnektRequest] ~> merge.in(1)
       Source.empty[ConnektRequest] ~> merge.in(2)
 

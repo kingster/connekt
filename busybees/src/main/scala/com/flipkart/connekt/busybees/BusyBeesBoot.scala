@@ -36,11 +36,12 @@ object BusyBeesBoot extends BaseApp {
   implicit val system = ActorSystem("busyBees-system")
 
   val settings = ActorMaterializerSettings(system)
-    .withDispatcher("akka.actor.default-dispatcher")
     .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
     .withSupervisionStrategy(StageSupervision.decider)
 
-  lazy implicit val mat = ActorMaterializer(settings)
+  lazy implicit val mat = ActorMaterializer(settings.withDispatcher("akka.actor.default-dispatcher"))
+
+  lazy val ioMat = ActorMaterializer(settings.withDispatcher("akka.actor.io-dispatcher"))
 
   var pushTopology: PushTopology = _
 

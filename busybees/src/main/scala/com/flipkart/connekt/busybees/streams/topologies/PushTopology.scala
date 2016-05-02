@@ -43,6 +43,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
   implicit val mat = BusyBeesBoot.mat
+  val ioMat = BusyBeesBoot.ioMat
 
   val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
 
@@ -111,7 +112,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
 
-    val gcmResponseHandle = b.add(new GCMResponseHandler().flow)
+    val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
 
     platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle ~> merger.in(1)
 
