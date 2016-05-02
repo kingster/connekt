@@ -21,10 +21,10 @@ trait MetricsDirectives extends BasicDirectives with Instrumented {
 
   def meteredResource(resourceId: String): Directive0 =
     extractRequestContext.flatMap { ctx =>
-      val context: Timer.Context = registry.timer(resourceId).time()
+      val context: Timer.Context = registry.timer(getMetricName(resourceId)).time()
       mapResponse { r =>
         context.stop()
-        registry.counter(s"$resourceId.${r.status.intValue()}").inc()
+        counter(s"$resourceId.${r.status.intValue()}").inc()
         r
       }
     }
