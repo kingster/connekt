@@ -4,7 +4,7 @@ avengers_hosts=(10.33.61.207 10.33.233.22 10.33.157.237 10.33.217.221 10.33.249.
 HOME='/var/log/azkabanScripts'
 tempAvengers='tempConnektAvengersLog'
 logPath='/var/log/flipkart/pf/fk-pf-connekt'
-avengers_parameters=("$logPath/receptors-service.log" 'ERROR' 4000 6000 "$logPath/receptors-access.log" 'ERROR' 4000 6000 "$logPath/receptors-dao.log" 'ERROR' 4000 6000 "$logPath/receptors-processor.log" 'ERROR' 4000 6000 "$logPath/receptors-factory.log" 'ERROR' 4000 6000)
+avengers_parameters=("$logPath/receptors-service.log" 'ERROR' 4000 6000 "$logPath/receptors-access.log" 'ERROR' 4000 6000 "$logPath/receptors-dao.log" 'ERROR' 4000 6000 "$logPath/receptors-processor.log" 'ERROR' 4000 6000 "$logPath/receptors-factory.log" 'ERROR' 4000 6000 "$logPath/catalina.log" 'ERROR' 4000 6000)
 alerts_to_supress='dummy'
 status=true
 
