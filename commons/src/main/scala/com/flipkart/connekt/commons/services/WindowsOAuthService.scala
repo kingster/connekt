@@ -92,6 +92,8 @@ object WindowsOAuthService extends TWindowsOAuthService {
           } finally {
             rwl.writeLock().unlock()
           }
+        } else {
+          ConnektLogger(LogFile.SERVICE).warn(s"Cannot requestNewToken writeLock.tryLock failed for appName $appName")
         }
       case None =>
         ConnektLogger(LogFile.SERVICE).error(s"Cannot requestNewToken Invalid appName $appName")
