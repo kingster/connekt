@@ -31,8 +31,6 @@ import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.relayrides.pushy.apns.ApnsPushNotification
-import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
@@ -137,7 +135,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val fmtWindowsParallelism = ConnektConfig.getInt("topology.push.windowsFormatter.parallelism").get
     val fmtWindows = b.add(new WindowsChannelFormatter(fmtWindowsParallelism)(ioDispatcher).flow)
-    val wnsRHandler = b.add(new WNSResponseHandler)
+    val wnsRHandler = b.add(new WNSResponseHandler()(ioMat, ec))
 
     platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge
                                                                   wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler.in
