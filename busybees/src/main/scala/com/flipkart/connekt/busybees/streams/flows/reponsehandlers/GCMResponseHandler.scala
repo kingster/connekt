@@ -23,7 +23,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
-import com.flipkart.connekt.commons.utils.FutureUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.JavaConversions._
@@ -83,16 +82,16 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
 
             case 400 =>
               events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InvalidJsonError, MobilePlatform.ANDROID, appName, requestTracker.contextId, stringResponse, eventTS)))
-              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - invalid json sent for: $messageId")
+              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - invalid json sent for: $messageId response: $stringResponse")
             case 401 =>
               events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.AuthError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
-              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - the sender account used to send a message couldn't be authenticated for: $messageId")
+              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - the sender account used to send a message couldn't be authenticated for: $messageId response: $stringResponse")
             case w if 5 == (w / 100) =>
               events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.InternalError, MobilePlatform.ANDROID, appName, requestTracker.contextId, "", eventTS)))
-              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - the gcm server encountered an error while trying to process the request for: $messageId")
-            case _ =>
+              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - the gcm server encountered an error while trying to process the request for: $messageId code: $w response: $stringResponse")
+            case w =>
               events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, stringResponse, eventTS)))
-              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - gcm response unhandled for: $messageId")
+              ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler http response - gcm response unhandled for: $messageId code: $w response: $stringResponse")
           }
         } catch {
           case e: Exception =>
