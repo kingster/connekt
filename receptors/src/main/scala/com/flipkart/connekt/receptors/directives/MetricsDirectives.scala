@@ -24,7 +24,7 @@ trait MetricsDirectives extends BasicDirectives with Instrumented {
       val context: Timer.Context = registry.timer(getMetricName(resourceId)).time()
       mapResponse { r =>
         context.stop()
-        counter(s"$resourceId.${r.status.intValue()}").inc()
+        registry.counter(s"$resourceId.${r.status.intValue()}").inc()
         r
       }
     }
