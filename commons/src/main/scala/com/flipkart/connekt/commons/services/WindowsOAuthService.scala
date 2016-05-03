@@ -13,6 +13,7 @@
 package com.flipkart.connekt.commons.services
 
 import java.util
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -24,6 +25,8 @@ import org.apache.http.NameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.message.BasicNameValuePair
+
+import scala.util.Try
 
 case class OAuthToken(token: String, expectedExpiry: Long)
 
@@ -68,7 +71,9 @@ object WindowsOAuthService extends TWindowsOAuthService {
     val credential = KeyChainManager.getMicrosoftCredential(appName)
     credential match {
       case Some(cred) =>
-        if (rwl.writeLock().tryLock()) {
+        if (Try {
+          rwl.writeLock().tryLock(5, TimeUnit.SECONDS)
+        }.getOrElse(false)) {
           try {
             ConnektLogger(LogFile.CLIENTS).info(s"Windows token request for App $appName")
 
@@ -77,7 +82,7 @@ object WindowsOAuthService extends TWindowsOAuthService {
             params.add(new BasicNameValuePair("grant_type", "client_credentials"))
             params.add(new BasicNameValuePair("scope", "notify.windows.com"))
             params.add(new BasicNameValuePair("client_id", cred.clientId))
-            params.add(new BasicNameValuePair("client_secret",cred.clientSecret))
+            params.add(new BasicNameValuePair("client_secret", cred.clientSecret))
             request.setEntity(new UrlEncodedFormEntity(params, "UTF-8"))
 
             val responseString = client.doExecute(request)
