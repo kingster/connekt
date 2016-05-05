@@ -18,6 +18,8 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, Table, TableConfiguration}
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 
+import scala.util.Try
+
 class HTableFactory(hConnConfig: Config, connProvider: TConnectionProvider) extends THTableFactory {
 
   val hConnectionConfig = {
@@ -34,13 +36,38 @@ class HTableFactory(hConnConfig: Config, connProvider: TConnectionProvider) exte
 
   var hConnection: Connection = connProvider.createHbaseConnection(hConnectionConfig)
 
+  private def reconnect() = {
+    this.synchronized {
+      if(null == hConnection || hConnection.isClosed) {
+        hConnection = connProvider.createHbaseConnection(hConnectionConfig)
+        ConnektLogger(LogFile.FACTORY).warn(s"hbase reconnection successful.")
+      } else {
+        ConnektLogger(LogFile.FACTORY).warn(s"skipping hbase reconnection, in healthy state.")
+      }
+    }
+  }
+
   override def shutdown(): Unit = hConnection.close()
 
-  override def getTableInterface(tableName: String): Table = hConnection.getTable(TableName.valueOf(tableName))
+  override def getTableInterface(tableName: String): Table = {
+    val table = TableName.valueOf(tableName)
+    Try(hConnection.getTable(table)).recover {
+      case e: IllegalArgumentException =>
+        reconnect()
+        hConnection.getTable(table)
+    }.get
+  }
 
   override def releaseTableInterface(hTableInterface: Table): Unit = hTableInterface.close()
 
-  override def getBufferedMutator(tableName: String): BufferedMutator = hConnection.getBufferedMutator(TableName.valueOf(tableName))
+  override def getBufferedMutator(tableName: String): BufferedMutator = {
+    val table = TableName.valueOf(tableName)
+    Try(hConnection.getBufferedMutator(table)).recover {
+      case e: IllegalArgumentException =>
+        reconnect()
+        hConnection.getBufferedMutator(table)
+    }.get
+  }
 
   override def releaseMutator(mutatorInterface: BufferedMutator): Unit = mutatorInterface.close()
 }
