@@ -13,11 +13,9 @@
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
-
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao.RowData
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{THTableFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -29,7 +27,7 @@ import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.JavaConversions._
 
-class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends Dao with HbaseDao with Instrumented {
+class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends Dao with HbaseDao with Instrumented {
   val hTableConnFactory = hTableFactory
 
   val hTableName = tableName
@@ -262,5 +260,5 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 }
 
 object DeviceDetailsDao {
-  def apply(tableName: String, hTableFactory: HTableFactory) = new DeviceDetailsDao(tableName, hTableFactory)
+  def apply(tableName: String, hTableFactory: THTableFactory) = new DeviceDetailsDao(tableName, hTableFactory)
 }

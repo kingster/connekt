@@ -15,12 +15,11 @@ package com.flipkart.connekt.commons.factories
 import java.util.Properties
 import javax.sql.DataSource
 
-import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.typesafe.config.Config
 import org.springframework.jdbc.core.JdbcTemplate
 
-class MySQLFactoryWrapper private(config: Properties, connProvider: TConnectionProvider) extends MySQLFactory {
+class MySQLFactory private(config: Properties, connProvider: TConnectionProvider) extends TMySQLFactory {
 
   private val source: DataSource = connProvider.createDatasourceConnection(config)
 

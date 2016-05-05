@@ -12,13 +12,11 @@
  */
 package com.flipkart.connekt.commons.dao
 
-
-import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.Key
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
 import org.springframework.dao.DataAccessException
 
-class KeyChainDao(table: String, mysqlFactory: MySQLFactory) extends TKeyChainDao with MySQLDao {
+class KeyChainDao(table: String, mysqlFactory: TMySQLFactory) extends TKeyChainDao with MySQLDao {
   val mysqlHelper = mysqlFactory
 
   override def get(key: String): Option[Key] = {
@@ -71,6 +69,6 @@ class KeyChainDao(table: String, mysqlFactory: MySQLFactory) extends TKeyChainDa
 }
 
 object KeyChainDao {
-  def apply(tableName: String = "DATA_STORE", mysqlFactory: MySQLFactory) =
+  def apply(tableName: String = "DATA_STORE", mysqlFactory: TMySQLFactory) =
     new KeyChainDao(tableName, mysqlFactory)
 }

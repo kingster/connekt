@@ -12,11 +12,11 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.factories.THTableFactory
 import com.flipkart.connekt.commons.iomodels._
 
-class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactory: HTableFactory) extends RequestDao(tableName: String, hTableFactory: HTableFactory) {
+class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactory: THTableFactory) extends RequestDao(tableName: String, hTableFactory: THTableFactory) {
 
   override protected def channelRequestInfoMap(channelRequestInfo: ChannelRequestInfo): Map[String, Array[Byte]] = {
     val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
@@ -57,6 +57,6 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
 }
 
 object PNRequestDao {
-  def apply(tableName: String = "fk-connekt-pn-info", pullRequestTableName: String = "fk-connekt-pull-info", hTableFactory: HTableFactory) =
+  def apply(tableName: String = "fk-connekt-pn-info", pullRequestTableName: String = "fk-connekt-pull-info", hTableFactory: THTableFactory) =
     new PNRequestDao(tableName, pullRequestTableName, hTableFactory)
 }

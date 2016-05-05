@@ -13,17 +13,15 @@
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
-
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao.ColumnData
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{THTableFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
 import com.roundeights.hasher.Implicits._
 import org.apache.hadoop.hbase.client.BufferedMutator
 
 import scala.util.{Success, Try}
 
-abstract class CallbackDao(tableName: String, hTableFactory: HTableFactory) extends TCallbackDao with HbaseDao {
+abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) extends TCallbackDao with HbaseDao {
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
   private implicit lazy val hTableMutator: BufferedMutator = hTableFactory.getBufferedMutator(tableName)

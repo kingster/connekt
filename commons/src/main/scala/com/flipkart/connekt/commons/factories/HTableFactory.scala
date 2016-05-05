@@ -12,14 +12,13 @@
  */
 package com.flipkart.connekt.commons.factories
 
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.{TableConfiguration, BufferedMutator, Connection, Table}
+import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, Table, TableConfiguration}
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 
-class HTableFactoryWrapper(hConnConfig: Config, connProvider: TConnectionProvider) extends HTableFactory {
+class HTableFactory(hConnConfig: Config, connProvider: TConnectionProvider) extends THTableFactory {
 
   val hConnectionConfig = {
     val hConfig: Configuration = HBaseConfiguration.create()

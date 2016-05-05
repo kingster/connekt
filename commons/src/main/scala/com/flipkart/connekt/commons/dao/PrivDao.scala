@@ -12,15 +12,14 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.dao.PrivDao.Operation
 import com.flipkart.connekt.commons.dao.PrivDao.Operation.Operation
 import com.flipkart.connekt.commons.entities.ResourcePriv
 import com.flipkart.connekt.commons.entities.UserType.UserType
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
-class PrivDao(table: String, mysqlFactory: MySQLFactory) extends TPrivDao with MySQLDao {
+class PrivDao(table: String, mysqlFactory: TMySQLFactory) extends TPrivDao with MySQLDao {
 
   val mysqlHelper = mysqlFactory
 
@@ -95,7 +94,7 @@ class PrivDao(table: String, mysqlFactory: MySQLFactory) extends TPrivDao with M
 
 object PrivDao {
 
-  def apply(tableName: String = "RESOURCE_PRIV", mysqlFactory: MySQLFactory) =
+  def apply(tableName: String = "RESOURCE_PRIV", mysqlFactory: TMySQLFactory) =
     new PrivDao(tableName, mysqlFactory)
 
   object Operation extends Enumeration{
