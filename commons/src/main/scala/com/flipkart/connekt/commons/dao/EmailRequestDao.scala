@@ -12,10 +12,10 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.HTableFactory
+import com.flipkart.connekt.commons.factories.THTableFactory
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequestInfo}
 
-class EmailRequestDao(tableName: String, hTableFactory: HTableFactory) extends RequestDao(tableName: String, hTableFactory: HTableFactory) {
+class EmailRequestDao(tableName: String, hTableFactory: THTableFactory) extends RequestDao(tableName: String, hTableFactory: THTableFactory) {
   override protected def channelRequestInfoMap(channelRequestInfo: ChannelRequestInfo): Map[String, Array[Byte]] = ???
 
   override protected def getChannelRequestInfo(reqInfoProps: Map[String, Array[Byte]]): ChannelRequestInfo = ???

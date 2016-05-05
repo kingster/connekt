@@ -12,14 +12,13 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.AppUserConfiguration
 import com.flipkart.connekt.commons.entities.Channel.Channel
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
-class UserConfigurationDao(table: String, mysqlFactory: MySQLFactory) extends TUserConfiguration with MySQLDao {
+class UserConfigurationDao(table: String, mysqlFactory: TMySQLFactory) extends TUserConfiguration with MySQLDao {
 
   val mysqlHelper = mysqlFactory
 
@@ -76,7 +75,7 @@ class UserConfigurationDao(table: String, mysqlFactory: MySQLFactory) extends TU
 
 object UserConfigurationDao {
 
-  def apply(tableName: String = "USER_CONFIG", mysqlFactory: MySQLFactory) =
+  def apply(tableName: String = "USER_CONFIG", mysqlFactory: TMySQLFactory) =
     new UserConfigurationDao(tableName, mysqlFactory)
 
 }

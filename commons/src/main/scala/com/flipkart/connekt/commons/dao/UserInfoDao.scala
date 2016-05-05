@@ -12,13 +12,12 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
-class UserInfoDao(table: String, mysqlFactory: MySQLFactory) extends TUserInfo with MySQLDao {
+class UserInfoDao(table: String, mysqlFactory: TMySQLFactory) extends TUserInfo with MySQLDao {
 
   val mysqlHelper = mysqlFactory
 
@@ -76,7 +75,7 @@ class UserInfoDao(table: String, mysqlFactory: MySQLFactory) extends TUserInfo w
 
 object UserInfoDao {
 
-  def apply(tableName: String = "USER_INFO", mysqlFactory: MySQLFactory) =
+  def apply(tableName: String = "USER_INFO", mysqlFactory: TMySQLFactory) =
     new UserInfoDao(tableName, mysqlFactory)
 
 
