@@ -71,9 +71,7 @@ object WindowsOAuthService extends TWindowsOAuthService {
     val credential = KeyChainManager.getMicrosoftCredential(appName)
     credential match {
       case Some(cred) =>
-        if (Try {
-          rwl.writeLock().tryLock(5, TimeUnit.SECONDS)
-        }.getOrElse(false)) {
+        if (rwl.writeLock().tryLock()) {
           try {
             ConnektLogger(LogFile.CLIENTS).info(s"Windows token request for App $appName")
 
