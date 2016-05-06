@@ -159,7 +159,8 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InternalError, MobilePlatform.WINDOWS, appName, contextId, null, eventTS)
         })
       case Failure(e) =>
-        Some(PNCallbackEvent(requestId, deviceId, InternalStatus.ProviderSendError, MobilePlatform.WINDOWS, appName, "", e.getMessage, eventTS))
+        ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler failure: $requestId error: ${e.getMessage}", e)
+        Some(PNCallbackEvent(requestId, deviceId, InternalStatus.ProviderSendError, MobilePlatform.WINDOWS, appName, contextId, e.getMessage, eventTS))
     }
 
     maybePNCallbackEvent.toList.persist
