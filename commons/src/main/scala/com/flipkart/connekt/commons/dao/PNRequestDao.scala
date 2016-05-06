@@ -23,6 +23,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
 
     val m = scala.collection.mutable.Map[String, Array[Byte]]()
 
+    pnRequestInfo.topic.foreach(m += "topic" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.deviceIds).foreach(m += "deviceId" -> _.mkString(",").getUtf8Bytes)
     Option(pnRequestInfo.platform).foreach(m += "platform" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.appName).foreach(m += "appName" -> _.toString.getUtf8Bytes)
@@ -36,6 +37,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     platform = reqInfoProps.getS("platform"),
     appName = reqInfoProps.getS("appName"),
     deviceIds = reqInfoProps.getS("deviceId").split(",").toSet,
+    topic = Option(reqInfoProps.getS("topic")),
     ackRequired = reqInfoProps.getB("ackRequired"),
     delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
   )

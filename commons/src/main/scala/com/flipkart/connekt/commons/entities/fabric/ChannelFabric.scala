@@ -31,6 +31,8 @@ trait EmailFabric extends ChannelFabric {
 trait PNFabric extends ChannelFabric {
   def getData(id: String, context: ObjectNode): String
 
+  def getTopic(id: String, context: ObjectNode): String
+
   def renderData(id: String, context: ObjectNode): ChannelRequestData =
     PNRequestData(getData(id, context).getObj[ObjectNode])
 }
