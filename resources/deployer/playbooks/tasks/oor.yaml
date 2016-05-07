@@ -1,0 +1,7 @@
+- name: Take OOR
+  command: curl -m 10 -sL "http://localhost:28000/service/oor" -o /dev/null warn=no
+  register: curl_result
+  ignore_errors: yes #the service may not be up
+
+- name: Wait 10 Seconds
+  command: sleep 10
