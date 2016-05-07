@@ -20,7 +20,7 @@ import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNPlatformStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 
@@ -45,7 +45,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val tokens = devicesInfo.map(_.token)
       val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
 
-      val appDataWithId = PNStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
+      val appDataWithId = PNPlatformStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 

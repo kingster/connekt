@@ -79,6 +79,14 @@ class PNVelocityFabric(dataVtl: String, topicVtl: String = StringUtils.EMPTY) ex
   override def getData(id: String, context: ObjectNode): String = {
     fabricate(id, context, dataVtl, s"_$id _").get
   }
+}
+
+class PNPlatformVelocityFabric(dataVtl: String, topicVtl: String = StringUtils.EMPTY) extends VelocityFabric with PNPlatformFabric {
+  override def validateVtl(): Try[Boolean] = Try.apply(true)
+
+  override def getData(id: String, context: ObjectNode): String = {
+    fabricate(id, context, dataVtl, s"_$id _").get
+  }
 
   override def getTopic(id: String, context: ObjectNode): String = {
     fabricate(id, context, topicVtl, s"_$id _").get
