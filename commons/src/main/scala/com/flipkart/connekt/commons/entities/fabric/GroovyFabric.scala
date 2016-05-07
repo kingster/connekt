@@ -29,4 +29,6 @@ trait GroovyFabric extends EngineFabric {
 
 abstract class PNGroovyFabric extends GroovyFabric with PNFabric {}
 
+abstract class PNPlatformGroovyFabric extends GroovyFabric with PNPlatformFabric {}
+
 abstract class EmailGroovyFabric extends GroovyFabric with EmailFabric {}
