@@ -50,7 +50,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
                           val pnRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo].copy(appName = appName.toLowerCase)
 
-                          if (pnRequestInfo.deviceIds.nonEmpty) {
+                          if (pnRequestInfo.deviceIds != null && pnRequestInfo.deviceIds.nonEmpty) {
 
                             val groupedPlatformRequests = ListBuffer[ConnektRequest]()
 
