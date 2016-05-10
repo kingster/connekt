@@ -31,7 +31,7 @@ import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
-
+import com.flipkart.connekt.busybees.streams.flows.profilers.TimedFlowOps._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
 
@@ -96,7 +96,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val apnsDispatcherParallelism = ConnektConfig.getInt("topology.push.apnsDispatcher.parallelism").getOrElse(1024)
     val fmtIOS = b.add(new IOSChannelFormatter(fmtIOSParallelism)(ioDispatcher).flow)
     val apnsPrepare = b.add(new APNSDispatcherPrepare().flow)
-    val apnsDispatcher = b.add(new APNSDispatcher(apnsDispatcherParallelism)(ioDispatcher).flow)
+    val apnsDispatcher = b.add(new APNSDispatcher(apnsDispatcherParallelism)(ioDispatcher).flow.timedAs("apnsRTT"))
     val apnsResponseHandle = b.add(new APNSResponseHandler().flow)
 
     platformPartition.out(0) ~> fmtIOS ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle ~> merger.in(0)
@@ -108,7 +108,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
     val gcmHttpPrepare = b.add(new GCMDispatcherPrepare().flow)
 
-    val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow)
+    val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
 
     val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
 
@@ -128,7 +128,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      */
 
     val wnsHttpPrepare = b.add(new WNSDispatcherPrepare().flow)
-    val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow)
+    val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow.timedAs("wnsRTT"))
 
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
     val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request)/*.buffer(10, OverflowStrategy.backpressure)*/)

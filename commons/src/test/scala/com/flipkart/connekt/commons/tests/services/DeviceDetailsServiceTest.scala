@@ -74,4 +74,14 @@ class DeviceDetailsServiceTest extends CommonsBaseTest {
 //    DeviceDetailsService.get(appName, deviceId) shouldEqual None
 //  }
 
+  var jobId = ""
+  "DeviceDetails Service" should "cacheWarmUp" in {
+    val f = DeviceDetailsService.cacheWarmUp("RetailApp")
+    println("call compelted")
+  }
+
+  "DeviceDetails Service" should "get cached count" in {
+    println("Cached device Count: " + DeviceDetailsService.cacheWarmUpJobStatus(jobId))
+  }
+
 }
