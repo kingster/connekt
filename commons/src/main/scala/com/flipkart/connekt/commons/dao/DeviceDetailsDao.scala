@@ -137,9 +137,9 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
 
       val resultScanner = hTableInterface.getScanner(scan)
 
-      resultScanner.iterator().toIterator.map( rI => {
+      resultScanner.iterator().toIterator.flatMap( rI => {
         val resultMap: RowData = getRowData(rI, dataColFamilies)
-        extractDeviceDetails(resultMap).get
+        extractDeviceDetails(resultMap)
       })
 
     } catch {
