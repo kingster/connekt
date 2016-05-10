@@ -16,7 +16,7 @@ import java.io.IOException
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.dao.HbaseDao._
-import com.flipkart.connekt.commons.factories.{THTableFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, THTableFactory}
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequestInfo, ConnektRequest}
 import com.flipkart.connekt.commons.utils.StringUtils
 

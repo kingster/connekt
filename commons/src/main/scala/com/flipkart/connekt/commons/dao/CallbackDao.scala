@@ -13,8 +13,9 @@
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
+
 import com.flipkart.connekt.commons.dao.HbaseDao.ColumnData
-import com.flipkart.connekt.commons.factories.{THTableFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, THTableFactory}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
 import com.roundeights.hasher.Implicits._
 import org.apache.hadoop.hbase.client.BufferedMutator

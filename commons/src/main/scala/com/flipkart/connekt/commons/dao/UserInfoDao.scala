@@ -13,7 +13,7 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.entities.AppUser
-import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 

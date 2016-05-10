@@ -18,7 +18,7 @@ import java.security.SecureRandom
 
 import akka.http.scaladsl.model.HttpEntity
 import akka.stream.Materializer
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule

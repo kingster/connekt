@@ -13,7 +13,6 @@
 package com.flipkart.connekt.commons.services
 
 import java.util
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -25,8 +24,6 @@ import org.apache.http.NameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.message.BasicNameValuePair
-
-import scala.util.Try
 
 case class OAuthToken(token: String, expectedExpiry: Long)
 

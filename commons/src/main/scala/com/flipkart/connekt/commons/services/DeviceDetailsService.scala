@@ -20,13 +20,12 @@ import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedC
 import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.metrics.Timed
 import com.roundeights.hasher.Implicits._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
@@ -144,6 +143,7 @@ object DeviceDetailsService extends Instrumented {
   }
 
   private val warmupThreadCounter = new AtomicInteger(0)
+
   private val pool = new ThreadPoolExecutor(10, 10, 60, TimeUnit.SECONDS, new ArrayBlockingQueue[Runnable](25), new ThreadFactory {
     override def newThread(r: Runnable): Thread = {
       val thread = new Thread(r)
@@ -153,6 +153,7 @@ object DeviceDetailsService extends Instrumented {
   })
 
   sealed case class WarmUpStatus(currentCount: AtomicLong, status: Promise[Done])
+  sealed case class WarmUpResult(status: String, currentCount: Long, debug: Option[String])
 
   private val warmUpTasks = new ConcurrentHashMap[String, WarmUpStatus]
 
@@ -166,41 +167,48 @@ object DeviceDetailsService extends Instrumented {
           warmUpTasks.put(jobId, WarmUpStatus(new AtomicLong(0), Promise[Done]()))
 
           deviceIterator.grouped(5000)
-            .foreach(chunck => {
-              pool.execute(new Runnable {
-                override def run() = {
-                  try {
-                    DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](chunck.toList.map(d => (cacheKey(appName, d.deviceId), d)))
-                    warmUpTasks.get(jobId).currentCount.getAndAdd(chunck.size)
-                  }
-                  catch {
-                    case e: Exception =>
-                      ConnektLogger(LogFile.SERVICE).error(s"Cache warmup failure", e)
-                      warmUpTasks.get(jobId).status.failure(e)
-                  }
+            .foreach(chunk => {
+            pool.execute(new Runnable {
+              override def run() = {
+                try {
+                  DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](chunk.toList.map(d => (cacheKey(appName, d.deviceId), d)))
+                  warmUpTasks.get(jobId).currentCount.getAndAdd(chunk.size)
                 }
-              })
+                catch {
+                  case e: Exception =>
+                    ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up failure for app: $appName jobId: $jobId", e)
+                    warmUpTasks.get(jobId).status.failure(e)
+                }
+              }
             })
+          })
+
           warmUpTasks.get(jobId).status.success(Done)
+          ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up successful for app: $appName jobId: $jobId")
         } catch {
           case e: Exception =>
-            ConnektLogger(LogFile.SERVICE).error(s"Cache warmup failure", e)
+            ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up failure for app: $appName jobId: $jobId", e)
             warmUpTasks.get(jobId).status.failure(e)
         }
       }
     }
+
     new Thread(task).start()
     jobId
   }
 
-  def cacheWarmUpJobStatus(jobId: String): (String, Int) = {
-    val jobStatus = warmUpTasks.get(jobId).status
-    val status: String = jobStatus.future.value match {
-      case None => "RUNNING"
-      case Some(Success(t)) => "COMPLETED"
-      case Some(Failure(error)) => "FAILED"
+  def cacheWarmUpJobStatus(jobId: String): WarmUpResult = {
+
+    Option(warmUpTasks.get(jobId)).map(_.status.future.value) match {
+      case None => WarmUpResult("INVALID_JOB", -1, None)
+      case Some(status) =>
+        val currentCount = warmUpTasks.get(jobId).currentCount.longValue()
+        status match {
+          case None => WarmUpResult("RUNNING", currentCount, None)
+          case Some(Success(Done)) => WarmUpResult("COMPLETED", currentCount, None)
+          case Some(Failure(t)) => WarmUpResult("FAILED", currentCount, Option(t.getMessage))
+        }
     }
-    (status, warmUpTasks.get(jobId).currentCount.intValue())
   }
 
   def cacheJobStatus = warmUpTasks

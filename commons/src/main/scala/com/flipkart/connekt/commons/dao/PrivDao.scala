@@ -16,7 +16,7 @@ import com.flipkart.connekt.commons.dao.PrivDao.Operation
 import com.flipkart.connekt.commons.dao.PrivDao.Operation.Operation
 import com.flipkart.connekt.commons.entities.ResourcePriv
 import com.flipkart.connekt.commons.entities.UserType.UserType
-import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 import org.springframework.dao.{DataAccessException, IncorrectResultSizeDataAccessException}
 
 class PrivDao(table: String, mysqlFactory: TMySQLFactory) extends TPrivDao with MySQLDao {

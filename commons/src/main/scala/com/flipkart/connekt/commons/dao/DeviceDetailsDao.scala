@@ -13,9 +13,10 @@
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
+
 import com.flipkart.connekt.commons.dao.HbaseDao.RowData
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{THTableFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, THTableFactory}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
