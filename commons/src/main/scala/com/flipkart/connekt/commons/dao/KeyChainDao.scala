@@ -13,7 +13,7 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.entities.Key
-import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 import org.springframework.dao.DataAccessException
 
 class KeyChainDao(table: String, mysqlFactory: TMySQLFactory) extends TKeyChainDao with MySQLDao {

@@ -13,7 +13,7 @@
 package com.flipkart.connekt.commons.dao
 
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
-import com.flipkart.connekt.commons.factories.{TMySQLFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 
 class StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) extends TStencilDao with MySQLDao {
 

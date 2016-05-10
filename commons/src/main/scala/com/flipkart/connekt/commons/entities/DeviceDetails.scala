@@ -15,9 +15,10 @@ package com.flipkart.connekt.commons.entities
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
 import com.flipkart.connekt.commons.utils.DateTimeUtils
-import com.roundeights.hasher.Implicits._
-import scala.util.Try
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.roundeights.hasher.Implicits._
+
+import scala.util.Try
 
 
 case class DeviceDetails(deviceId: String,

@@ -18,8 +18,8 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
+
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success}
 
 class AdminRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -33,27 +33,17 @@ class AdminRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                 path("jobs") {
                   get {
                     val result = DeviceDetailsService.cacheJobStatus.asScala.map {
-                      case (appName, warmUpStatus) => appName ->
-                        Map(
-                          "currentCount" -> warmUpStatus.currentCount,
-                          "completed" -> {
-                            warmUpStatus.status.future.value match {
-                              case None => "RUNNING"
-                              case Some(Success(t)) => "COMPLETED"
-                              case Some(Failure(error)) => "FAILED: " + error.getMessage
-                            }
-                          }
-                        )
+                      case (jobId, _) => jobId -> DeviceDetailsService.cacheWarmUpJobStatus(jobId)
                     }
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Cache jobs status", Map("currentCount" -> result))))
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Registration cache warm-up jobs' status", result)))
                   }
                 } ~
                   path(Segment) {
                     (appName: String) =>
                       get {
-                        ConnektLogger(LogFile.SERVICE).info(s"REGISTRATION_CACHE_WARM_UP for $appName started by ${user.userId}")
+                        ConnektLogger(LogFile.SERVICE).info(s"Registration cache warm-up initiated for $appName by ${user.userId}")
                         val jobId = DeviceDetailsService.cacheWarmUp(appName)
-                        complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"CacheWarmUp started", Map("appName" -> appName, "jobId" -> jobId))))
+                        complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Registration cache warm-up started", Map("appName" -> appName, "jobId" -> jobId))))
                       }
                   }
               }
