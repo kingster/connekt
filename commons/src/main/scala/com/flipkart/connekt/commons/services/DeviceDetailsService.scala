@@ -29,7 +29,7 @@ import com.roundeights.hasher.Implicits._
 import scala.concurrent.Promise
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
-
+import scala.collection.JavaConverters._
 object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
@@ -155,40 +155,39 @@ object DeviceDetailsService extends Instrumented {
   sealed case class WarmUpStatus(currentCount: AtomicLong, status: Promise[Done])
   sealed case class WarmUpResult(status: String, currentCount: Long, debug: Option[String])
 
-  private val warmUpTasks = new ConcurrentHashMap[String, WarmUpStatus]
+  private val warmUpTasks = new ConcurrentHashMap[String, WarmUpStatus]().asScala
 
   def cacheWarmUp(appName: String): String = {
     val jobId = appName + "_" + StringUtils.generateRandomStr(5)
+    warmUpTasks.put(jobId, WarmUpStatus(new AtomicLong(0), Promise[Done]()))
 
     val task = new Runnable {
       override def run() = {
         try {
-          val deviceIterator = getAll(appName).get
-          warmUpTasks.put(jobId, WarmUpStatus(new AtomicLong(0), Promise[Done]()))
-
-          deviceIterator.grouped(5000)
+          getAll(appName).get
+            .grouped(5000)
             .foreach(chunk => {
             pool.execute(new Runnable {
               override def run() = {
                 try {
                   DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](chunk.toList.map(d => (cacheKey(appName, d.deviceId), d)))
-                  warmUpTasks.get(jobId).currentCount.getAndAdd(chunk.size)
+                  warmUpTasks(jobId).currentCount.getAndAdd(chunk.size)
                 }
                 catch {
                   case e: Exception =>
                     ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up failure for app: $appName jobId: $jobId", e)
-                    warmUpTasks.get(jobId).status.failure(e)
+                    warmUpTasks(jobId).status.failure(e)
                 }
               }
             })
           })
 
-          warmUpTasks.get(jobId).status.success(Done)
+          warmUpTasks(jobId).status.success(Done)
           ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up successful for app: $appName jobId: $jobId")
         } catch {
           case e: Exception =>
             ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up failure for app: $appName jobId: $jobId", e)
-            warmUpTasks.get(jobId).status.failure(e)
+            warmUpTasks(jobId).status.failure(e)
         }
       }
     }
@@ -198,12 +197,11 @@ object DeviceDetailsService extends Instrumented {
   }
 
   def cacheWarmUpJobStatus(jobId: String): WarmUpResult = {
-
-    Option(warmUpTasks.get(jobId)).map(_.status.future.value) match {
+    warmUpTasks.get(jobId) match {
       case None => WarmUpResult("INVALID_JOB", -1, None)
-      case Some(status) =>
-        val currentCount = warmUpTasks.get(jobId).currentCount.longValue()
-        status match {
+      case Some(entry) =>
+        val currentCount = entry.currentCount.longValue()
+        entry.status.future.value match {
           case None => WarmUpResult("RUNNING", currentCount, None)
           case Some(Success(Done)) => WarmUpResult("COMPLETED", currentCount, None)
           case Some(Failure(t)) => WarmUpResult("FAILED", currentCount, Option(t.getMessage))

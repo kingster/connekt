@@ -19,8 +19,6 @@ import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 
-import scala.collection.JavaConverters._
-
 class AdminRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val route =
@@ -32,7 +30,7 @@ class AdminRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
               pathPrefix("push" / "warmup") {
                 path("jobs") {
                   get {
-                    val result = DeviceDetailsService.cacheJobStatus.asScala.map {
+                    val result = DeviceDetailsService.cacheJobStatus.map {
                       case (jobId, _) => jobId -> DeviceDetailsService.cacheWarmUpJobStatus(jobId)
                     }
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Registration cache warm-up jobs' status", result)))
