@@ -75,7 +75,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.PROCESSORS).debug(s"routing ios message: ${ios.id}")
         0
-      case android if "android".equals(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
+      case android if List("android", "openweb").contains(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.PROCESSORS).debug(s"routing android message: ${android.id}")
         1
       case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
