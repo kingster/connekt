@@ -18,5 +18,6 @@ object MobilePlatform extends Enumeration {
   val ANDROID = Value("android")
   val IOS = Value("ios")
   val WINDOWS = Value("windows")
+  val OPENWEB = Value("openweb")
   val UNKNOWN = Value("unknown")
 }
