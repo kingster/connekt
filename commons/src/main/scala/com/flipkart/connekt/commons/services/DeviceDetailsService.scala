@@ -139,7 +139,7 @@ object DeviceDetailsService extends Instrumented {
   private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id.sha256.hash.hex
 
   def getAll(appName: String): Try[Iterator[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getAll Failed") {
-    dao.getAll(appName)
+    dao.getAll(appName.toLowerCase)
   }
 
   private val warmupThreadCounter = new AtomicInteger(0)
