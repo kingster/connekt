@@ -19,7 +19,7 @@ do
 	echo "*************** Host: $host ***************" >> $tempBolt
 	for (( j=0; j<${#bolt_parameters[@]}; j=j+1 ))
       do
-          command="bash $HOME/checkError.sh ${bolt_parameters[$j]} \"${pattern[0]}\" 30 $alert_to_suppress"
+          command="bash $HOME/checkError.sh ${bolt_parameters[$j]} \"${pattern[0]}\" 5 $alert_to_suppress"
           ssh -i /usr/share/fk-w3-azkaban/conf/azkaban_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no fk-azkaban-remote@"$host" "$command" 2>/dev/null >> $tempBolt > $tempCheckErrorCount
   done
   countError=`grep -c "${pattern[0]}" "$tempCheckErrorCount"`
