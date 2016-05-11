@@ -21,8 +21,8 @@ import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.dispatchers._
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
-import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, IOSChannelFormatter, WindowsChannelFormatter}
-import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{APNSResponseHandler, GCMResponseHandler, WNSResponseHandler}
+import com.flipkart.connekt.busybees.streams.flows.formaters._
+import com.flipkart.connekt.busybees.streams.flows.reponsehandlers._
 import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.entities.Channel
@@ -69,18 +69,21 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
 
     val render = b.add(new RenderFlow().flow)
-    val merger = b.add(Merge[PNCallbackEvent](3))
+    val merger = b.add(Merge[PNCallbackEvent](4))
 
-    val platformPartition = b.add(new Partition[ConnektRequest](3, {
+    val platformPartition = b.add(new Partition[ConnektRequest](4, {
       case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.PROCESSORS).debug(s"routing ios message: ${ios.id}")
         0
-      case android if List("android", "openweb").contains(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
+      case android if "android".equals(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.PROCESSORS).debug(s"routing android message: ${android.id}")
         1
       case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
         ConnektLogger(LogFile.PROCESSORS).debug(s"routing windows message: ${windows.id}")
         2
+      case openweb if "openweb".equals(openweb.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
+        ConnektLogger(LogFile.PROCESSORS).debug(s"routing openweb message: ${openweb.id}")
+        3
     }))
 
     render.out ~> platformPartition.in
@@ -142,7 +145,21 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
                                                 wnsPayloadMerge.preferred <~ wnsRetryMapper <~ wnsRHandler.out1
     wnsRHandler.out0 ~> merger.in(2)
 
-    merger.out
+
+    /**
+     * OpenWeb only chrome support without data for now
+     * TODO: Add data support
+     */
+
+    val fmtOpenWebParallelism = ConnektConfig.getInt("topology.push.openwebFormatter.parallelism").get
+    val fmtOpenWeb = b.add(new OpenWebChannelFormatter(fmtOpenWebParallelism)(ioDispatcher).flow)
+
+    //Duplicate handler's, need to rewrite cleanly with multiple browsers
+    val gcmHttpPrepare2 = b.add(new GCMDispatcherPrepare().flow)
+    val gcmPoolFlow2 = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
+    val gcmResponseHandle2 = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
+
+    platformPartition.out(3) ~> fmtOpenWeb ~> gcmHttpPrepare2 ~> gcmPoolFlow2 ~> gcmResponseHandle2 ~> merger.in(3)
 
     FlowShape(render.in, merger.out)
   })

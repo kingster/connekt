@@ -68,7 +68,7 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                     events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Received, MobilePlatform.ANDROID, appName, requestTracker.contextId, s.get("message_id").asText(), eventTS)
                   case f if f.has("error") && List("InvalidRegistration", "NotRegistered").contains(f.get("error").asText.trim) =>
                     DeviceDetailsService.get(appName, rDeviceId).foreach {
-                      _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
+                      _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString || device.osName == MobilePlatform.OPENWEB.toString) {
                         ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler device token invalid / not_found, deleting details of device: $rDeviceId.")
                         DeviceDetailsService.delete(appName, device.deviceId)
                       })
