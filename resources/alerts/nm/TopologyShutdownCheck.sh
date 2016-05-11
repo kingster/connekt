@@ -20,16 +20,19 @@ do
 	for (( j=0; j<${#bolt_parameters[@]}; j=j+1 ))
       do
           command="bash $HOME/checkError.sh ${bolt_parameters[$j]} \"${pattern[0]}\" 5 $alert_to_suppress"
-          ssh -i /usr/share/fk-w3-azkaban/conf/azkaban_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no fk-azkaban-remote@"$host" "$command" 2>/dev/null >> $tempBolt > $tempCheckErrorCount
+          ssh -i /usr/share/fk-w3-azkaban/conf/azkaban_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no fk-azkaban-remote@"$host" "$command" 2>/dev/null > $tempCheckErrorCount >> $tempBolt
   done
   countError=`grep -c "${pattern[0]}" "$tempCheckErrorCount"`
   if [ "$countError" -gt 0 ]
   then
-    echo "StageSupervision Handle Unknown Exception in host : $host"
+    echo "StageSupervision Handle Unknown Exception in host : $host : CRITICAL"
     status=false
   fi
   echo -e "**************************************************************\n" >> $tempBolt
 done
+
+error_log=`cat "$tempBolt"`
+echo "$error_log"
 
 if [ "$status" == "false" ]
 then
