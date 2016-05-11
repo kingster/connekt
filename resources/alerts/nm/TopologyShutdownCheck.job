@@ -1,0 +1,3 @@
+# TopologyShutdownCheck.job
+type=command
+command=bash TopologyShutdownCheck.sh

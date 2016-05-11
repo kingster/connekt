@@ -1,7 +1,7 @@
 #!/bin/bash
 bolt_host_num=(01 02 03 04 05 06 07 08 09)
 
-HOME='/var/log/azkabanScripts'
+HOME='/usr/share/fk-azkaban-remote-job/scripts'
 tempBolt='tempConnnektBoltLog'
 logPath='/var/log/flipkart/pf/fk-pf-connekt'
 bolt_parameters=("$logPath/busybees-processors.log" 'ERROR' 4000 6000 "$logPath/busybees-dao.log" 'ERROR' 4000 6000 "$logPath/busybees-service.log" 'ERROR' 4000 6000 "$logPath/busybees-default.log" 'ERROR' 4000 6000 "$logPath/busybees-factory.log" 'ERROR' 4000 6000 "$logPath/busybees-clients.log" 'ERROR' 4000 6000 "$logPath/catalina.log" 'ERROR' 4000 6000)
@@ -28,13 +28,11 @@ bolt_logs=`cat $tempBolt`
 
 bolt_uniq_errors=`echo "$bolt_logs"|grep -cv -e "LOG GROWTH" -e "Error check starting point" -e "Host:" -e "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*" -e "^$"`
 
-
 if [ "$bolt_uniq_errors" -ne 0 ]
 then
 	echo "$bolt_logs"
     status=false
 fi
-
 
 if [ "$status" == "true" ]
 then

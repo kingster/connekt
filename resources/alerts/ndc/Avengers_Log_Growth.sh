@@ -1,7 +1,7 @@
 #!/bin/bash
 avengers_hosts=(10.33.61.207 10.33.233.22 10.33.157.237 10.33.217.221 10.33.249.23 10.33.201.236 10.33.237.193 10.33.141.224 10.33.253.250 10.33.197.205)
 
-HOME='/var/log/azkabanScripts'
+HOME='/usr/share/fk-azkaban-remote-job/scripts'
 tempAvengers='tempConnektAvengersLog'
 logPath='/var/log/flipkart/pf/fk-pf-connekt'
 avengers_parameters=("$logPath/receptors-service.log" 'ERROR' 4000 6000 "$logPath/receptors-access.log" 'ERROR' 4000 6000 "$logPath/receptors-dao.log" 'ERROR' 4000 6000 "$logPath/receptors-processor.log" 'ERROR' 4000 6000 "$logPath/receptors-factory.log" 'ERROR' 4000 6000 "$logPath/catalina.log" 'ERROR' 4000 6000)
