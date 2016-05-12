@@ -66,7 +66,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
               ConnektLogger(LogFile.PROCESSORS).trace(s"WNSResponseHandler pulled upstream for: ${wnsResponse._2.requestId}")
             }
 
-            List(PNCallbackEvent(wnsResponse._2.requestId, wnsResponse._2.request.deviceId, "WNS_FAILED", MobilePlatform.WINDOWS, wnsResponse._2.request.appName, "TODO/CONTEXT", e.getMessage)).persist
+            PNCallbackEvent(wnsResponse._2.requestId, wnsResponse._2.request.deviceId, InternalStatus.WnsResponseHandleError, MobilePlatform.WINDOWS, wnsResponse._2.request.appName, wnsResponse._2.request.contextId, e.getMessage).persist
         }
       }
     })
@@ -112,7 +112,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler invalid/missing header send: $requestId response: $response")
             PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidHeader, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS)
           case 401 =>
-            ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, "NOT_AUTH")
+            ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.AuthError)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler the cloud service is not authorized to send a notification to this uri even though they are authenticated: $requestId response: $response")
             WindowsOAuthService.refreshToken(appName)
             null
