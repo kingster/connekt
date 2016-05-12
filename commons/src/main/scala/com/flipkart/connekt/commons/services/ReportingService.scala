@@ -61,7 +61,7 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
   }
 
   @Timed("pushStatsUpdate")
-  def recordPushStatsDelta(clientId: String, contextId: Option[String], stencilId: Option[String], platform: Option[String], appName: String, event: String, count: Long = 1): Unit = {
+  def recordPushStatsDelta(clientId: String, contextId: Option[String], stencilId: Option[String], platform: Option[String], appName: String, event: String, count: Int = 1): Unit = {
 
     val datePrefix = DateTimeUtils.calenderDate.print(Calendar.getInstance().getTimeInMillis) + "."
     updateTagCounters(clientId, count, datePrefix, contextId.orNull, Channel.PUSH, stencilId.orNull)(platform.orNull, appName, event)
