@@ -14,10 +14,12 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.entities.Channel.PUSH
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
+import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -74,9 +76,13 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 /* enqueue multiple requests into kafka */
                                 ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                                   case Success(id) =>
-                                    success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                    val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                    success += id -> deviceIds
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                   case Failure(t) =>
-                                    failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                    val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                    failure ++= deviceIds
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                                 }
                               }
                             }
@@ -127,9 +133,13 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                             groupedPlatformRequests.foreach { p =>
                               ServiceFactory.getPNMessageService.saveRequest(p, queueName, isCrucial = true) match {
                                 case Success(id) =>
-                                  success += id -> p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                  val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                  success += id -> deviceIds
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                 case Failure(t) =>
-                                  failure ++= p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                  val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
+                                  failure ++= deviceIds
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                               }
                             }
 

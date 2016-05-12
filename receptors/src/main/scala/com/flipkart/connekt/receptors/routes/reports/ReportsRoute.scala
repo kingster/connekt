@@ -18,9 +18,11 @@ import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.entities.Channel._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, PNCallbackEvent, Response}
+import com.flipkart.connekt.commons.utils.DateTimeUtils
 import com.flipkart.connekt.receptors.directives.ChannelSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
+
 
 class ReportsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -82,6 +84,20 @@ class ReportsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   }
                 }
             }
+            } ~ path("date" / Segment) {
+            (date: String) =>
+              get {
+                parameters('clientId, 'contextId ?, 'appName ?, 'stencilId ?) { (clientId, contextId, appName, stencilId) =>
+                  authorize(user, s"STATS_$clientId", "STATS") {
+                    require(DateTimeUtils.parseCalendarDate(date).isSuccess, "Only 'yyyyMMdd' (Calendar Date) format allowed in `date`")
+
+                    val result = ServiceFactory.getReportingService.getAllDetails(date, clientId, contextId, appName, stencilId, None)
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Statistics", result)))
+                  }
+                }
+
+              }
+
           }
         }
     }

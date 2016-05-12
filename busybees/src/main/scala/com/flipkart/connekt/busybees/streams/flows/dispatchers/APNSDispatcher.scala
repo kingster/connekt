@@ -100,7 +100,6 @@ class APNSDispatcher(parallelism: Int)(implicit ec: ExecutionContextExecutor) {
                 FastFuture.failed(nce)
           })(ec)
           .onComplete(responseTry ⇒ result.success(responseTry -> userContext))(ec)
-
         result.future
     }
   }

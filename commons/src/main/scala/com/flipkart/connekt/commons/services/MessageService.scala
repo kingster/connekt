@@ -40,6 +40,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
       messageDao.saveRequest(reqWithId.id, reqWithId)
       queueProducer.writeMessages(requestBucket, reqWithId.getJson)
       ConnektLogger(LogFile.SERVICE).info(s"Saved request ${reqWithId.id} to $requestBucket")
+
       Success(reqWithId.id)
     } catch {
       case e: Exception =>

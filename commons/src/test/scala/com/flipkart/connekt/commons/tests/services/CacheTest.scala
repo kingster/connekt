@@ -15,6 +15,7 @@ package com.flipkart.connekt.commons.tests.services
 import java.util.UUID
 
 import com.flipkart.connekt.commons.cache._
+import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 import scala.concurrent.duration.DurationInt
@@ -26,29 +27,29 @@ class CacheTest extends CommonsBaseTest {
   private val data = "dummy"
 
   "DistributedCache " should "add " in {
-    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCaches(DistributedCacheType.Default.toString,DaoFactory.getCouchbaseBucket(DistributedCacheType.Default.toString), CacheProperty(100, 24.hours))
     cache.put[String](keyName, data) shouldEqual true
   }
 
   "DistributedCache " should "write again " in {
-    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCaches(DistributedCacheType.Default.toString,DaoFactory.getCouchbaseBucket(DistributedCacheType.Default.toString), CacheProperty(100, 24.hours))
     cache.put[String](keyName, data) shouldEqual true
   }
 
 
   "DistributedCache " should "get " in {
-    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCaches(DistributedCacheType.Default.toString,DaoFactory.getCouchbaseBucket(DistributedCacheType.Default.toString), CacheProperty(100, 24.hours))
     cache.get[String](keyName).isDefined shouldEqual true
     cache.get[String](keyName).get shouldEqual data
   }
 
   "DistributedCache " should "bulk write " in {
-    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCaches(DistributedCacheType.Default.toString,DaoFactory.getCouchbaseBucket(DistributedCacheType.Default.toString), CacheProperty(100, 24.hours))
     cache.put[String](List(Tuple2("k1", data),Tuple2("k2", data),Tuple2("k3", data), Tuple2("k4", data))) shouldEqual true
   }
 
   "DistributedCache " should "get from bulk write " in {
-    val cache = new DistributedCaches(DistributedCacheType.Default, CacheProperty(100, 24.hours))
+    val cache = new DistributedCaches(DistributedCacheType.Default.toString,DaoFactory.getCouchbaseBucket(DistributedCacheType.Default.toString), CacheProperty(100, 24.hours))
     cache.get[String]("k2").isDefined shouldEqual true
     cache.get[String]("k2").get shouldEqual data
   }

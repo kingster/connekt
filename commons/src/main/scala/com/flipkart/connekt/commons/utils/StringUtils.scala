@@ -57,6 +57,10 @@ object StringUtils {
     def orEmpty = obj.getOrElse("")
   }
 
+  implicit class OptionHandyFunctions(val obj: Option[Any]) {
+    def getString = obj.map(_.toString).get
+  }
+
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
     def getString = new String(b, CharEncoding.UTF_8)
 

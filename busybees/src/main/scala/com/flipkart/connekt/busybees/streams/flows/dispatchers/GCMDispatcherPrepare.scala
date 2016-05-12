@@ -17,7 +17,8 @@ import java.net.URL
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.commons.iomodels.{MessageStatus, GCMPayloadEnvelope}
+import MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -37,7 +38,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
       val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))
       val httpRequest = HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
-      val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName, message.contextId)
+      val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName, message.contextId, message.meta)
 
       List((httpRequest, requestTrace))
     } catch {

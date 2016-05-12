@@ -55,6 +55,8 @@ object ReceptorsBoot extends BaseApp {
       val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
       DaoFactory.initCouchbaseCluster(couchbaseCf)
 
+      DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
+
       val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
       DaoFactory.initSpecterSocket(specterConfig)
 
@@ -66,6 +68,7 @@ object ReceptorsBoot extends BaseApp {
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
+      ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
 
       //Start up the receptors
       ReceptorsServer()

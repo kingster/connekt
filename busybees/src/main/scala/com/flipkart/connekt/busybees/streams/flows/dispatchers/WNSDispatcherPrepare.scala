@@ -12,11 +12,10 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
-import java.net.URI
-
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.commons.iomodels.{MessageStatus, WNSPayloadEnvelope}
+import MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
@@ -44,7 +43,7 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
 
       ConnektLogger(LogFile.PROCESSORS).trace(s"WNSDispatcher prepared http request: $request")
 
-      List((request, WNSRequestTracker(message.appName, message.messageId, message)))
+      List((request, WNSRequestTracker(message.appName, message.messageId, message, message.meta)))
 
     } catch {
       case e: Throwable =>
