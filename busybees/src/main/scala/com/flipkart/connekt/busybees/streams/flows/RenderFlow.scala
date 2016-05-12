@@ -12,11 +12,11 @@
  */
 package com.flipkart.connekt.busybees.streams.flows
 
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
-import com.flipkart.connekt.commons.iomodels.ConnektRequest
+import com.flipkart.connekt.commons.iomodels.{ConnektRequest, MessageStatus}
+import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
 

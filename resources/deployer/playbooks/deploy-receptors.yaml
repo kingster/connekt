@@ -5,6 +5,7 @@
   - name: Set Service
     set_fact:
       app: receptors
+  - include: tasks/oor.yaml
   - include: tasks/update-sources.yaml
   - include: tasks/install-connekt-deb.yaml
   - include: tasks/start-service.yaml

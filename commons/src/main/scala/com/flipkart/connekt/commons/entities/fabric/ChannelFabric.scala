@@ -34,3 +34,7 @@ trait PNFabric extends ChannelFabric {
   def renderData(id: String, context: ObjectNode): ChannelRequestData =
     PNRequestData(getData(id, context).getObj[ObjectNode])
 }
+
+trait PNPlatformFabric extends PNFabric {
+  def getTopic(id: String, context: ObjectNode): String
+}

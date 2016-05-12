@@ -12,17 +12,24 @@
  */
 package com.flipkart.connekt.commons.services
 
+import java.util.concurrent._
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+
+import akka.Done
 import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedCacheType}
 import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.metrics.Timed
 import com.roundeights.hasher.Implicits._
 
+import scala.concurrent.Promise
 import scala.reflect.runtime.universe._
-import scala.util.{Failure, Try}
-
+import scala.util.{Failure, Success, Try}
+import scala.collection.JavaConverters._
 object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
@@ -38,8 +45,8 @@ object DeviceDetailsService extends Instrumented {
 
   /**
    *
-   * @param deviceId
-   * @param deviceDetails
+   * @param deviceId: device Id
+   * @param deviceDetails: device Details
    */
   @Timed("update")
   def update(deviceId: String, deviceDetails: DeviceDetails): Try[Boolean] = {
@@ -65,8 +72,8 @@ object DeviceDetailsService extends Instrumented {
    * if device exists, delete corresponding cache entry
    * and mark device as INACTIVE in bigfoot
    *
-   * @param appName
-   * @param deviceId
+   * @param appName: app Name
+   * @param deviceId: device id
    * @return
    */
   @Timed("delete")
@@ -131,9 +138,81 @@ object DeviceDetailsService extends Instrumented {
 
   private def cacheKey(appName: String, id: String): String = appName.toLowerCase + "_" + id.sha256.hash.hex
 
-
+  /**
+   * getAll Devices for given AppName.
+   * @param appName (CaseSensitive)
+   * @return
+   */
   def getAll(appName: String): Try[Iterator[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getAll Failed") {
     dao.getAll(appName)
   }
 
+  private val warmupThreadCounter = new AtomicInteger(0)
+
+  private val pool = new ThreadPoolExecutor(10, 10, 60, TimeUnit.SECONDS, new ArrayBlockingQueue[Runnable](25), new ThreadFactory {
+    override def newThread(r: Runnable): Thread = {
+      val thread = new Thread(r)
+      thread.setName("WarmUp_Thread_" + warmupThreadCounter.incrementAndGet())
+      thread
+    }
+  })
+
+  sealed case class WarmUpStatus(currentCount: AtomicLong, status: Promise[Done])
+  sealed case class WarmUpResult(status: String, currentCount: Long, debug: Option[String])
+
+  private val warmUpTasks = new ConcurrentHashMap[String, WarmUpStatus]().asScala
+
+  def cacheWarmUp(appName: String): String = {
+    val jobId = appName + "_" + StringUtils.generateRandomStr(5)
+    warmUpTasks.put(jobId, WarmUpStatus(new AtomicLong(0), Promise[Done]()))
+
+    val task = new Runnable {
+      override def run() = {
+        try {
+          getAll(appName).get
+            .grouped(5000)
+            .foreach(chunk => {
+            pool.execute(new Runnable {
+              override def run() = {
+                try {
+                  DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](chunk.toList.map(d => (cacheKey(appName, d.deviceId), d)))
+                  warmUpTasks(jobId).currentCount.getAndAdd(chunk.size)
+                }
+                catch {
+                  case e: Exception =>
+                    ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up failure for app: $appName jobId: $jobId", e)
+                    warmUpTasks(jobId).status.failure(e)
+                }
+              }
+            })
+          })
+
+          warmUpTasks(jobId).status.success(Done)
+          ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up successful for app: $appName jobId: $jobId")
+        } catch {
+          case e: Exception =>
+            ConnektLogger(LogFile.SERVICE).error(s"Cache warm-up failure for app: $appName jobId: $jobId", e)
+            warmUpTasks(jobId).status.failure(e)
+        }
+      }
+    }
+
+    new Thread(task).start()
+    jobId
+  }
+
+  def cacheWarmUpJobStatus(jobId: String): WarmUpResult = {
+    warmUpTasks.get(jobId) match {
+      case None => WarmUpResult("INVALID_JOB", -1, None)
+      case Some(entry) =>
+        val currentCount = entry.currentCount.longValue()
+        entry.status.future.value match {
+          case None => WarmUpResult("RUNNING", currentCount, None)
+          case Some(Success(Done)) => WarmUpResult("COMPLETED", currentCount, None)
+          case Some(Failure(t)) => WarmUpResult("FAILED", currentCount, Option(t.getMessage))
+        }
+    }
+  }
+
+  def cacheJobStatus = warmUpTasks
 }

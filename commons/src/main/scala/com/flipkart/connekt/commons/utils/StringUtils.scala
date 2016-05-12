@@ -18,7 +18,7 @@ import java.security.SecureRandom
 
 import akka.http.scaladsl.model.HttpEntity
 import akka.stream.Materializer
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -55,6 +55,10 @@ object StringUtils {
 
   implicit class StringOptionHandyFunctions(val obj: Option[String]) {
     def orEmpty = obj.getOrElse("")
+  }
+
+  implicit class OptionHandyFunctions(val obj: Option[Any]) {
+    def getString = obj.map(_.toString).get
   }
 
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
@@ -104,8 +108,8 @@ object StringUtils {
   }
 
   implicit class HttpEntity2String(val entity: HttpEntity) {
-    def getString(implicit mat: Materializer, ec: scala.concurrent.ExecutionContext): String = {
-      Await.result(entity.dataBytes.runFold[ByteStringBuilder](ByteString.newBuilder)((u, bs) => u ++= bs).map(bb => new String(bb.result().toArray)), 60.seconds)
+    def getString(implicit mat: Materializer): String = {
+      Await.result(entity.dataBytes.runFold(ByteString.empty)(_ ++ _)(mat).map(bb => new String(bb.toArray))(mat.executionContext), 60.seconds)
     }
   }
 

@@ -12,11 +12,11 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.factories.THTableFactory
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo, PNCallbackEvent, PNRequestInfo}
 
-class PNCallbackDao(tableName: String, hTableFactory: HTableFactory) extends CallbackDao(tableName: String, hTableFactory: HTableFactory) {
+class PNCallbackDao(tableName: String, hTableFactory: THTableFactory) extends CallbackDao(tableName: String, hTableFactory: THTableFactory) {
 
   override def channelEventPropsMap(channelCallbackEvent: CallbackEvent): Map[String, Array[Byte]] = {
     val pnCallbackEvent = channelCallbackEvent.asInstanceOf[PNCallbackEvent]
@@ -58,6 +58,6 @@ class PNCallbackDao(tableName: String, hTableFactory: HTableFactory) extends Cal
 }
 
 object PNCallbackDao {
-  def apply(tableName: String, hTableFactory: HTableFactory) =
-    new PNCallbackDao(tableName: String, hTableFactory: HTableFactory)
+  def apply(tableName: String, hTableFactory: THTableFactory) =
+    new PNCallbackDao(tableName: String, hTableFactory: THTableFactory)
 }

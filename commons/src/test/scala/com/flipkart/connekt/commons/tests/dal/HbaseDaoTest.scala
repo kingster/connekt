@@ -16,7 +16,7 @@ import java.util.{Properties, UUID}
 
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.dao.HbaseDao
-import com.flipkart.connekt.commons.factories.HTableFactoryWrapper
+import com.flipkart.connekt.commons.factories.HTableFactory
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 import com.typesafe.config.ConfigFactory
@@ -43,7 +43,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
 
     val hConfig = ConfigFactory.parseProperties(hConfProps)
 
-    new HTableFactoryWrapper(hConfig, new ConnectionProvider)
+    new HTableFactory(hConfig, new ConnectionProvider)
   }
 
   "A row put operation for single columnFamily" should "throw no IOException" in {

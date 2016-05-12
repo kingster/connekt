@@ -14,10 +14,9 @@ package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
 
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao.RowData
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, THTableFactory}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -28,8 +27,9 @@ import org.apache.hadoop.hbase.filter.{BinaryComparator, CompareFilter, FilterLi
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
-class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends Dao with HbaseDao with Instrumented {
+class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends Dao with HbaseDao with Instrumented {
   val hTableConnFactory = hTableFactory
 
   val hTableName = tableName
@@ -56,7 +56,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     val hTokenIndexTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
 
     try {
-      val deviceRegInfoCfProps = Map[String, Array[Byte]](
+      val deviceRegInfoCfProps = mutable.Map[String, Array[Byte]](
         "deviceId" -> deviceDetails.deviceId.getUtf8Bytes,
         "userId" -> deviceDetails.userId.getUtf8BytesNullWrapped,
         "token" -> deviceDetails.token.getUtf8Bytes,
@@ -66,13 +66,16 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
         "appVersion" -> deviceDetails.appVersion.getUtf8Bytes
       )
 
+      if(deviceDetails.keys != null && deviceDetails.keys.nonEmpty)
+        deviceRegInfoCfProps += "keys" -> deviceDetails.keys.getJson.getUtf8Bytes
+
       val deviceMetaCfProps = Map[String, Array[Byte]](
         "brand" -> deviceDetails.brand.getUtf8BytesNullWrapped,
         "model" -> deviceDetails.model.getUtf8BytesNullWrapped,
         "state" -> deviceDetails.state.getUtf8BytesNullWrapped
       )
 
-      val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps, "a" -> deviceMetaCfProps)
+      val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps.toMap, "a" -> deviceMetaCfProps)
       addRow(getRowKey(deviceDetails.appName, deviceDetails.deviceId), rawData)
 
       // Add secondary indexes.
@@ -139,9 +142,9 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 
       val resultScanner = hTableInterface.getScanner(scan)
 
-      resultScanner.iterator().toIterator.map( rI => {
+      resultScanner.iterator().toIterator.flatMap( rI => {
         val resultMap: RowData = getRowData(rI, dataColFamilies)
-        extractDeviceDetails(resultMap).get
+        extractDeviceDetails(resultMap)
       })
 
     } catch {
@@ -240,7 +243,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
     val allProps = devRegProps.flatMap[Map[String, Array[Byte]]](r => devMetaProps.map[Map[String, Array[Byte]]](m => m ++ r))
     allProps.map(fields => {
 
-      def get(key: String) = fields.get(key).map(v => v.getString).orNull
+      def getOption(key:String)=  fields.get(key).map(v => v.getString)
+      def get(key: String) = getOption(key).orNull
       def getNullableString(key: String) = fields.get(key).map(v => v.getStringNullable).orNull
 
       DeviceDetails(
@@ -253,7 +257,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
         appVersion = get("appVersion"),
         brand = getNullableString("brand"),
         model = getNullableString("model"),
-        state = getNullableString("state")
+        state = getNullableString("state"),
+        keys = getOption("keys").map(_.getObj[Map[String,String]]).getOrElse(Map.empty[String,String])
       )
     })
   }
@@ -262,5 +267,5 @@ class DeviceDetailsDao(tableName: String, hTableFactory: HTableFactory) extends 
 }
 
 object DeviceDetailsDao {
-  def apply(tableName: String, hTableFactory: HTableFactory) = new DeviceDetailsDao(tableName, hTableFactory)
+  def apply(tableName: String, hTableFactory: THTableFactory) = new DeviceDetailsDao(tableName, hTableFactory)
 }

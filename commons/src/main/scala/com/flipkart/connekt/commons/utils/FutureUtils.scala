@@ -14,7 +14,7 @@ package com.flipkart.connekt.commons.utils
 
 import io.netty.util.concurrent.FutureListener
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 object FutureUtils {
 
@@ -32,5 +32,17 @@ object FutureUtils {
       result.future
     }
   }
+
+  /**
+   * [[ExecutionContext]] that will execute actions in calling thread (and by that making them blocking).
+   */
+  class CallingThreadExecutionContext extends ExecutionContext {
+
+    override def execute(runnable: Runnable): Unit = runnable.run()
+
+    override def reportFailure(t: Throwable): Unit = throw t
+  }
+
+  val callingThreadExecutionContext = new CallingThreadExecutionContext()
 
 }

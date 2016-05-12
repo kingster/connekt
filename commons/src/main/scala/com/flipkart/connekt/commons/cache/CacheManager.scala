@@ -47,6 +47,7 @@ abstract class Caches {
   def exists(key: String): Boolean
 
   def flush(): Unit
+
 }
 
 case class CacheProperty(size: Long, ttl: Duration)

@@ -12,4 +12,4 @@
  */
 package com.flipkart.connekt.busybees.models
 
-case class APNSRequestTracker(messageId: String, deviceId: String, appName: String, contextId:String ) extends RequestTracker
+case class APNSRequestTracker(messageId: String, deviceId: String, appName: String, contextId:String, meta: Map[String, Any]) extends RequestTracker

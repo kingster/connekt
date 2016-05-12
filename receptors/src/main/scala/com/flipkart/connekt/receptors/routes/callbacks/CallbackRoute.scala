@@ -33,26 +33,30 @@ class CallbackRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
           pathPrefix("push") {
             path("callback" / MPlatformSegment / Segment / Segment) {
               (appPlatform: MobilePlatform, appName: String, deviceId: String) =>
-                verifySecureCode(appName.toLowerCase, user.apiKey, deviceId) {
-                  authorize(user, "ADD_EVENTS", s"ADD_EVENTS_$appName") {
-                    post {
-                      entity(as[PNCallbackEvent]) { e =>
-                        val event = e.copy(platform = appPlatform.toString, appName = appName, deviceId = deviceId, messageId = Option(e.messageId).orEmpty)
-                        event.validate()
-                        event.persist //make this available for other api's
-                        ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
-                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
+                meteredResource(s"saveEvents.$appPlatform.$appName") {
+                  verifySecureCode(appName.toLowerCase, user.apiKey, deviceId) {
+                    authorize(user, "ADD_EVENTS", s"ADD_EVENTS_$appName") {
+                      post {
+                        entity(as[PNCallbackEvent]) { e =>
+                          val event = e.copy(platform = appPlatform.toString, appName = appName, deviceId = deviceId, messageId = Option(e.messageId).orEmpty)
+                          event.validate()
+                          event.persist //make this available for other api's
+                          ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
+                          complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
+                        }
                       }
                     }
                   }
                 }
             } ~ path("callback" / MPlatformSegment / Segment / Segment / Segment) {
               (appPlatform: MobilePlatform, appName: String, contactId: String, messageId: String) =>
-                authorize(user, s"DELETE_EVENTS_$appName") {
-                  delete {
-                    ConnektLogger(LogFile.SERVICE).debug(s"Received event delete request for: ${messageId.toString}")
-                    val deletedEvents = ServiceFactory.getCallbackService.deleteCallBackEvent(messageId, s"${appName.toLowerCase}$contactId", Channel.PUSH)
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"PN callback events deleted successfully for requestId: $messageId.", deletedEvents)))
+                meteredResource(s"deleteEvents.$appPlatform.$appName") {
+                  authorize(user, s"DELETE_EVENTS_$appName") {
+                    delete {
+                      ConnektLogger(LogFile.SERVICE).debug(s"Received event delete request for: ${messageId.toString}")
+                      val deletedEvents = ServiceFactory.getCallbackService.deleteCallBackEvent(messageId, s"${appName.toLowerCase}$contactId", Channel.PUSH)
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"PN callback events deleted successfully for requestId: $messageId.", deletedEvents)))
+                    }
                   }
                 }
             }

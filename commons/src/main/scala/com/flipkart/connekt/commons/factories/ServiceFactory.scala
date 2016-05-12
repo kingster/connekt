@@ -37,6 +37,12 @@ object ServiceFactory {
     serviceCache += ServiceType.KEY_CHAIN -> new KeyChainService(dao)
   }
 
+  def initStatsReportingService(dao : StatsReportingDao): Unit ={
+    val instance = new ReportingService(dao)
+    instance.init()
+    serviceCache += ServiceType.STATS_REPORTING -> instance
+  }
+
   def getPNMessageService = serviceCache(ServiceType.PN_MESSAGE).asInstanceOf[TMessageService]
 
   def getCallbackService = serviceCache(ServiceType.CALLBACK).asInstanceOf[TCallbackService]
@@ -47,8 +53,10 @@ object ServiceFactory {
 
   def getKeyChainService = serviceCache(ServiceType.KEY_CHAIN).asInstanceOf[TStorageService]
 
+  def getReportingService = serviceCache(ServiceType.STATS_REPORTING).asInstanceOf[ReportingService]
+
 }
 
 object ServiceType extends Enumeration {
-  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN = Value
+  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING = Value
 }

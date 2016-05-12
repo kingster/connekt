@@ -15,9 +15,10 @@ package com.flipkart.connekt.commons.entities
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
 import com.flipkart.connekt.commons.utils.DateTimeUtils
-import com.roundeights.hasher.Implicits._
-import scala.util.Try
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.roundeights.hasher.Implicits._
+
+import scala.util.Try
 
 
 case class DeviceDetails(deviceId: String,
@@ -30,6 +31,7 @@ case class DeviceDetails(deviceId: String,
                          brand: String,
                          model: String,
                          state: String = "",
+                         @JsonProperty(required = false) keys: Map[String,String] = Map.empty,
                          active: Boolean = true) extends BigfootSupport[fkint.mp.connekt.DeviceDetails] {
 
   def toBigfootFormat: fkint.mp.connekt.DeviceDetails = {

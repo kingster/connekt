@@ -16,12 +16,12 @@ import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.unmarshalling.PredefinedFromEntityUnmarshallers
-import com.flipkart.connekt.receptors.directives.{AsyncDirectives, AuthenticationDirectives, AuthorizationDirectives, HeaderDirectives}
+import com.flipkart.connekt.receptors.directives._
 import com.flipkart.connekt.receptors.wire.JsonToEntityMarshaller
 
 import scala.collection.immutable.Seq
 
-abstract class BaseHandler extends Directives with HeaderDirectives with AuthenticationDirectives with AuthorizationDirectives with AsyncDirectives with PredefinedFromEntityUnmarshallers with PredefinedToEntityMarshallers with JsonToEntityMarshaller {
+abstract class BaseHandler extends Directives with HeaderDirectives with AuthenticationDirectives with AuthorizationDirectives with MetricsDirectives with AsyncDirectives with PredefinedFromEntityUnmarshallers with PredefinedToEntityMarshallers with JsonToEntityMarshaller {
 
   /**
    *

@@ -36,11 +36,12 @@ object BusyBeesBoot extends BaseApp {
   implicit val system = ActorSystem("busyBees-system")
 
   val settings = ActorMaterializerSettings(system)
-    .withDispatcher("akka.actor.default-dispatcher")
     .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
     .withSupervisionStrategy(StageSupervision.decider)
 
-  lazy implicit val mat = ActorMaterializer(settings)
+  lazy implicit val mat = ActorMaterializer(settings.withDispatcher("akka.actor.default-dispatcher"))
+
+  lazy val ioMat = ActorMaterializer(settings.withDispatcher("akka.actor.io-dispatcher"))
 
   var pushTopology: PushTopology = _
 
@@ -69,6 +70,8 @@ object BusyBeesBoot extends BaseApp {
       val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
       DaoFactory.initCouchbaseCluster(couchbaseCf)
 
+      DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
+
       val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
       DaoFactory.initSpecterSocket(specterConfig)
 
@@ -81,12 +84,12 @@ object BusyBeesBoot extends BaseApp {
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
+      ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
 
       //TODO : Fix this, this is for bootstraping hbase connection.
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
 
       HttpDispatcher.init(ConnektConfig.getConfig("react").get)
-
       pushTopology = new PushTopology(kafkaHelper)
       pushTopology.run
     }

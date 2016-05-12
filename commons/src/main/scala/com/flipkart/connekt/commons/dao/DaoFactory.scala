@@ -13,9 +13,8 @@
 package com.flipkart.connekt.commons.dao
 
 import com.couchbase.client.java.Bucket
-import com.flipkart.connekt.commons.behaviors.{HTableFactory, MySQLFactory}
 import com.flipkart.connekt.commons.connections.TConnectionProvider
-import com.flipkart.connekt.commons.factories.{HTableFactoryWrapper, MySQLFactoryWrapper}
+import com.flipkart.connekt.commons.factories.{HTableFactory, MySQLFactory, THTableFactory, TMySQLFactory}
 import com.flipkart.phantom.client.sockets.{PhantomClientSocket, PhantomSocketFactory}
 import com.typesafe.config.Config
 
@@ -24,9 +23,9 @@ object DaoFactory {
   var connectionProvider: TConnectionProvider = null
 
   var daoMap = Map[DaoType.Value, Dao]()
-  var mysqlFactoryWrapper: MySQLFactory = null
+  var mysqlFactoryWrapper: TMySQLFactory = null
 
-  var hTableFactory: HTableFactory = null
+  var hTableFactory: THTableFactory = null
 
   var couchBaseCluster: com.couchbase.client.java.Cluster = null
   var couchbaseBuckets: Map[String, Bucket] = null
@@ -38,7 +37,7 @@ object DaoFactory {
   }
 
   def initHTableDaoFactory(hConnectionConfig: Config) = {
-    hTableFactory = new HTableFactoryWrapper(hConnectionConfig, connectionProvider)
+    hTableFactory = new HTableFactory(hConnectionConfig, connectionProvider)
 
     daoMap += DaoType.DEVICE_DETAILS -> DeviceDetailsDao("connekt-registry", hTableFactory)
     daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao(tableName = "fk-connekt-pn-info", hTableFactory = hTableFactory)
@@ -52,7 +51,7 @@ object DaoFactory {
 
   def initMysqlTableDaoFactory(config: Config) = {
 
-    mysqlFactoryWrapper = new MySQLFactoryWrapper(
+    mysqlFactoryWrapper = new MySQLFactory(
       host = config.getString("host"),
       database = config.getString("database"),
       username = config.getString("username"),
@@ -73,7 +72,7 @@ object DaoFactory {
     couchbaseBuckets = Map()
   }
 
-  def getCouchbaseBucket(name: String = "Default"): Bucket = {
+  def getCouchbaseBucket(name: String): Bucket = {
     couchbaseBuckets.get(name) match {
       case Some(x) => x
       case None =>
@@ -85,6 +84,10 @@ object DaoFactory {
 
   def shutdownCouchbaseCluster() {
     Option(couchBaseCluster).foreach(_.disconnect())
+  }
+
+  def initReportingDao(bucket : Bucket): Unit ={
+    daoMap += DaoType.STATS_REPORTING -> StatsReportingDao(bucket)
   }
 
   def initSpecterSocket(specterConfig: Config): PhantomClientSocket = {
@@ -110,7 +113,8 @@ object DaoFactory {
   def getUserConfigurationDao: TUserConfiguration = daoMap(DaoType.USER_CONFIG).asInstanceOf[UserConfigurationDao]
 
   def getStencilDao: TStencilDao = daoMap(DaoType.STENCIL).asInstanceOf[StencilDao]
-
+  
+  def getStatsReportingDao: StatsReportingDao = daoMap(DaoType.STATS_REPORTING).asInstanceOf[StatsReportingDao]
 }
 
 object DaoType extends Enumeration {
@@ -123,5 +127,6 @@ object DaoType extends Enumeration {
   USER_INFO,
   USER_CONFIG,
   STENCIL,
+  STATS_REPORTING,
   KEY_CHAIN = Value
 }

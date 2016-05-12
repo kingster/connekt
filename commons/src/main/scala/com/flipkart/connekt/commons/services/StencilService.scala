@@ -137,23 +137,32 @@ object StencilService extends Instrumented with SyncDelegate  {
   }
 }
 
-object PNStencilService extends Instrumented {
+object PNPlatformStencilService extends Instrumented {
 
   private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
-
-  @Timed("getPNData")
-  def getPNData(platformStencil: Stencil, req: ObjectNode): String = {
-    LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric with PNFabric](cacheKey(platformStencil.id, Option(platformStencil.version.toString))).orElse {
+  @Timed("getFabric")
+  private def getFabric( platformStencil: Stencil) = {
+    LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric with PNPlatformFabric](cacheKey(platformStencil.id, Option(platformStencil.version.toString))).orElse {
       val fabric = platformStencil.engine match {
         case StencilEngine.GROOVY =>
-          FabricMaker.create[PNGroovyFabric](platformStencil.id, platformStencil.engineFabric)
+          FabricMaker.create[PNPlatformGroovyFabric](platformStencil.id, platformStencil.engineFabric)
         case StencilEngine.VELOCITY =>
-          FabricMaker.createVtlFabric(platformStencil.id, platformStencil.engineFabric).asInstanceOf[PNVelocityFabric]
+          FabricMaker.createVtlFabric(platformStencil.id, platformStencil.engineFabric).asInstanceOf[PNPlatformVelocityFabric]
       }
 
       LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(platformStencil.id, Option(platformStencil.version.toString)), fabric)
       Option(fabric)
-    }.map(_.getData(platformStencil.id, req)).orNull
+    }
+  }
+
+  @Timed("getPNData")
+  def getPNData(platformStencil: Stencil, req: ObjectNode): String = {
+    getFabric(platformStencil).map(_.getData(platformStencil.id, req)).orNull
+  }
+
+  @Timed("getPNTopic")
+  def getPNTopic(platformStencil: Stencil, req: ObjectNode): String = {
+    getFabric(platformStencil).map(_.getTopic(platformStencil.id, req)).orNull
   }
 }

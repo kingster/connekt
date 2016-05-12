@@ -12,11 +12,10 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
-import java.net.URI
-
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.commons.iomodels.{MessageStatus, WNSPayloadEnvelope}
+import MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
@@ -34,7 +33,7 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
       ConnektLogger(LogFile.PROCESSORS).debug(s"WNSDispatcher received message: ${message.messageId}")
       ConnektLogger(LogFile.PROCESSORS).trace(s"WNSDispatcher received message: $message")
 
-      val bearerToken = WindowsOAuthService.getToken(message.appName.trim.toLowerCase).map(_.token).getOrElse("INVALID")
+      val bearerToken = WindowsOAuthService.getToken(message.appName.trim.toLowerCase).map(_.token).getOrElse("NO_TOKEN_AVAILABLE")
       val headers = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "Bearer " + bearerToken),
         RawHeader("X-WNS-Type", message.wnsPayload.getType), RawHeader("X-WNS-TTL", message.time_to_live.toString)
       )
@@ -42,7 +41,9 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
       val payload = HttpEntity(message.wnsPayload.getContentType, message.wnsPayload.getBody)
       val request = HttpRequest(HttpMethods.POST, message.token, headers, payload)
 
-      List((request, WNSRequestTracker(message.appName, message.messageId, message)))
+      ConnektLogger(LogFile.PROCESSORS).trace(s"WNSDispatcher prepared http request: $request")
+
+      List((request, WNSRequestTracker(message.appName, message.messageId, message, message.meta)))
 
     } catch {
       case e: Throwable =>

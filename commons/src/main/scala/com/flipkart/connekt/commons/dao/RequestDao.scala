@@ -15,13 +15,12 @@ package com.flipkart.connekt.commons.dao
 import java.io.IOException
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, THTableFactory}
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequestInfo, ConnektRequest}
 import com.flipkart.connekt.commons.utils.StringUtils
 
-abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) extends TRequestDao with HbaseDao {
+abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) extends TRequestDao with HbaseDao {
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
 
@@ -90,8 +89,8 @@ abstract class RequestDao(tableName: String, hTableFactory: HTableFactory) exten
           channel = fields.getS("channel"),
           sla = fields.getS("sla"),
           templateId = Option(fields.getS("templateId")),
-          scheduleTs = Option(fields.getL("scheduleTs").asInstanceOf[Long]),
-          expiryTs = Option(fields.getL("expiryTs").asInstanceOf[Long]),
+          scheduleTs = Option(fields.getL("scheduleTs")).map(_.asInstanceOf[Long]),
+          expiryTs = Option(fields.getL("expiryTs")).map(_.asInstanceOf[Long]),
           channelInfo = channelReqInfo,
           channelData = channelReqData,
           channelDataModel = Option(channelReqModel).getOrElse(StringUtils.getObjectNode),

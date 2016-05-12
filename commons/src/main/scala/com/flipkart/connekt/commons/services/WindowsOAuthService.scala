@@ -61,7 +61,7 @@ object WindowsOAuthService extends TWindowsOAuthService {
     if (requestTime > tokenExpiryTime)
       requestNewToken(appName, requestTime)
     else
-      ConnektLogger(LogFile.CLIENTS).debug(s"Windows token request for App $appName dropped since requestTime [$requestTime] < tokenExpiryTime [$tokenExpiryTime]")
+      ConnektLogger(LogFile.CLIENTS).info(s"Windows token request for App $appName dropped since requestTime [$requestTime] < tokenExpiryTime [$tokenExpiryTime]")
   }
 
   private def requestNewToken(appName: String, requestTime: Long): Unit = {
@@ -70,31 +70,33 @@ object WindowsOAuthService extends TWindowsOAuthService {
       case Some(cred) =>
         if (rwl.writeLock().tryLock()) {
           try {
-            ConnektLogger(LogFile.CLIENTS).debug(s"Windows token request for App $appName")
+            ConnektLogger(LogFile.CLIENTS).info(s"Windows token request for App $appName")
 
             val request = new HttpPost(tokenRefreshURI)
             val params = new util.ArrayList[NameValuePair]()
             params.add(new BasicNameValuePair("grant_type", "client_credentials"))
             params.add(new BasicNameValuePair("scope", "notify.windows.com"))
             params.add(new BasicNameValuePair("client_id", cred.clientId))
-            params.add(new BasicNameValuePair("client_secret",cred.clientSecret))
+            params.add(new BasicNameValuePair("client_secret", cred.clientSecret))
             request.setEntity(new UrlEncodedFormEntity(params, "UTF-8"))
 
             val responseString = client.doExecute(request)
             val response = responseString.get.getObj[ObjectNode]
 
-            ConnektLogger(LogFile.CLIENTS).debug(s"Windows token request response for App $appName Response $response")
+            ConnektLogger(LogFile.CLIENTS).info(s"Windows token request response for App $appName Response $response")
 
             LocalCacheManager.getCache[OAuthToken](LocalCacheType.WnsAccessToken).put(appName.trim.toLowerCase, OAuthToken(response.get("access_token").asText(), response.get("expires_in").asLong * 1000 + requestTime))
 
-            ConnektLogger(LogFile.CLIENTS).debug(s"Windows token updated for App $appName")
+            ConnektLogger(LogFile.CLIENTS).info(s"Windows token updated for App $appName")
 
           } finally {
             rwl.writeLock().unlock()
           }
+        } else {
+          ConnektLogger(LogFile.SERVICE).warn(s"Cannot requestNewToken writeLock.tryLock failed for appName $appName")
         }
       case None =>
-        ConnektLogger(LogFile.SERVICE).info(s"Cannot Invalid appName $appName")
+        ConnektLogger(LogFile.SERVICE).error(s"Cannot requestNewToken Invalid appName $appName")
     }
   }
 }

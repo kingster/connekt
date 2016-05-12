@@ -10,8 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.busybees.models
-
+package com.flipkart.connekt.commons.iomodels
 
 object MessageStatus {
 
@@ -59,5 +58,7 @@ object MessageStatus {
     val TTLExpired = Value("connekt_ttl_expired")
     val StageError = Value("connekt_stage_error")
     val ProviderSendError = Value("connekt_provider_send_error")
+    val Received = Value("connekt_received")
+    val Rejected = Value("connekt_rejected")
   }
 }

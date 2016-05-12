@@ -26,20 +26,21 @@ class LdapAuthRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
     pathPrefix("v1") {
       path("auth" / "ldap") {
         post {
-          entity(as[SimpleCredential]) {
-            user =>
-              AuthenticationService.authenticateLdap(user.username, user.password) match {
-                case true =>
-                  TokenService.set(user.username).get match {
-                    case Some(tokenId) =>
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Logged in successfully. Please note your tokenId.", Map("tokenId" -> tokenId))))
-                    case None =>
-                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Unable to generate token", null)))
-                  }
-                case false =>
-                  complete(GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Unauthorised, Invalid Username/Password", null)))
-              }
-
+          meteredResource("ldapAuthenticate") {
+            entity(as[SimpleCredential]) {
+              user =>
+                AuthenticationService.authenticateLdap(user.username, user.password) match {
+                  case true =>
+                    TokenService.set(user.username).get match {
+                      case Some(tokenId) =>
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Logged in successfully. Please note your tokenId.", Map("tokenId" -> tokenId))))
+                      case None =>
+                        complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Unable to generate token", null)))
+                    }
+                  case false =>
+                    complete(GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Unauthorised, Invalid Username/Password", null)))
+                }
+            }
           }
         }
       }

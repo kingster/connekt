@@ -18,6 +18,7 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import rx.lang.scala.Observable
+import com.couchbase.client.java.Bucket
 
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
@@ -28,7 +29,7 @@ object DistributedCacheManager extends CacheManager {
   private var cacheTTLMap: Map[DistributedCacheType.Value, CacheProperty] = Map[DistributedCacheType.Value, CacheProperty]()
   cacheTTLMap += DistributedCacheType.AccessTokens -> CacheProperty(5000, 6.hours)
   cacheTTLMap += DistributedCacheType.Default -> CacheProperty(100, 24.hours)
-  cacheTTLMap += DistributedCacheType.DeviceDetails -> CacheProperty(100, 24.hours)
+  cacheTTLMap += DistributedCacheType.DeviceDetails -> CacheProperty(100, 0.seconds)
 
   private var cacheStorage = concurrent.TrieMap[DistributedCacheType.Value, Caches]()
 
@@ -42,7 +43,8 @@ object DistributedCacheManager extends CacheManager {
     cacheStorage.get(cacheName) match {
       case Some(x) => x.asInstanceOf[Caches]
       case None =>
-        val cache = new DistributedCaches(cacheName, cacheTTLMap(cacheName))
+        val cacheStorageBucket = DaoFactory.getCouchbaseBucket(cacheName.toString)
+        val cache = new DistributedCaches(cacheName.toString,cacheStorageBucket, cacheTTLMap(cacheName))
         cacheStorage += cacheName -> cache.asInstanceOf[Caches]
         cache
     }
@@ -62,9 +64,8 @@ object DistributedCacheManager extends CacheManager {
 
 }
 
-class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheProperty) extends Caches {
+  class DistributedCaches(name:String, cacheStorageBucket:Bucket, props: CacheProperty) extends Caches {
 
-  private lazy val cacheStorageBucket = DaoFactory.getCouchbaseBucket(cacheName.toString)
 
   override def put[T](key: String, value: T)(implicit cTag: reflect.ClassTag[T]): Boolean = {
     try {
@@ -113,9 +114,9 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
       cacheStorageBucket.remove(StringDocument.create(key))
     } catch {
       case nonExisting: DocumentDoesNotExistException =>
-        ConnektLogger(LogFile.SERVICE).warn(s"No Document for ${cacheName.toString} / $key to Delete")
+        ConnektLogger(LogFile.SERVICE).warn(s"No Document for $name / $key to Delete")
       case e: Throwable =>
-        ConnektLogger(LogFile.SERVICE).error(s"Error removing $key for bucket ${cacheName.toString}", e)
+        ConnektLogger(LogFile.SERVICE).error(s"Error removing $key for bucket $name", e)
     }
   }
 
@@ -146,6 +147,5 @@ class DistributedCaches(val cacheName: DistributedCacheType.Value, props: CacheP
         Predef.Map[String, T]()
     }
   }
-
 
 }

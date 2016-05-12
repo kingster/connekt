@@ -14,10 +14,11 @@ package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonInclude
 
-
-case class GCMPayloadEnvelope(messageId: String, deviceId: Seq[String], appName: String, contextId:String, gcmPayload: GCMPayload)
-
 abstract class GCMPayload
+
+abstract class PayloadEnvelope
+
+trait OpenWebPayload
 
 case class GCMPNPayload(registration_ids: Seq[String],
                         @JsonInclude(JsonInclude.Include.NON_NULL) delay_while_idle: Option[Boolean],
@@ -26,4 +27,9 @@ case class GCMPNPayload(registration_ids: Seq[String],
                         @JsonInclude(JsonInclude.Include.NON_NULL) dry_run: Option[Boolean] = None) extends GCMPayload
 
 case class OpenWebGCMPayload(registration_ids: Seq[String],
-                             @JsonInclude(JsonInclude.Include.NON_NULL) dry_run: Option[Boolean] = None) extends GCMPayload
+                             @JsonInclude(JsonInclude.Include.NON_NULL) raw_data: Option[String] = None,
+                             @JsonInclude(JsonInclude.Include.NON_NULL) dry_run: Option[Boolean] = None) extends GCMPayload with OpenWebPayload
+
+case class GCMPayloadEnvelope(messageId: String, deviceId: Seq[String], appName: String, contextId:String, gcmPayload: GCMPayload, meta: Map[String, Any]) extends PayloadEnvelope
+
+case class OpenWebPayloadEnvelope(messageId: String, deviceId: Seq[String], appName: String, contextId:String, provider:String, payload: OpenWebPayload)  extends PayloadEnvelope

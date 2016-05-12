@@ -12,11 +12,10 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.MySQLFactory
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 
-class StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: MySQLFactory) extends TStencilDao with MySQLDao {
+class StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) extends TStencilDao with MySQLDao {
 
   val mysqlHelper = jdbcHelper
 
@@ -98,6 +97,6 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
 }
 
 object StencilDao {
-  def apply(tableName: String, historyTableName: String, bucketRegistryTable: String,jdbcHelper: MySQLFactory) =
-    new StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String,jdbcHelper: MySQLFactory)
+  def apply(tableName: String, historyTableName: String, bucketRegistryTable: String,jdbcHelper: TMySQLFactory) =
+    new StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String,jdbcHelper: TMySQLFactory)
 }

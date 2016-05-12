@@ -12,17 +12,18 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.behaviors.HTableFactory
 import com.flipkart.connekt.commons.dao.HbaseDao._
+import com.flipkart.connekt.commons.factories.THTableFactory
 import com.flipkart.connekt.commons.iomodels._
 
-class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactory: HTableFactory) extends RequestDao(tableName: String, hTableFactory: HTableFactory) {
+class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactory: THTableFactory) extends RequestDao(tableName: String, hTableFactory: THTableFactory) {
 
   override protected def channelRequestInfoMap(channelRequestInfo: ChannelRequestInfo): Map[String, Array[Byte]] = {
     val pnRequestInfo = channelRequestInfo.asInstanceOf[PNRequestInfo]
 
     val m = scala.collection.mutable.Map[String, Array[Byte]]()
 
+    pnRequestInfo.topic.foreach(m += "topic" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.deviceIds).foreach(m += "deviceId" -> _.mkString(",").getUtf8Bytes)
     Option(pnRequestInfo.platform).foreach(m += "platform" -> _.toString.getUtf8Bytes)
     Option(pnRequestInfo.appName).foreach(m += "appName" -> _.toString.getUtf8Bytes)
@@ -36,6 +37,7 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     platform = reqInfoProps.getS("platform"),
     appName = reqInfoProps.getS("appName"),
     deviceIds = reqInfoProps.getS("deviceId").split(",").toSet,
+    topic = Option(reqInfoProps.getS("topic")),
     ackRequired = reqInfoProps.getB("ackRequired"),
     delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
   )
@@ -57,6 +59,6 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
 }
 
 object PNRequestDao {
-  def apply(tableName: String = "fk-connekt-pn-info", pullRequestTableName: String = "fk-connekt-pull-info", hTableFactory: HTableFactory) =
+  def apply(tableName: String = "fk-connekt-pn-info", pullRequestTableName: String = "fk-connekt-pull-info", hTableFactory: THTableFactory) =
     new PNRequestDao(tableName, pullRequestTableName, hTableFactory)
 }

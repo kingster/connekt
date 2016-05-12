@@ -13,7 +13,8 @@
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.commons.iomodels._
+import MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -21,7 +22,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNStencilService, StencilService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNPlatformStencilService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -44,10 +45,11 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
 
       val ttlInMillis = message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
-        val requestData = PNStencilService.getPNData(iosStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode]
-        val apnsTopic = requestData.get("topic").asText(null)
-        val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData.get("data"))
-        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload)
+        val data = message.channelData.asInstanceOf[PNRequestData].data
+        val requestData = PNPlatformStencilService.getPNData(iosStencil, data).getObj[ObjectNode]
+        val apnsTopic = pnInfo.topic.getOrElse(PNPlatformStencilService.getPNTopic(iosStencil, data))
+        val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData)
+        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload, message.meta + ("stencilId" -> message.templateId))
       })
 
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {

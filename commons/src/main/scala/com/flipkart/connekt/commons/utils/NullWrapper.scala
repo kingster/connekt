@@ -12,6 +12,8 @@
  */
 package com.flipkart.connekt.commons.utils
 
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+
 object NullWrapper {
 
   val noData = Array[Byte]( 0x00 )
@@ -35,6 +37,11 @@ object NullWrapper {
           Array[Byte]()
         case 0x01 =>
           data.tail
+        case _ =>
+          //This is crazy, but there are some crazy old data which
+          // wasn't null-wapped and now is tried be unwrapped causing this
+          ConnektLogger(LogFile.SERVICE).warn(s"Non-NullWrapped Element being unwrapped, data [${data.toList}]")
+          data
       }
     }
   }
