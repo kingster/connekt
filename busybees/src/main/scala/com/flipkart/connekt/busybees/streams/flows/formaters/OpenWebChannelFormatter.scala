@@ -59,7 +59,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       if (tokens.nonEmpty && ttl > 0) {
         val payload = OpenWebGCMPayload(registration_ids = tokens, dry_run = dryRun)
-        List(GCMPayloadEnvelope(message.id,validDeviceIds, pnInfo.appName, message.contextId.orEmpty , payload, message.meta + ("stencilId" -> message.templateId)))
+        List(GCMPayloadEnvelope(message.id,validDeviceIds, pnInfo.appName, message.contextId.orEmpty , payload, message.meta))
       } else if (tokens.nonEmpty){
         ConnektLogger(LogFile.PROCESSORS).warn(s"OpenWebChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist

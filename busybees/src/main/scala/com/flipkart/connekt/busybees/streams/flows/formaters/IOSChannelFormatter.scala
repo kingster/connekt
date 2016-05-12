@@ -49,7 +49,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
         val requestData = PNPlatformStencilService.getPNData(iosStencil, data).getObj[ObjectNode]
         val apnsTopic = pnInfo.topic.getOrElse(PNPlatformStencilService.getPNTopic(iosStencil, data))
         val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData)
-        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload, message.meta + ("stencilId" -> message.templateId))
+        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload, message.meta)
       })
 
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {
