@@ -15,7 +15,7 @@ package com.flipkart.connekt.busybees.streams.flows
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
-import com.flipkart.connekt.commons.iomodels.{ConnektRequest, MessageStatus}
+import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -31,7 +31,7 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
       val mRendered = input.copy(channelData = Option(input.channelData) match {
         case Some(cD) => cD
         case None => cRD
-      })
+      }, meta = input.meta ++ input.templateId.map("stencilId" -> _).toMap)
 
       List(mRendered)
     } catch {
