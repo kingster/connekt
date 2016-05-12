@@ -66,7 +66,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
         "appVersion" -> deviceDetails.appVersion.getUtf8Bytes
       )
 
-      if(deviceDetails.keys.nonEmpty)
+      if(deviceDetails.keys != null && deviceDetails.keys.nonEmpty)
         deviceRegInfoCfProps += "keys" -> deviceDetails.keys.getJson.getUtf8Bytes
 
       val deviceMetaCfProps = Map[String, Array[Byte]](
