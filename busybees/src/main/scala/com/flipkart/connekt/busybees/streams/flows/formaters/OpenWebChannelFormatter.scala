@@ -31,9 +31,9 @@ import scala.concurrent.duration._
  * @param parallelism
  * @param ec
  */
-class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, GCMPayloadEnvelope](parallelism)(ec) {
+class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, PayloadEnvelope](parallelism)(ec) {
 
-  override def map: ConnektRequest => List[GCMPayloadEnvelope] = message => {
+  override def map: ConnektRequest => List[PayloadEnvelope] = message => {
 
     try {
       ConnektLogger(LogFile.PROCESSORS).info(s"OpenWebChannelFormatter received message: ${message.id}")
@@ -44,8 +44,9 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get.toSeq
       val validDeviceIds = devicesInfo.map(_.deviceId)
       val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds.toSet)
-      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
+      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.OPENWEB, pnInfo.appName, message.contextId.orEmpty)).persist
 
+      //TODO : Output correctly
       //the original token is a url, take the last part for chrome as gcm token id. Ref : https://developers.google.com/web/updates/2015/03/push-notifications-on-the-open-web
       val tokens = devicesInfo.map(_.token.split('/').last)
       //val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
@@ -63,7 +64,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
         List.empty[GCMPayloadEnvelope]
       } else
-        List.empty[GCMPayloadEnvelope]
+        List.empty[OpenWebPayloadEnvelope]
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebChannelFormatter error for ${message.id}", e)

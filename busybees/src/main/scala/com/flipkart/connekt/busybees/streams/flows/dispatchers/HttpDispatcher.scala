@@ -15,12 +15,16 @@ package com.flipkart.connekt.busybees.streams.flows.dispatchers
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream._
+import akka.stream.scaladsl.Flow
 import com.flipkart.connekt.busybees.models.{GCMRequestTracker, WNSRequestTracker}
+import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.iomodels.{OpenWebPayloadEnvelope, PNCallbackEvent}
 import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContextExecutor
-
+import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 class HttpDispatcher(actorSystemConf: Config) {
 
   implicit val httpSystem: ActorSystem = ActorSystem("http-out", actorSystemConf)
@@ -46,4 +50,15 @@ object HttpDispatcher {
   def gcmPoolClientFlow = instance.map(_.gcmPoolClientFlow).get
 
   def wnsPoolClientFlow = instance.map(_.wnsPoolClientFlow).get
+
+  def openWebStandardClientFlow = Flow[OpenWebPayloadEnvelope].mapConcat( envelope => {
+
+    val events = envelope.deviceId.map( d =>
+      PNCallbackEvent(envelope.messageId, d, "openweb_generic_unsupported", MobilePlatform.OPENWEB, envelope.appName, envelope.contextId)
+    ).toList
+
+    events.persist
+    events
+  })
+
 }

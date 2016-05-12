@@ -22,6 +22,7 @@ import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.dispatchers._
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters._
+import com.flipkart.connekt.busybees.streams.flows.partitioner.OpenWebProviderPartitioner
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers._
 import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
@@ -153,13 +154,22 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val fmtOpenWebParallelism = ConnektConfig.getInt("topology.push.openwebFormatter.parallelism").get
     val fmtOpenWeb = b.add(new OpenWebChannelFormatter(fmtOpenWebParallelism)(ioDispatcher).flow)
+    val openWebProviderPart = b.add(new OpenWebProviderPartitioner())
+    val openWebMerger = b.add(Merge[PNCallbackEvent](2))
 
-    //Duplicate handler's, need to rewrite cleanly with multiple browsers
+    //providers
+    val openWebGenericProvider = b.add(HttpDispatcher.openWebStandardClientFlow)
+
+    //gcm provider for openweb
     val gcmHttpPrepare2 = b.add(new GCMDispatcherPrepare().flow)
     val gcmPoolFlow2 = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
     val gcmResponseHandle2 = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
 
-    platformPartition.out(3) ~> fmtOpenWeb ~> gcmHttpPrepare2 ~> gcmPoolFlow2 ~> gcmResponseHandle2 ~> merger.in(3)
+    platformPartition.out(3) ~> fmtOpenWeb ~> openWebProviderPart.in
+                                              openWebProviderPart.out0 ~> gcmHttpPrepare2 ~> gcmPoolFlow2 ~> gcmResponseHandle2 ~> openWebMerger.in(0)
+                                              openWebProviderPart.out1 ~> openWebGenericProvider ~> openWebMerger.in(1)
+
+    openWebMerger.out ~>  merger.in(3)
 
     FlowShape(render.in, merger.out)
   })
