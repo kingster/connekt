@@ -27,6 +27,7 @@ import org.apache.hadoop.hbase.filter.{BinaryComparator, CompareFilter, FilterLi
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends Dao with HbaseDao with Instrumented {
   val hTableConnFactory = hTableFactory
@@ -55,7 +56,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
     val hTokenIndexTableInterface = hTableConnFactory.getTableInterface(hTokenIndexTableName)
 
     try {
-      val deviceRegInfoCfProps = Map[String, Array[Byte]](
+      val deviceRegInfoCfProps = mutable.Map[String, Array[Byte]](
         "deviceId" -> deviceDetails.deviceId.getUtf8Bytes,
         "userId" -> deviceDetails.userId.getUtf8BytesNullWrapped,
         "token" -> deviceDetails.token.getUtf8Bytes,
@@ -65,13 +66,16 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
         "appVersion" -> deviceDetails.appVersion.getUtf8Bytes
       )
 
+      if(deviceDetails.keys.nonEmpty)
+        deviceRegInfoCfProps += "keys" -> deviceDetails.keys.getJson.getUtf8Bytes
+
       val deviceMetaCfProps = Map[String, Array[Byte]](
         "brand" -> deviceDetails.brand.getUtf8BytesNullWrapped,
         "model" -> deviceDetails.model.getUtf8BytesNullWrapped,
         "state" -> deviceDetails.state.getUtf8BytesNullWrapped
       )
 
-      val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps, "a" -> deviceMetaCfProps)
+      val rawData = Map[String, Map[String, Array[Byte]]]("p" -> deviceRegInfoCfProps.toMap, "a" -> deviceMetaCfProps)
       addRow(getRowKey(deviceDetails.appName, deviceDetails.deviceId), rawData)
 
       // Add secondary indexes.
@@ -239,7 +243,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
     val allProps = devRegProps.flatMap[Map[String, Array[Byte]]](r => devMetaProps.map[Map[String, Array[Byte]]](m => m ++ r))
     allProps.map(fields => {
 
-      def get(key: String) = fields.get(key).map(v => v.getString).orNull
+      def getOption(key:String)=  fields.get(key).map(v => v.getString)
+      def get(key: String) = getOption(key).orNull
       def getNullableString(key: String) = fields.get(key).map(v => v.getStringNullable).orNull
 
       DeviceDetails(
@@ -252,7 +257,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
         appVersion = get("appVersion"),
         brand = getNullableString("brand"),
         model = getNullableString("model"),
-        state = getNullableString("state")
+        state = getNullableString("state"),
+        keys = getOption("keys").map(_.getObj[Map[String,String]]).getOrElse(Map.empty[String,String])
       )
     })
   }

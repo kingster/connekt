@@ -31,6 +31,7 @@ case class DeviceDetails(deviceId: String,
                          brand: String,
                          model: String,
                          state: String = "",
+                         @JsonProperty(required = false) keys: Map[String,String] = Map.empty,
                          active: Boolean = true) extends BigfootSupport[fkint.mp.connekt.DeviceDetails] {
 
   def toBigfootFormat: fkint.mp.connekt.DeviceDetails = {
