@@ -407,6 +407,47 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /reports/date/{date}:
+    get:
+      summary: Per Date Statistics
+      description: |
+        Get live statistics grouped per day
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - name: date
+          in: path
+          description: date.
+          required: true
+          type: string
+        - name: clientId
+          in: query
+          description: clientId.
+          required: true
+          type: string
+        - name: contextId
+          in: query
+          description: contextId.
+          required: false
+          type: string
+        - name: appName
+          in: query
+          description: appName.
+          required: false
+          type: string
+        - name: stencilId
+          in: query
+          description: stencilId.
+          required: false
+          type: string
+      tags:
+        - "Report"
+      responses:
+        '200':
+          description:  Original Request
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /client/{clientName}:
     get:
       tags:
