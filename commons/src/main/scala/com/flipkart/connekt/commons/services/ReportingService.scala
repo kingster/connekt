@@ -57,7 +57,11 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
     //TODO:  need to transform
     val prefixString = List(date, clientId, campaignId.orNull, appName.orNull, platform.orNull, channel.orNull).filter(_ != null).mkString(".")
     val allKeys: List[String] = reportManagerDao.prefix(prefixString)
-    reportManagerDao.get(allKeys)
+    val resultMap = reportManagerDao.get(allKeys)
+    resultMap.map {
+      case (keyName, count) =>
+        keyName.split('.').drop(2).mkString(".") -> count
+    }
   }
 
   @Timed("pushStatsUpdate")
@@ -65,7 +69,7 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
 
     val datePrefix = DateTimeUtils.calenderDate.print(Calendar.getInstance().getTimeInMillis) + "."
     updateTagCounters(clientId, count, datePrefix, contextId.orNull, Channel.PUSH, stencilId.orNull)(platform.orNull, appName, event)
-    contextId.foreach(id => updateLastSeen(s"$datePrefix${clientId}_$id"))
+    contextId.foreach(id => updateLastSeen(s"$datePrefix${clientId}.$id"))
   }
 
   private val mapCounter = new ConcurrentHashMap[String, AtomicLong]().asScala
@@ -81,7 +85,7 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
     mapCounter.putIfAbsent(key, new AtomicLong(delta)).map(_.getAndAdd(delta))
   }
 
-  private def updateLastSeen(key: String): Unit = mapLastSeenTime.update(s"${key}_$cbKeyLastSent", System.currentTimeMillis())
+  private def updateLastSeen(key: String): Unit = mapLastSeenTime.update(s"${key}.$cbKeyLastSent", System.currentTimeMillis())
 
   private def getAllCombinations(list: List[String]): List[String] = {
     list.toSet[String].subsets().map(_.mkString(".")).toList.drop(1)
