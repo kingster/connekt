@@ -14,7 +14,6 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.Channel.PUSH
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
