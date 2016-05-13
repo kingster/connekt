@@ -29,6 +29,12 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
                           @JsonProperty(required = false) channelDataModel: ObjectNode = getObjectNode,
                           meta: Map[String, String]) {
 
+  def this(id: String, contextId: Option[String], channel: String, sla: String, templateId: Option[String],
+           scheduleTs: Option[Long], expiryTs: Option[Long], channelInfo: ChannelRequestInfo,
+           channelData: ChannelRequestData, channelDataModel: ObjectNode) {
+    this(id, contextId, channel, sla, templateId, scheduleTs, expiryTs, channelInfo, channelData, channelDataModel, Map.empty[String,String])
+  }
+
   def validate() = {
     require(templateId.map(StencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
     require(contextId.map(_.hasOnlyAllowedChars).getOrElse(true), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
