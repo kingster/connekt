@@ -39,7 +39,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "android.googleapis.com",
       val httpRequest = HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
       val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName, message.contextId)
 
-      List((httpRequest, requestTrace))
+      List(httpRequest -> requestTrace)
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare failed with ${e.getMessage}", e)

@@ -65,7 +65,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
 
                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))
-                        .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString))))
+                        .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs"))))
                     }
                   }
                 }
