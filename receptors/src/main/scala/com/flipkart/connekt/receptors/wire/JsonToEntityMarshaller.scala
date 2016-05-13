@@ -15,7 +15,7 @@ package com.flipkart.connekt.receptors.wire
 import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMarshaller}
 import akka.http.scaladsl.model.MediaTypes
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{DeserializationFeature, DeserializationConfig, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.receptors.wire.GenericJsonSupport._
@@ -44,6 +44,7 @@ object GenericJsonSupport {
 
   val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModules(jacksonModules: _*)
+  mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   val m: mutable.Map[Class[_], ToEntityMarshaller[_]] = mutable.Map.empty[Class[_], ToEntityMarshaller[_]]
   val um: mutable.Map[Class[_], FromEntityUnmarshaller[_]] = mutable.Map.empty[Class[_], FromEntityUnmarshaller[_]]
