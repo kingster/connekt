@@ -17,12 +17,10 @@ import akka.stream._
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.commons.iomodels._
-import MessageStatus.{GCMResponseStatus, InternalStatus}
-import com.flipkart.connekt.commons.entities.Channel._
 import com.flipkart.connekt.commons.entities.MobilePlatform
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
+import com.flipkart.connekt.commons.iomodels.MessageStatus.{GCMResponseStatus, InternalStatus}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -103,8 +101,8 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
           }
         } catch {
           case e: Exception =>
-            ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, InternalStatus.ParseError, deviceIds.size)
-            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.ParseError, MobilePlatform.ANDROID, appName, requestTracker.contextId, e.getMessage, eventTS)))
+            ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, InternalStatus.GcmResponseParseError, deviceIds.size)
+            events.addAll(deviceIds.map(PNCallbackEvent(messageId, _, InternalStatus.GcmResponseParseError, MobilePlatform.ANDROID, appName, requestTracker.contextId, e.getMessage, eventTS)))
             ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler failed processing http response body for: $messageId", e)
         }
       case Failure(e2) =>
