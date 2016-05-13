@@ -45,7 +45,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       require(startTs < endTs, "startTs must be prior to endTs")
                       require(startTs > (System.currentTimeMillis - 7.days.toMillis), "Invalid startTs : startTs can be max 7 days from now")
 
-                      val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs, endTs)
+                      val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, startTs + 1, endTs)
                       val messageService = ServiceFactory.getPNMessageService
 
                       //Skip all messages which are either read/dismissed or passed in skipIds
