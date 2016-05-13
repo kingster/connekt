@@ -10,8 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.busybees.models
-
+package com.flipkart.connekt.commons.iomodels
 
 object MessageStatus {
 
@@ -33,6 +32,7 @@ object MessageStatus {
     val InvalidMethod = Value("wns_invalid_method")
     val InvalidChannelUri = Value("wns_invalid_channel_uri")
     val InvalidDevice = Value("wns_invalid_device")
+    val AuthError = Value("wns_auth_error")
     val ThrottleLimitExceeded = Value("wns_throttle_limit_exceeded")
     val ChannelExpired = Value("wns_channel_expired")
     val EntityTooLarge = Value("wns_entity_too_large")
@@ -55,9 +55,12 @@ object MessageStatus {
     val RenderFailure = Value("connekt_render_failure")
     val MissingDeviceInfo = Value("connekt_missing_device")
     val InvalidToken = Value("connekt_invalid_token")
-    val ParseError = Value("connekt_gcm_response_parse_error")
+    val GcmResponseParseError = Value("connekt_gcm_response_parse_error")
+    val WnsResponseHandleError = Value("connekt_wns_response_handle_error")
     val TTLExpired = Value("connekt_ttl_expired")
     val StageError = Value("connekt_stage_error")
     val ProviderSendError = Value("connekt_provider_send_error")
+    val Received = Value("connekt_received")
+    val Rejected = Value("connekt_rejected")
   }
 }

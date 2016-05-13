@@ -72,7 +72,7 @@ object DaoFactory {
     couchbaseBuckets = Map()
   }
 
-  def getCouchbaseBucket(name: String = "Default"): Bucket = {
+  def getCouchbaseBucket(name: String): Bucket = {
     couchbaseBuckets.get(name) match {
       case Some(x) => x
       case None =>
@@ -84,6 +84,10 @@ object DaoFactory {
 
   def shutdownCouchbaseCluster() {
     Option(couchBaseCluster).foreach(_.disconnect())
+  }
+
+  def initReportingDao(bucket : Bucket): Unit ={
+    daoMap += DaoType.STATS_REPORTING -> StatsReportingDao(bucket)
   }
 
   def initSpecterSocket(specterConfig: Config): PhantomClientSocket = {
@@ -109,7 +113,8 @@ object DaoFactory {
   def getUserConfigurationDao: TUserConfiguration = daoMap(DaoType.USER_CONFIG).asInstanceOf[UserConfigurationDao]
 
   def getStencilDao: TStencilDao = daoMap(DaoType.STENCIL).asInstanceOf[StencilDao]
-
+  
+  def getStatsReportingDao: StatsReportingDao = daoMap(DaoType.STATS_REPORTING).asInstanceOf[StatsReportingDao]
 }
 
 object DaoType extends Enumeration {
@@ -122,5 +127,6 @@ object DaoType extends Enumeration {
   USER_INFO,
   USER_CONFIG,
   STENCIL,
+  STATS_REPORTING,
   KEY_CHAIN = Value
 }

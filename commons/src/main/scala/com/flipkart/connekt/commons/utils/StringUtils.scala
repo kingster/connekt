@@ -20,7 +20,7 @@ import akka.http.scaladsl.model.HttpEntity
 import akka.stream.Materializer
 import akka.util.ByteString
 import com.fasterxml.jackson.core.`type`.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.commons.utils.NullWrapper._
@@ -57,6 +57,10 @@ object StringUtils {
     def orEmpty = obj.getOrElse("")
   }
 
+  implicit class OptionHandyFunctions(val obj: Option[Any]) {
+    def getString = obj.map(_.toString).get
+  }
+
   implicit class ByteArrayHandyFunctions(val b: Array[Byte]) {
     def getString = new String(b, CharEncoding.UTF_8)
 
@@ -68,6 +72,7 @@ object StringUtils {
 
   val objMapper = new ObjectMapper() with ScalaObjectMapper
   objMapper.registerModules(Seq(DefaultScalaModule): _*)
+  objMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   implicit class JSONMarshallFunctions(val o: AnyRef) {
     def getJson = objMapper.writeValueAsString(o)

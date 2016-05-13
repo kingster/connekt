@@ -12,7 +12,8 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.commons.iomodels._
+import MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -52,7 +53,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val wnsRequestEnvelopes = validDevices.map(d => {
         val wnsPayload = WNSToastPayload(PNPlatformStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
-        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, wnsPayload)
+        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, wnsPayload, message.meta)
       })
 
       if (wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0) {

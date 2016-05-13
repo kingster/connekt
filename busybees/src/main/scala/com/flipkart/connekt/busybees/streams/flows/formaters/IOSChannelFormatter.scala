@@ -13,7 +13,8 @@
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.commons.iomodels._
+import MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -48,7 +49,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
         val requestData = PNPlatformStencilService.getPNData(iosStencil, data).getObj[ObjectNode]
         val apnsTopic = pnInfo.topic.getOrElse(PNPlatformStencilService.getPNTopic(iosStencil, data))
         val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData)
-        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload)
+        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, apnsPayload, message.meta)
       })
 
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {

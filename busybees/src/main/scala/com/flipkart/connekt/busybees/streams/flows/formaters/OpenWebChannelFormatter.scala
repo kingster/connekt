@@ -12,7 +12,8 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import com.flipkart.connekt.busybees.models.MessageStatus.InternalStatus
+import com.flipkart.connekt.commons.iomodels._
+import MessageStatus.InternalStatus
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -20,7 +21,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNPlatformStencilService, StencilService}
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -58,7 +59,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       if (tokens.nonEmpty && ttl > 0) {
         val payload = OpenWebGCMPayload(registration_ids = tokens, dry_run = dryRun)
-        List(GCMPayloadEnvelope(message.id,validDeviceIds, pnInfo.appName, message.contextId.orEmpty , payload))
+        List(GCMPayloadEnvelope(message.id,validDeviceIds, pnInfo.appName, message.contextId.orEmpty , payload, message.meta))
       } else if (tokens.nonEmpty){
         ConnektLogger(LogFile.PROCESSORS).warn(s"OpenWebChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
