@@ -75,6 +75,11 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                     }
                     ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, GCMResponseStatus.Error)
                     events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, f.get("error").asText, eventTS)
+
+                  case ie if ie.has("error") && List("InternalServerError").contains(ie.get("error").asText.trim) =>
+                    //TODO: Support retry.
+                    ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, GCMResponseStatus.InternalError)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.InternalError, MobilePlatform.ANDROID, appName, requestTracker.contextId, ie.toString, eventTS)
                   case e: JsonNode =>
                     ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler unknown for message: $messageId, device: $rDeviceId", e)
                     ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, GCMResponseStatus.Error)
