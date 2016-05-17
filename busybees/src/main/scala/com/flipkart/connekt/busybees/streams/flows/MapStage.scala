@@ -32,7 +32,7 @@ private [busybees] abstract class MapFlowStage[In, Out] {
   def flow = Flow[In].mapConcat(map).named(stageName)
 }
 
-private [busybees] abstract class MapAsyncFlowStage[In, Out](parallelism:Int = 128) {
+private [busybees] abstract class MapAsyncFlowStage[In, Out](parallelism:Int) {
 
   protected val stageName: String = this.getClass.getSimpleName
 

@@ -21,6 +21,6 @@ trait ProviderResponseHandler
 
 abstract class PNProviderResponseErrorHandler[I, O1] extends  GraphStage[FanOutShape2[I, PNCallbackEvent, O1]] with ProviderResponseHandler
 
-abstract class PNProviderResponseHandler[I] extends MapAsyncFlowStage[I, PNCallbackEvent] with ProviderResponseHandler
+abstract class PNProviderResponseHandler[I](parallelism:Int = 128) extends MapAsyncFlowStage[I, PNCallbackEvent](parallelism) with ProviderResponseHandler
 
-abstract class EmailProviderResponseHandler[I] extends MapAsyncFlowStage[I, EmailCallbackEvent] with ProviderResponseHandler
+abstract class EmailProviderResponseHandler[I](parallelism:Int = 128) extends MapAsyncFlowStage[I, EmailCallbackEvent](parallelism) with ProviderResponseHandler
