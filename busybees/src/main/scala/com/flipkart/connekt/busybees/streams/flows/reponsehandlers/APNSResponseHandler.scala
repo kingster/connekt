@@ -12,6 +12,7 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
+import akka.http.scaladsl.util.FastFuture
 import akka.stream._
 import com.flipkart.connekt.busybees.models.APNSRequestTracker
 import com.flipkart.connekt.commons.iomodels._
@@ -28,12 +29,12 @@ import com.relayrides.pushy.apns.{ApnsPushNotification, PushNotificationResponse
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
 class APNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)] {
 
-  override val map: ((Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)) => List[PNCallbackEvent] = responseTrackerPair => {
+  override val map: ((Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => {
 
     val tryResponse = responseTrackerPair._1
     val requestTracker = responseTrackerPair._2
@@ -76,6 +77,6 @@ class APNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extend
         events += PNCallbackEvent(requestTracker.messageId, requestTracker.deviceId, InternalStatus.ProviderSendError, MobilePlatform.IOS.toString, requestTracker.appName, requestTracker.contextId, s"APNSResponseHandler-${e.getClass.getSimpleName}-${e.getMessage}")
     }
     events.persist
-    events.toList
+    FastFuture.successful(events.toList)
   }
 }

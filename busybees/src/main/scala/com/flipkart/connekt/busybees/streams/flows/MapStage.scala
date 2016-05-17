@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 private [busybees] abstract class MapFlowStage[In, Out] {
@@ -29,6 +30,15 @@ private [busybees] abstract class MapFlowStage[In, Out] {
   val map: In => List[Out]
 
   def flow = Flow[In].mapConcat(map).named(stageName)
+}
+
+private [busybees] abstract class MapAsyncFlowStage[In, Out](parallelism:Int = 128) {
+
+  protected val stageName: String = this.getClass.getSimpleName
+
+  val map: In => Future[List[Out]]
+
+  def flow = Flow[In].mapAsyncUnordered(parallelism)(map).mapConcat(identity).named(stageName)
 }
 
 private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[FlowShape[In, Out]] {

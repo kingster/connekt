@@ -13,6 +13,7 @@
 package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.util.FastFuture
 import akka.stream._
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -27,12 +28,12 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
 class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] {
 
-  override val map: ((Try[HttpResponse], GCMRequestTracker)) => List[PNCallbackEvent] = responseTrackerPair => {
+  override val map: ((Try[HttpResponse], GCMRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => {
 
     val httpResponse = responseTrackerPair._1
     val requestTracker = responseTrackerPair._2
@@ -117,6 +118,6 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     }
 
     events.persist
-    events.toList
+    FastFuture.successful(events.toList)
   }
 }

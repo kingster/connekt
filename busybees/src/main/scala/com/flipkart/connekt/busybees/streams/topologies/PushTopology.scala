@@ -154,7 +154,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val fmtOpenWebParallelism = ConnektConfig.getInt("topology.push.openwebFormatter.parallelism").get
     val fmtOpenWeb = b.add(new OpenWebChannelFormatter(fmtOpenWebParallelism)(ioDispatcher).flow)
-    val openWebProviderPart = b.add(new OpenWebProviderPartitioner())
+    val openWebProviderPart = b.add(new OpenWebProviderPartitioner)
     val openWebMerger = b.add(Merge[PNCallbackEvent](2))
 
     //providers
@@ -162,7 +162,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     //gcm provider for openweb
     val gcmHttpPrepare2 = b.add(new GCMDispatcherPrepare().flow)
-    val gcmPoolFlow2 = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
+    val gcmPoolFlow2 = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("openWebGoogleRTT"))
     val gcmResponseHandle2 = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
 
     platformPartition.out(3) ~> fmtOpenWeb ~> openWebProviderPart.in

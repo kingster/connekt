@@ -14,13 +14,13 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import akka.stream.FanOutShape2
 import akka.stream.stage.GraphStage
-import com.flipkart.connekt.busybees.streams.flows.MapFlowStage
+import com.flipkart.connekt.busybees.streams.flows.{MapAsyncFlowStage, MapFlowStage}
 import com.flipkart.connekt.commons.iomodels.{EmailCallbackEvent, PNCallbackEvent}
 
 trait ProviderResponseHandler
 
 abstract class PNProviderResponseErrorHandler[I, O1] extends  GraphStage[FanOutShape2[I, PNCallbackEvent, O1]] with ProviderResponseHandler
 
-abstract class PNProviderResponseHandler[I] extends MapFlowStage[I, PNCallbackEvent] with ProviderResponseHandler
+abstract class PNProviderResponseHandler[I] extends MapAsyncFlowStage[I, PNCallbackEvent] with ProviderResponseHandler
 
-abstract class EmailProviderResponseHandler[I] extends MapFlowStage[I, EmailCallbackEvent] with ProviderResponseHandler
+abstract class EmailProviderResponseHandler[I] extends MapAsyncFlowStage[I, EmailCallbackEvent] with ProviderResponseHandler
