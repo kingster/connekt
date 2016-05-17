@@ -23,6 +23,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.{GCMResponseStatus, InternalStatus}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -31,9 +32,9 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
-class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] {
+class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)] with Instrumented{
 
-  override val map: ((Try[HttpResponse], GCMRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => {
+  override val map: ((Try[HttpResponse], GCMRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => profile("map") {
 
     val httpResponse = responseTrackerPair._1
     val requestTracker = responseTrackerPair._2
