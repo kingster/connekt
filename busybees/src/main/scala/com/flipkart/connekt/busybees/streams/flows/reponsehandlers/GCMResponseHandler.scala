@@ -75,8 +75,8 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                         DeviceDetailsService.delete(appName, device.deviceId)
                       })
                     }
-                    ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, GCMResponseStatus.Error)
-                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, f.get("error").asText, eventTS)
+                    ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, GCMResponseStatus.InvalidDevice)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.InvalidDevice, MobilePlatform.ANDROID, appName, requestTracker.contextId, f.get("error").asText, eventTS)
 
                   case ie if ie.has("error") && List("InternalServerError").contains(ie.get("error").asText.trim) =>
                     //TODO: Support retry.
