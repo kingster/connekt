@@ -32,7 +32,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
-class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)](256) with Instrumented{
+class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)](96) with Instrumented{
 
   override val map: ((Try[HttpResponse], GCMRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => Future(profile("map") {
 
