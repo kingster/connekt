@@ -15,11 +15,10 @@ package com.flipkart.connekt.receptors.wire
 import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMarshaller}
 import akka.http.scaladsl.model.MediaTypes
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
-import com.fasterxml.jackson.databind.{DeserializationFeature, DeserializationConfig, ObjectMapper}
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.receptors.wire.GenericJsonSupport._
-
 import scala.collection.mutable
 import scala.reflect.ClassTag
 

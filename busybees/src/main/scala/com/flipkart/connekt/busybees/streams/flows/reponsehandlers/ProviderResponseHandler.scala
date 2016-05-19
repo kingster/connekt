@@ -14,7 +14,7 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import akka.stream.FanOutShape2
 import akka.stream.stage.GraphStage
-import com.flipkart.connekt.busybees.streams.flows.{MapAsyncFlowStage, MapFlowStage}
+import com.flipkart.connekt.busybees.streams.flows.MapAsyncFlowStage
 import com.flipkart.connekt.commons.iomodels.{EmailCallbackEvent, PNCallbackEvent}
 
 trait ProviderResponseHandler

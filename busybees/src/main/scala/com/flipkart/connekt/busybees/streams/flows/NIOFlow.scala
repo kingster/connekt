@@ -20,7 +20,7 @@ abstract class NIOFlow[In, Out](parallelism: Int)(ec: ExecutionContextExecutor) 
 
   def map: In => List[Out]
 
-  def flow = Flow[In].mapAsync(parallelism){
+  def flow = Flow[In].mapAsyncUnordered(parallelism){
     i => Future(map(i))(ec)
   }.mapConcat(identity)
 }

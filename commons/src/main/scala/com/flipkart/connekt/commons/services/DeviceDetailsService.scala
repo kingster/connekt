@@ -25,11 +25,10 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.metrics.Timed
 import com.roundeights.hasher.Implicits._
-
+import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
-import scala.collection.JavaConverters._
 object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
