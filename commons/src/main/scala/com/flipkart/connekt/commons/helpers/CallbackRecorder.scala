@@ -17,6 +17,7 @@ import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.connekt.commons.services.BigfootService
 
 object CallbackRecorder extends Instrumented {
 
@@ -27,7 +28,7 @@ object CallbackRecorder extends Instrumented {
       events.foreach(e => {
         ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName.toLowerCase}${e.deviceId}", Channel.PUSH, e)
         meter(s"event.${e.eventType}").mark()
-//        BigfootService.ingest(e.toBigfootFormat)
+	      BigfootService.ingest(e.toBigfootFormat)
       })
     }
   }
