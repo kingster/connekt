@@ -15,13 +15,12 @@ package com.flipkart.connekt.receptors.service
 import java.security.{KeyStore, SecureRandom}
 import java.util.UUID
 import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
-
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{ConnectionContext, Http}
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.util.FastFuture
+import akka.http.scaladsl.{ConnectionContext, Http}
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
@@ -31,6 +30,8 @@ import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
 import scala.collection.immutable
 import scala.concurrent.Future
+
+
 object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORSDirectives {
 
   implicit val system = ActorSystem("ckt-receptors")

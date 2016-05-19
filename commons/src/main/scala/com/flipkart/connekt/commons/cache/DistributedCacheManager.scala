@@ -12,14 +12,13 @@
  */
 package com.flipkart.connekt.commons.cache
 
+import com.couchbase.client.java.Bucket
 import com.couchbase.client.java.document.StringDocument
 import com.couchbase.client.java.error.DocumentDoesNotExistException
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import rx.lang.scala.Observable
-import com.couchbase.client.java.Bucket
-
 import scala.collection.{Map, concurrent}
 import scala.concurrent.duration.DurationInt
 import scala.reflect.runtime.universe._

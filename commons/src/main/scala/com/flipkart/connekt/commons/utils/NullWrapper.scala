@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.commons.utils
 
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 object NullWrapper {
 

@@ -15,21 +15,17 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 import akka.http.scaladsl.util.FastFuture
 import akka.stream._
 import com.flipkart.connekt.busybees.models.APNSRequestTracker
-import com.flipkart.connekt.commons.iomodels._
-import MessageStatus.{APNSResponseStatus, InternalStatus}
-import com.flipkart.connekt.commons.entities.Channel._
 import com.flipkart.connekt.commons.entities.MobilePlatform
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
+import com.flipkart.connekt.commons.iomodels.MessageStatus.{APNSResponseStatus, InternalStatus}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.relayrides.pushy.apns.PushNotificationResponse
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
-import com.relayrides.pushy.apns.{ApnsPushNotification, PushNotificationResponse}
-import com.flipkart.connekt.commons.utils.StringUtils._
-
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class APNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)] {

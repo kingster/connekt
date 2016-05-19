@@ -16,10 +16,10 @@ import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.UserInfoService
-import com.flipkart.connekt.commons.utils.{PasswordGenerator, LdapService}
+import com.flipkart.connekt.commons.utils.LdapService
 import com.flipkart.metrics.Timed
 import org.jboss.aerogear.security.otp.Totp
-import org.jboss.aerogear.security.otp.api.{Clock, Base32}
+import org.jboss.aerogear.security.otp.api.{Base32, Clock}
 
 object AuthenticationService extends Instrumented {
 
