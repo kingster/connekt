@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.dao.HbaseDao._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, THTableFactory}
 import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequestInfo, ConnektRequest}
+import com.flipkart.connekt.commons.serializers.KryoSerializer
 import com.flipkart.connekt.commons.utils.StringUtils
 
 abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) extends TRequestDao with HbaseDao {
@@ -42,7 +43,8 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
       var requestProps = Map[String, Array[Byte]](
         "id" -> requestId.getUtf8Bytes,
         "channel" -> request.channel.getUtf8Bytes,
-        "sla" -> request.sla.getUtf8Bytes
+        "sla" -> request.sla.getUtf8Bytes,
+        "meta" -> KryoSerializer.serialize(request.meta)
       )
 
       request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
@@ -94,7 +96,7 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
           channelInfo = channelReqInfo,
           channelData = channelReqData,
           channelDataModel = Option(channelReqModel).getOrElse(StringUtils.getObjectNode),
-          meta = Map[String, String]()
+          meta = fields.get("meta").map(KryoSerializer.deserialize[Map[String, String]]).getOrElse(Map.empty[String, String])
         )
       })
 
