@@ -17,6 +17,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.pool.{KryoFactory, KryoPool}
+import org.objenesis.strategy.StdInstantiatorStrategy
 
 object KryoSerializer extends Serializer {
 
@@ -24,6 +25,7 @@ object KryoSerializer extends Serializer {
     override def create(): Kryo = {
       val kryo = new Kryo()
       // configure kryo instance, customize settings
+      kryo.setInstantiatorStrategy(new StdInstantiatorStrategy())
       kryo
     }
   }
