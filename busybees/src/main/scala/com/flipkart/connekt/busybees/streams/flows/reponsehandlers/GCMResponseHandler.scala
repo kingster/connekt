@@ -32,7 +32,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
-class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)](256) with Instrumented{
+class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[HttpResponse], GCMRequestTracker)](96) with Instrumented{
 
   override val map: ((Try[HttpResponse], GCMRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => Future(profile("map") {
 
@@ -75,8 +75,8 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                         DeviceDetailsService.delete(appName, device.deviceId)
                       })
                     }
-                    ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, GCMResponseStatus.Error)
-                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, f.get("error").asText, eventTS)
+                    ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString),requestTracker.appName, GCMResponseStatus.InvalidDevice)
+                    events += PNCallbackEvent(messageId, rDeviceId, GCMResponseStatus.InvalidDevice, MobilePlatform.ANDROID, appName, requestTracker.contextId, f.get("error").asText, eventTS)
 
                   case ie if ie.has("error") && List("InternalServerError").contains(ie.get("error").asText.trim) =>
                     //TODO: Support retry.

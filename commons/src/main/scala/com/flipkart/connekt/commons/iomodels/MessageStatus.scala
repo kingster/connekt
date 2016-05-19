@@ -22,6 +22,7 @@ object MessageStatus {
     val Received = Value("gcm_received")
     val Error = Value("gcm_error")
     val InternalError = Value("gcm_internal_error")
+    val InvalidDevice = Value("gcm_invalid_device")
   }
 
   object WNSResponseStatus extends Enumeration {
