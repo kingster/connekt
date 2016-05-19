@@ -43,9 +43,8 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendDevicePush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-
-                          val request = r.copy(channel = "push", meta = headers + ("client" -> user.userId))
-                          request.validate()
+                          r.validate()
+                          val request = r.copy(channel = "push", meta = r.meta ++ (headers + ("client" -> user.userId)))
 
                           ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
 
@@ -102,9 +101,8 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendUserPush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-
-                          val request = r.copy(channel = "push", meta = Map("client" -> user.userId))
-                          request.validate()
+                          r.validate()
+                          val request = r.copy(channel = "push", meta = r.meta ++ (headers + ("client" -> user.userId)))
 
                           ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : $userId with payload: ${request.toString}")
 

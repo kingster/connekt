@@ -28,7 +28,7 @@ object CallbackRecorder extends Instrumented {
       events.foreach(e => {
         ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName.toLowerCase}${e.deviceId}", Channel.PUSH, e)
         meter(s"event.${e.eventType}").mark()
-        BigfootService.ingest(e.toBigfootFormat)
+	      BigfootService.ingest(e.toBigfootFormat)
       })
     }
   }

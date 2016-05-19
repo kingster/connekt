@@ -62,6 +62,8 @@ class CommonsBaseTest extends ConnektUTSpec {
     val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
     DaoFactory.initCouchbaseCluster(couchbaseCf)
 
+    DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
+
     val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
     DaoFactory.initSpecterSocket(specterConfig)
 
@@ -69,7 +71,10 @@ class CommonsBaseTest extends ConnektUTSpec {
     ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
     ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
+    ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
+
 
     ConnektLogger(LogFile.SERVICE).info("BaseReceptorsTest bootstrapped.")
+
   }
 }
