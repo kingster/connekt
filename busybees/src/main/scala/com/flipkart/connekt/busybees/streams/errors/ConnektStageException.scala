@@ -22,6 +22,7 @@ case class ConnektPNStageException(messageId: String,
                                    appName: String,
                                    platform: String,
                                    context: String,
+                                   meta: Map[String, Any],
                                    message: String,
                                    cause: Throwable,
                                    timeStamp: Long = System.currentTimeMillis()) extends ConnektStageException(message, cause)
