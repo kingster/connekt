@@ -16,7 +16,7 @@ import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequest
 
 trait TRequestDao extends Dao {
   def saveRequest(requestId: String, request: ConnektRequest)
-  def fetchRequest(connektId: String): Option[ConnektRequest]
+  def fetchRequest(connektIds: List[String]): List[ConnektRequest]
   def updateRequestStatus(id: String, status: ChannelRequestData)
   def fetchRequestInfo(id: String): Option[ChannelRequestInfo]
 }

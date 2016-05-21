@@ -20,6 +20,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.commons.dao.HbaseDao._
 import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.metrics.Timed
 import org.apache.commons.codec.CharEncoding
 import org.apache.hadoop.hbase.client._
@@ -31,6 +32,9 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
 trait HbaseDao extends Instrumented {
+
+  lazy val scanFetchSize:Int = ConnektConfig.get("receptors.hbase.scan-fetch-size").getOrElse("100").toInt
+  lazy val getBatchSize:Int = ConnektConfig.get("receptors.hbase.get-batch-size").getOrElse("100").toInt
 
   @throws[IOException]
   @Timed("asyncAdd")
@@ -115,13 +119,14 @@ trait HbaseDao extends Instrumented {
   @throws[IOException]
   @Timed("scan")
   def fetchRows(rowStartKeyPrefix: String, rowStopKeyPrefix: String, colFamilies: List[String], timeRange: Option[(Long, Long)] = None, maxRowLimit: Option[Int] = None)(implicit hTable: Table): Map[String, HRowData] = {
+      val scan = new Scan()
+      scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
+      scan.setStopRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
 
-    val scan = new Scan()
-    scan.setStartRow(rowStartKeyPrefix.getBytes(CharEncoding.UTF_8))
-    scan.setStopRow(rowStopKeyPrefix.getBytes(CharEncoding.UTF_8))
+      if (timeRange.isDefined)
+        scan.setTimeRange(timeRange.get._1, timeRange.get._2)
 
-    if (timeRange.isDefined)
-      scan.setTimeRange(timeRange.get._1, timeRange.get._2)
+      scan.setCaching(scanFetchSize)
 
     val resultScanner = hTable.getScanner(scan)
     try {
@@ -138,16 +143,16 @@ trait HbaseDao extends Instrumented {
   @throws[IOException]
   @Timed("mget")
   def fetchMultiRows(rowKeys: List[String], colFamilies: List[String])(implicit hTable: Table): Map[String, RowData] = {
-    val gets = ListBuffer[Get]()
-    rowKeys.map(rowKey => {
-      val get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
-      colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
-      gets += get
-    })
-    val rowResults = hTable.get(gets.toList.asJava)
-    var rowMap = Map[String,RowData]()
-    rowResults.filter(_.getRow != null).foreach(rowResult => rowMap += rowResult.getRow.getString -> getRowData(rowResult, colFamilies))
-    rowMap
+
+    rowKeys.grouped(getBatchSize).map( groupedRowKeys => {
+      val gets:List[Get] = groupedRowKeys.map((rowKey:String) => {
+        val get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
+        colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
+        get
+      })
+      val rowResults = hTable.get(gets.toList.asJava)
+      rowResults.filter(_.getRow != null).map(rowResult => rowResult.getRow.getString -> getRowData(rowResult, colFamilies)).toMap[String, RowData]
+    }).reduceOption(_ ++ _).getOrElse(Map.empty[String, RowData])
   }
 
 

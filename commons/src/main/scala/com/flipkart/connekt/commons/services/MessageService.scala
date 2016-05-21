@@ -56,7 +56,17 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
 
   override def getRequestInfo(id: String): Try[Option[ConnektRequest]] = {
     try {
-      Success(requestDao.fetchRequest(id))
+      Success(requestDao.fetchRequest(List(id)).headOption)
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error(s"Get request info failed ${e.getMessage}", e)
+        Failure(e)
+    }
+  }
+
+  override def getRequestInfo(ids: List[String]): Try[List[ConnektRequest]] = {
+    try {
+      Success(requestDao.fetchRequest(ids))
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error(s"Get request info failed ${e.getMessage}", e)

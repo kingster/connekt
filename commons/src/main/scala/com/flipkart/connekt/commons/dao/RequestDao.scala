@@ -68,42 +68,43 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
     }
   }
 
-  override def fetchRequest(connektId: String): Option[ConnektRequest] = {
+  override def fetchRequest(connektIds: List[String]): List[ConnektRequest] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val colFamiliesReqd = List("r", "c", "t")
-      val rawData = fetchRow(connektId, colFamiliesReqd)
+      val rawData:Map[String, RowData] = fetchMultiRows(connektIds, colFamiliesReqd)
 
-      val reqProps = rawData.get("r")
-      val reqChannelInfoProps = rawData.get("c")
-      val reqChannelDataProps = rawData.get("t")
+      rawData.flatMap{ case(rowKey:String,rowData:RowData )=>
+        val reqProps = rowData.get("r")
+        val reqChannelInfoProps = rowData.get("c")
+        val reqChannelDataProps = rowData.get("t")
 
-      val allProps = reqProps.flatMap[Map[String, Array[Byte]]](r => reqChannelInfoProps.map[Map[String, Array[Byte]]](m => m ++ r))
+        val allProps = reqProps.flatMap[Map[String, Array[Byte]]](r => reqChannelInfoProps.map[Map[String, Array[Byte]]](m => m ++ r))
 
-      allProps.map(fields => {
-        val channelReqInfo = reqChannelInfoProps.map(getChannelRequestInfo).orNull
-        val channelReqData = reqChannelDataProps.map(getChannelRequestData).orNull
-        val channelReqModel = reqChannelDataProps.map(getChannelRequestModel).orNull
+        allProps.map(fields => {
+          val channelReqInfo = reqChannelInfoProps.map(getChannelRequestInfo).orNull
+          val channelReqData = reqChannelDataProps.map(getChannelRequestData).orNull
+          val channelReqModel = reqChannelDataProps.map(getChannelRequestModel).orNull
 
-        ConnektRequest(
-          id = connektId,
-          contextId = Option(fields.getS("contextId")),
-          channel = fields.getS("channel"),
-          sla = fields.getS("sla"),
-          templateId = Option(fields.getS("templateId")),
-          scheduleTs = Option(fields.getL("scheduleTs")).map(_.asInstanceOf[Long]),
-          expiryTs = Option(fields.getL("expiryTs")).map(_.asInstanceOf[Long]),
-          channelInfo = channelReqInfo,
-          channelData = channelReqData,
-          channelDataModel = Option(channelReqModel).getOrElse(StringUtils.getObjectNode),
-          meta = fields.get("meta").map(KryoSerializer.deserialize[Map[String, String]]).getOrElse(Map.empty[String, String])
-        )
-      })
-
+          ConnektRequest(
+            id = rowKey,
+            contextId = Option(fields.getS("contextId")),
+            channel = fields.getS("channel"),
+            sla = fields.getS("sla"),
+            templateId = Option(fields.getS("templateId")),
+            scheduleTs = Option(fields.getL("scheduleTs")).map(_.asInstanceOf[Long]),
+            expiryTs = Option(fields.getL("expiryTs")).map(_.asInstanceOf[Long]),
+            channelInfo = channelReqInfo,
+            channelData = channelReqData,
+            channelDataModel = Option(channelReqModel).getOrElse(StringUtils.getObjectNode),
+            meta = fields.get("meta").map(KryoSerializer.deserialize[Map[String, String]]).getOrElse(Map.empty[String, String])
+          )
+        })
+      }.toList
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Fetching Request info failed for $connektId, ${e.getMessage}", e)
-        throw new IOException(s"Fetching RequestInfo failed for $connektId", e)
+        ConnektLogger(LogFile.DAO).error(s"Fetching Request info failed for $connektIds, ${e.getMessage}", e)
+        throw new IOException(s"Fetching RequestInfo failed for $connektIds", e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }

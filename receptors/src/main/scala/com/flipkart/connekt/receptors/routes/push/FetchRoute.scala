@@ -51,10 +51,10 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       //Skip all messages which are either read/dismissed or passed in skipIds
                       val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_._1.asInstanceOf[PNCallbackEvent]).filter(e => seenEventTypes.contains(e.eventType.toLowerCase)).map(_.messageId)).get.toSet
                       val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
-                        val messageIds = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
-                        val fetchedMessages = messageIds.filterNot(skipMessageIds.contains).flatMap(mId => messageService.getRequestInfo(mId).getOrElse(None))
-                        val validMessages = fetchedMessages.filter(_.expiryTs.map(t => t > System.currentTimeMillis).getOrElse(true))
-                        validMessages
+                        val messageIds:List[String] = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
+                        val filteredMessageIds:List[String] = messageIds.filterNot(skipMessageIds.contains)
+                        val fetchedMessages:Try[List[ConnektRequest]] = messageService.getRequestInfo(filteredMessageIds)
+                        fetchedMessages.map(_.filter(_.expiryTs.map(_ >= System.currentTimeMillis).getOrElse(true))).getOrElse(List.empty[ConnektRequest])
                       })
 
                       val pushRequests = messages.get.map(r => {

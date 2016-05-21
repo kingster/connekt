@@ -36,6 +36,8 @@ trait TMessageService extends TService {
 
   def getRequestInfo(id: String): Try[Option[ConnektRequest]]
 
+  def getRequestInfo(ids: List[String]): Try[List[ConnektRequest]]
+
   def addClientTopic(topicName: String, numPartitions: Int, replicationFactor: Int = 1): Try[Unit]
 
   def partitionEstimate(qpsBound: Int): Int
