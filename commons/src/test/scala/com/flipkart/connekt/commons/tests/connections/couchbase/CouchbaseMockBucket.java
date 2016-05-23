@@ -6,11 +6,9 @@ import com.couchbase.client.java.bucket.BucketManager;
 import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.JsonLongDocument;
+import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.query.Query;
-import com.couchbase.client.java.query.QueryPlan;
-import com.couchbase.client.java.query.QueryResult;
-import com.couchbase.client.java.query.Statement;
+import com.couchbase.client.java.query.*;
 import com.couchbase.client.java.util.Blocking;
 import com.couchbase.client.java.view.SpatialViewQuery;
 import com.couchbase.client.java.view.SpatialViewResult;
@@ -18,6 +16,7 @@ import com.couchbase.client.java.view.ViewQuery;
 import com.couchbase.client.java.view.ViewResult;
 import com.google.common.annotations.VisibleForTesting;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -444,7 +443,9 @@ public class CouchbaseMockBucket implements Bucket {
 
     @Override
     public QueryResult query(Query query) {
-        return null;
+      List<AsyncQueryRow> row = new ArrayList<>();
+      List<JsonObject> error = null;
+      return new DefaultQueryResult(row, null, null, error, false, false, "", "");
     }
 
     @Override

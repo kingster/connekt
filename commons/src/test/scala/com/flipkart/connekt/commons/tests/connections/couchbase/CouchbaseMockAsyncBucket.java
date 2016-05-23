@@ -297,7 +297,7 @@ public class CouchbaseMockAsyncBucket implements AsyncBucket {
 
   @Override
   public Observable<JsonLongDocument> counter(String id, long delta, long initial) {
-    return null;
+    return Observable.just(JsonLongDocument.create(id, 0, delta, initial));
   }
 
   @Override
