@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 
-class WNSResponseHandler(parallelism:Int = 10)(implicit m: Materializer, ec: ExecutionContext)  extends PNProviderResponseErrorHandler[(Try[HttpResponse], WNSRequestTracker), WNSRequestTracker] {
+class WNSResponseHandler(parallelism:Int = 96)(implicit m: Materializer, ec: ExecutionContext)  extends PNProviderResponseErrorHandler[(Try[HttpResponse], WNSRequestTracker), WNSRequestTracker] {
 
   val in = Inlet[(Try[HttpResponse], WNSRequestTracker)]("WNSResponseHandler.In")
   val out = Outlet[PNCallbackEvent]("WNSResponseHandler.Out")
