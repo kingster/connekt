@@ -49,7 +49,6 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
       reportManagerDao.counter(tagStats)
       mapCounter.retain((key, counterValue) => counterValue.get() > 0L)
       reportManagerDao.put(mapLastSeenTime.toList)
-
     }
   }
 
@@ -68,7 +67,7 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
   def recordPushStatsDelta(clientId: String, contextId: Option[String], stencilId: Option[String], platform: Option[String], appName: String, event: String, count: Int = 1): Unit = {
 
     val datePrefix = DateTimeUtils.calenderDate.print(Calendar.getInstance().getTimeInMillis) + "."
-    updateTagCounters(clientId, count, datePrefix, contextId.orNull, Channel.PUSH, stencilId.orNull)(platform.orNull, appName, event)
+    updateTagCounters(clientId, count, datePrefix, contextId.orNull, Channel.PUSH, stencilId.orNull)(platform.orNull, appName.toLowerCase, event)
     contextId.foreach(id => updateLastSeen(s"$datePrefix${clientId}.$id"))
   }
 
