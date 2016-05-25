@@ -121,14 +121,14 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     /**
      * Windows Topology
      *
-     *                                          |----------|                                      |-----------|
-     *                                          |          |                                      |   WNS     | ~> out-merger
-     * windows request -> windows-formatter  -> |    wns   |  ~> wnsHttpPrepare ~> wnsPoolFlow ~> |  RESPONSE |
-     *                                          | Payload  |                                      |  HANDLER  |
-     *                                      |~~>|   Merge  |                                      |           | ~~~~~~~|
-     *                                      |   |----------|                                      |-----------|        |
-     *                                      |                                                                          |
-     *                                      |~~~~~~~~~~~~~~~~~~~~~~~~~~~  wnsRetryMapper <~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
+     *                                          |----------|                                      |-----------|     |-----------|
+     *                                          |          |                                      |   WNS     | ~>  |   Retry   | ~>  out-merger
+     * windows request -> windows-formatter  -> |    wns   |  ~> wnsHttpPrepare ~> wnsPoolFlow ~> |  RESPONSE |     | Partition |
+     *                                          | Payload  |                                      |  HANDLER  |     |           |
+     *                                      |~~>|   Merge  |                                      |           |     |           |~~>|
+     *                                      |   |----------|                                      |-----------|     |-----------|   |
+     *                                      |                                                                                       |
+     *                                      |~~~~~~~~~~~~~~~~~~~~~~~~~~~  wnsRetryMapper <~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
      */
 
     val wnsHttpPrepare = b.add(new WNSDispatcherPrepare().flow)
@@ -139,12 +139,20 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     val fmtWindowsParallelism = ConnektConfig.getInt("topology.push.windowsFormatter.parallelism").get
     val fmtWindows = b.add(new WindowsChannelFormatter(fmtWindowsParallelism)(ioDispatcher).flow)
-    val wnsRHandler = b.add(new WNSResponseHandler()(ioMat, ec))
+    val wnsRHandler = b.add(new WNSResponseHandler()(ioMat, ec).flow)
+
+    val wnsRetryPartition = b.add(new Partition[Either[PNCallbackEvent, WNSRequestTracker]](2, {
+      case Left(pnCallback) =>
+        0
+      case Right(wnsRequest) =>
+        1
+    }))
 
     platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge
-                                                                  wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler.in
-                                                wnsPayloadMerge.preferred <~ wnsRetryMapper <~ wnsRHandler.out1
-    wnsRHandler.out0 ~> merger.in(2)
+                                                                  wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler ~> wnsRetryPartition.in
+    wnsRetryPartition.out(1).map(_.right.get) ~> wnsRetryMapper ~> wnsPayloadMerge.preferred
+
+    wnsRetryPartition.out(0).map(_.left.get) ~> merger.in(2)
 
 
     /**
