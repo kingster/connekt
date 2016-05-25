@@ -30,7 +30,7 @@ object LoggerFactoryConfigurator {
   }
 
   def shutdownLog4j2() = {
-    val context: LoggerContext = LogManager.getContext.asInstanceOf[LoggerContext]
+    val context: LoggerContext = LogManager.getContext(false).asInstanceOf[LoggerContext]
     Configurator.shutdown(context)
   }
 }
