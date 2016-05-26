@@ -101,10 +101,10 @@ class WindowsTopologyTest extends TopologyUTSpec {
         val pipe = b.add(poolClientFlow)
         val responseHandler = b.add(new WNSResponseHandler().flow)
 
-        val wnsRetryPartition = b.add(new Partition[Either[PNCallbackEvent, WNSRequestTracker]](2, {
-          case Left(pnCallback) =>
+        val wnsRetryPartition = b.add(new Partition[Either[WNSRequestTracker, PNCallbackEvent]](2, {
+          case Right(pnCallback) =>
             0
-          case Right(wnsRequest) =>
+          case Left(wnsRequest) =>
             1
         }))
 
@@ -116,8 +116,8 @@ class WindowsTopologyTest extends TopologyUTSpec {
         Source(List(cRequest, cRequest)) ~> render ~> formatter ~>  pipeInletMerge
 
         pipeInletMerge.out ~> dispatcher  ~> pipe ~> responseHandler ~> wnsRetryPartition.in
-        wnsRetryPartition.out(1).map(_.right.get) ~> retryMapper ~> pipeInletMerge.preferred
-        wnsRetryPartition.out(0).map(_.left.get) ~> out
+        wnsRetryPartition.out(1).map(_.left.get) ~> retryMapper ~> pipeInletMerge.preferred
+        wnsRetryPartition.out(0).map(_.right.get) ~> out
 
 
         ClosedShape
