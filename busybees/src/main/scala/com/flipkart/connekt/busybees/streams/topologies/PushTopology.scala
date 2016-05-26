@@ -142,10 +142,8 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsRHandler = b.add(new WNSResponseHandler()(ioMat, ec).flow)
 
     val wnsRetryPartition = b.add(new Partition[Either[WNSRequestTracker, PNCallbackEvent]](2, {
-      case Right(pnCallback) =>
-        0
-      case Left(wnsRequest) =>
-        1
+      case Right(pnCallback) => 0
+      case Left(wnsTracker) => 1
     }))
 
     platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge

@@ -102,10 +102,8 @@ class WindowsTopologyTest extends TopologyUTSpec {
         val responseHandler = b.add(new WNSResponseHandler().flow)
 
         val wnsRetryPartition = b.add(new Partition[Either[WNSRequestTracker, PNCallbackEvent]](2, {
-          case Right(pnCallback) =>
-            0
-          case Left(wnsRequest) =>
-            1
+          case Right(pnCallback) => 0
+          case Left(wnsTracker) => 1
         }))
 
         val retryMapper = b.add(Flow[WNSRequestTracker].map(t => {
