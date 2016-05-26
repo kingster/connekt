@@ -1,0 +1,101 @@
+topology_name: bigfoot_relay_dart_fkint_cp_ca_common_pncallbackevent
+type: kafka-to-sink-pipeline
+retry_identifier: bigfoot_relay_dart_fkint_cp_ca_common_pncallbackevent
+
+enable_reconciliation: true
+reconciliation_config:
+    redis_host: 10.32.233.183
+    redis_port: 6379
+
+storm_properties:
+    topology.max.spout.pending: 1
+    nimbus.task.timeout.secs: 240
+    supervisor.worker.timeout.secs: 240
+    topology.message.timeout.secs: 180
+
+spout:
+    name: LS-fkint-mp-connket-pn-callback-realtime-fact-Spout
+    topic: fb.dart.fkint.cp.ca_common.PNCallbackEvent
+    parallelism_hint: 1
+    num_instances: 1
+    poll_interval_ms: 5000
+    zk_hosts:
+        - "10.32.89.93:2181"
+        - "10.32.153.71:2181"
+        - "10.32.173.51:2181"
+        - "10.33.245.240:2181"
+        - "10.32.189.5:2181/prod-fdpingestion-kafka-j"
+    start_offset: -1
+
+transformation_bolt:
+    name: Transformation-bolt
+    type: transformation-bolt
+    parallelism_hint: 6
+    filter_expression: |
+      deviceId_defined = False
+      messageId_defined = False
+      if data['parent']['data']['visit'].get('userAgent') is not None:
+        if data['parent']['data']['visit']['userAgent'].get('deviceInfo') is not None:
+          if data['parent']['data']['visit']['userAgent']['deviceInfo']['deviceId'] is not None:
+            deviceId_defined = True
+      if data['parent']['data'] is not None:
+        if data['parent']['data']['messageId'] is not None:
+          messageId_defined = True
+      if deviceId_defined == True or messageId_defined == True:
+        result=True
+    schema_map:
+        name:
+            column_definition: PNCallbackEvent
+            column_type: java.lang.String
+        payload:
+            column_definition: |
+              from com.flipkart.bigfoot.fireball.transformation.utils import JsonUtils
+              from java.util import Date
+              from java.text import SimpleDateFormat
+              intermediaryResult = {}
+              if data['parent']['data']['visit'].get('userAgent') is not None:
+                if data['parent']['data']['visit']['userAgent'].get('appInfo') is not None:
+                  intermediaryResult['appName'] = "RetailApp" if data['parent']['data']['visit']['userAgent']['appInfo']['type'] == "Retail" else data['parent']['data']['visit']['userAgent']['appInfo']['type']
+              if data['data']['contextId'] is not None:
+                intermediaryResult['contextId'] = data['data']['contextId']
+              if data['parent']['data']['visit'].get('userAgent') is not None:
+                if data['parent']['data']['visit']['userAgent'].get('osInfo') is not None:
+                  intermediaryResult['platform'] = data['parent']['data']['visit']['userAgent']['osInfo']['family']
+              intermediaryResult['messageId'] = data['data']['messageId']
+              intermediaryResult['eventType'] = data['data']['eventType']
+              intermediaryResult['deviceId'] = data['parent']['data']['visit']['userAgent']['deviceInfo']['deviceId']
+              sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+              ts = Date(data['eventTime'])
+              intermediaryResult['timestamp'] = sdf.format(ts)
+              result = JsonUtils.EVENT.toJson(intermediaryResult)
+            column_type: java.lang.String
+sink_bolt:
+    name: Kafka-bolt
+    type: kafka-bolt
+    parallelism_hint: 24
+    topic_name: bro_bigfoot
+    zk_hosts:
+        - "10.32.197.54:2181,10.32.165.183:2181,10.32.237.188:2181/kafka/cluster1"
+    producer_type: sync
+    request_required_acks: 2
+    serializer_class: kafka.serializer.DefaultEncoder
+    compression_codec: snappy
+    connect_timeout_ms: 30000
+    socket_timeout_ms: 120000
+    storage_batch_size: 15
+kafka_bolt:
+    name: Kafka-bolt
+    type: kafka-bolt
+    parallelism_hint: 4
+    zk_hosts:
+        - "10.32.185.202:2181"
+        - "10.32.41.70:2181"
+        - "10.32.45.164:2181/prod-fdpflow-kafka-b"
+    producer_type: sync
+    request_required_acks: 2
+    serializer_class: kafka.serializer.DefaultEncoder
+    partitioner_class: com.flipkart.bigfoot.fireball.engine.pipeline.bolt.utils.RetryKafkaPartitioner
+    compression_codec: snappy
+    connect_timeout_ms: 30000
+    socket_timeout_ms: 120000
+    storage_batch_size: 10
