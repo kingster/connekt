@@ -26,7 +26,6 @@ import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent, WNSPayloadEnvelope}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
-import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 class WindowsTopologyTest extends TopologyUTSpec {
@@ -100,7 +99,14 @@ class WindowsTopologyTest extends TopologyUTSpec {
         val pipeInletMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
 
         val pipe = b.add(poolClientFlow)
-        val responseHandler = b.add(new WNSResponseHandler())
+        val responseHandler = b.add(new WNSResponseHandler().flow)
+
+        val wnsRetryPartition = b.add(new Partition[Either[PNCallbackEvent, WNSRequestTracker]](2, {
+          case Left(pnCallback) =>
+            0
+          case Right(wnsRequest) =>
+            1
+        }))
 
         val retryMapper = b.add(Flow[WNSRequestTracker].map(t => {
           ConnektLogger(LogFile.PROCESSORS).error("retryMapper" + t)
@@ -109,10 +115,10 @@ class WindowsTopologyTest extends TopologyUTSpec {
 
         Source(List(cRequest, cRequest)) ~> render ~> formatter ~>  pipeInletMerge
 
-        pipeInletMerge.out ~> dispatcher  ~> pipe ~> responseHandler.in
+        pipeInletMerge.out ~> dispatcher  ~> pipe ~> responseHandler ~> wnsRetryPartition.in
+        wnsRetryPartition.out(1).map(_.right.get) ~> retryMapper ~> pipeInletMerge.preferred
+        wnsRetryPartition.out(0).map(_.left.get) ~> out
 
-        responseHandler.out1 ~> retryMapper ~> pipeInletMerge.preferred
-        responseHandler.out0 ~> out
 
         ClosedShape
     }
