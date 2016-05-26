@@ -9,7 +9,7 @@ libraryDependencies ++= Seq(
   "org.isomorphism" % "token-bucket" % "1.6" excludeAll ExclusionRule("com.google.guava", "guava"),
 
   /** apns using pushy,  **/
-  "com.relayrides" % "pushy" % "0.7.2",
+  "com.relayrides" % "pushy" % "0.7.2" excludeAll ExclusionRule("io.netty"),
   "io.netty" % "netty-tcnative-openssl102" % "1.1.33.Fork14" classifier "linux-x86_64",
   "io.netty" % "netty-tcnative" % "1.1.33.Fork14" classifier "osx-x86_64",
   "org.eclipse.jetty.alpn" % "alpn-api" % "1.1.2.v20150522"
