@@ -33,12 +33,12 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
   val in = Inlet[(Try[HttpResponse], WNSRequestTracker)]("WNSResponseHandler.In")
   val out = Outlet[Try[Either[PNCallbackEvent, WNSResponseHandler]]]("WNSResponseHandler.Out")
 
-  override val map: ((Try[HttpResponse], WNSRequestTracker)) => Future[List[Either[PNCallbackEvent, WNSRequestTracker]]] = responseTrackerPair => Future(profile("map") {
+  override val map: ((Try[HttpResponse], WNSRequestTracker)) => Future[List[Either[WNSRequestTracker, PNCallbackEvent]]] = responseTrackerPair => Future(profile("map") {
     handleWNSResponse(responseTrackerPair._1, responseTrackerPair._2) match {
       case Some(pnCallback) =>
-        List(Left(pnCallback))
+        List(Right(pnCallback))
       case None =>
-        List(Right(responseTrackerPair._2))
+        List(Left(responseTrackerPair._2))
     }
   })
 

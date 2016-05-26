@@ -17,7 +17,7 @@ import com.flipkart.connekt.commons.iomodels.{EmailCallbackEvent, PNCallbackEven
 
 trait ProviderResponseHandler
 
-abstract class PNProviderResponseErrorHandler[I, O1](parallelism:Int = 128) extends  MapAsyncFlowStage[I, Either[PNCallbackEvent, O1]](parallelism) with ProviderResponseHandler
+abstract class PNProviderResponseErrorHandler[I, O1](parallelism:Int = 128) extends  MapAsyncFlowStage[I, Either[O1, PNCallbackEvent]](parallelism) with ProviderResponseHandler
 
 abstract class PNProviderResponseHandler[I](parallelism:Int = 128) extends MapAsyncFlowStage[I, PNCallbackEvent](parallelism) with ProviderResponseHandler
 
