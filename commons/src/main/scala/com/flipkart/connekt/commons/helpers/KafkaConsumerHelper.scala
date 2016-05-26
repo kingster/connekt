@@ -17,6 +17,8 @@ import java.util.NoSuchElementException
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.typesafe.config.Config
 import kafka.consumer.{ConsumerConnector, KafkaStream}
+import kafka.utils.{ZKGroupTopicDirs, ZKStringSerializer, ZkUtils}
+import org.I0Itec.zkclient.ZkClient
 import org.apache.commons.pool.impl.GenericObjectPool
 
 import scala.util.control.NonFatal
@@ -24,6 +26,7 @@ import scala.util.{Failure, Success, Try}
 
 trait KafkaConsumer {
   def readMessage(topic: String): Option[String]
+  def offsets(topic: String): Map[Int, (Long, String)]
 }
 
 class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Config) extends KafkaConnectionHelper with GenericObjectPoolHelper {
@@ -31,6 +34,8 @@ class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Co
   validatePoolProps("kafka consumer pool", globalContextConf)
 
   override def zkPath(): String = consumerFactoryConf.getString("zookeeper.connect")
+
+  def groupId(): String = consumerFactoryConf.getString("group.id")
 
   val kafkaConsumerPool: GenericObjectPool[ConsumerConnector] = {
     try {
@@ -85,6 +90,22 @@ class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Co
     }
     None
   }
+
+  def offsets(topic: String): Map[Int, (Long, String)] = {
+    val zkClient = new ZkClient(zkPath(), 5000, 5000, ZKStringSerializer)
+    val partitions = ZkUtils.getPartitionsForTopics(zkClient, List(topic))
+
+    partitions.flatMap(topicAndPart => {
+      val topicDirs = new ZKGroupTopicDirs(groupId(), topic)
+      topicAndPart._2.map(partitionId => {
+        val zkPath = s"${topicDirs.consumerOffsetDir}/$partitionId"
+        val ownerPath = s"${topicDirs.consumerOwnerDir}/$partitionId"
+        val owner = ZkUtils.readDataMaybeNull(zkClient, ownerPath)._1.getOrElse("No owner")
+        val checkPoint = ZkUtils.readDataMaybeNull(zkClient, zkPath)._1.map(_.toLong).getOrElse(0L)
+        partitionId -> (checkPoint, owner)
+      })
+    }).toMap
+  }
 }
 
 object KafkaConsumerHelper extends KafkaConsumer {
@@ -103,4 +124,5 @@ object KafkaConsumerHelper extends KafkaConsumer {
 
   def readMessage(topic: String): Option[String] = instance.readMessage(topic)
 
+  override def offsets(topic: String): Map[Int, (Long, String)] = instance.offsets(topic)
 }
