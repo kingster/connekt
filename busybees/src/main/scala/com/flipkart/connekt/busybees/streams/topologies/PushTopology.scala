@@ -142,17 +142,14 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsRHandler = b.add(new WNSResponseHandler()(ioMat, ec).flow)
 
     val wnsRetryPartition = b.add(new Partition[Either[WNSRequestTracker, PNCallbackEvent]](2, {
-      case Right(pnCallback) => 0
-      case Left(wnsTracker) => 1
+      case Right(_) => 0
+      case Left(_) => 1
     }))
 
     platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge
-                                                                  wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler ~> wnsRetryPartition.in
-    wnsRetryPartition.out(1).map(_.left.get) ~> wnsRetryMapper ~> wnsPayloadMerge.preferred
-
-    wnsRetryPartition.out(0).map(_.right.get) ~> merger.in(2)
-
-
+                                                wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler ~> wnsRetryPartition.in
+                                                                                                                        wnsRetryPartition.out(0).map(_.right.get) ~> merger.in(2)
+                                                wnsPayloadMerge.preferred <~ wnsRetryMapper <~ wnsRetryPartition.out(1).map(_.left.get).outlet
     /**
      * OpenWeb only chrome support without data for now
      * TODO: Add data support
