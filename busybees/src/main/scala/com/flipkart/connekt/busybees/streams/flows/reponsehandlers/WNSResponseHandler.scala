@@ -14,79 +14,33 @@ package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream._
-import akka.stream.stage.{GraphStageLogic, InHandler, OutHandler}
 import com.flipkart.connekt.busybees.models.WNSRequestTracker
 import com.flipkart.connekt.busybees.utils.HttpUtils._
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.{InternalStatus, WNSResponseStatus}
-import com.flipkart.connekt.commons.iomodels.{MessageStatus, PNCallbackEvent}
+import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.services.{DeviceDetailsService, WindowsOAuthService}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import scala.concurrent.ExecutionContext
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 
 class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseErrorHandler[(Try[HttpResponse], WNSRequestTracker), WNSRequestTracker] {
 
   val in = Inlet[(Try[HttpResponse], WNSRequestTracker)]("WNSResponseHandler.In")
-  val out = Outlet[PNCallbackEvent]("WNSResponseHandler.Out")
-  val error = Outlet[WNSRequestTracker]("WNSResponseHandler.Error")
+  val out = Outlet[Try[Either[PNCallbackEvent, WNSResponseHandler]]]("WNSResponseHandler.Out")
 
-  override def shape = new FanOutShape2(in, out, error)
-
-  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-
-    setHandler(in, new InHandler {
-
-      override def onPush(): Unit = {
-        val wnsResponse = grab(in)
-        ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler received: ${wnsResponse._2.requestId}")
-
-        try {
-          handleWNSResponse(wnsResponse._1, wnsResponse._2) match {
-            case Some(pnCallbackEvent) =>
-              if (isAvailable(out)) {
-                push[PNCallbackEvent](out, pnCallbackEvent)
-                ConnektLogger(LogFile.PROCESSORS).trace(s"WNSResponseHandler pushed downstream for: ${wnsResponse._2.requestId}")
-              }
-            case None =>
-              if (isAvailable(error))
-                push[WNSRequestTracker](error, wnsResponse._2)
-          }
-
-        } catch {
-          case e: Throwable =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler error", e)
-            if (!hasBeenPulled(in)) {
-              pull(in)
-              ConnektLogger(LogFile.PROCESSORS).trace(s"WNSResponseHandler pulled upstream for: ${wnsResponse._2.requestId}")
-            }
-
-            PNCallbackEvent(wnsResponse._2.requestId, wnsResponse._2.request.deviceId, InternalStatus.WnsResponseHandleError, MobilePlatform.WINDOWS, wnsResponse._2.request.appName, wnsResponse._2.request.contextId, e.getMessage).persist
-        }
-      }
-    })
-
-    setHandler(out, new OutHandler {
-      override def onPull(): Unit = {
-        if (!hasBeenPulled(in)) {
-          pull(in)
-          ConnektLogger(LogFile.PROCESSORS).trace(s"WNSResponseHandler pulled upstream on downstream.out pull")
-        }
-      }
-    })
-
-    setHandler(error, new OutHandler {
-      override def onPull(): Unit = {
-        if (!hasBeenPulled(in)) {
-          pull(in)
-          ConnektLogger(LogFile.PROCESSORS).trace(s"WNSResponseHandler pulled upstream on downstream.error pull")
-        }
-      }
-    })
-  }
+  override val map: ((Try[HttpResponse], WNSRequestTracker)) => Future[List[Either[WNSRequestTracker, PNCallbackEvent]]] = responseTrackerPair => Future(profile("map") {
+    handleWNSResponse(responseTrackerPair._1, responseTrackerPair._2) match {
+      case Some(pnCallback) =>
+        List(Right(pnCallback))
+      case None =>
+        List(Left(responseTrackerPair._2))
+    }
+  })
 
   private def handleWNSResponse(tryResponse: Try[HttpResponse], requestTracker: WNSRequestTracker): Option[PNCallbackEvent] = {
 
