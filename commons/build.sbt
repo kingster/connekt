@@ -97,4 +97,8 @@ test in assembly := {}
 
 parallelExecution in Test := false
 
+assemblyExcludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+  cp filter {_.data.getName == "bcprov-jdk15on-1.54.jar"}
+}
+
 assemblyMergeStrategy in assembly := AppBuild.mergeStrategy

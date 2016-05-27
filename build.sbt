@@ -15,7 +15,7 @@ assemblyJarName in assembly := "fk-pf-connekt.jar"
 
 /** god knows why sbt requires this again here */
 assemblyExcludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
-  cp filter {_.data.getName == "netty-tcnative-1.1.33.Fork14-osx-x86_64.jar"}
+  cp filter { e => e.data.getName == "netty-tcnative-1.1.33.Fork14-osx-x86_64.jar" || e.data.getName == "bcprov-jdk15on-1.54.jar" }
 }
 
 assemblyMergeStrategy in assembly :=  AppBuild.mergeStrategy
