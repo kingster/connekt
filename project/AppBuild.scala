@@ -86,6 +86,20 @@ object AppBuild extends Build  {
     }.taskValue
   )
 
+  lazy val generateLibraries = TaskKey[Unit]("pack")
+
+  def generateLibsTask = generateLibraries <<= (update, crossTarget, scalaVersion) map {
+    (updateReport, out, scalaVer) =>
+      updateReport.allFiles foreach {
+        srcPath =>
+          if(srcPath.getName == "bcprov-jdk15on-1.54.jar") {
+            println("Adding BountyCastle lib...")
+            val destPath = out / "libs" / srcPath.getName
+            IO.copyFile(srcPath, destPath, preserveLastModified = true)
+          }
+      }
+  }
+
   lazy val buildInfoGenerator = Seq(
     sourceGenerators in Compile <+= buildInfo,
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, baseDirectory),
@@ -96,6 +110,7 @@ object AppBuild extends Build  {
     Project("root", file("."))
       .enablePlugins(SonarRunnerPlugin)
       .settings(_commonSettings ++ Seq(
+        generateLibsTask,
         publishArtifact := false,
         sonarRunnerOptions := Seq("-e")
       ): _*)
