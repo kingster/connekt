@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
@@ -9,7 +21,7 @@ import flipkart.cp.convert.chronosQ.core.impl.{MurmurHashPartioner, SecondGroupe
 import flipkart.cp.convert.chronosQ.impl.hbase.HbaseSchedulerStore
 import org.apache.hadoop.hbase.client.Connection
 
-class SchedulerService( hConnection:Connection) {
+class SchedulerService( hConnection:Connection) extends TService {
 
   private[commons] val delimiter = "$"
 
