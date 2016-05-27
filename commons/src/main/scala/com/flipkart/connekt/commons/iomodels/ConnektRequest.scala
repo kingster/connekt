@@ -40,5 +40,6 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
     require(contextId.map(_.hasOnlyAllowedChars).getOrElse(true), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
     require(sla.isDefined, "`sla` field can cannot be null or empty.")
     require(meta != null, "`meta` field cannot be null. It is optional but non-null")
+    require(channelInfo != null, "`channelInfo` field cannot be null.")
   }
 }
