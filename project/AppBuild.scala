@@ -93,6 +93,7 @@ object AppBuild extends Build  {
       updateReport.allFiles foreach {
         srcPath =>
           if(srcPath.getName == "bcprov-jdk15on-1.54.jar") {
+            println("Adding BountyCastle lib...")
             val destPath = out / "libs" / srcPath.getName
             IO.copyFile(srcPath, destPath, preserveLastModified = true)
           }
