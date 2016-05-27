@@ -95,12 +95,15 @@ echo "SBT Creating Libs..."
 
 echo "SBT Libs Generated"
 
+ls -ltrh  "$TARGET_LIBS_DIR"
+
 echo
 
 echo "Creating package directory...."
 
 #assemble files
 mkdir -p "${APP_BUILD_DIR}"
+mkdir -p "${APP_BUILD_DIR}/jars/"
 mv "${APP_BUILD_BINARY}" "${APP_BUILD_DIR}"
 cp -r "${TARGET_LIBS_DIR}/*.jar" "${APP_BUILD_DIR}/jars/"
 
