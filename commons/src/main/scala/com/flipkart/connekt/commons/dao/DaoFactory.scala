@@ -46,6 +46,8 @@ object DaoFactory {
     hTableFactory
   }
 
+  def getHTableFactory = hTableFactory
+
   def shutdownHTableDaoFactory() = {
     daoMap.values.foreach(_.close())
     Option(hTableFactory).foreach(_.shutdown())
