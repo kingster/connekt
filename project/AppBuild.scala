@@ -145,16 +145,18 @@ object AppBuild extends Build  {
       xs.map(_.toLowerCase) match {
         case ("manifest.mf" :: Nil) | ("index.list" :: Nil) | ("dependencies" :: Nil) =>
           MergeStrategy.discard
-        case ps@(x :: xs) if ps.last.endsWith(".sf") || ps.last.endsWith(".dsa") || ps.last.endsWith(".rsa") || ps.last.endsWith("pom.properties") =>
+        case ps@(x :: other) if ps.last.endsWith(".sf") || ps.last.endsWith(".dsa") || ps.last.endsWith(".rsa") || ps.last.endsWith("pom.properties") =>
           MergeStrategy.discard
-        case "plexus" :: xs =>
+        case "plexus" :: other =>
           MergeStrategy.discard
-        case "services" :: xs =>
+        case "services" :: other =>
           MergeStrategy.filterDistinctLines
         case ("spring.schemas" :: Nil) | ("spring.handlers" :: Nil) =>
           MergeStrategy.filterDistinctLines
-        case ps@(x :: xs) if ps.last.endsWith("jersey-module-version") || ps.last.endsWith("pom.xml") =>
+        case ps@(x :: other) if ps.last.endsWith("jersey-module-version") || ps.last.endsWith("pom.xml") =>
           MergeStrategy.last
+        case ps@(x :: other) if ps.last.endsWith("RSA") ||  ps.last.endsWith("SF") || ps.last.endsWith("DSA") =>
+            MergeStrategy.discard
         case _ =>
           // Go to hell
           //MergeStrategy.deduplicate
