@@ -22,7 +22,6 @@ import com.flipkart.connekt.busybees.streams.ConnektTopology
 import com.flipkart.connekt.busybees.streams.flows.dispatchers._
 import com.flipkart.connekt.busybees.streams.flows.eventcreators.PNBigfootEventCreator
 import com.flipkart.connekt.busybees.streams.flows.formaters._
-import com.flipkart.connekt.busybees.streams.flows.partitioner.OpenWebProviderPartitioner
 import com.flipkart.connekt.busybees.streams.flows.profilers.TimedFlowOps._
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers._
 import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
@@ -33,6 +32,7 @@ import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
+
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
 
@@ -48,7 +48,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   var sourceSwitches: List[Promise[String]] = _
 
-  override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create(){ implicit b =>
+  override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
 
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
@@ -56,7 +56,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val merge = b.add(Merge[ConnektRequest](topics.size))
     val handles = ListBuffer[Promise[String]]()
 
-    for(portNum <- 0 to merge.n - 1) {
+    for (portNum <- 0 to merge.n - 1) {
       val p = Promise[String]()
       new KafkaSource[ConnektRequest](consumer, topic = topics(portNum))(p.future) ~> merge.in(portNum)
       handles += p
@@ -67,7 +67,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     SourceShape(merge.out)
   })
 
-  override def transform = Flow.fromGraph(GraphDSL.create(){ implicit  b =>
+  override def transform = Flow.fromGraph(GraphDSL.create() { implicit b =>
 
     val render = b.add(new RenderFlow().flow)
     val merger = b.add(Merge[PNCallbackEvent](4))
@@ -135,10 +135,11 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow.timedAs("wnsRTT"))
 
     val wnsPayloadMerge = b.add(MergePreferred[WNSPayloadEnvelope](1))
-    val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request)/*.buffer(10, OverflowStrategy.backpressure)*/)
+    val wnsRetryMapper = b.add(Flow[WNSRequestTracker].map(_.request) /*.buffer(10, OverflowStrategy.backpressure)*/)
 
     val fmtWindowsParallelism = ConnektConfig.getInt("topology.push.windowsFormatter.parallelism").get
     val fmtWindows = b.add(new WindowsChannelFormatter(fmtWindowsParallelism)(ioDispatcher).flow)
+
     val wnsRHandler = b.add(new WNSResponseHandler()(ioMat, ec).flow)
 
     val wnsRetryPartition = b.add(new Partition[Either[WNSRequestTracker, PNCallbackEvent]](2, {
@@ -151,33 +152,22 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
                                                                                                                         wnsRetryPartition.out(0).map(_.right.get) ~> merger.in(2)
                                                 wnsPayloadMerge.preferred <~ wnsRetryMapper <~ wnsRetryPartition.out(1).map(_.left.get).outlet
     /**
-     * OpenWeb only chrome support without data for now
-     * TODO: Add data support
+     * OpenWeb Topology
      */
-
     val fmtOpenWebParallelism = ConnektConfig.getInt("topology.push.openwebFormatter.parallelism").get
     val fmtOpenWeb = b.add(new OpenWebChannelFormatter(fmtOpenWebParallelism)(ioDispatcher).flow)
-    val openWebProviderPart = b.add(new OpenWebProviderPartitioner)
-    val openWebMerger = b.add(Merge[PNCallbackEvent](2))
 
-    //providers
-    val openWebGenericProvider = b.add(HttpDispatcher.openWebStandardClientFlow)
+    //providers [standard]
+    val openWebHttpPrepare = b.add(new OpenWebDispatcherPrepare().flow)
+    val openWebPoolFlow = b.add(HttpDispatcher.openWebPoolClientFlow.timedAs("openWebRTT"))
+    val openWebResponseHandle = b.add(new OpenWebResponseHandler().flow)
 
-    //gcm provider for openweb
-    val gcmHttpPrepare2 = b.add(new GCMDispatcherPrepare().flow)
-    val gcmPoolFlow2 = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("openWebGoogleRTT"))
-    val gcmResponseHandle2 = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
-
-    platformPartition.out(3) ~> fmtOpenWeb ~> openWebProviderPart.in
-                                              openWebProviderPart.out0 ~> gcmHttpPrepare2 ~> gcmPoolFlow2 ~> gcmResponseHandle2 ~> openWebMerger.in(0)
-                                              openWebProviderPart.out1 ~> openWebGenericProvider ~> openWebMerger.in(1)
-
-    openWebMerger.out ~>  merger.in(3)
+    platformPartition.out(3) ~> fmtOpenWeb ~> openWebHttpPrepare ~> openWebPoolFlow ~> openWebResponseHandle ~> merger.in(3)
 
     FlowShape(render.in, merger.out)
   })
 
-  override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create(){ implicit b =>
+  override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create() { implicit b =>
 
     val evtCreator = b.add(new PNBigfootEventCreator)
     val metrics = b.add(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH).flow)

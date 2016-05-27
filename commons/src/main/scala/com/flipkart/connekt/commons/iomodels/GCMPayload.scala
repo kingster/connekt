@@ -18,18 +18,10 @@ abstract class GCMPayload
 
 abstract class PayloadEnvelope
 
-trait OpenWebPayload
-
 case class GCMPNPayload(registration_ids: Seq[String],
                         @JsonInclude(JsonInclude.Include.NON_NULL) delay_while_idle: Option[Boolean],
                         data: Any,
                         @JsonInclude(JsonInclude.Include.NON_NULL) time_to_live: Option[Long] = None,
                         @JsonInclude(JsonInclude.Include.NON_NULL) dry_run: Option[Boolean] = None) extends GCMPayload
 
-case class OpenWebGCMPayload(registration_ids: Seq[String],
-                             @JsonInclude(JsonInclude.Include.NON_NULL) raw_data: Option[String] = None,
-                             @JsonInclude(JsonInclude.Include.NON_NULL) dry_run: Option[Boolean] = None) extends GCMPayload with OpenWebPayload
-
-case class GCMPayloadEnvelope(messageId: String, deviceId: Seq[String], appName: String, contextId:String, gcmPayload: GCMPayload, meta: Map[String, Any]) extends PayloadEnvelope
-
-case class OpenWebPayloadEnvelope(messageId: String, deviceId: Seq[String], appName: String, contextId:String, provider:String, payload: OpenWebPayload)  extends PayloadEnvelope
+case class GCMPayloadEnvelope(messageId: String, deviceId: Seq[String], appName: String, contextId: String, gcmPayload: GCMPayload, meta: Map[String, Any], headers: Map[String, String] = Map.empty[String, String]) extends PayloadEnvelope
