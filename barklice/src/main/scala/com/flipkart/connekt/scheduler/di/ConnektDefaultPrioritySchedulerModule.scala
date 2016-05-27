@@ -40,15 +40,14 @@ class ConnektDefaultPrioritySchedulerModule extends ConnektSchedulerModule {
     //Increasing partitions is not issue but for decreasing we need to move scheduled entry in higher partitions to new partition distribution
     NUM_PARTITIONS = ConnektConfig.getInt("scheduler.priority.low.partitions").getOrElse(96)
     bind(classOf[TaskList]).toInstance(new TaskList {
+
       private val list: util.ArrayList[String] = {
         val initialList = new util.ArrayList[String](NUM_PARTITIONS)
         (0 to NUM_PARTITIONS - 1).foreach(i => initialList.add(i.toString))
         initialList
       }
 
-      def getTaskNames: util.ArrayList[String] = {
-        list
-      }
+      def getTaskNames: util.ArrayList[String] = list
     })
   }
 
