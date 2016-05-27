@@ -105,7 +105,7 @@ echo "Creating package directory...."
 mkdir -p "${APP_BUILD_DIR}"
 mkdir -p "${APP_BUILD_DIR}/jars/"
 mv "${APP_BUILD_BINARY}" "${APP_BUILD_DIR}"
-cp -r "${TARGET_LIBS_DIR}/*.jar" "${APP_BUILD_DIR}/jars/"
+cp -r ${TARGET_LIBS_DIR}/*.jar "${APP_BUILD_DIR}/jars/"
 
 #Switch back to previous directory after build
 cd "${CUR_SAVE_PWD}"
