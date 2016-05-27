@@ -64,6 +64,7 @@ DEPLOY_ALT_DIR="$BUILD_DIR/deploy-alt"
 DEB_DIR="$LOCAL_DIR/deb"
 
 TARGET_DIR="${LOCAL_DIR}/target"
+TARGET_LIBS_DIR="${LOCAL_DIR}/target/libs"
 APP_BUILD_DIR="${TARGET_DIR}/${PACKAGE}"
 APP_BUILD_BINARY="${TARGET_DIR}/${PACKAGE}.jar"
 
@@ -88,20 +89,23 @@ echo "Assembling...."
 
 echo "SBT Build complete..."
 
-### Create Libs ####
-wget https://jcenter.bintray.com/org/bouncycastle/bcprov-jdk15on/1.54/bcprov-jdk15on-1.54.jar -O $DEPLOY_DIR/var/lib/${PACKAGE}/jars/bcprov-jdk15on-1.54.jar
+echo "SBT Creating Libs..."
 
+./sbt pack
+
+echo "SBT Libs Generated"
 
 echo
+
 echo "Creating package directory...."
 
 #assemble files
 mkdir -p "${APP_BUILD_DIR}"
 mv "${APP_BUILD_BINARY}" "${APP_BUILD_DIR}"
+cp -r "${TARGET_LIBS_DIR}/*.jar" "${APP_BUILD_DIR}/jars/"
 
 #Switch back to previous directory after build
 cd "${CUR_SAVE_PWD}"
-
 
 # setup
 mkdir -p "$DEB_DIR"
