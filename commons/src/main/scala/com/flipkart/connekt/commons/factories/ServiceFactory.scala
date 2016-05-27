@@ -15,6 +15,7 @@ package com.flipkart.connekt.commons.factories
 import com.flipkart.connekt.commons.dao._
 import com.flipkart.connekt.commons.helpers.{KafkaConsumerHelper, KafkaProducerHelper}
 import com.flipkart.connekt.commons.services.{KeyChainService, _}
+import org.apache.hadoop.hbase.client.Connection
 
 object ServiceFactory {
 
@@ -43,6 +44,13 @@ object ServiceFactory {
     serviceCache += ServiceType.STATS_REPORTING -> instance
   }
 
+  def initSchedulerService(hConnection: Connection): Unit ={
+    val instance = new SchedulerService(hConnection)
+    serviceCache += ServiceType.SCHEDULER -> instance
+  }
+
+  def getSchedulerService = serviceCache(ServiceType.SCHEDULER).asInstanceOf[SchedulerService]
+
   def getPNMessageService = serviceCache(ServiceType.PN_MESSAGE).asInstanceOf[TMessageService]
 
   def getCallbackService = serviceCache(ServiceType.CALLBACK).asInstanceOf[TCallbackService]
@@ -58,5 +66,5 @@ object ServiceFactory {
 }
 
 object ServiceType extends Enumeration {
-  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING = Value
+  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING, SCHEDULER = Value
 }

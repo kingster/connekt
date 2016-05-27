@@ -47,7 +47,7 @@ object ReceptorsBoot extends BaseApp {
       DaoFactory.setUpConnectionProvider(new ConnectionProvider())
 
       val hConfig = ConnektConfig.getConfig("connections.hbase")
-      DaoFactory.initHTableDaoFactory(hConfig.get)
+      val hTableFactory = DaoFactory.initHTableDaoFactory(hConfig.get)
 
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
@@ -69,6 +69,7 @@ object ReceptorsBoot extends BaseApp {
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
       ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
+      ServiceFactory.initSchedulerService(hTableFactory.getConnection)
 
       //Start up the receptors
       ReceptorsServer()
