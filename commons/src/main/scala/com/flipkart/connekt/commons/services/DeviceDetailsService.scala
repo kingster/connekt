@@ -175,7 +175,7 @@ object DeviceDetailsService extends Instrumented {
               override def run() = {
                 try {
                   DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](chunk.toList.map(d => (cacheKey(appName, d.deviceId), d)))
-                  warmUpTasks(jobId).currentCount.getAndAdd(chunk.size)
+                  warmUpTasks(jobId).currentCount.getAndAdd(chunk.size.toLong)
                 }
                 catch {
                   case e: Exception =>
