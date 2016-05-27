@@ -48,7 +48,7 @@ case class AppleCredential(certificate: Array[Byte], passkey: String) extends Cr
   @throws[Exception]
   def getCertificateFile: File = {
 
-    if (certificateFile.isEmpty)
+    if (StringUtils.isNullOrEmpty(certificateFile))
       certificateFile = {
         val tempCertFile = File.createTempFile("apple_certificate", ".p12")
         tempCertFile.deleteOnExit()
