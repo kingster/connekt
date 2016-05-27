@@ -89,7 +89,20 @@ libraryDependencies ++= Seq(
   "com.flipkart" %% "espion" % "1.0.1",
   "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT",
   "commons-validator" % "commons-validator" % "1.5.0" excludeAll ExclusionRule("commons-beanutils", "commons-beanutils"),
-  "org.bouncycastle" % "bcprov-jdk15on" % "1.54"
+  "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
+  "chronosQ" % "chronosQ-client" % "1.1-SNAPSHOT" excludeAll(
+    ExclusionRule(organization = "log4j"),
+    ExclusionRule(organization = "org.slf4j"),
+    ExclusionRule(organization = "org.mockito", name = "mockito-all"),
+    ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core")
+    ),
+  "chronosQ" % "chronosQ-reservation-impl-hbase" % "1.1-SNAPSHOT" excludeAll(
+    ExclusionRule("org.slf4j"),
+    ExclusionRule("io.netty"),
+    ExclusionRule("asm"),
+    ExclusionRule("log4j"),
+    ExclusionRule("org.apache.curator")
+    )
 )
 
 
