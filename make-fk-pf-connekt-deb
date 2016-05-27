@@ -88,6 +88,9 @@ echo "Assembling...."
 
 echo "SBT Build complete..."
 
+### Create Libs ####
+curl https://jcenter.bintray.com/org/bouncycastle/bcprov-jdk15on/1.54/bcprov-jdk15on-1.54.jar > $DEPLOY_DIR/var/lib/${PACKAGE}/jars/bcprov-jdk15on-1.54.jar
+
 
 echo
 echo "Creating package directory...."
