@@ -25,12 +25,8 @@ import scala.util.Try
 
 abstract class WorkerTask(taskName: String) extends Runnable {
 
-  private val partitionNum: Integer = taskName.toInt
-
-  protected def getPartitionNum: Integer = {
-    partitionNum
-  }
-
+  val partitionNumber = taskName.toInt
+ 
   def run() {
     process()
   }
@@ -47,14 +43,13 @@ class WorkerTaskImpl(checkPointer: SchedulerCheckpointer, schedulerStore: Schedu
   private var sinkPushingTime: Timer = _
 
   def setRegistry(metricRegistry: MetricRegistry): WorkerTaskImpl = {
-    ConnektLogger(LogFile.WORKERS).info(s"starting for partition : $getPartitionNum of :$appName")
+    ConnektLogger(LogFile.WORKERS).info(s"WorkerTaskImpl Starting for APP [$appName], Partition : $partitionNumber ")
     this.metricRegistry = metricRegistry
-    sinkPushingTime = metricRegistry.timer(s"sinkPushingTime-Partition $appName  $getPartitionNum")
+    sinkPushingTime = metricRegistry.timer(s"sinkPushing.$appName.Partition-$partitionNumber")
     try {
-      metricRegistry.register(MetricRegistry.name(classOf[WorkerTaskImpl], "ElapsedTimeWorkerToProcess" + "-Partition", s"TimeDiffInMilliSec $appName  $getPartitionNum"),
-        new Gauge[Long] {
+      metricRegistry.register(MetricRegistry.name(classOf[WorkerTaskImpl], s"ElapsedTimeWorkerToProcess.$appName.Partition-$partitionNumber"), new Gauge[Long] {
           override def getValue: Long = {
-            Try(getCurrentDateTimeInSecs - calculateNextIntervalForProcess(getPartitionNum)).recover{
+            Try(getCurrentEpoch - calculateNextIntervalForProcess(partitionNumber)).recover{
               case e: SchedulerException =>
                 ConnektLogger(LogFile.WORKERS).error("Scheduler WorkerTaskImpl Exception happened ", e)
                 Long.MinValue
@@ -69,33 +64,35 @@ class WorkerTaskImpl(checkPointer: SchedulerCheckpointer, schedulerStore: Schedu
   }
 
   def process() {
-    while (true && !Thread.currentThread.isInterrupted) {
+    while (!Thread.currentThread.isInterrupted) {
       try {
-        val currentDateTimeInSec: Long = getCurrentDateTimeInSecs
-        var nextIntervalForProcess: Long = calculateNextIntervalForProcess(getPartitionNum)
-        while (nextIntervalForProcess <= currentDateTimeInSec) {
+        var nextIntervalForProcess = calculateNextIntervalForProcess(partitionNumber)
+        while (nextIntervalForProcess <= getCurrentEpoch) {
           var values: List[String] = null
           do {
             var time = System.currentTimeMillis()
-            values = schedulerStore.getNextN(nextIntervalForProcess, getPartitionNum, BATCH_SIZE)
-            ConnektLogger(LogFile.WORKERS).debug(s"SCHEDULER GET T=${System.currentTimeMillis() - time} For values:${values.size} $appName partition $getPartitionNum")
+            values = schedulerStore.getNextN(nextIntervalForProcess, partitionNumber, BATCH_SIZE)
+            ConnektLogger(LogFile.WORKERS).debug(s"SCHEDULER GET T=${System.currentTimeMillis() - time} For values:${values.size} $appName partition $partitionNumber")
             if (!values.isEmpty) {
               val context: Timer.Context = sinkPushingTime.time
               time = System.currentTimeMillis()
               schedulerSink.giveExpiredListForProcessing(values)
-              ConnektLogger(LogFile.WORKERS).debug(s"SCHEDULER PUSH T=${System.currentTimeMillis() - time} For values:${values.size} $appName partition $getPartitionNum")
+              ConnektLogger(LogFile.WORKERS).debug(s"SCHEDULER PUSH T=${System.currentTimeMillis() - time} For values:${values.size} $appName partition $partitionNumber")
               time = System.currentTimeMillis()
-              schedulerStore.removeBulk(nextIntervalForProcess, getPartitionNum, values)
-              ConnektLogger(LogFile.WORKERS).debug(s"SCHEDULER  DELETE T=${System.currentTimeMillis() - time} For values:${values.size} $appName partition $getPartitionNum")
+              schedulerStore.removeBulk(nextIntervalForProcess, partitionNumber, values)
+              ConnektLogger(LogFile.WORKERS).debug(s"SCHEDULER  DELETE T=${System.currentTimeMillis() - time} For values:${values.size} $appName partition $partitionNumber")
               context.stop
             }
           } while (values.size != 0)
-          checkPointer.set(String.valueOf(nextIntervalForProcess), getPartitionNum)
-          ConnektLogger(LogFile.WORKERS).info(s"Processed for  $nextIntervalForProcess in $appName partition $getPartitionNum")
+          checkPointer.set(String.valueOf(nextIntervalForProcess), partitionNumber)
+          ConnektLogger(LogFile.WORKERS).info(s"Processed for  $nextIntervalForProcess in $appName partition $partitionNumber")
           nextIntervalForProcess = timeBucket.next(nextIntervalForProcess)
         }
-        if (nextIntervalForProcess - getCurrentDateTimeInSecs > 0)
-          Thread.sleep(math.max(MIN_SLEEP_TIME, (nextIntervalForProcess - getCurrentDateTimeInSecs) * 1000))
+        val timeLeftForNextInterval = nextIntervalForProcess - getCurrentEpoch
+        if (timeLeftForNextInterval > 0){
+          ConnektLogger(LogFile.WORKERS).debug(s"SCHEDULER Sleep for $timeLeftForNextInterval")
+          Thread.sleep(math.max(MIN_SLEEP_TIME, timeLeftForNextInterval))
+        }
       }
       catch {
         case ex: Exception =>
@@ -112,10 +109,7 @@ class WorkerTaskImpl(checkPointer: SchedulerCheckpointer, schedulerStore: Schedu
     val timerKeyConverted: Long = timerKey.toLong
     timeBucket.toBucket(timerKeyConverted) //returns interval in sec as we are using SecondGroupedBucket
   }
-
-  //Time in second as we are using SecondGroupedTimeBucket
-  private def getCurrentDateTimeInSecs: Long = {
-    System.currentTimeMillis() / 1000
-  }
+ 
+  private  def getCurrentEpoch = System.currentTimeMillis()
 
 }

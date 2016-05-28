@@ -95,8 +95,7 @@ abstract class ConnektSchedulerModule extends AbstractModule {
 
   @throws(classOf[SchedulerException])
   protected def configureCheckPoint: SchedulerCheckpointer = {
-    val currentEpochSecs = (System.currentTimeMillis() / 1000).toDouble
-    val timeInSecsProcessed: Long = ConnektConfig.getDouble("scheduler.worker.resumeCheckpointSince").getOrElse(currentEpochSecs).toLong
+    lazy val resumeCheckpointSince = ConnektConfig.getDouble("scheduler.worker.resumeCheckpointSince").getOrElse(System.currentTimeMillis().toDouble).toLong
     val schedulerCheckPointer = new HbaseSchedulerCheckpoint(DaoFactory.getHTableFactory.getConnection,
       ConnektConfig.get("tables.hbase.scheduler.checkpointer").get,
       ConnektConfig.getOrElse("scheduler.hbase.checkpoint.columnFamily", "d"), appName)
@@ -108,7 +107,7 @@ abstract class ConnektSchedulerModule extends AbstractModule {
             null
         }.get
       if (null == previousCheckpoint)
-        schedulerCheckPointer.set(String.valueOf(timeInSecsProcessed), i)
+        schedulerCheckPointer.set(String.valueOf(resumeCheckpointSince), i)
     })
     schedulerCheckPointer
   }
