@@ -97,7 +97,7 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "org.mockito", name = "mockito-all"),
     ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core")
     ),
-  "chronosQ" % "chronosQ-reservation-impl-hbase" % "1.1-SNAPSHOT" excludeAll(
+  "chronosQ" % "chronosQ-reservation-impl-hbase" % "1.1-hdp-SNAPSHOT" excludeAll(
     ExclusionRule("org.slf4j"),
     ExclusionRule("io.netty"),
     ExclusionRule("asm"),
