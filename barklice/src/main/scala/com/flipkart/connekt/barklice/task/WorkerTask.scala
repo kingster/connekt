@@ -20,6 +20,8 @@ import com.flipkart.connekt.commons.services.ConnektConfig
 import flipkart.cp.convert.chronosQ.core.{SchedulerSink, TimeBucket, SchedulerStore, SchedulerCheckpointer}
 import flipkart.cp.convert.chronosQ.exceptions.SchedulerException
 
+import scala.util.Try
+
 
 abstract class WorkerTask(taskName: String) extends Runnable {
 
@@ -36,7 +38,7 @@ abstract class WorkerTask(taskName: String) extends Runnable {
   def process()
 }
 
-class WorkerTaskImpl(checkpointer: SchedulerCheckpointer, schedulerStore: SchedulerStore, timeBucket: TimeBucket, schedulerSink: SchedulerSink, taskName: String, appName: String) extends WorkerTask(taskName) {
+class WorkerTaskImpl(checkPointer: SchedulerCheckpointer, schedulerStore: SchedulerStore, timeBucket: TimeBucket, schedulerSink: SchedulerSink, taskName: String, appName: String) extends WorkerTask(taskName) {
 
   private val BATCH_SIZE = ConnektConfig.getOrElse(s"scheduler.worker.$appName.batchSize", "1000").toInt
   private val MIN_SLEEP_TIME = ConnektConfig.getOrElse(s"scheduler.worker.$appName.sleepTimeMilliSec", "500").toLong
@@ -52,14 +54,11 @@ class WorkerTaskImpl(checkpointer: SchedulerCheckpointer, schedulerStore: Schedu
       metricRegistry.register(MetricRegistry.name(classOf[WorkerTaskImpl], "ElapsedTimeWorkerToProcess" + "-Partition", s"TimeDiffInMilliSec $appName  $getPartitionNum"),
         new Gauge[Long] {
           override def getValue: Long = {
-            try {
-              return getCurrentDateTimeInSecs - calculatNextIntervalForProcess(getPartitionNum)
-            }
-            catch {
+            Try(getCurrentDateTimeInSecs - calculateNextIntervalForProcess(getPartitionNum)).recover{
               case e: SchedulerException =>
                 ConnektLogger(LogFile.WORKERS).error("Scheduler WorkerTaskImpl Exception happened ", e)
-            }
-            Long.MinValue
+                Long.MinValue
+            }.get
           }
         })
     } catch {
@@ -73,7 +72,7 @@ class WorkerTaskImpl(checkpointer: SchedulerCheckpointer, schedulerStore: Schedu
     while (true && !Thread.currentThread.isInterrupted) {
       try {
         val currentDateTimeInSec: Long = getCurrentDateTimeInSecs
-        var nextIntervalForProcess: Long = calculatNextIntervalForProcess(getPartitionNum)
+        var nextIntervalForProcess: Long = calculateNextIntervalForProcess(getPartitionNum)
         while (nextIntervalForProcess <= currentDateTimeInSec) {
           var values: List[String] = null
           do {
@@ -91,7 +90,7 @@ class WorkerTaskImpl(checkpointer: SchedulerCheckpointer, schedulerStore: Schedu
               context.stop
             }
           } while (values.size != 0)
-          checkpointer.set(String.valueOf(nextIntervalForProcess), getPartitionNum)
+          checkPointer.set(String.valueOf(nextIntervalForProcess), getPartitionNum)
           ConnektLogger(LogFile.WORKERS).info(s"Processed for  $nextIntervalForProcess in $appName partition $getPartitionNum")
           nextIntervalForProcess = timeBucket.next(nextIntervalForProcess)
         }
@@ -108,8 +107,8 @@ class WorkerTaskImpl(checkpointer: SchedulerCheckpointer, schedulerStore: Schedu
   }
 
   @throws(classOf[SchedulerException])
-  private def calculatNextIntervalForProcess(partitionNum: Int): Long = {
-    val timerKey: String = checkpointer.peek(partitionNum)
+  private def calculateNextIntervalForProcess(partitionNum: Int): Long = {
+    val timerKey: String = checkPointer.peek(partitionNum)
     val timerKeyConverted: Long = timerKey.toLong
     timeBucket.toBucket(timerKeyConverted) //returns interval in sec as we are using SecondGroupedBucket
   }
