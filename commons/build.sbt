@@ -93,6 +93,7 @@ libraryDependencies ++= Seq(
   "chronosQ" % "chronosQ-client" % "1.1-SNAPSHOT" excludeAll(
     ExclusionRule(organization = "log4j"),
     ExclusionRule(organization = "org.slf4j"),
+    ExclusionRule(organization = "com.codahale.metrics"),
     ExclusionRule(organization = "org.mockito", name = "mockito-all"),
     ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core")
     ),
@@ -101,7 +102,10 @@ libraryDependencies ++= Seq(
     ExclusionRule("io.netty"),
     ExclusionRule("asm"),
     ExclusionRule("log4j"),
-    ExclusionRule("org.apache.curator")
+    ExclusionRule(organization = "com.codahale.metrics"),
+    ExclusionRule("org.apache.curator"),
+      ExclusionRule(organization = "org.mockito", name = "mockito-all"),
+    ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core")
     )
 )
 

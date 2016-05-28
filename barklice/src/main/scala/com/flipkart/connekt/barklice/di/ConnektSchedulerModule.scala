@@ -10,11 +10,10 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.scheduler.di
+package com.flipkart.connekt.barklice.di
 
 import java.io.IOException
 import java.util.Properties
-
 
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -35,9 +34,7 @@ import scala.util.Try
 
 abstract class ConnektSchedulerModule extends AbstractModule {
 
-  protected val DEFAULT_VERSION: String = "HEAD"
   protected var appName: String = null
-  protected var appVersion: String = null
   protected var refreshInterval: Int = 0
   protected var NUM_PARTITIONS: Int = 0
 
@@ -90,38 +87,31 @@ abstract class ConnektSchedulerModule extends AbstractModule {
     })
   }
 
-
   protected def configureStore: HbaseSchedulerStore = {
-    new HbaseSchedulerStore(DaoFactory.getHTableFactory.getConnection
-      , ConnektConfig.get("tables.hbase.scheduler.store").get
-      , ConnektConfig.getOrElse("scheduler.hbase.store.columnFamily", "d")
-      , appName)
-
+    new HbaseSchedulerStore(DaoFactory.getHTableFactory.getConnection,
+      ConnektConfig.get("tables.hbase.scheduler.store").get,
+      ConnektConfig.getOrElse("scheduler.hbase.store.columnFamily", "d"), appName)
   }
 
   @throws(classOf[SchedulerException])
   protected def configureCheckPoint: SchedulerCheckpointer = {
     val currentEpochSecs = (System.currentTimeMillis() / 1000).toDouble
     val timeInSecsProcessed: Long = ConnektConfig.getDouble("scheduler.worker.resumeCheckpointSince").getOrElse(currentEpochSecs).toLong
-    val schedulerCheckPointer = new HbaseSchedulerCheckpoint(DaoFactory.getHTableFactory.getConnection
-      , ConnektConfig.get("tables.hbase.scheduler.checkpointer").get
-      , ConnektConfig.getOrElse("scheduler.hbase.checkpoint.columnFamily", "d")
-      , appName)
+    val schedulerCheckPointer = new HbaseSchedulerCheckpoint(DaoFactory.getHTableFactory.getConnection,
+      ConnektConfig.get("tables.hbase.scheduler.checkpointer").get,
+      ConnektConfig.getOrElse("scheduler.hbase.checkpoint.columnFamily", "d"), appName)
 
     (0 to NUM_PARTITIONS - 1).foreach(i => {
-      val previousCheckpoint = {
-        Try(schedulerCheckPointer.peek(i)).recoverWith {
+      val previousCheckpoint = Try(schedulerCheckPointer.peek(i)).recover {
           case e: SchedulerException =>
             ConnektLogger(LogFile.WORKERS).error(s"No current checkpoint for partition $i", e)
             null
         }.get
-      }
       if (null == previousCheckpoint)
         schedulerCheckPointer.set(String.valueOf(timeInSecsProcessed), i)
     })
     schedulerCheckPointer
   }
-
 
 
 }

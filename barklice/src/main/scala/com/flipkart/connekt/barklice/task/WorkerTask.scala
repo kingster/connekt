@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.scheduler.task
+package com.flipkart.connekt.barklice.task
 
 import java.util.List
 

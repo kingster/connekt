@@ -34,4 +34,7 @@ disable 'connekt-scheduled-requests'
 alter 'connekt-scheduled-requests', {NAME => 'd', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
 enable 'connekt-scheduled-requests'
 
+disable 'connekt-schedule-checkpoints'
+alter 'connekt-schedule-checkpoints', {NAME => 'd', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
+enable 'connekt-schedule-checkpoints'
 

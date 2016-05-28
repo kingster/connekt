@@ -11,7 +11,8 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "org.slf4j", name = "slf4j-simple"),
     ExclusionRule(organization = "org.mockito", name = "mockito-all"),
     ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core"),
-    ExclusionRule(organization = "asm")
+    ExclusionRule(organization = "asm"),
+    ExclusionRule(organization= "com.google.code.findbugs",name = "annotations")
     ),
   "chronosQ" % "chronosQ-core" % "1.1-SNAPSHOT" excludeAll(
     ExclusionRule(organization = "jline", name = "jline"),
@@ -34,8 +35,9 @@ libraryDependencies ++= Seq(
     ExclusionRule("asm"),
     ExclusionRule("log4j"),
     ExclusionRule("org.apache.curator"),
+    ExclusionRule(organization = "com.codahale.metrics"),
+    ExclusionRule(organization = "org.mockito", name = "mockito-all"),
     ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core")
-
     )
 )
 
