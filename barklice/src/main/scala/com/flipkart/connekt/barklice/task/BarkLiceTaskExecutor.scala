@@ -56,8 +56,6 @@ class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: 
   private def calculateNextIntervalForProcess(partitionNum: Int): Long = {
     val timerKey: String = checkPointer.peek(partitionNum)
     val timerKeyConverted: Long = timerKey.toLong
-
-    /* returns interval in sec as we are using SecondGroupedBucket */
     timeBucket.toBucket(timerKeyConverted)
   }
  
