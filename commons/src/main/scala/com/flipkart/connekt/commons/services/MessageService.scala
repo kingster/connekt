@@ -21,14 +21,15 @@ import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.{KafkaConnectionHelper, KafkaConsumerHelper, KafkaProducerHelper}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
+import com.flipkart.connekt.commons.services.SchedulerService.ScheduleEvent
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.roundeights.hasher.Implicits._
 import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
-
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
 
-class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumerHelper) extends TMessageService {
+class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumerHelper, schedulerService: SchedulerService) extends TMessageService {
 
   private val messageDao: TRequestDao = requestDao
   private val queueProducer: KafkaProducerHelper = queueProducerHelper
@@ -38,8 +39,15 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
     try {
       val reqWithId = request.copy(id = generateId)
       messageDao.saveRequest(reqWithId.id, reqWithId)
-      queueProducer.writeMessages(requestBucket, reqWithId.getJson)
-      ConnektLogger(LogFile.SERVICE).info(s"Saved request ${reqWithId.id} to $requestBucket")
+
+      request.scheduleTs match {
+        case Some(scheduleTime) if scheduleTime > System.currentTimeMillis() + 2.minutes.toMillis =>
+          schedulerService.client.add(ScheduleEvent(request, requestBucket), scheduleTime/1000)
+          ConnektLogger(LogFile.SERVICE).info(s"Scheduled request ${reqWithId.id} at $scheduleTime to $requestBucket")
+        case _ =>
+          queueProducer.writeMessages(requestBucket, reqWithId.getJson)
+          ConnektLogger(LogFile.SERVICE).info(s"Saved request ${reqWithId.id} to $requestBucket")
+      }
 
       Success(reqWithId.id)
     } catch {
