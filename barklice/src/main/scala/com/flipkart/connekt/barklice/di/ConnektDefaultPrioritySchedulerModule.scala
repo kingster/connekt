@@ -62,7 +62,7 @@ class ConnektDefaultPrioritySchedulerModule(hostname:String) extends ConnektSche
       val hbaseSchedulerCheckPointer: SchedulerCheckpointer = configureCheckPoint
       val minuteTimeBucket: TimeBucket = configureTimeBucket
       val kafkaSchedulerSink: SchedulerSink = configureSink
-      new WorkerFactory(hbaseSchedulerCheckPointer, hbaseSchedulerStore, minuteTimeBucket, kafkaSchedulerSink, MetricRegistry.REGISTRY, appName)
+      new WorkerFactory(appName, hbaseSchedulerCheckPointer, hbaseSchedulerStore, minuteTimeBucket, kafkaSchedulerSink, MetricRegistry.REGISTRY)
     }
     catch {
       case ex: Exception =>

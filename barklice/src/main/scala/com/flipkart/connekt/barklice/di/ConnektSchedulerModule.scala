@@ -56,7 +56,7 @@ abstract class ConnektSchedulerModule extends AbstractModule {
 
     val zookeeperHost: String = ConnektConfig.getString("connections.scheduler.worker.zookeeper.host").get
     val baseSleepInMillis: Int = ConnektConfig.getInt("scheduler.worker.baseSleepInMilliSecs").getOrElse(10000)
-    val maxRetryCount: Int = ConnektConfig.getInt("scheduler.worker.maxretrycount").getOrElse(5)
+    val maxRetryCount: Int = ConnektConfig.getInt("scheduler.worker.maxRetryCount").getOrElse(5)
     val zookeeperSessionTimeoutInMillis: Int = ConnektConfig.getInt("connections.scheduler.worker.zookeeper.sessionTimeoutInMillis").getOrElse(10000)
     val zookeeperConnectionTimeoutInMillis: Int = ConnektConfig.getInt("connections.scheduler.worker.zookeeper.connectionTimeoutInMillis").getOrElse(60000)
     val retryPolicy: RetryPolicy = new ExponentialBackoffRetry(baseSleepInMillis, maxRetryCount)
@@ -73,7 +73,7 @@ abstract class ConnektSchedulerModule extends AbstractModule {
   @throws(classOf[IOException])
   protected def configureSink: SchedulerSink = {
     val props: Properties = new Properties()
-    props.put("metadata.broker.list", ConnektConfig.getOrElse("connections.kafka.producerConnProps.metadata.broker.list", "ce-sandbox-kafka-0001.nm.flipkart.com:6667"))
+    props.put("metadata.broker.list", ConnektConfig.getString("connections.kafka.producerConnProps.metadata.broker.list").get)
     props.put("producer.type", "sync")
     props.put("serializer.class", "kafka.serializer.StringEncoder")
 
@@ -96,9 +96,11 @@ abstract class ConnektSchedulerModule extends AbstractModule {
   @throws(classOf[SchedulerException])
   protected def configureCheckPoint: SchedulerCheckpointer = {
     lazy val resumeCheckpointSince = ConnektConfig.getDouble("scheduler.worker.resumeCheckpointSince").getOrElse(System.currentTimeMillis().toDouble).toLong
-    val schedulerCheckPointer = new HbaseSchedulerCheckpoint(DaoFactory.getHTableFactory.getConnection,
+    val schedulerCheckPointer = new HbaseSchedulerCheckpoint(
+      DaoFactory.getHTableFactory.getConnection,
       ConnektConfig.get("tables.hbase.scheduler.checkpointer").get,
-      ConnektConfig.getOrElse("scheduler.hbase.checkpoint.columnFamily", "d"), appName)
+      ConnektConfig.getOrElse("scheduler.hbase.checkpoint.columnFamily", "d"), appName
+    )
 
     (0 to NUM_PARTITIONS - 1).foreach(i => {
       val previousCheckpoint = Try(schedulerCheckPointer.peek(i)).recover {
@@ -111,6 +113,4 @@ abstract class ConnektSchedulerModule extends AbstractModule {
     })
     schedulerCheckPointer
   }
-
-
 }

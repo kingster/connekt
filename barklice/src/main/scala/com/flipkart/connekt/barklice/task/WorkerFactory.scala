@@ -17,12 +17,8 @@ import flipkart.cp.convert.chronosQ.core.{SchedulerSink, SchedulerStore, TimeBuc
 import flipkart.cp.convert.ha.worker.task.WorkerTaskFactory
 
 
-/**
- * Created by tushar.mandar on 3/13/15.
- */
-class WorkerFactory(checkpointer: SchedulerCheckpointer, schedulerStore: SchedulerStore, timeBucket: TimeBucket, schedulerSink: SchedulerSink, metricRegistry: MetricRegistry,appName:String) extends WorkerTaskFactory {
+class WorkerFactory(appName: String, checkPointer: SchedulerCheckpointer, schedulerStore: SchedulerStore, timeBucket: TimeBucket, schedulerSink: SchedulerSink, metricRegistry: MetricRegistry) extends WorkerTaskFactory {
   
-  def getTask(taskName: String): WorkerTask = {
-    new WorkerTaskImpl(checkpointer, schedulerStore, timeBucket, schedulerSink, taskName,appName).setRegistry(metricRegistry)
-  }
+  def getTask(taskName: String): Runnable = 
+    new BarkLiceTaskExecutor(checkPointer, schedulerStore, timeBucket, schedulerSink, taskName,appName).setRegistry(metricRegistry)
 }
