@@ -36,7 +36,7 @@ abstract class ConnektSchedulerModule extends AbstractModule {
 
   protected var appName: String = null
   protected var refreshInterval: Int = 0
-  protected var NUM_PARTITIONS: Int = 0
+  protected var numPartitions: Int = 0
 
   protected def initializeClassMembers()
 
@@ -102,7 +102,7 @@ abstract class ConnektSchedulerModule extends AbstractModule {
       ConnektConfig.getOrElse("scheduler.hbase.checkpoint.columnFamily", "d"), appName
     )
 
-    (0 to NUM_PARTITIONS - 1).foreach(i => {
+    (0 to numPartitions - 1).foreach(i => {
       val previousCheckpoint = Try(schedulerCheckPointer.peek(i)).recover {
           case e: SchedulerException =>
             ConnektLogger(LogFile.WORKERS).error(s"No current checkpoint for partition $i", e)
