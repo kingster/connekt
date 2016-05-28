@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.scheduler
+package com.flipkart.connekt.barklice
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -18,11 +18,9 @@ import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.commons.utils.ConfigUtils
+import com.flipkart.connekt.commons.utils.{StringUtils, ConfigUtils}
 import com.flipkart.utils.NetworkUtils
-import com.typesafe.config.ConfigFactory
 import flipkart.cp.convert.ha.worker.Bootstrap
 
 object BarkLiceBoot extends BaseApp {
@@ -47,8 +45,9 @@ object BarkLiceBoot extends BaseApp {
       DaoFactory.initHTableDaoFactory(hConfig.get)
 
       val hostname = NetworkUtils.getHostname
-      println(s"Starting barklice with InstanceId: $hostname ...")
-      new Bootstrap(hostname, "barklice", hostname).start()
+      val instanceId = hostname + "-" + StringUtils.generateRandomStr(5)
+      println(s"Starting BarkLice with InstanceId: $instanceId, Hostname : $hostname ...")
+      new Bootstrap(instanceId, "", hostname).start()
     }
   }
 
@@ -64,5 +63,7 @@ object BarkLiceBoot extends BaseApp {
   def main(args: Array[String]) {
     System.setProperty("log4j.configurationFile", "log4j2-test.xml")
     start()
+
   }
 }
+

@@ -10,14 +10,15 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.scheduler.di
+package com.flipkart.connekt.barklice.di
 
 import java.lang.annotation.Annotation
 import java.util
 
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.metrics.MetricRegistry
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.scheduler.task.WorkerFactory
+import com.flipkart.connekt.barklice.task.WorkerFactory
 import flipkart.cp.convert.chronosQ.core.impl.SecondGroupedTimeBucket
 import flipkart.cp.convert.chronosQ.core.{SchedulerSink, TimeBucket, SchedulerCheckpointer, SchedulerStore}
 import flipkart.cp.convert.ha.worker.di.WorkerModule
@@ -25,14 +26,13 @@ import flipkart.cp.convert.ha.worker.task.{WorkerTaskFactory, TaskList}
 
 //app name as short as possible as this is part of row key
 @WorkerModule(appName = "lo")
-class ConnektDefaultPrioritySchedulerModule extends ConnektSchedulerModule {
+class ConnektDefaultPrioritySchedulerModule(hostname:String) extends ConnektSchedulerModule {
 
   override protected def initializeClassMembers() {
     val aClass: Class[_] = classOf[ConnektDefaultPrioritySchedulerModule]
     val annotation: Annotation = aClass.getAnnotation(classOf[WorkerModule])
     val workerModuleAnnotation = annotation.asInstanceOf[WorkerModule]
     this.appName = workerModuleAnnotation.appName
-    this.appVersion = DEFAULT_VERSION
     this.refreshInterval = 0
   }
 
@@ -59,13 +59,14 @@ class ConnektDefaultPrioritySchedulerModule extends ConnektSchedulerModule {
   private def getWorkerTaskFactory: WorkerTaskFactory = {
     try {
       val hbaseSchedulerStore: SchedulerStore = configureStore
-      val hbaseSchedulerCheckpointer: SchedulerCheckpointer = configureCheckPoint
+      val hbaseSchedulerCheckPointer: SchedulerCheckpointer = configureCheckPoint
       val minuteTimeBucket: TimeBucket = configureTimeBucket
       val kafkaSchedulerSink: SchedulerSink = configureSink
-      new WorkerFactory(hbaseSchedulerCheckpointer, hbaseSchedulerStore, minuteTimeBucket, kafkaSchedulerSink, MetricRegistry.REGISTRY, appName)
+      new WorkerFactory(hbaseSchedulerCheckPointer, hbaseSchedulerStore, minuteTimeBucket, kafkaSchedulerSink, MetricRegistry.REGISTRY, appName)
     }
     catch {
       case ex: Exception =>
+        ConnektLogger(LogFile.WORKERS).error("getWorkerTaskFactory Exception", ex)
         throw new RuntimeException(ex)
     }
   }
