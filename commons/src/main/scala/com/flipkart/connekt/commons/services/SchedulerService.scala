@@ -14,6 +14,7 @@ package com.flipkart.connekt.commons.services
 
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.metrics.MetricRegistry
+import com.flipkart.connekt.commons.services.SchedulerService.ScheduleEvent
 import com.flipkart.connekt.commons.utils.StringUtils._
 import flipkart.cp.convert.chronosQ.client.SchedulerClient
 import flipkart.cp.convert.chronosQ.core.SchedulerEntry
@@ -23,15 +24,7 @@ import org.apache.hadoop.hbase.client.Connection
 
 class SchedulerService( hConnection:Connection) extends TService {
 
-  private[commons] val delimiter = "$"
-
-  case class ScheduleEvent(request: ConnektRequest, queueName: String) extends SchedulerEntry {
-    override def getStringValue: String = {
-      queueName + delimiter + request.getJson
-    }
-  }
-
-  lazy val schedulerStore = ConnektConfig.getOrElse("tables.hbase.scheduler.store", "w3_bro_scheduler_store")
+  lazy val schedulerStore = ConnektConfig.getString("tables.hbase.scheduler.store").get
   lazy val schedulerStore_CF = ConnektConfig.getOrElse("scheduler.hbase.store.columnFamily", "d")
 
   val client = new SchedulerClient.Builder[ScheduleEvent]()
@@ -40,5 +33,15 @@ class SchedulerService( hConnection:Connection) extends TService {
     .withPartitioner(new MurmurHashPartioner(ConnektConfig.getInt("scheduler.priority.low.partitions").getOrElse(96)))  //Increasing partitions is not issue but for decreasing we need to move scheduled entry in higher partitions to new partition distribution
     .withMetricRegistry(MetricRegistry.REGISTRY)
     .buildOrGet
+}
 
+object  SchedulerService {
+
+  private[commons] val delimiter = "$"
+
+  case class ScheduleEvent(request: ConnektRequest, queueName: String) extends SchedulerEntry {
+    override def getStringValue: String = {
+      queueName + delimiter + request.getJson
+    }
+  }
 }
