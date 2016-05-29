@@ -67,7 +67,7 @@ class CommonsBaseTest extends ConnektUTSpec {
     val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
     DaoFactory.initSpecterSocket(specterConfig)
 
-    ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null)
+    ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null, null)
     ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
     ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
