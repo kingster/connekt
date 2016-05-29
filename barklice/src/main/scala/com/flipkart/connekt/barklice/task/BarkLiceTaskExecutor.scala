@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.barklice.task
 
-import java.util
+import java.util.{List => JList}
 
 import com.codahale.metrics.{Gauge, MetricRegistry, Timer}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
@@ -23,13 +23,12 @@ import flipkart.cp.convert.chronosQ.exceptions.SchedulerException
 import scala.util.Try
 import scala.util.control.Breaks.{break, breakable}
 
-
 class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: SchedulerStore, timeBucket: TimeBucket, schedulerSink: SchedulerSink, taskName: String, appName: String) extends Runnable {
 
   val partitionNumber = taskName.toInt
 
-  private val batchSize = ConnektConfig.getOrElse(s"scheduler.worker.$appName.batchSize", "1000").toInt
-  private val minSleepingTime = ConnektConfig.getOrElse(s"scheduler.worker.$appName.sleepTimeMilliSec", "500").toLong
+  private val batchSize = ConnektConfig.getInt(s"scheduler.worker.$appName.batchSize").getOrElse(1000)
+  private val minSleepingTime = ConnektConfig.getInt(s"scheduler.worker.$appName.sleepTimeMilliSec").getOrElse(500)
 
   private var sinkPushingTime: Timer = _
 
@@ -65,14 +64,13 @@ class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: 
  
   private  def getCurrentEpoch = System.currentTimeMillis()
 
-
   override def run() = {
     breakable {
       while (true) {
         try {
           var nextIntervalForProcess = calculateNextIntervalForProcess(partitionNumber)
           while (nextIntervalForProcess <= getCurrentEpoch) {
-            var values: util.List[String] = null
+            var values: JList[String] = null
             do {
               var time = System.currentTimeMillis()
               values = schedulerStore.getNextN(nextIntervalForProcess, partitionNumber, batchSize)

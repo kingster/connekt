@@ -33,7 +33,6 @@ class ConnektDefaultPrioritySchedulerModule(hostname:String) extends ConnektSche
     val annotation: Annotation = aClass.getAnnotation(classOf[WorkerModule])
     val workerModuleAnnotation = annotation.asInstanceOf[WorkerModule]
     this.appName = workerModuleAnnotation.appName
-    this.refreshInterval = 0
   }
 
   override protected def configureTaskList() {
@@ -43,7 +42,7 @@ class ConnektDefaultPrioritySchedulerModule(hostname:String) extends ConnektSche
 
       private val list: util.ArrayList[String] = {
         val initialList = new util.ArrayList[String](numPartitions)
-        (0 to numPartitions - 1).foreach(i => initialList.add(i.toString))
+        (0 until numPartitions).foreach(i => initialList.add(i.toString))
         initialList
       }
 

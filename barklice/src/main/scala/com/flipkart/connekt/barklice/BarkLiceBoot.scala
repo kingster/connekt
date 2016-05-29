@@ -32,7 +32,7 @@ object BarkLiceBoot extends BaseApp {
     if (!initialized.getAndSet(true)) {
       ConnektLogger(LogFile.SERVICE).info("BarkLiceBoot initializing.")
 
-      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-busybees.xml")
+      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-barklice.xml")
 
       ConnektLogger(LogFile.SERVICE).info(s"BarkLiceBoot logging using: $configFile")
       ConnektLogger.init(configFile)
@@ -46,7 +46,7 @@ object BarkLiceBoot extends BaseApp {
 
       val hostname = NetworkUtils.getHostname
       val instanceId = hostname + "-" + StringUtils.generateRandomStr(5)
-      println(s"Starting BarkLice with InstanceId: $instanceId, Hostname : $hostname ...")
+      ConnektLogger(LogFile.SERVICE).info(s"Starting BarkLice with InstanceId: $instanceId, Hostname : $hostname ...")
       new Bootstrap(instanceId, "", hostname).start()
     }
   }
@@ -58,7 +58,6 @@ object BarkLiceBoot extends BaseApp {
       ConnektLogger.shutdown()
     }
   }
-
 
   def main(args: Array[String]) {
     System.setProperty("log4j.configurationFile", "log4j2-test.xml")

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG" name="log4j2Barklice" shutdownHook="disable" >
+
+  <Properties>
+    <Property name="defaultLogFile">/var/log/flipkart/pf/fk-pf-connekt/barklice-default.log</Property>
+    <Property name="workersLogFile">/var/log/flipkart/pf/fk-pf-connekt/barklice-workers.log</Property>
+  </Properties>
+
+  <Appenders>
+
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d %p %c{1} [%t] %m%n"/>
+    </Console>
+
+    <RollingRandomAccessFile name="DEFAULT" fileName="${defaultLogFile}" filePattern="${defaultLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+    <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i" immediateFlush="false" bufferSize="1048576">
+      <PatternLayout>
+        <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1024 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="4"/>
+    </RollingRandomAccessFile>
+
+  </Appenders>
+
+  <!-- Barklice loggers -->
+  <Loggers>
+
+    <Logger name="DEFAULT" level="trace" additivity="false">
+      <AppenderRef ref="DEFAULT"/>
+    </Logger>
+
+    <Logger name="WORKERS" level="debug" additivity="false">
+      <AppenderRef ref="WORKERS"/>
+    </Logger>
+
+    <!-- Used Library loggers -->
+    <Logger name="kafka" level="ERROR"/>
+    <Logger name="org.apache" level="ERROR"/>
+
+    <Logger name="com.flipkart" level="DEBUG"/>
+    <Logger name="com.flipkart.kloud.config" level="ERROR"/>
+
+    <Root level="INFO" includeLocation="false">
+      <AppenderRef ref="DEFAULT"/>
+    </Root>
+
+  </Loggers>
+
+</Configuration>

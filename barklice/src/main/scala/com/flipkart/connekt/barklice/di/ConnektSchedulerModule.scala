@@ -31,11 +31,9 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 
 import scala.util.Try
 
-
 abstract class ConnektSchedulerModule extends AbstractModule {
 
   protected var appName: String = null
-  protected var refreshInterval: Int = 0
   protected var numPartitions: Int = 0
 
   protected def initializeClassMembers()
@@ -54,11 +52,11 @@ abstract class ConnektSchedulerModule extends AbstractModule {
 
   protected def configureClient() {
 
-    val zookeeperHost: String = ConnektConfig.getString("connections.scheduler.worker.zookeeper.host").get
-    val baseSleepInMillis: Int = ConnektConfig.getInt("scheduler.worker.baseSleepInMilliSecs").getOrElse(10000)
-    val maxRetryCount: Int = ConnektConfig.getInt("scheduler.worker.maxRetryCount").getOrElse(5)
-    val zookeeperSessionTimeoutInMillis: Int = ConnektConfig.getInt("connections.scheduler.worker.zookeeper.sessionTimeoutInMillis").getOrElse(10000)
-    val zookeeperConnectionTimeoutInMillis: Int = ConnektConfig.getInt("connections.scheduler.worker.zookeeper.connectionTimeoutInMillis").getOrElse(60000)
+    val zookeeperHost = ConnektConfig.getString("connections.scheduler.worker.zookeeper.host").get
+    val baseSleepInMillis  = ConnektConfig.getInt("scheduler.worker.baseSleepInMilliSecs").getOrElse(10000)
+    val maxRetryCount = ConnektConfig.getInt("scheduler.worker.maxRetryCount").getOrElse(5)
+    val zookeeperSessionTimeoutInMillis = ConnektConfig.getInt("connections.scheduler.worker.zookeeper.sessionTimeoutInMillis").getOrElse(10000)
+    val zookeeperConnectionTimeoutInMillis = ConnektConfig.getInt("connections.scheduler.worker.zookeeper.connectionTimeoutInMillis").getOrElse(60000)
     val retryPolicy: RetryPolicy = new ExponentialBackoffRetry(baseSleepInMillis, maxRetryCount)
     val curatorClient = CuratorFrameworkFactory.newClient(zookeeperHost, zookeeperSessionTimeoutInMillis, zookeeperConnectionTimeoutInMillis, retryPolicy)
     curatorClient.start()
@@ -102,7 +100,7 @@ abstract class ConnektSchedulerModule extends AbstractModule {
       ConnektConfig.getOrElse("scheduler.hbase.checkpoint.columnFamily", "d"), appName
     )
 
-    (0 to numPartitions - 1).foreach(i => {
+    (0 until numPartitions).foreach(i => {
       val previousCheckpoint = Try(schedulerCheckPointer.peek(i)).recover {
           case e: SchedulerException =>
             ConnektLogger(LogFile.WORKERS).error(s"No current checkpoint for partition $i", e)
