@@ -29,8 +29,8 @@ class SchedulerService( hConnection:Connection) extends TService {
 
   val client = new SchedulerClient.Builder[ScheduledRequest]()
     .withStore(new HbaseSchedulerStore(hConnection,schedulerStore,schedulerStore_CF,"lo"))  //app name as short as possible as this is part of row key
-    .withTimeBucket(new SecondGroupedTimeBucket(ConnektConfig.getInt("scheduler.priority.low.time.bucket").getOrElse(600)))      // 30 min bucket
-    .withPartitioner(new MurmurHashPartioner(ConnektConfig.getInt("scheduler.priority.low.partitions").getOrElse(96)))  //Increasing partitions is not issue but for decreasing we need to move scheduled entry in higher partitions to new partition distribution
+    .withTimeBucket(new SecondGroupedTimeBucket(ConnektConfig.getInt("scheduler.priority.lo.time.bucket").getOrElse(600)))      // 30 min bucket
+    .withPartitioner(new MurmurHashPartioner(ConnektConfig.getInt("scheduler.priority.lo.partitions").getOrElse(96)))  //Increasing partitions is not issue but for decreasing we need to move scheduled entry in higher partitions to new partition distribution
     .withMetricRegistry(MetricRegistry.REGISTRY)
     .buildOrGet
 }

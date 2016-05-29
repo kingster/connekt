@@ -38,7 +38,7 @@ class ConnektDefaultPrioritySchedulerModule(hostname:String) extends ConnektSche
 
   override protected def configureTaskList() {
     //Increasing partitions is not issue but for decreasing we need to move scheduled entry in higher partitions to new partition distribution
-    numPartitions = ConnektConfig.getInt("scheduler.priority.low.partitions").getOrElse(96)
+    numPartitions = ConnektConfig.getInt("scheduler.priority.lo.partitions").getOrElse(96)
     bind(classOf[TaskList]).toInstance(new TaskList {
 
       private val list: util.ArrayList[String] = {
@@ -72,7 +72,7 @@ class ConnektDefaultPrioritySchedulerModule(hostname:String) extends ConnektSche
   }
 
   private def configureTimeBucket: TimeBucket = {
-    new SecondGroupedTimeBucket(ConnektConfig.getInt("scheduler.priority.low.time.bucket").getOrElse(600)) //10min bucket
+    new SecondGroupedTimeBucket(ConnektConfig.getInt("scheduler.priority.lo.time.bucket").getOrElse(600)) //10min bucket
   }
 
 
