@@ -49,7 +49,7 @@ class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: 
         })
     } catch {
       case e: IllegalArgumentException => ConnektLogger(LogFile.WORKERS).warn(s"ERROR while setting registry for $appName : ${e.getMessage}")
-      case e: Exception => ConnektLogger(LogFile.WORKERS).error(s"ERROR while setting registry for $appName",e);
+      case e: Exception => ConnektLogger(LogFile.WORKERS).error(s"ERROR while setting registry for $appName",e)
         throw e
     }
     this
