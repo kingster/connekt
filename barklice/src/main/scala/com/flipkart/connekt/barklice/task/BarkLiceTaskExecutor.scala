@@ -37,7 +37,8 @@ class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: 
 
     sinkPushingTime = metricRegistry.timer(s"sinkPublish.$appName.p-$partitionNumber")
     try {
-      metricRegistry.register(MetricRegistry.name(classOf[BarkLiceTaskExecutor], s"nextExecWait.$appName.p-$partitionNumber"), new Gauge[Long] {
+      val metricName = MetricRegistry.name(classOf[BarkLiceTaskExecutor], s"nextExecWait.$appName.p-$partitionNumber")
+      metricRegistry.register(metricName, new Gauge[Long] {
           override def getValue: Long = {
             Try(getCurrentEpoch - calculateNextIntervalForProcess(partitionNumber)).recover{
               case e: SchedulerException =>
@@ -47,7 +48,9 @@ class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: 
           }
         })
     } catch {
-      case e @(_: IllegalArgumentException | _: Exception) => ConnektLogger(LogFile.WORKERS).error(s"BarkLiceTaskExecutor failed setting metric registry for appName: $appName", e)
+      case e: IllegalArgumentException => ConnektLogger(LogFile.WORKERS).warn(s"ERROR while setting registry for $appName : ${e.getMessage}")
+      case e: Exception => ConnektLogger(LogFile.WORKERS).error(s"ERROR while setting registry for $appName",e);
+        throw e
     }
     this
   }
