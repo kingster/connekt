@@ -36,14 +36,12 @@ object DaoFactory {
     this.connectionProvider = provider
   }
 
-  def initHTableDaoFactory(hConnectionConfig: Config): THTableFactory  = {
+  def initHTableDaoFactory(hConnectionConfig: Config) = {
     hTableFactory = new HTableFactory(hConnectionConfig, connectionProvider)
 
     daoMap += DaoType.DEVICE_DETAILS -> DeviceDetailsDao("connekt-registry", hTableFactory)
     daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao(tableName = "fk-connekt-pn-info", hTableFactory = hTableFactory)
     daoMap += DaoType.CALLBACK_PN -> PNCallbackDao("fk-connekt-events", hTableFactory)
-
-    hTableFactory
   }
 
   def getHTableFactory = hTableFactory

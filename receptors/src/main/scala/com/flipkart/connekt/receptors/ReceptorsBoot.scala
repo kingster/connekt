@@ -47,7 +47,7 @@ object ReceptorsBoot extends BaseApp {
       DaoFactory.setUpConnectionProvider(new ConnectionProvider())
 
       val hConfig = ConnektConfig.getConfig("connections.hbase")
-      val hTableFactory = DaoFactory.initHTableDaoFactory(hConfig.get)
+      DaoFactory.initHTableDaoFactory(hConfig.get)
 
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
@@ -64,7 +64,7 @@ object ReceptorsBoot extends BaseApp {
       val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
       val kafkaProducerHelper = KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
 
-      ServiceFactory.initSchedulerService(hTableFactory.getConnection)
+      ServiceFactory.initSchedulerService(DaoFactory.getHTableFactory.getConnection)
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, kafkaProducerHelper, null, ServiceFactory.getSchedulerService)
       ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
