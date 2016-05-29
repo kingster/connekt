@@ -21,6 +21,7 @@ import flipkart.cp.convert.chronosQ.core.{SchedulerCheckpointer, SchedulerSink, 
 import flipkart.cp.convert.chronosQ.exceptions.SchedulerException
 
 import scala.util.Try
+import scala.util.control.Breaks.{break, breakable}
 
 
 class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: SchedulerStore, timeBucket: TimeBucket, schedulerSink: SchedulerSink, taskName: String, appName: String) extends Runnable {
@@ -64,46 +65,54 @@ class BarkLiceTaskExecutor(checkPointer: SchedulerCheckpointer, schedulerStore: 
  
   private  def getCurrentEpoch = System.currentTimeMillis()
 
+
   override def run() = {
-    while (!Thread.currentThread.isInterrupted) {
-      try {
-        var nextIntervalForProcess = calculateNextIntervalForProcess(partitionNumber)
-        while (nextIntervalForProcess <= getCurrentEpoch) {
-          var values: util.List[String] = null
-          do {
-            var time = System.currentTimeMillis()
-            values = schedulerStore.getNextN(nextIntervalForProcess, partitionNumber, batchSize)
-            ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceScheduler get ${values.size} entries took: ${System.currentTimeMillis() - time} for appName: $appName partition: $partitionNumber")
+    breakable {
+      while (true) {
+        try {
+          var nextIntervalForProcess = calculateNextIntervalForProcess(partitionNumber)
+          while (nextIntervalForProcess <= getCurrentEpoch) {
+            var values: util.List[String] = null
+            do {
+              var time = System.currentTimeMillis()
+              values = schedulerStore.getNextN(nextIntervalForProcess, partitionNumber, batchSize)
+              ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceScheduler get ${values.size} entries took: ${System.currentTimeMillis() - time} for appName: $appName partition: $partitionNumber")
 
-            if (!values.isEmpty) {
-              val context: Timer.Context = sinkPushingTime.time
-              time = System.currentTimeMillis()
-              schedulerSink.giveExpiredListForProcessing(values)
-              ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceScheduler push ${values.size} entries took: ${System.currentTimeMillis() - time} for appName: $appName partition: $partitionNumber")
+              if (!values.isEmpty) {
+                val context: Timer.Context = sinkPushingTime.time
+                time = System.currentTimeMillis()
+                schedulerSink.giveExpiredListForProcessing(values)
+                ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceScheduler push ${values.size} entries took: ${System.currentTimeMillis() - time} for appName: $appName partition: $partitionNumber")
 
-              time = System.currentTimeMillis()
-              schedulerStore.removeBulk(nextIntervalForProcess, partitionNumber, values)
-              ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceScheduler remove ${values.size} entries took: ${System.currentTimeMillis() - time} for appName: $appName partition: $partitionNumber")
-              context.stop
-            }
-          } while (values.size != 0)
+                time = System.currentTimeMillis()
+                schedulerStore.removeBulk(nextIntervalForProcess, partitionNumber, values)
+                ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceScheduler remove ${values.size} entries took: ${System.currentTimeMillis() - time} for appName: $appName partition: $partitionNumber")
+                context.stop
+              }
+            } while (values.size != 0)
 
-          checkPointer.set(String.valueOf(nextIntervalForProcess), partitionNumber)
-          ConnektLogger(LogFile.WORKERS).info(s"BarkLiceTaskExecutor nextProcessTime: $nextIntervalForProcess in $appName partition $partitionNumber")
-          nextIntervalForProcess = timeBucket.next(nextIntervalForProcess)
+            checkPointer.set(String.valueOf(nextIntervalForProcess), partitionNumber)
+            ConnektLogger(LogFile.WORKERS).info(s"BarkLiceTaskExecutor nextProcessTime: $nextIntervalForProcess in $appName partition $partitionNumber")
+            nextIntervalForProcess = timeBucket.next(nextIntervalForProcess)
+          }
+
+          val timeLeftForNextInterval = nextIntervalForProcess - getCurrentEpoch
+          if (timeLeftForNextInterval > 0) {
+            ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceTaskExecutor sleep for $timeLeftForNextInterval")
+            Thread.sleep(math.max(minSleepingTime, timeLeftForNextInterval))
+          }
         }
-
-        val timeLeftForNextInterval = nextIntervalForProcess - getCurrentEpoch
-        if (timeLeftForNextInterval > 0){
-          ConnektLogger(LogFile.WORKERS).debug(s"BarkLiceTaskExecutor sleep for $timeLeftForNextInterval")
-          Thread.sleep(math.max(minSleepingTime, timeLeftForNextInterval))
+        catch {
+          case term: InterruptedException =>
+            ConnektLogger(LogFile.WORKERS).error("BarkLiceTaskExecutor Interrupted.. Will Exit...")
+            break
+          case e: Exception =>
+            ConnektLogger(LogFile.WORKERS).error("BarkLiceTaskExecutor failure.", e)
+            Thread.sleep(5000)
         }
-      }
-      catch {
-        case e: Exception =>
-          ConnektLogger(LogFile.WORKERS).error("BarkLiceTaskExecutor failure.", e)
-          Thread.sleep(5000)
       }
     }
+    ConnektLogger(LogFile.WORKERS).info(s"BarkLiceTaskExecutor completed for appName: $appName partition: $partitionNumber")
+
   }
 }
