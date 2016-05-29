@@ -21,7 +21,7 @@ import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.{KafkaConnectionHelper, KafkaConsumerHelper, KafkaProducerHelper}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
-import com.flipkart.connekt.commons.services.SchedulerService.ScheduleEvent
+import com.flipkart.connekt.commons.services.SchedulerService.ScheduledRequest
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.roundeights.hasher.Implicits._
 import kafka.utils.{ZKStringSerializer, ZkUtils}
@@ -42,7 +42,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
 
       request.scheduleTs match {
         case Some(scheduleTime) if scheduleTime > System.currentTimeMillis() + 2.minutes.toMillis =>
-          schedulerService.client.add(ScheduleEvent(reqWithId, requestBucket), scheduleTime)
+          schedulerService.client.add(ScheduledRequest(reqWithId, requestBucket), scheduleTime)
           ConnektLogger(LogFile.SERVICE).info(s"Scheduled request ${reqWithId.id} at $scheduleTime to $requestBucket")
         case _ =>
           queueProducer.writeMessages(requestBucket, reqWithId.getJson)
