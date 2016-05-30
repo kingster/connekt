@@ -6,7 +6,6 @@ hbase org.apache.hadoop.hbase.util.RegionSplitter 'connekt-registry-user-index' 
 hbase org.apache.hadoop.hbase.util.RegionSplitter 'connekt-registry-token-index' HexStringSplit -c 32 -f d
 hbase org.apache.hadoop.hbase.util.RegionSplitter 'fk-connekt-events' HexStringSplit -c 64 -f e
 hbase org.apache.hadoop.hbase.util.RegionSplitter 'fk-connekt-pn-info' HexStringSplit -c 64 -f r:t:c
-hbase org.apache.hadoop.hbase.util.RegionSplitter 'connekt-scheduled-requests' HexStringSplit -c 32 -f d
 
 $> hbase shell
 
@@ -30,11 +29,6 @@ disable 'fk-connekt-events'
 alter 'fk-connekt-events', {NAME => 'e', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
 enable 'fk-connekt-events'
 
-disable 'connekt-scheduled-requests'
-alter 'connekt-scheduled-requests', {NAME => 'd', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
-enable 'connekt-scheduled-requests'
-
-disable 'connekt-schedule-checkpoints'
-alter 'connekt-schedule-checkpoints', {NAME => 'd', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
-enable 'connekt-schedule-checkpoints'
+create 'connekt-scheduled-requests', {NAME => 'd', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
+create 'connekt-schedule-checkpoints', {NAME => 'd', VERSIONS => '1', COMPRESSION => 'SNAPPY'}
 
