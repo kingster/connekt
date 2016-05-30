@@ -5,6 +5,6 @@
   - name: Set Service
     set_fact:
       app: barklice
-  - include: tasks/update-apt-cache.yaml
+  - include: tasks/update-sources.yaml
   - include: tasks/install-connekt-deb.yaml
   - include: tasks/start-service.yaml
