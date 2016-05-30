@@ -28,7 +28,6 @@ object BarkLiceBoot extends BaseApp {
   private val initialized = new AtomicBoolean(false)
 
   def start() {
-
     if (!initialized.getAndSet(true)) {
       ConnektLogger(LogFile.SERVICE).info("BarkLiceBoot initializing.")
 
