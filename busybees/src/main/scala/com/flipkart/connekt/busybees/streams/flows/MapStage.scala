@@ -94,7 +94,7 @@ private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[Flow
 object StageSupervision {
   val decider: Supervision.Decider = {
     case cEx: ConnektPNStageException =>
-      ServiceFactory.getReportingService.recordPushStatsDelta(cEx.meta.get("client").getString, Option(cEx.context), cEx.meta.get("stencilId").map(_.toString), Option(cEx.platform), cEx.appName, InternalStatus.StageError.toString)
+      ServiceFactory.getReportingService.recordPushStatsDelta(cEx.client, Option(cEx.context), cEx.meta.get("stencilId").map(_.toString), Option(cEx.platform), cEx.appName, InternalStatus.StageError.toString)
       ConnektLogger(LogFile.PROCESSORS).warn("StageSupervision Handle ConnektPNStageException")
       cEx.deviceId
         .map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.client, cEx.getMessage, cEx.timeStamp))
