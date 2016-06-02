@@ -108,12 +108,12 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendUserPush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-                          val request = r.copy(channel = "push", meta = {
+                          val request = r.copy(client = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
                             if (r.meta == null)
-                              headers + ("client" -> user.userId)
+                              headers
                             else
-                              r.meta ++ (headers + ("client" -> user.userId))
+                              r.meta ++ (headers)
                           })
                           request.validate()
 
