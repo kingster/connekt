@@ -49,6 +49,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     val appName = requestTracker.appName
     val deviceId = requestTracker.request.deviceId
     val contextId = requestTracker.request.contextId
+    val client = requestTracker.request.client
 
     val maybePNCallbackEvent: Option[PNCallbackEvent] = tryResponse match {
       case Success(r) =>
@@ -58,11 +59,11 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
           case 200 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler 200 for $requestId")
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.Received)
-            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.Received, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.Received, MobilePlatform.WINDOWS, appName, contextId, client, r.optHeader("X-WNS-MSG-ID"), eventTS)
           case 400 =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.InvalidHeader)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler invalid/missing header send: $requestId response: $response")
-            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidHeader, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidHeader, MobilePlatform.WINDOWS, appName, contextId, client, r.optHeader("X-WNS-MSG-ID"), eventTS)
           case 401 =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.AuthError)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler the cloud service is not authorized to send a notification to this uri even though they are authenticated: $requestId response: $response")
@@ -71,31 +72,31 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
           case 403 =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.InvalidMethod)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler invalid method (get, create); only post (windows or windows phone) or delete (windows phone only) is allowed $requestId response: $response")
-            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidMethod, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidMethod, MobilePlatform.WINDOWS, appName, contextId, client, r.optHeader("X-WNS-MSG-ID"), eventTS)
           case 404 =>
             DeviceDetailsService.get(appName, requestTracker.request.deviceId).transform[PNCallbackEvent]({
               case Some(dd) if dd.osName == "windows" =>
                 ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName) , MobilePlatform.WINDOWS , WNSResponseStatus.InvalidChannelUri)
                 DeviceDetailsService.delete(appName, requestTracker.request.deviceId)
                 ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler device not found. deleting details of device: ${requestTracker.request.deviceId} wrt. message: $requestId response: $response")
-                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidChannelUri, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS))
+                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidChannelUri, MobilePlatform.WINDOWS, appName, contextId,client, r.optHeader("X-WNS-MSG-ID"), eventTS))
               case Some(dd)  =>
                 ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName) , MobilePlatform.WINDOWS , WNSResponseStatus.InvalidDevice)
                 ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler device ${requestTracker.request.deviceId} platform does not match with connekt request platform for: $requestId response: $response")
-                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS))
+                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId, client,r.optHeader("X-WNS-MSG-ID"), eventTS))
               case None =>
               ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName) , MobilePlatform.WINDOWS , WNSResponseStatus.InvalidDevice)
                 ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler device ${requestTracker.request.deviceId} doesn't exist: $requestId response: $response")
-                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS))
+                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId,client, r.optHeader("X-WNS-MSG-ID"), eventTS))
             }, Failure(_)).get
           case 405 =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.InvalidMethod)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler Invalid method (GET, CREATE); only POST (Windows or Windows Phone) or DELETE (Windows Phone only) is allowed.$requestId response: $response")
-            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidMethod, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidMethod, MobilePlatform.WINDOWS, appName, contextId, client, r.optHeader("X-WNS-MSG-ID"), eventTS)
           case 406 =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.ThrottleLimitExceeded)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler the cloud service exceeded its throttle limit. response: $response")
-            PNCallbackEvent(requestId, deviceId = deviceId, WNSResponseStatus.ThrottleLimitExceeded, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS)
+            PNCallbackEvent(requestId, deviceId = deviceId, WNSResponseStatus.ThrottleLimitExceeded, MobilePlatform.WINDOWS, appName, contextId, client, r.optHeader("X-WNS-MSG-ID"), eventTS)
           case 410 =>
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler the channel expired. response: $response")
             DeviceDetailsService.get(appName, requestTracker.request.deviceId).transform[PNCallbackEvent]({
@@ -103,33 +104,33 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                 DeviceDetailsService.delete(appName, requestTracker.request.deviceId)
                 ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler the channel expired. deleting device: ${requestTracker.request.deviceId} wrt message: $requestId")
                 ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName) , MobilePlatform.WINDOWS , WNSResponseStatus.ChannelExpired)
-                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.ChannelExpired, MobilePlatform.WINDOWS, appName, contextId, null, eventTS))
+                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.ChannelExpired, MobilePlatform.WINDOWS, appName, contextId,client, null, eventTS))
               case Some(dd)  =>
                 ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName) , MobilePlatform.WINDOWS , WNSResponseStatus.InvalidDevice)
                 ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler device ${requestTracker.request.deviceId} platform does not match with connekt request platform $requestId")
-                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId, null, eventTS))
+                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId, client,null, eventTS))
               case None =>
               ServiceFactory.getReportingService.recordPushStatsDelta( requestTracker.meta.get("client").getString  ,Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName) , MobilePlatform.WINDOWS , WNSResponseStatus.InvalidDevice)
                 ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler device ${requestTracker.request.deviceId} doesn't exist for message: $requestId")
-                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId, null, eventTS))
+                Success(PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InvalidDevice, MobilePlatform.WINDOWS, appName, contextId,client, null, eventTS))
             }, Failure(_)).get
           case 412 =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.PreConditionFailed)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler precondition failed: $requestId")
-            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.PreConditionFailed, MobilePlatform.WINDOWS, appName, contextId, null, eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.PreConditionFailed, MobilePlatform.WINDOWS, appName, contextId, client, null, eventTS)
           case 413 =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.EntityTooLarge)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler the notification payload exceeds the 5000 byte size limit for: $requestId response: $response")
-            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.EntityTooLarge, MobilePlatform.WINDOWS, appName, contextId, r.optHeader("X-WNS-MSG-ID"), eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.EntityTooLarge, MobilePlatform.WINDOWS, appName, contextId, client, r.optHeader("X-WNS-MSG-ID"), eventTS)
           case w if 5 == (w / 100) =>
             ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, WNSResponseStatus.InternalError)
             ConnektLogger(LogFile.PROCESSORS).info(s"WNSResponseHandler The wns server encountered an error while trying to process the request: $requestId code: $w response: $response")
-            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InternalError, MobilePlatform.WINDOWS, appName, contextId, null, eventTS)
+            PNCallbackEvent(requestId, deviceId, WNSResponseStatus.InternalError, MobilePlatform.WINDOWS, appName, contextId, client, null, eventTS)
         })
       case Failure(e) =>
         ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.WINDOWS, InternalStatus.ProviderSendError)
         ConnektLogger(LogFile.PROCESSORS).error(s"WNSResponseHandler failure: $requestId error: ${e.getMessage}", e)
-        Some(PNCallbackEvent(requestId, deviceId, InternalStatus.ProviderSendError, MobilePlatform.WINDOWS, appName, contextId, e.getMessage, eventTS))
+        Some(PNCallbackEvent(requestId, deviceId, InternalStatus.ProviderSendError, MobilePlatform.WINDOWS, appName, contextId, client, e.getMessage, eventTS))
     }
 
     maybePNCallbackEvent.toList.persist

@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent, PNRequestData, PNRequestInfo}
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils._
+import org.apache.commons.lang.StringUtils
 
 
 class CallbackServiceTest extends CommonsBaseTest {
@@ -32,6 +33,7 @@ class CallbackServiceTest extends CommonsBaseTest {
     platform = UUID.randomUUID().toString,
     appName = UUID.randomUUID().toString,
     contextId = UUID.randomUUID().toString,
+    client = StringUtils.EMPTY,
     cargo = UUID.randomUUID().toString,
     timestamp = 3245567
   )
@@ -40,6 +42,7 @@ class CallbackServiceTest extends CommonsBaseTest {
   var pnInfo = ConnektRequest(
     mid,
     contextId = None,
+    client = StringUtils.EMPTY,
     channel = "push",
     sla = "H",
     templateId = Some(UUID.randomUUID().toString),

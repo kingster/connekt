@@ -32,15 +32,15 @@ class OpenWebDispatcherPrepare extends MapFlowStage[OpenWebStandardPayloadEnvelo
 
       val requestEntity = HttpEntity(ContentTypes.`application/octet-stream`, message.payload.data)
 
-      val requestHeaders : scala.collection.immutable.Seq[HttpHeader] = scala.collection.immutable.Seq( message.headers.map { case (key, value) => RawHeader(key, value).asInstanceOf[HttpHeader] }.toList : _* )
+      val requestHeaders: scala.collection.immutable.Seq[HttpHeader] = scala.collection.immutable.Seq(message.headers.map { case (key, value) => RawHeader(key, value).asInstanceOf[HttpHeader] }.toList: _*)
       val httpRequest = HttpRequest(HttpMethods.POST, message.providerUrl, requestHeaders, requestEntity)
-      val requestTrace = OpenWebRequestTracker(message.messageId, message.deviceId, message.appName, message.contextId, message.meta)
+      val requestTrace = OpenWebRequestTracker(message.messageId, message.deviceId, message.appName, message.contextId, message.client, message.meta)
 
       List(httpRequest -> requestTrace)
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebDispatcherPrepare failed with ${e.getMessage}", e)
-        throw new ConnektPNStageException(message.messageId, Set(message.deviceId), InternalStatus.StageError, message.appName, MobilePlatform.OPENWEB, message.contextId, message.meta,s"OpenWebDispatcherPrepare-${e.getMessage}", e)
+        throw new ConnektPNStageException(message.messageId, Set(message.deviceId), InternalStatus.StageError, message.appName, MobilePlatform.OPENWEB, message.contextId, message.client, message.meta, s"OpenWebDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }

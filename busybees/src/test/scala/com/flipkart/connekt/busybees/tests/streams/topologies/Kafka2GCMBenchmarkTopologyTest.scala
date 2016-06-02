@@ -117,7 +117,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
     val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
     val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(pNRequestInfo.appName).get.apiKey))
     val httpRequest = HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
-    val requestTrace = GCMRequestTracker(messageId, deviceId, pNRequestInfo.appName, "", Map("client" -> "test"))
+    val requestTrace = GCMRequestTracker(messageId, deviceId, pNRequestInfo.appName, "", "test" ,Map())
 //    println("Rinning in thread " + Thread.currentThread().getName)
     (httpRequest, requestTrace)
   }(futureDispatcher)

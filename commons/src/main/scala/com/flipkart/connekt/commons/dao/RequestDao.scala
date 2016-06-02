@@ -89,6 +89,7 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
           ConnektRequest(
             id = rowKey,
             contextId = Option(fields.getS("contextId")),
+            client = fields.getS("client"),
             channel = fields.getS("channel"),
             sla = fields.getS("sla"),
             templateId = Option(fields.getS("templateId")),

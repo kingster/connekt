@@ -23,4 +23,4 @@ case class OpenWebChromePayload(registration_ids: Seq[String],
 
 case class OpenWebStandardPayload(data:Array[Byte]) extends OpenWebPayload
 
-case class OpenWebStandardPayloadEnvelope(messageId: String, deviceId: String, appName: String, contextId: String, providerUrl:String, payload: OpenWebStandardPayload, headers: Map[String, String], meta: Map[String, Any]) extends PayloadEnvelope
+case class OpenWebStandardPayloadEnvelope(messageId: String, deviceId: String, appName: String, contextId: String, client:String, providerUrl:String, payload: OpenWebStandardPayload, headers: Map[String, String], meta: Map[String, Any]) extends PayloadEnvelope

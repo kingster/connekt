@@ -97,7 +97,7 @@ object StageSupervision {
       ServiceFactory.getReportingService.recordPushStatsDelta(cEx.meta.get("client").getString, Option(cEx.context), cEx.meta.get("stencilId").map(_.toString), Option(cEx.platform), cEx.appName, InternalStatus.StageError.toString)
       ConnektLogger(LogFile.PROCESSORS).warn("StageSupervision Handle ConnektPNStageException")
       cEx.deviceId
-        .map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
+        .map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.client, cEx.getMessage, cEx.timeStamp))
         .persist
       Supervision.Resume
 

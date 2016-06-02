@@ -38,12 +38,12 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
       val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
 
-      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
+      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty, message.client)).persist
 
       val (validDevices, invalidTokenDevices) = devicesInfo.partition(_.token.isValidUrl)
 
       invalidTokenDevices
-        .map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.InvalidToken, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty))
+        .map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.InvalidToken, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty, message.client))
         .persist
 
       val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-windows").get
@@ -51,7 +51,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val wnsRequestEnvelopes = validDevices.map(d => {
         val wnsPayload = WNSToastPayload(PNPlatformStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
-        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, wnsPayload, message.meta)
+        WNSPayloadEnvelope(message.id, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, message.client, wnsPayload, message.meta)
       })
 
       if (wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0) {
@@ -65,14 +65,14 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         }
       } else if (wnsRequestEnvelopes.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter dropping ttl-expired message: ${message.id}")
-        wnsRequestEnvelopes.map(w => PNCallbackEvent(w.messageId, w.deviceId, InternalStatus.TTLExpired, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
+        wnsRequestEnvelopes.map(w => PNCallbackEvent(w.messageId, w.deviceId, InternalStatus.TTLExpired, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty, message.client)).persist
         List.empty[WNSPayloadEnvelope]
       } else
         List.empty[WNSPayloadEnvelope]
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"WindowsChannelFormatter error for message: ${message.id}", e)
-        throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.meta, "WindowsChannelFormatter::".concat(e.getMessage), e)
+        throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.client, message.meta, "WindowsChannelFormatter::".concat(e.getMessage), e)
     }
   }
 }

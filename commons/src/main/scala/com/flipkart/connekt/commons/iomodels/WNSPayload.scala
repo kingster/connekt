@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 
 import scala.xml.{Node, XML}
 
-case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, deviceId: String, time_to_live: Long, contextId: String, wnsPayload: WNSPayload, meta: Map[String, Any])
+case class WNSPayloadEnvelope(messageId: String, token: String, appName: String, deviceId: String, time_to_live: Long, contextId: String, client:String, wnsPayload: WNSPayload, meta: Map[String, Any])
 
 object WindowsNotificationType extends Enumeration {
   val toast, tile, badge, raw = Value

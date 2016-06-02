@@ -41,6 +41,7 @@ class PNCallbackDao(tableName: String, hTableFactory: THTableFactory) extends Ca
       platform = channelEventPropsMap.getS("platform"),
       appName = channelEventPropsMap.getS("appName"),
       contextId = channelEventPropsMap.getS("contextId"),
+      client = channelEventPropsMap.getS("client"),
       cargo = channelEventPropsMap.getS("cargo"),
       timestamp = channelEventPropsMap.getL("timestamp").asInstanceOf[Long]
     )
