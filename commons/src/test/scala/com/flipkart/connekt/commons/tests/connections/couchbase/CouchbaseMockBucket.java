@@ -16,7 +16,6 @@ import com.couchbase.client.java.view.ViewQuery;
 import com.couchbase.client.java.view.ViewResult;
 import com.google.common.annotations.VisibleForTesting;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -443,9 +442,22 @@ public class CouchbaseMockBucket implements Bucket {
 
     @Override
     public QueryResult query(Query query) {
-      List<AsyncQueryRow> row = new ArrayList<>();
-      List<JsonObject> error = null;
-      return new DefaultQueryResult(row, null, null, error, false, false, "", "");
+      AsyncQueryResult asyncQueryResult = Blocking.blockForSingle(asyncBucket.query(query).single(), kvTimeout, TIMEOUT_UNIT);
+      List<AsyncQueryRow> asyncQueryRows = asyncQueryResult.rows().toList().toBlocking().single();
+      Object signature = asyncQueryResult.signature().toBlocking().singleOrDefault(null);
+      QueryMetrics info = asyncQueryResult.info().toBlocking().singleOrDefault(null);
+      List<JsonObject> errors = asyncQueryResult.errors().toList().toBlocking().singleOrDefault(null);
+
+      DefaultQueryResult queryRows = new DefaultQueryResult(
+        asyncQueryRows,
+        signature,
+        info,
+        errors,
+        asyncQueryResult.parseSuccess(),
+        asyncQueryResult.parseSuccess(),
+        asyncQueryResult.requestId(),
+        asyncQueryResult.clientContextId());
+      return queryRows;
     }
 
     @Override
