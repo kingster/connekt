@@ -46,10 +46,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         entity(as[ConnektRequest]) { r =>
                           val request = r.copy(client = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
-                            if (r.meta == null)
-                              headers
-                            else
-                              r.meta ++ headers
+                            Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
                           request.validate()
 
@@ -110,10 +107,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         entity(as[ConnektRequest]) { r =>
                           val request = r.copy(client = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
-                            if (r.meta == null)
-                              headers
-                            else
-                              r.meta ++ (headers)
+                            Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
                           request.validate()
 
