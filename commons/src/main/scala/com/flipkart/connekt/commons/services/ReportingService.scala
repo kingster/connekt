@@ -53,7 +53,7 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
   }
 
   def getAllDetails(date: String, clientId: String, campaignId: Option[String], appName: Option[String], platform: Option[String], channel: Option[String]): Map[String, Long] = {
-    //TODO:  need to transform
+
     val prefixString = List(date, clientId, campaignId.orNull, appName.orNull, platform.orNull, channel.orNull).filter(_ != null).mkString(".")
     val allKeys: List[String] = reportManagerDao.prefix(prefixString)
     val resultMap = reportManagerDao.get(allKeys)
