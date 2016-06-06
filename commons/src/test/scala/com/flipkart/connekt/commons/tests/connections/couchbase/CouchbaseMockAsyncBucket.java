@@ -9,11 +9,10 @@ import com.couchbase.client.java.bucket.AsyncBucketManager;
 import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.JsonLongDocument;
+import com.couchbase.client.java.document.StringDocument;
+import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.query.AsyncQueryResult;
-import com.couchbase.client.java.query.Query;
-import com.couchbase.client.java.query.QueryPlan;
-import com.couchbase.client.java.query.Statement;
+import com.couchbase.client.java.query.*;
 import com.couchbase.client.java.view.AsyncSpatialViewResult;
 import com.couchbase.client.java.view.AsyncViewResult;
 import com.couchbase.client.java.view.SpatialViewQuery;
@@ -21,8 +20,7 @@ import com.couchbase.client.java.view.ViewQuery;
 import com.google.common.annotations.VisibleForTesting;
 import rx.Observable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 @VisibleForTesting
@@ -257,7 +255,29 @@ public class CouchbaseMockAsyncBucket implements AsyncBucket {
 
   @Override
   public Observable<AsyncQueryResult> query(Query query) {
-    return null;
+    List<AsyncQueryRow> rows = new ArrayList<>();
+    String param = query.statement().toString();
+    String[] paramsParts = param.split(" ");
+    String prefixVal = paramsParts[paramsParts.length - 1].substring(1, paramsParts[paramsParts.length - 1].length() - 2);
+
+    JsonObject jsonObject = JsonObject.create();
+
+    Iterator<Map.Entry<String, Document<?>>> it = dataStore.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry pair = (Map.Entry) it.next();
+      if (pair.getKey().toString().startsWith(prefixVal)) {
+        jsonObject.put("id", pair.getKey().toString());
+      }
+    }
+    if (dataStore.size() == 0) {
+      jsonObject.put("id", "json");
+    }
+
+    rows.add(new DefaultAsyncQueryRow(jsonObject));
+    Observable<AsyncQueryRow> rowObservable = Observable.from(rows);
+    DefaultAsyncQueryResult defaultAsyncQueryResult = new DefaultAsyncQueryResult(rowObservable, Observable.empty(), Observable.empty(), Observable.empty(), Observable.just(false), false, "", "");
+
+    return Observable.just(defaultAsyncQueryResult);
   }
 
   @Override
@@ -297,7 +317,9 @@ public class CouchbaseMockAsyncBucket implements AsyncBucket {
 
   @Override
   public Observable<JsonLongDocument> counter(String id, long delta, long initial) {
-    return null;
+    StringDocument stringDoc = StringDocument.create(id,0, String.valueOf(delta), 0L);
+    this.dataStore.put(stringDoc.id(), stringDoc);
+    return Observable.just(JsonLongDocument.create(id, 0, delta, 0L));
   }
 
   @Override

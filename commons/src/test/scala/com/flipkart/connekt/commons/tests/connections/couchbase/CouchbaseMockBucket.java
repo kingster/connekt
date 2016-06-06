@@ -6,11 +6,9 @@ import com.couchbase.client.java.bucket.BucketManager;
 import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.JsonLongDocument;
+import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.query.Query;
-import com.couchbase.client.java.query.QueryPlan;
-import com.couchbase.client.java.query.QueryResult;
-import com.couchbase.client.java.query.Statement;
+import com.couchbase.client.java.query.*;
 import com.couchbase.client.java.util.Blocking;
 import com.couchbase.client.java.view.SpatialViewQuery;
 import com.couchbase.client.java.view.SpatialViewResult;
@@ -444,7 +442,22 @@ public class CouchbaseMockBucket implements Bucket {
 
     @Override
     public QueryResult query(Query query) {
-        return null;
+      AsyncQueryResult asyncQueryResult = Blocking.blockForSingle(asyncBucket.query(query).single(), kvTimeout, TIMEOUT_UNIT);
+      List<AsyncQueryRow> asyncQueryRows = asyncQueryResult.rows().toList().toBlocking().single();
+      Object signature = asyncQueryResult.signature().toBlocking().singleOrDefault(null);
+      QueryMetrics info = asyncQueryResult.info().toBlocking().singleOrDefault(null);
+      List<JsonObject> errors = asyncQueryResult.errors().toList().toBlocking().singleOrDefault(null);
+
+      DefaultQueryResult queryRows = new DefaultQueryResult(
+        asyncQueryRows,
+        signature,
+        info,
+        errors,
+        asyncQueryResult.parseSuccess(),
+        asyncQueryResult.parseSuccess(),
+        asyncQueryResult.requestId(),
+        asyncQueryResult.clientContextId());
+      return queryRows;
     }
 
     @Override
