@@ -41,7 +41,7 @@ class APNSDispatcherPrepare extends MapFlowStage[APSPayloadEnvelope, (SimpleApns
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcherPrepare:: onPush :: Error", e)
-        throw new ConnektPNStageException(envelope.messageId, Set(envelope.deviceId), InternalStatus.StageError, envelope.appName, MobilePlatform.IOS, envelope.contextId, envelope.client, envelope.meta, s"APNSDispatcherPrepare-${e.getMessage}", e)
+        throw new ConnektPNStageException(envelope.messageId, envelope.client, Set(envelope.deviceId), InternalStatus.StageError, envelope.appName, MobilePlatform.IOS, envelope.contextId, envelope.meta, s"APNSDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }

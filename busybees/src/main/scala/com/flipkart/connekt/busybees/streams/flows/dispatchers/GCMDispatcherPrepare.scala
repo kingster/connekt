@@ -43,7 +43,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "gcm-http.googleapis.com"
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"GCMDispatcherPrepare failed with ${e.getMessage}", e)
-        throw new ConnektPNStageException(message.messageId, message.deviceId.toSet, InternalStatus.StageError, message.appName, MobilePlatform.ANDROID, message.contextId, message.client, message.meta, s"GCMDispatcherPrepare-${e.getMessage}", e)
+        throw new ConnektPNStageException(message.messageId, message.client, message.deviceId.toSet, InternalStatus.StageError, message.appName, MobilePlatform.ANDROID, message.contextId, message.meta, s"GCMDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }

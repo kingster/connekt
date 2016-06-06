@@ -40,7 +40,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get.toSeq
       val validDeviceIds = devicesInfo.map(_.deviceId)
       val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds.toSet)
-      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty, message.client)).persist
+      invalidDeviceIds.map(PNCallbackEvent(message.id, message.client, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val tokens = devicesInfo.map(_.token)
       val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
@@ -54,14 +54,14 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         List(GCMPayloadEnvelope(message.id, validDeviceIds, pnInfo.appName, message.contextId.orEmpty, message.client, payload, message.meta))
       } else if (tokens.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
-        devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty, message.client)).persist
+        devicesInfo.map(d => PNCallbackEvent(message.id, message.client, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
         List.empty[GCMPayloadEnvelope]
       } else
         List.empty[GCMPayloadEnvelope]
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"AndroidChannelFormatter error for ${message.id}", e)
-        throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.client, message.meta, "AndroidChannelFormatter::".concat(e.getMessage), e)
+        throw new ConnektPNStageException(message.id, message.client, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.meta, "AndroidChannelFormatter::".concat(e.getMessage), e)
     }
   }
 }

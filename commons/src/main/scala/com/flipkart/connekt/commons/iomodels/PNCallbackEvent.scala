@@ -18,12 +18,12 @@ import com.flipkart.connekt.commons.utils.DateTimeUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 case class PNCallbackEvent(@JsonProperty(required = false) messageId: String,
+                           @JsonProperty(required = false) clientId: String,
                            @JsonProperty(required = false) deviceId: String,
                            @JsonProperty(required = true) eventType: String,
                            @JsonProperty(required = false) platform: String,
                            @JsonProperty(required = false) appName: String,
                            contextId: String,
-                           @JsonProperty(required = false) client: String,
                            @JsonProperty(required = false) cargo: String = null,
                            timestamp: Long = System.currentTimeMillis()) extends CallbackEvent with BigfootSupport[fkint.mp.connekt.PNCallbackEvent] {
 

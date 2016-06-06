@@ -28,12 +28,12 @@ class CallbackServiceTest extends CommonsBaseTest {
   var mid = ""
   var callBackEvent = PNCallbackEvent(
     mid,
+    clientId = StringUtils.EMPTY,
     deviceId = UUID.randomUUID().toString,
     eventType = UUID.randomUUID().toString,
     platform = UUID.randomUUID().toString,
     appName = UUID.randomUUID().toString,
     contextId = UUID.randomUUID().toString,
-    client = StringUtils.EMPTY,
     cargo = UUID.randomUUID().toString,
     timestamp = 3245567
   )

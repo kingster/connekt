@@ -40,7 +40,7 @@ class OpenWebDispatcherPrepare extends MapFlowStage[OpenWebStandardPayloadEnvelo
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebDispatcherPrepare failed with ${e.getMessage}", e)
-        throw new ConnektPNStageException(message.messageId, Set(message.deviceId), InternalStatus.StageError, message.appName, MobilePlatform.OPENWEB, message.contextId, message.client, message.meta, s"OpenWebDispatcherPrepare-${e.getMessage}", e)
+        throw new ConnektPNStageException(message.messageId, message.client, Set(message.deviceId), InternalStatus.StageError, message.appName, MobilePlatform.OPENWEB, message.contextId, message.meta, s"OpenWebDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }
