@@ -19,6 +19,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 case class ConnektRequest(@JsonProperty(required = false) id: String,
                           contextId: Option[String],
+                          @JsonProperty(required = false) client: String,
                           channel: String,
                           @JsonProperty(required = true) sla: String,
                           templateId: Option[String],
@@ -29,15 +30,15 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
                           @JsonProperty(required = false) channelDataModel: ObjectNode = getObjectNode,
                           meta: Map[String, String]) {
 
-  def this(id: String, contextId: Option[String], channel: String, sla: String, templateId: Option[String],
+  def this(id: String, contextId: Option[String], client: String, channel: String, sla: String, templateId: Option[String],
            scheduleTs: Option[Long], expiryTs: Option[Long], channelInfo: ChannelRequestInfo,
            channelData: ChannelRequestData, channelDataModel: ObjectNode) {
-    this(id, contextId, channel, sla, templateId, scheduleTs, expiryTs, channelInfo, channelData, channelDataModel, Map.empty[String,String])
+    this(id, contextId, client, channel, sla, templateId, scheduleTs, expiryTs, channelInfo, channelData, channelDataModel, Map.empty[String, String])
   }
 
   def validate() = {
     require(templateId.map(StencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
-    require(contextId.map(_.hasOnlyAllowedChars).getOrElse(true), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
+    require(contextId.forall(_.hasOnlyAllowedChars), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
     require(sla.isDefined, "`sla` field can cannot be null or empty.")
     require(meta != null, "`meta` field cannot be null. It is optional but non-null")
     require(channelInfo != null, "`channelInfo` field cannot be null.")

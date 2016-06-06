@@ -12,4 +12,4 @@
  */
 package com.flipkart.connekt.busybees.models
 
-case class OpenWebRequestTracker(messageId: String, deviceId: String, appName: String, contextId:String, meta: Map[String, Any]) extends RequestTracker
+case class OpenWebRequestTracker(messageId: String, deviceId: String, appName: String, contextId:String, client:String, meta: Map[String, Any]) extends RequestTracker

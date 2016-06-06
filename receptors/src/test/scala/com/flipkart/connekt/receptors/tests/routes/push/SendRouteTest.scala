@@ -100,7 +100,7 @@ class SendRouteTest extends BaseRouteTest {
       }
 
     DeviceDetailsService.add(device)
-    
+
     Post(s"/v1/send/push/$platform/$appName/user/$accountId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       unicastRoute ~>
       check {

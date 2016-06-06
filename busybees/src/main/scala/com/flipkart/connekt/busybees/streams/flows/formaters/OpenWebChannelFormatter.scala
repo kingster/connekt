@@ -42,7 +42,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
       val validDeviceIds = devicesInfo.map(_.deviceId)
       val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds.toSet)
-      invalidDeviceIds.map(PNCallbackEvent(message.id, _, InternalStatus.MissingDeviceInfo, MobilePlatform.OPENWEB, pnInfo.appName, message.contextId.orEmpty)).persist
+      invalidDeviceIds.map(PNCallbackEvent(message.id, message.client, _, InternalStatus.MissingDeviceInfo, MobilePlatform.OPENWEB, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
       val openWebStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-openweb").get
@@ -61,37 +61,37 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
             if (device.keys != null && device.keys.nonEmpty) {
               Try(WebPushEncryptionUtils.encrypt(device.keys("p256dh"), device.keys("auth"), appDataWithId)) match {
                 case Success(data) =>
-                  headers += (
+                  headers +=(
                     "Crypto-Key" -> WebPushEncryptionUtils.createCryptoKeyHeader(data.serverPublicKey),
                     "Encryption" -> WebPushEncryptionUtils.createEncryptionHeader(data.salt),
                     "Content-Encoding" -> "aesgcm"
                     )
-                  List(OpenWebStandardPayloadEnvelope(message.id, device.deviceId, pnInfo.appName,
+                  List(OpenWebStandardPayloadEnvelope(message.id, message.client, device.deviceId, pnInfo.appName,
                     message.contextId.orEmpty, token, OpenWebStandardPayload(data.encodedData), headers.toMap, message.meta))
                 case Failure(e) =>
                   ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebChannelFormatter error for ${message.id}", e)
-                  PNCallbackEvent(message.id, device.deviceId, InternalStatus.EncryptionError, MobilePlatform.OPENWEB, device.appName, message.contextId.orEmpty, e.getMessage).persist
+                  PNCallbackEvent(message.id, message.client, device.deviceId, InternalStatus.EncryptionError, MobilePlatform.OPENWEB, device.appName, message.contextId.orEmpty, e.getMessage).persist
                   List.empty[OpenWebStandardPayloadEnvelope]
               }
             } else {
-              List(OpenWebStandardPayloadEnvelope(message.id, device.deviceId, pnInfo.appName, message.contextId.orEmpty,
+              List(OpenWebStandardPayloadEnvelope(message.id, message.client, device.deviceId, pnInfo.appName, message.contextId.orEmpty,
                 token, OpenWebStandardPayload(Array.empty), headers.toMap, message.meta))
             }
           } else {
-            PNCallbackEvent(message.id, device.deviceId, InternalStatus.InvalidToken, MobilePlatform.OPENWEB, device.appName, message.contextId.orEmpty, "OpenWeb without or empty/invalid token not allowed").persist
+            PNCallbackEvent(message.id, message.client, device.deviceId, InternalStatus.InvalidToken, MobilePlatform.OPENWEB, device.appName, message.contextId.orEmpty, "OpenWeb without or empty/invalid token not allowed").persist
             List.empty[OpenWebStandardPayloadEnvelope]
           }
         })
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"OpenWebChannelFormatter dropping ttl-expired message: ${message.id}")
-        devicesInfo.map(d => PNCallbackEvent(message.id, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.OPENWEB, d.appName, message.contextId.orEmpty)).persist
+        devicesInfo.map(d => PNCallbackEvent(message.id, message.client, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.OPENWEB, d.appName, message.contextId.orEmpty)).persist
         List.empty[OpenWebStandardPayloadEnvelope]
       }
     }
     catch {
       case e: Exception =>
         ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebChannelFormatter error for ${message.id}", e)
-        throw new ConnektPNStageException(message.id, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.meta, "OpenWebChannelFormatter::".concat(e.getMessage), e)
+        throw new ConnektPNStageException(message.id, message.client, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.meta, "OpenWebChannelFormatter::".concat(e.getMessage), e)
     }
   }
 

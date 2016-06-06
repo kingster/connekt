@@ -64,7 +64,7 @@ class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrume
       val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(appName).get.apiKey))
       val httpRequest = HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
-      val requestTrace = GCMRequestTracker(messageId, deviceId, appName, "",  Map("client" -> "test"))
+      val requestTrace = GCMRequestTracker(messageId, deviceId, appName, "", "test", Map())
       (httpRequest, requestTrace)
     })
 
