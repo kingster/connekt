@@ -37,7 +37,7 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "gcm-http.googleapis.com"
       val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))
       val httpRequest = HttpRequest(HttpMethods.POST, uri.getPath, requestHeaders, requestEntity)
-      val requestTrace = GCMRequestTracker(message.messageId, message.deviceId, message.appName, message.contextId, message.client, message.meta)
+      val requestTrace = GCMRequestTracker(message.messageId, message.client, message.deviceId, message.appName, message.contextId, message.meta)
 
       List(httpRequest -> requestTrace)
     } catch {

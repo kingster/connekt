@@ -36,7 +36,7 @@ class APNSDispatcherPrepare extends MapFlowStage[APSPayloadEnvelope, (SimpleApns
 
       val pushNotification = new SimpleApnsPushNotification(payload.token, payload.topic, payload.data.asInstanceOf[AnyRef].getJson, new Date(payload.expiryInMillis))
 
-      List((pushNotification, APNSRequestTracker(envelope.messageId, envelope.deviceId, envelope.appName, envelope.contextId, envelope.client, envelope.meta)))
+      List((pushNotification, APNSRequestTracker(envelope.messageId, envelope.client, envelope.deviceId, envelope.appName, envelope.contextId, envelope.meta)))
 
     } catch {
       case e: Throwable =>

@@ -42,7 +42,7 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
 
       ConnektLogger(LogFile.PROCESSORS).trace(s"WNSDispatcher prepared http request: $request")
 
-      List((request, WNSRequestTracker(message.appName, message.messageId, message, message.meta)))
+      List((request, WNSRequestTracker(message.messageId, message.client, message.deviceId, message.appName, message.contextId, message, message.meta)))
 
     } catch {
       case e: Throwable =>

@@ -14,4 +14,4 @@ package com.flipkart.connekt.busybees.models
 
 import com.flipkart.connekt.commons.iomodels.WNSPayloadEnvelope
 
-case class WNSRequestTracker(appName: String, requestId: String, request: WNSPayloadEnvelope, meta: Map[String, Any]) extends RequestTracker
+case class WNSRequestTracker(requestId: String, client: String, deviceId: String, appName: String, contextId: String, request: WNSPayloadEnvelope, meta: Map[String, Any]) extends RequestTracker
