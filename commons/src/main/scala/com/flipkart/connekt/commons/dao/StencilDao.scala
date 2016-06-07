@@ -40,17 +40,39 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
     }
   }
 
+  override def getStencilByName(name: String, version: Option[String] = None): Option[Stencil] = {
+    implicit val j = mysqlHelper.getJDBCInterface
+    try {
+      val q1 =
+        s"""
+           |SELECT * FROM $historyTableName WHERE name = ? and version = ?
+            """.stripMargin
+
+      val q2 =
+        s"""
+           |SELECT * FROM $tableName WHERE name = ?
+            """.stripMargin
+
+      version.map(query[Stencil](q1, name, _)).getOrElse(query[Stencil](q2, name))
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.DAO).error(s"Error fetching stencil [$name] ${e.getMessage}", e)
+        throw e
+    }
+  }
+
+
   override def writeStencil(stencil: Stencil): Unit = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q1 =
       s"""
          |INSERT INTO $tableName (id, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?)
-         |ON DUPLICATE KEY UPDATE engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
+                                  |ON DUPLICATE KEY UPDATE engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
       """.stripMargin
 
     val q2 =
       s"""
-        |INSERT INTO $historyTableName (id, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ?), ?)
+         |INSERT INTO $historyTableName (id, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ?), ?)
       """.stripMargin
 
     try {
@@ -62,7 +84,7 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
         throw e
     }
   }
-  
+
   override def getBucket(name: String): Option[Bucket] = {
     implicit val j = mysqlHelper.getJDBCInterface
 
@@ -73,9 +95,9 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
             """.stripMargin
       query[Bucket](q, name)
     } catch {
-    case e: Exception =>
-      ConnektLogger(LogFile.DAO).error(s"Error fetching bucket [$name] ${e.getMessage}", e)
-      throw e
+      case e: Exception =>
+        ConnektLogger(LogFile.DAO).error(s"Error fetching bucket [$name] ${e.getMessage}", e)
+        throw e
     }
   }
 
@@ -97,6 +119,6 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
 }
 
 object StencilDao {
-  def apply(tableName: String, historyTableName: String, bucketRegistryTable: String,jdbcHelper: TMySQLFactory) =
-    new StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String,jdbcHelper: TMySQLFactory)
+  def apply(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) =
+    new StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory)
 }
