@@ -28,7 +28,7 @@ class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirec
   val ldap = new LdapAuthRoute().route
   val registration = new RegistrationRoute().route
   val send = new SendRoute().route
-  val callback = new CallbackRoute().callback
+  val callback = new CallbackRoute().route
   val report = new ReportsRoute().route
   val fetch = new FetchRoute().route
   val stencil = new StencilsRoute().route

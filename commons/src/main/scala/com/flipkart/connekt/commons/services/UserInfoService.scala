@@ -55,4 +55,10 @@ class UserInfoService(userInfoDao: TUserInfo) extends TService {
         user
     }
   }
+
+  def removeUserById(userId: String): Try[Unit] = Try_ {
+    LocalCacheManager.getCache(LocalCacheType.UserInfo).remove(userId)
+    userInfoDao.removeUserById(userId)
+  }
+
 }

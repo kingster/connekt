@@ -42,12 +42,12 @@ class WNSDispatcherPrepare extends MapFlowStage[WNSPayloadEnvelope, (HttpRequest
 
       ConnektLogger(LogFile.PROCESSORS).trace(s"WNSDispatcher prepared http request: $request")
 
-      List((request, WNSRequestTracker(message.appName, message.messageId, message, message.meta)))
+      List((request, WNSRequestTracker(message.messageId, message.clientId, message.deviceId, message.appName, message.contextId, message, message.meta)))
 
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"WNSDispatcher:: onPush :: Error", e)
-        throw new ConnektPNStageException(message.messageId, Set(message.deviceId), InternalStatus.StageError, message.appName, MobilePlatform.WINDOWS, message.contextId, message.meta,s"WNSDispatcherPrepare-${e.getMessage}", e)
+        throw new ConnektPNStageException(message.messageId, message.clientId, Set(message.deviceId), InternalStatus.StageError, message.appName, MobilePlatform.WINDOWS, message.contextId, message.meta, s"WNSDispatcherPrepare-${e.getMessage}", e)
     }
   }
 }

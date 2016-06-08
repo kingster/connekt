@@ -31,7 +31,7 @@ class UserInfoDao(table: String, mysqlFactory: TMySQLFactory) extends TUserInfo 
     try {
       query[AppUser](q, userId)
     } catch {
-      case e @ (_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
+      case e@(_: IncorrectResultSizeDataAccessException | _: DataAccessException) =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching user [$userId] info: ${e.getMessage}", e)
         throw e
     }
@@ -71,12 +71,26 @@ class UserInfoDao(table: String, mysqlFactory: TMySQLFactory) extends TUserInfo 
         throw e
     }
   }
+
+  override def removeUserById(userId: String): Unit = {
+    implicit val j = mysqlHelper.getJDBCInterface
+    val q =
+      s"""
+         |DELETE FROM $table WHERE userId = ?
+      """.stripMargin
+    try {
+      update(q, userId)
+    } catch {
+      case e: DataAccessException =>
+        ConnektLogger(LogFile.DAO).error(s"Error in deleting client: $userId", e)
+        throw e
+    }
+  }
 }
 
 object UserInfoDao {
 
   def apply(tableName: String = "USER_INFO", mysqlFactory: TMySQLFactory) =
     new UserInfoDao(tableName, mysqlFactory)
-
 
 }

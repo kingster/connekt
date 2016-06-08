@@ -18,4 +18,5 @@ trait TUserInfo {
   def getUserInfo(userId: String): Option[AppUser]
   def addUserInfo(user: AppUser)
   def getUserByKey(key: String): Option[AppUser]
+  def removeUserById(userId: String)
 }

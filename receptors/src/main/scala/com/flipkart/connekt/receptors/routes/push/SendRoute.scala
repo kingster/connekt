@@ -14,6 +14,7 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
+import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
@@ -43,12 +44,9 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendDevicePush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-                          val request = r.copy(channel = "push", meta = {
+                          val request = r.copy(clientId = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
-                            if (r.meta == null)
-                              headers + ("client" -> user.userId)
-                            else
-                              r.meta ++ (headers + ("client" -> user.userId))
+                            Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
                           request.validate()
 
@@ -107,12 +105,9 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendUserPush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-                          val request = r.copy(channel = "push", meta = {
+                          val request = r.copy(clientId = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
-                            if (r.meta == null)
-                              headers + ("client" -> user.userId)
-                            else
-                              r.meta ++ (headers + ("client" -> user.userId))
+                            Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
                           request.validate()
 

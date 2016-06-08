@@ -24,4 +24,4 @@ case class GCMPNPayload(registration_ids: Seq[String],
                         @JsonInclude(JsonInclude.Include.NON_NULL) time_to_live: Option[Long] = None,
                         @JsonInclude(JsonInclude.Include.NON_NULL) dry_run: Option[Boolean] = None) extends GCMPayload
 
-case class GCMPayloadEnvelope(messageId: String, deviceId: Seq[String], appName: String, contextId: String, gcmPayload: GCMPayload, meta: Map[String, Any], headers: Map[String, String] = Map.empty[String, String]) extends PayloadEnvelope
+case class GCMPayloadEnvelope(messageId: String, clientId: String, deviceId: Seq[String], appName: String, contextId: String, gcmPayload: GCMPayload, meta: Map[String, Any], headers: Map[String, String] = Map.empty[String, String]) extends PayloadEnvelope

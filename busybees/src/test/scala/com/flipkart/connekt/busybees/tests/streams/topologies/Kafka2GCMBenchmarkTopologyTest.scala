@@ -85,9 +85,9 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
     val requestExecutor = HttpDispatcher.gcmPoolClientFlow.map(rT => {
       rT._1.foreach(_.entity.getString.getObj[ObjectNode])
       qps.mark()
-      if(0 == (counter.incrementAndGet() % 1000)) {
+      if (0 == (counter.incrementAndGet() % 1000)) {
         val now = System.currentTimeMillis
-        val rate = 1000*1000/(now - counterTS.getAndSet(now))
+        val rate = 1000 * 1000 / (now - counterTS.getAndSet(now))
         ConnektLogger(LogFile.SERVICE).info(s"Processed ${counter.get()} messages by $now, RATE = $rate,  MR[${qps.getMeanRate}}], 1MR[${qps.getOneMinuteRate}}]")
       }
     })
@@ -98,27 +98,27 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
     Await.result(rF, 180.seconds)
   }
 
-   val futureDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
+  val futureDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
 
-  private def transform2GCMRequest(request: ConnektRequest) = Future{
+  private def transform2GCMRequest(request: ConnektRequest) = Future {
     val messageId = UUID.randomUUID().toString
     val pNRequestInfo = request.channelInfo.asInstanceOf[PNRequestInfo]
     val deviceId = Seq[String](pNRequestInfo.deviceIds.head)
     val gcmPayload =
       s"""
-          |{
-          |	"registration_ids": ["${DeviceDetailsService.get(pNRequestInfo.appName, pNRequestInfo.deviceIds.head).get.get.token}"],
-          |	"delay_while_idle": false,
-          | "dry_run" : true,
-          |	"data": ${request.channelData.asInstanceOf[PNRequestData].data.toString}
-          |}
+         |{
+         |	"registration_ids": ["${DeviceDetailsService.get(pNRequestInfo.appName, pNRequestInfo.deviceIds.head).get.get.token}"],
+         |	"delay_while_idle": false,
+         | "dry_run" : true,
+         |	"data": ${request.channelData.asInstanceOf[PNRequestData].data.toString}
+         |}
         """.stripMargin
 
     val requestEntity = HttpEntity(ContentTypes.`application/json`, gcmPayload)
     val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(pNRequestInfo.appName).get.apiKey))
     val httpRequest = HttpRequest(HttpMethods.POST, "/gcm/send", requestHeaders, requestEntity)
-    val requestTrace = GCMRequestTracker(messageId, deviceId, pNRequestInfo.appName, "", Map("client" -> "test"))
-//    println("Rinning in thread " + Thread.currentThread().getName)
+    val requestTrace = GCMRequestTracker(messageId, "", deviceId, pNRequestInfo.appName, "test", Map())
+    //    println("Rinning in thread " + Thread.currentThread().getName)
     (httpRequest, requestTrace)
   }(futureDispatcher)
 }

@@ -26,7 +26,7 @@ import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 class CallbackRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  val callback =
+  val route =
     authenticate {
       user =>
         pathPrefix("v1") {

@@ -44,6 +44,7 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
         "id" -> requestId.getUtf8Bytes,
         "channel" -> request.channel.getUtf8Bytes,
         "sla" -> request.sla.getUtf8Bytes,
+        "clientId" -> request.clientId.getUtf8Bytes,
         "meta" -> KryoSerializer.serialize(request.meta)
       )
 
@@ -88,6 +89,7 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
 
           ConnektRequest(
             id = rowKey,
+            clientId = fields.getS("clientId"),
             contextId = Option(fields.getS("contextId")),
             channel = fields.getS("channel"),
             sla = fields.getS("sla"),
