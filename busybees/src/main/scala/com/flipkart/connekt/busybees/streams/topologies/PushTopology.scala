@@ -56,7 +56,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val merge = b.add(Merge[ConnektRequest](topics.size))
     val handles = ListBuffer[Promise[String]]()
 
-    for (portNum <- 0 to merge.n - 1) {
+    for (portNum <- 0 until merge.n) {
       val p = Promise[String]()
       new KafkaSource[ConnektRequest](consumer, topic = topics(portNum))(p.future) ~> merge.in(portNum)
       handles += p
