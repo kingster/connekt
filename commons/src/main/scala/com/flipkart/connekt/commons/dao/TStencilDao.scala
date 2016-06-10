@@ -16,8 +16,8 @@ import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
 
 trait TStencilDao extends Dao {
 
-  def getStencil(id: String, version: Option[String] = None): Option[Stencil]
-  def getStencilByName(name: String, version: Option[String] = None): Option[Stencil]
+  def getStencil(id: String, version: Option[String] = None): List[Stencil]
+  def getStencilByName(name: String, version: Option[String] = None): List[Stencil]
 //  def updateStencil(stencil: Stencil): Unit
   def writeStencil(stencil: Stencil): Unit
   def getBucket(name: String): Option[Bucket]
