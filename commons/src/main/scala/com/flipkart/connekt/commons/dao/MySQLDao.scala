@@ -21,6 +21,9 @@ import org.springframework.jdbc.core.{JdbcTemplate, RowMapper}
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
+import com.flipkart.connekt.commons.utils.StringUtils._
+
+trait JSONField
 
 trait MySQLDao extends Dao {
   def update(statement: String, args: Any*)(implicit jdbcTemplate: JdbcTemplate): Int = {
@@ -62,7 +65,10 @@ trait MySQLDao extends Dao {
         val clz = getEnumObjectClass(f.getType.asInstanceOf[Class[Enumeration#Value]], f)
         val v = getEnum(dbFieldValueMap(dbColumnName), clz)
         f.set(instance, v)
-      } else {
+      } else if (classOf[JSONField].isAssignableFrom(f.getType)){
+        f.set(instance, dbFieldValueMap(dbColumnName).toString.getObj(f.getType))
+      }
+      else {
         f.set(instance, dbFieldValueMap(dbColumnName))
       }
     })
