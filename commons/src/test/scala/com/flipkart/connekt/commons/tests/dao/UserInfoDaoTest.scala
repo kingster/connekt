@@ -20,7 +20,8 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 class UserInfoDaoTest extends CommonsBaseTest {
   val id = UUID.randomUUID().toString
-  val user = new AppUser(id, UUID.randomUUID().toString, "bro,commsvc","bro-")
+  val apiKey = UUID.randomUUID().toString
+  val user = new AppUser(id, apiKey, "bro,commsvc","bro-")
 
   "UserInfoDao test" should "add user info" in {
     val userDao = DaoFactory.getUserInfoDao
@@ -30,5 +31,10 @@ class UserInfoDaoTest extends CommonsBaseTest {
   "UserInfoDao test" should "get user info" in {
     val userDao = DaoFactory.getUserInfoDao
     userDao.getUserInfo(id).get shouldEqual user
+  }
+
+  "UserInfoDao test" should "get user info for apiKey" in {
+    val userDao = DaoFactory.getUserInfoDao
+    userDao.getUserByKey(apiKey).get shouldEqual user
   }
 }

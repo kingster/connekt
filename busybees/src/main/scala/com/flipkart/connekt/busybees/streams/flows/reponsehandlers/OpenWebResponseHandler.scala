@@ -52,8 +52,8 @@ class OpenWebResponseHandler(implicit m: Materializer, ec: ExecutionContext) ext
           r.status.intValue() match {
             case 201 =>
               val providerMessageId = r.optHeader("Location")
-              ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.Received)
-              events += PNCallbackEvent(messageId, deviceId, OpenWebResponseStatus.Received, MobilePlatform.OPENWEB, appName, requestTracker.contextId, providerMessageId, eventTS)
+              ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.Received)
+              events += PNCallbackEvent(messageId, requestTracker.clientId, deviceId, OpenWebResponseStatus.Received, MobilePlatform.OPENWEB, appName, requestTracker.contextId, providerMessageId, eventTS)
             case w if 4 == (w / 100) =>
               // TODO: not getting json response for chrome
               /**
@@ -65,35 +65,35 @@ class OpenWebResponseHandler(implicit m: Materializer, ec: ExecutionContext) ext
                *
                */
               if (stringResponse.contains("UnauthorizedRegistration")) {
-                ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.InvalidToken)
-                events += PNCallbackEvent(messageId, deviceId, OpenWebResponseStatus.InvalidToken, MobilePlatform.OPENWEB, appName, requestTracker.contextId, stringResponse, eventTS)
+                ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.InvalidToken)
+                events += PNCallbackEvent(messageId, requestTracker.clientId, deviceId, OpenWebResponseStatus.InvalidToken, MobilePlatform.OPENWEB, appName, requestTracker.contextId, stringResponse, eventTS)
                 DeviceDetailsService.get(appName, deviceId).get.foreach(device => if (device.osName == MobilePlatform.OPENWEB.toString) {
                   ConnektLogger(LogFile.PROCESSORS).info(s"OpenWebResponseHandler device token invalid / not_found, deleting details of device: $appName / $deviceId.")
                   DeviceDetailsService.delete(appName, deviceId)
                 })
               } else {
-                ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.InvalidPayload)
-                events += PNCallbackEvent(messageId, deviceId, OpenWebResponseStatus.InvalidPayload, MobilePlatform.OPENWEB, appName, requestTracker.contextId, stringResponse, eventTS)
+                ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.InvalidPayload)
+                events += PNCallbackEvent(messageId, requestTracker.clientId, deviceId, OpenWebResponseStatus.InvalidPayload, MobilePlatform.OPENWEB, appName, requestTracker.contextId, stringResponse, eventTS)
               }
               ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebResponseHandler http response - invalid json sent for: $messageId response: $stringResponse")
             case w if 5 == (w / 100) =>
-              ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.InternalError)
-              events += PNCallbackEvent(messageId, deviceId, OpenWebResponseStatus.InternalError, MobilePlatform.OPENWEB, appName, requestTracker.contextId, "", eventTS)
+              ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.InternalError)
+              events += PNCallbackEvent(messageId, requestTracker.clientId, deviceId, OpenWebResponseStatus.InternalError, MobilePlatform.OPENWEB, appName, requestTracker.contextId, "", eventTS)
               ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebResponseHandler http response - the server encountered an error while trying to process the request for: $messageId code: $w response: $stringResponse")
             case w =>
-              ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.Error)
-              events += PNCallbackEvent(messageId, deviceId, OpenWebResponseStatus.Error, MobilePlatform.OPENWEB, appName, requestTracker.contextId, stringResponse, eventTS)
+              ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, OpenWebResponseStatus.Error)
+              events += PNCallbackEvent(messageId, requestTracker.clientId, deviceId, OpenWebResponseStatus.Error, MobilePlatform.OPENWEB, appName, requestTracker.contextId, stringResponse, eventTS)
               ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebResponseHandler http response - response unhandled for: $messageId code: $w response: $stringResponse")
           }
         } catch {
           case e: Exception =>
-            ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, InternalStatus.OpenWebResponseHandleError)
-            events += PNCallbackEvent(messageId, deviceId, InternalStatus.OpenWebResponseHandleError, MobilePlatform.OPENWEB, appName, requestTracker.contextId, e.getMessage, eventTS)
+            ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, InternalStatus.OpenWebResponseHandleError)
+            events += PNCallbackEvent(messageId, requestTracker.clientId, deviceId, InternalStatus.OpenWebResponseHandleError, MobilePlatform.OPENWEB, appName, requestTracker.contextId, e.getMessage, eventTS)
             ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebResponseHandler failed processing http response body for: $messageId", e)
         }
       case Failure(e2) =>
-        ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.meta.get("client").getString, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, InternalStatus.ProviderSendError)
-        events += PNCallbackEvent(messageId, deviceId, InternalStatus.ProviderSendError, MobilePlatform.OPENWEB, appName, requestTracker.contextId, e2.getMessage, eventTS)
+        ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.OPENWEB.toString), requestTracker.appName, InternalStatus.ProviderSendError)
+        events += PNCallbackEvent(messageId, requestTracker.clientId, deviceId, InternalStatus.ProviderSendError, MobilePlatform.OPENWEB, appName, requestTracker.contextId, e2.getMessage, eventTS)
         ConnektLogger(LogFile.PROCESSORS).error(s"OpenWebResponseHandler  send failure for: $messageId", e2)
     }
 

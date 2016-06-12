@@ -26,31 +26,31 @@ import scala.concurrent.duration._
 
 class StencilsRouteTest extends BaseRouteTest {
   val engine = StencilEngine.GROOVY
-  val engineFabric = """
-                           |package com.flipkart.connekt.commons.entities.fabric;
-                           |
-                           |import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-                           |import com.fasterxml.jackson.databind.node.ObjectNode;
-                           |
-                           |public class ConnektSampleAppGroovy extends PNGroovyFabric {
-                           |public ObjectNode getData(String id, ObjectNode context) {
-                           |
-                           |return JsonNodeFactory.instance.objectNode()
-                           |                .put("message", context.get("message").asText("_phantomastray_"))
-                           |                .put("id", context.get("id").asText("pqwx2p2x321122228w2t1wxt"))
-                           |                .put("triggerSound", true)
-                           |                .put("notificationType", "Text")
-                           |                .put("title", context.get("title").asText("Do not go gentle into that good night."));
-                           |    }
-                           |}
-                           |""".stripMargin
+  val engineFabric =
+    """
+      |package com.flipkart.connekt.commons.entities.fabric;
+      |
+      |import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+      |import com.fasterxml.jackson.databind.node.ObjectNode;
+      |
+      |public class ConnektSampleAppGroovy extends PNPlatformGroovyFabric {
+      |     public String getData(String id, ObjectNode context) {
+      |		return context.toString();
+      |    }
+      |    public String getTopic(String id, ObjectNode context) {
+      |                 return null;
+      |    }
+      |}
+      | """.stripMargin
 
   val updateEngine = StencilEngine.VELOCITY
-  val updateEngineFabric = """{
-                             |	"cType": "EMAIL",
-                             |	"subjectVtl": "Order for $product, $booleanValue, $integerValue",
-                             |	"bodyHtmlVtl": "Hello $name, Price for $product is $price"
-                             |}""".stripMargin
+
+  val updateEngineFabric =
+    """{
+      |	"cType": "EMAIL",
+      |	"subjectVtl": "Order for $product, $booleanValue, $integerValue",
+      |	"bodyHtmlVtl": "Hello $name, Price for $product is $price"
+      |}""".stripMargin
   val escapedUpdateEngineFabric = StringEscapeUtils.escapeJava(updateEngineFabric)
 
   val message = StringUtils.generateRandomStr(10)
@@ -74,7 +74,8 @@ class StencilsRouteTest extends BaseRouteTest {
   val escapedEngineFabric = StringEscapeUtils.escapeJava(engineFabric)
   var stencil: Stencil = null
 
-  val input = s"""
+  val input =
+    s"""
        |{
        |   "engine" : "$engine",
        |   "engineFabric" : "$escapedEngineFabric",
@@ -82,7 +83,8 @@ class StencilsRouteTest extends BaseRouteTest {
        |}
     """.stripMargin
 
-  val update = s"""
+  val update =
+    s"""
        |{
        |   "engine" : "$updateEngine",
        |   "engineFabric" : "$escapedUpdateEngineFabric",
@@ -98,12 +100,12 @@ class StencilsRouteTest extends BaseRouteTest {
   "Stencil test" should "return Ok for save" in {
     Post("/v1/stencils", HttpEntity(MediaTypes.`application/json`, input)).addHeader(header) ~>
       stencilRoute ~>
-        check {
-          val responseString = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
-          val responseData = responseString.getObj[ObjectNode].get("response").asInstanceOf[ObjectNode].put("type", "RESPONSE").getJson.getObj[Response]
-          stencilId = StringUtils.getDetail(responseData.data, "id").get.toString
-          status shouldEqual StatusCodes.Created
-        }
+      check {
+        val responseString = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
+        val responseData = responseString.getObj[ObjectNode].get("response").asInstanceOf[ObjectNode].put("type", "RESPONSE").getJson.getObj[Response]
+        stencilId = StringUtils.getDetail(responseData.data, "id").get.toString
+        status shouldEqual StatusCodes.Created
+      }
 
   }
 
@@ -126,18 +128,18 @@ class StencilsRouteTest extends BaseRouteTest {
   "Stencil test" should "return Ok for update" in {
     Put(s"/v1/stencils/$stencilId", HttpEntity(MediaTypes.`application/json`, update)).addHeader(header) ~>
       stencilRoute ~>
-        check {
-          status shouldEqual StatusCodes.OK
-        }
+      check {
+        status shouldEqual StatusCodes.OK
+      }
   }
 
   "Stencil test" should "return Ok for version get" in {
     Get(s"/v1/stencils/$stencilId/1").addHeader(header) ~>
       stencilRoute ~>
-        check {
-          println("response = " + response)
-          status shouldEqual StatusCodes.OK
-        }
+      check {
+        println("response = " + response)
+        status shouldEqual StatusCodes.OK
+      }
 
   }
 
@@ -165,7 +167,4 @@ class StencilsRouteTest extends BaseRouteTest {
         status shouldEqual StatusCodes.OK
       }
   }
-
-
-
 }

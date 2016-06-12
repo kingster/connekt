@@ -28,7 +28,7 @@ class SendRouteTest extends BaseRouteTest {
   private val accountId = "ACC-" + UUID.randomUUID().toString.take(5)
   private val tokenId = "Token-" + UUID.randomUUID().toString.take(5)
 
-  var device = DeviceDetails(deviceId, userId = accountId, token = tokenId, appName, "osVersion", appName, "appVersion", "brand", "model")
+  var device = DeviceDetails(deviceId, userId = accountId, token = tokenId, platform, "osVersion", appName, "appVersion", "brand", "model")
 
   "Send PN Test" should "return created response status" in {
 
@@ -77,7 +77,7 @@ class SendRouteTest extends BaseRouteTest {
          |	"channelInfo": {
          |		"type": "PN",
          |		"ackRequired": true,
-         |   "deviceId" : [],
+         |    "deviceId" : [],
          |		"delayWhileIdle": true
          |	},
          |	"channelData": {
@@ -93,15 +93,15 @@ class SendRouteTest extends BaseRouteTest {
          |	"meta": {}
          |}        """.stripMargin
 
-    Post(s"/v1/send/push/$unknownPlatfrom/$appName/user/$accountId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+    Post(s"/v1/send/push/$platform/$appName/users/$accountId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       unicastRoute ~>
       check {
         status shouldEqual StatusCodes.NotFound
       }
 
     DeviceDetailsService.add(device)
-    
-    Post(s"/v1/send/push/$platform/$appName/user/$accountId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+
+    Post(s"/v1/send/push/$platform/$appName/users/$accountId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       unicastRoute ~>
       check {
         status shouldEqual StatusCodes.Created

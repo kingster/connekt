@@ -42,6 +42,8 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
   )
 
+
+
   override protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]] = {
     Option(channelRequestData).map(d => {
       val pnRequestData = d.asInstanceOf[PNRequestData]

@@ -20,12 +20,11 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
-import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-private [busybees] abstract class MapFlowStage[In, Out] {
+private[busybees] abstract class MapFlowStage[In, Out] {
 
   protected val stageName: String = this.getClass.getSimpleName
 
@@ -34,7 +33,7 @@ private [busybees] abstract class MapFlowStage[In, Out] {
   def flow = Flow[In].mapConcat(map).named(stageName)
 }
 
-private [busybees] abstract class MapAsyncFlowStage[In, Out](parallelism:Int) {
+private[busybees] abstract class MapAsyncFlowStage[In, Out](parallelism: Int) {
 
   protected val stageName: String = this.getClass.getSimpleName
 
@@ -43,7 +42,7 @@ private [busybees] abstract class MapAsyncFlowStage[In, Out](parallelism:Int) {
   def flow = Flow[In].mapAsyncUnordered(parallelism)(map).mapConcat(identity).named(stageName)
 }
 
-private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[FlowShape[In, Out]] {
+private[busybees] abstract class MapGraphStage[In, Out] extends GraphStage[FlowShape[In, Out]] {
 
   protected val stageName: String = this.getClass.getSimpleName
 
@@ -61,7 +60,7 @@ private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[Flow
         val inMessage = grab(i)
         val outMessages = map(inMessage)
 
-        if(isAvailable(o))
+        if (isAvailable(o))
           emitMultiple[Out](o, outMessages.iterator, () => {
             ConnektLogger(LogFile.PROCESSORS).trace(s"${stageName}_SupervisedFlowStage pushed downstream for input: $inMessage.")
           })
@@ -71,7 +70,7 @@ private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[Flow
           case Supervision.Stop =>
             failStage(e)
           case Supervision.Resume =>
-            if(!hasBeenPulled(i))
+            if (!hasBeenPulled(i))
               pull(i)
           case Supervision.Restart =>
             ConnektLogger(LogFile.PROCESSORS).error(s"${stageName}_Restart strategy not supported for SupervisedFlowStage.")
@@ -82,7 +81,7 @@ private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[Flow
 
     setHandler(o, new OutHandler {
       override def onPull(): Unit =
-        if(!hasBeenPulled(i)) {
+        if (!hasBeenPulled(i)) {
           pull(i)
         }
     })
@@ -94,15 +93,15 @@ private [busybees] abstract class MapGraphStage[In, Out] extends GraphStage[Flow
 object StageSupervision {
   val decider: Supervision.Decider = {
     case cEx: ConnektPNStageException =>
-      ServiceFactory.getReportingService.recordPushStatsDelta(cEx.meta.get("client").getString, Option(cEx.context), cEx.meta.get("stencilId").map(_.toString), Option(cEx.platform), cEx.appName, InternalStatus.StageError.toString)
+      ServiceFactory.getReportingService.recordPushStatsDelta(cEx.client, Option(cEx.context), cEx.meta.get("stencilId").map(_.toString), Option(cEx.platform), cEx.appName, InternalStatus.StageError.toString)
       ConnektLogger(LogFile.PROCESSORS).warn("StageSupervision Handle ConnektPNStageException")
       cEx.deviceId
-        .map(PNCallbackEvent(cEx.messageId, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
+        .map(PNCallbackEvent(cEx.messageId, cEx.client, _, cEx.eventType, cEx.platform, cEx.appName, cEx.context, cEx.getMessage, cEx.timeStamp))
         .persist
       Supervision.Resume
 
-    case e:Throwable =>
-      ConnektLogger(LogFile.PROCESSORS).error("StageSupervision Handle Unknown Exception",e)
+    case e: Throwable =>
+      ConnektLogger(LogFile.PROCESSORS).error("StageSupervision Handle Unknown Exception", e)
       Supervision.Stop
   }
 }

@@ -26,18 +26,23 @@ import com.flipkart.connekt.busybees.streams.flows.profilers.TimedFlowOps._
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers._
 import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.sync.SyncType.SyncType
+import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
 
 
-class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] {
+class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] with SyncDelegate {
+
+  SyncManager.get().addObserver(this, List(SyncType.CLIENT_QUEUE_CREATE))
 
   implicit val system = BusyBeesBoot.system
   implicit val ec = BusyBeesBoot.system.dispatcher
@@ -56,7 +61,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     val merge = b.add(Merge[ConnektRequest](topics.size))
     val handles = ListBuffer[Promise[String]]()
 
-    for (portNum <- 0 to merge.n - 1) {
+    for (portNum <- 0 until merge.n) {
       val p = Promise[String]()
       new KafkaSource[ConnektRequest](consumer, topic = topics(portNum))(p.future) ~> merge.in(portNum)
       handles += p
@@ -179,5 +184,15 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   override def shutdown() = {
     /* terminate in top-down approach from all Source(s) */
     sourceSwitches.foreach(_.success("PushTopology signal source shutdown"))
+  }
+
+  override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
+    _type match {
+      case SyncType.CLIENT_QUEUE_CREATE => Try_ {
+        ConnektLogger(LogFile.SERVICE).info(s"Busybees Restart for CLIENT_QUEUE_CREATE Client: ${args.head}, New Topic: ${args.last} ")
+        restart
+      }
+      case _ =>
+    }
   }
 }
