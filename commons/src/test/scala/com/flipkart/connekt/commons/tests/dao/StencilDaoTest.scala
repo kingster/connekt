@@ -13,7 +13,7 @@
 package com.flipkart.connekt.commons.tests.dao
 
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.entities.{Bucket, StencilEngine, Stencil}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils
 
@@ -40,12 +40,12 @@ class StencilDaoTest extends CommonsBaseTest {
 
   "Fetch Stencil" should "return a stencil" in {
     val stencil = DaoFactory.getStencilDao.getStencil("cktSampleApp-stn0x1")
-    assert(stencil.isDefined)
+    assert(stencil.nonEmpty)
   }
 
   "Fetch Stencil by version" should "return a stencil" in {
     val sten = DaoFactory.getStencilDao.getStencil(stencil.id, Option("1"))
-    assert(sten.isDefined)
+    assert(sten.nonEmpty)
   }
 
   "write bucket" should "not throw exception" in {

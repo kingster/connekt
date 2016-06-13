@@ -36,7 +36,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
 
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
       val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
-      invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmpty)).persist
+      invalidDeviceIds.map(PNCallbackEvent(message.id, message.client, _, InternalStatus.MissingDeviceInfo, MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
       val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
@@ -47,7 +47,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
         val requestData = PNPlatformStencilService.getPNData(iosStencil, data).getObj[ObjectNode]
         val apnsTopic = pnInfo.topic.getOrElse(PNPlatformStencilService.getPNTopic(iosStencil, data))
         val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData)
-        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, message.clientId, apnsPayload, message.meta)
+        APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, message.client, apnsPayload, message.meta)
       })
 
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {
@@ -62,7 +62,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
         }
       } else if (apnsEnvelopes.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter dropping ttl-expired message: ${message.id}")
-        apnsEnvelopes.map(e => PNCallbackEvent(e.messageId, message.clientId, e.deviceId, InternalStatus.TTLExpired, MobilePlatform.IOS, e.appName, message.contextId.orEmpty)).persist
+        apnsEnvelopes.map(e => PNCallbackEvent(e.messageId, message.client, e.deviceId, InternalStatus.TTLExpired, MobilePlatform.IOS, e.appName, message.contextId.orEmpty)).persist
         List.empty[APSPayloadEnvelope]
       } else
         List.empty[APSPayloadEnvelope]
@@ -70,7 +70,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"IOSChannelFormatter error for ${message.id}", e)
-        throw new ConnektPNStageException(message.id, message.clientId, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.meta, "IOSChannelFormatter::".concat(e.getMessage), e)
+        throw new ConnektPNStageException(message.id, message.client, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.meta, "IOSChannelFormatter::".concat(e.getMessage), e)
     }
   }
 }

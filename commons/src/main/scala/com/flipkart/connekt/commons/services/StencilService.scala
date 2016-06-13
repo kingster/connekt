@@ -18,7 +18,6 @@ import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.fabric._
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.ChannelRequestData
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.sync.SyncType._
@@ -27,13 +26,15 @@ import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Success, Try}
 
-object StencilService extends Instrumented with SyncDelegate  {
+object StencilService extends Instrumented with SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE))
 
   private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
-  private def checkStencil(stencil: Stencil): Try[Boolean] = {
+  private def fabricKey(id: String, tag: String) = id + tag
+
+  def checkStencil(stencil: Stencil): Try[Boolean] = {
     try {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
@@ -50,55 +51,43 @@ object StencilService extends Instrumented with SyncDelegate  {
 
   @Timed("render")
   def render(stencil: Stencil, req: ObjectNode): ChannelRequestData = {
-      LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](cacheKey(stencil.id, Option(stencil.version.toString))).orElse {
-        val fabric = stencil.engine match {
-          case StencilEngine.GROOVY =>
-            FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
-          case StencilEngine.VELOCITY =>
-            FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
-        }
-        LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(stencil.id, Option(stencil.version.toString)), fabric)
-        Option(fabric)
-      }.map(_.renderData(stencil.id, req)).orNull
+    LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.tag), Option(stencil.version.toString))).orElse {
+      val fabric = stencil.engine match {
+        case StencilEngine.GROOVY =>
+          FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
+        case StencilEngine.VELOCITY =>
+          FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
+      }
+      LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.tag), Option(stencil.version.toString)), fabric)
+      Option(fabric)
+    }.map(_.renderData(stencil.id, req)).orNull
   }
 
   @Timed("add")
-  def add(stencil: Stencil): Try[Unit] = {
-    get(stencil.id) match {
-      case Some(stn) =>
-        Failure(new Exception(s"stencil already exist for id: ${stencil.id}"))
-      case _ =>
-        checkStencil(stencil) match {
-          case Success(b) =>
-            DaoFactory.getStencilDao.writeStencil(stencil)
-            LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](cacheKey(stencil.id), stencil)
-            Success(Unit)
-          case Failure(e) =>
-            Failure(e)
-        }
-    }
+  def add(id: String, stencils: List[Stencil]): Try[Unit] = {
+    stencils.foreach(stencil => {
+      DaoFactory.getStencilDao.writeStencil(stencil)
+    })
+    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
+    Success()
   }
 
   @Timed("update")
-  def update(stencil: Stencil): Try[Unit] = {
-    checkStencil(stencil) match {
-      case Success(b) =>
-        DaoFactory.getStencilDao.writeStencil(stencil)
-        SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(stencil.id)))
-        LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](cacheKey(stencil.id), stencil)
-        Success(Unit)
-      case Failure(e) =>
-        ConnektLogger(LogFile.SERVICE).error(s"Stencil update error for id: ${stencil.id}", e)
-        Failure(e)
-    }
+  def update(id: String, stencils: List[Stencil]): Try[Unit] = {
+    stencils.foreach(stencil => {
+      DaoFactory.getStencilDao.writeStencil(stencil)
+    })
+    SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
+    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
+    Success()
   }
 
   @Timed("get")
   def get(id: String, version: Option[String] = None) = {
-    LocalCacheManager.getCache(LocalCacheType.Stencils).get[Stencil](cacheKey(id, version)).orElse {
-      val stencil = DaoFactory.getStencilDao.getStencil(id, version)
-      stencil.foreach(s => LocalCacheManager.getCache(LocalCacheType.Stencils).put[Stencil](cacheKey(id, version), s))
-      stencil
+    LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](cacheKey(id, version)).orElse {
+      val stencils = DaoFactory.getStencilDao.getStencil(id, version)
+      LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id, version), stencils)
+      Option(stencils)
     }
   }
 
@@ -112,7 +101,7 @@ object StencilService extends Instrumented with SyncDelegate  {
   }
 
   @Timed("addBucket")
-  def addBucket(bucket: Bucket) : Try[Unit] = {
+  def addBucket(bucket: Bucket): Try[Unit] = {
     getBucket(bucket.name) match {
       case Some(bck) =>
         Failure(new Exception(s"Bucket already exist for name: ${bucket.name}"))
@@ -142,7 +131,7 @@ object PNPlatformStencilService extends Instrumented {
   private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
   @Timed("getFabric")
-  private def getFabric( platformStencil: Stencil) = {
+  private def getFabric(platformStencil: Stencil) = {
     LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric with PNPlatformFabric](cacheKey(platformStencil.id, Option(platformStencil.version.toString))).orElse {
       val fabric = platformStencil.engine match {
         case StencilEngine.GROOVY =>

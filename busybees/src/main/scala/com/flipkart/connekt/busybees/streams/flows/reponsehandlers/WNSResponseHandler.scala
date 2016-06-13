@@ -49,7 +49,7 @@ class WNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
     val appName = requestTracker.appName
     val deviceId = requestTracker.deviceId
     val contextId = requestTracker.contextId
-    val client = requestTracker.clientId
+    val client = requestTracker.client
 
     val maybePNCallbackEvent: Option[PNCallbackEvent] = tryResponse match {
       case Success(r) =>

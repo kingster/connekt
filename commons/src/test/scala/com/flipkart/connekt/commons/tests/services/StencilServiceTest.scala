@@ -41,11 +41,11 @@ class StencilServiceTest extends CommonsBaseTest {
   val payload =
     s"""{
        |"product" : "$product",
-       |"name" : "$name",
-       |"price" : "$price",
-       |"booleanValue" : true,
-       |"integerValue": 1678
-       |}
+                               |"name" : "$name",
+                                                 |"price" : "$price",
+                                                                     |"booleanValue" : true,
+                                                                     |"integerValue": 1678
+                                                                     |}
     """.stripMargin
 
   val subjectResult = s"Order for $product, true, 1678"
@@ -57,7 +57,7 @@ class StencilServiceTest extends CommonsBaseTest {
 
 
   "Stencil Service" should "add stencil" in {
-    noException should be thrownBy StencilService.add(stencil)
+    noException should be thrownBy StencilService.add(stencil.id, List(stencil))
   }
 
   "Stencil Service" should "get the stencil" in {

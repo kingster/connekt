@@ -44,7 +44,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendDevicePush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-                          val request = r.copy(clientId = user.userId, channel = "push", meta = {
+                          val request = r.copy(client = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
@@ -105,7 +105,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendUserPush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-                          val request = r.copy(clientId = user.userId, channel = "push", meta = {
+                          val request = r.copy(client = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })

@@ -23,7 +23,7 @@ class PNCallbackDao(tableName: String, hTableFactory: THTableFactory) extends Ca
 
     Map[String, Array[Byte]](
       "messageId" -> pnCallbackEvent.messageId.getUtf8Bytes,
-      "clientId" -> pnCallbackEvent.clientId.getUtf8Bytes,
+      "client" -> pnCallbackEvent.clientId.getUtf8Bytes,
       "deviceId" -> pnCallbackEvent.deviceId.getUtf8Bytes,
       "eventType" -> pnCallbackEvent.eventType.getUtf8Bytes,
       "platform" -> pnCallbackEvent.platform.getUtf8Bytes,
@@ -42,7 +42,7 @@ class PNCallbackDao(tableName: String, hTableFactory: THTableFactory) extends Ca
       platform = channelEventPropsMap.getS("platform"),
       appName = channelEventPropsMap.getS("appName"),
       contextId = channelEventPropsMap.getS("contextId"),
-      clientId = channelEventPropsMap.getS("clientId"),
+      clientId = channelEventPropsMap.getS("client"),
       cargo = channelEventPropsMap.getS("cargo"),
       timestamp = channelEventPropsMap.getL("timestamp").asInstanceOf[Long]
     )
