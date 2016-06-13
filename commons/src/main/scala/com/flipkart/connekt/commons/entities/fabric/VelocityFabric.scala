@@ -14,27 +14,15 @@ package com.flipkart.connekt.commons.entities.fabric
 
 import java.io.StringWriter
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.VelocityUtils
-import org.apache.commons.lang.StringUtils
 import org.apache.velocity.app.Velocity
 import org.apache.velocity.context.Context
 
 import scala.util.{Failure, Success, Try}
 
-@JsonTypeInfo(
-use = JsonTypeInfo.Id.NAME,
-include = JsonTypeInfo.As.PROPERTY,
-property = "cType"
-)
-@JsonSubTypes(Array(
-new Type(value = classOf[PNVelocityFabric], name = "PN"),
-new Type(value = classOf[EmailVelocityFabric], name = "EMAIL")
-))
-sealed abstract class VelocityFabric extends EngineFabric {
+class VelocityFabric(dataVtl: String) extends EngineFabric {
   /**
    *
    * @param context velocity engine operation context
@@ -58,37 +46,9 @@ sealed abstract class VelocityFabric extends EngineFabric {
     fabricate(id, VelocityUtils.convertToVelocityContext(context), vtlFabric, errorTag)
   }
 
-  def validateVtl(): Try[Boolean]
-}
+  def validateVtl(): Try[Boolean] = Try.apply(true)
 
-class EmailVelocityFabric(subjectVtl: String, bodyHtmlVtl: String) extends VelocityFabric with EmailFabric {
-  override def validateVtl(): Try[Boolean] = Try.apply(true)
-
-  override def getSubject(id: String, context: ObjectNode): String = {
-    fabricate(id, context, subjectVtl, s"_$id _").get
-  }
-
-  override def getBodyHtml(id: String, context: ObjectNode): String = {
-    fabricate(id, context, bodyHtmlVtl, s"_$id _").get
-  }
-}
-
-class PNVelocityFabric(dataVtl: String, topicVtl: String = StringUtils.EMPTY) extends VelocityFabric with PNFabric {
-  override def validateVtl(): Try[Boolean] = Try.apply(true)
-
-  override def getData(id: String, context: ObjectNode): String = {
+  def renderData(id: String, context: ObjectNode): String = {
     fabricate(id, context, dataVtl, s"_$id _").get
-  }
-}
-
-class PNPlatformVelocityFabric(dataVtl: String, topicVtl: String = StringUtils.EMPTY) extends VelocityFabric with PNPlatformFabric {
-  override def validateVtl(): Try[Boolean] = Try.apply(true)
-
-  override def getData(id: String, context: ObjectNode): String = {
-    fabricate(id, context, dataVtl, s"_$id _").get
-  }
-
-  override def getTopic(id: String, context: ObjectNode): String = {
-    fabricate(id, context, topicVtl, s"_$id _").get
   }
 }
