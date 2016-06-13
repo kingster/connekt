@@ -39,9 +39,11 @@ class Stencil() {
   @Column(name = "name")
   var name: String = _
 
+  @Column(name = "sType")
+  var sType: String = _
+
   @Column(name = "createdBy")
   var createdBy: String = _
-
 
   @Column(name = "updatedBy")
   var updatedBy: String = _
@@ -57,16 +59,6 @@ class Stencil() {
 
   @Column(name = "bucket")
   var bucket: String = _
-
-
-  def this(id: String, engine: StencilEngine, engineFabric: String, tag: String, name: String) = {
-    this
-    this.id = id
-    this.engine = engine
-    this.engineFabric = engineFabric
-    this.tag = tag
-    this.name = name
-  }
 
   override def toString = s"Stencil($id, $engine, $engineFabric)"
 }

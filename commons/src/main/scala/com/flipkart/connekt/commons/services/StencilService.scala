@@ -18,7 +18,6 @@ import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.fabric._
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
-import com.flipkart.connekt.commons.iomodels.ChannelRequestData
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.sync.SyncType._
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncMessage, SyncType}
@@ -34,23 +33,22 @@ object StencilService extends Instrumented with SyncDelegate {
 
   private def fabricKey(id: String, tag: String) = id + tag
 
-  def checkStencil(stencil: Stencil): Try[Boolean] = {
+  def checkStencil(stencil: Stencil): Unit = {
     try {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
-          FabricMaker.create(stencil.id, stencil.engineFabric).asInstanceOf[GroovyFabric]
+          FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
         case StencilEngine.VELOCITY =>
           FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
       }
-      Success(fabric.isInstanceOf[EngineFabric])
     } catch {
       case e: Exception =>
-        Failure(e)
+        throw e
     }
   }
 
   @Timed("render")
-  def render(stencil: Stencil, req: ObjectNode): ChannelRequestData = {
+  def render(stencil: Stencil, req: ObjectNode): String = {
     LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.tag), Option(stencil.version.toString))).orElse {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
@@ -76,6 +74,16 @@ object StencilService extends Instrumented with SyncDelegate {
   def update(id: String, stencils: List[Stencil]): Try[Unit] = {
     stencils.foreach(stencil => {
       DaoFactory.getStencilDao.writeStencil(stencil)
+    })
+    SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
+    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
+    Success()
+  }
+
+  @Timed("update")
+  def updateWithIdentity(id: String, prevName : String, stencils: List[Stencil]): Try[Unit] = {
+    stencils.foreach(stencil => {
+      DaoFactory.getStencilDao.updateStencilWithIdentity(prevName , stencil)
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
@@ -123,35 +131,5 @@ object StencilService extends Instrumented with SyncDelegate {
       }
       case _ =>
     }
-  }
-}
-
-object PNPlatformStencilService extends Instrumented {
-
-  private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
-
-  @Timed("getFabric")
-  private def getFabric(platformStencil: Stencil) = {
-    LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric with PNPlatformFabric](cacheKey(platformStencil.id, Option(platformStencil.version.toString))).orElse {
-      val fabric = platformStencil.engine match {
-        case StencilEngine.GROOVY =>
-          FabricMaker.create[PNPlatformGroovyFabric](platformStencil.id, platformStencil.engineFabric)
-        case StencilEngine.VELOCITY =>
-          FabricMaker.createVtlFabric(platformStencil.id, platformStencil.engineFabric).asInstanceOf[PNPlatformVelocityFabric]
-      }
-
-      LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(platformStencil.id, Option(platformStencil.version.toString)), fabric)
-      Option(fabric)
-    }
-  }
-
-  @Timed("getPNData")
-  def getPNData(platformStencil: Stencil, req: ObjectNode): String = {
-    getFabric(platformStencil).map(_.getData(platformStencil.id, req)).orNull
-  }
-
-  @Timed("getPNTopic")
-  def getPNTopic(platformStencil: Stencil, req: ObjectNode): String = {
-    getFabric(platformStencil).map(_.getTopic(platformStencil.id, req)).orNull
   }
 }
