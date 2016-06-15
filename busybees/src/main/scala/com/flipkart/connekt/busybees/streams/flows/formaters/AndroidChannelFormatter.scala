@@ -21,7 +21,7 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNPlatformStencilService, StencilService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -43,9 +43,9 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.client, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val tokens = devicesInfo.map(_.token)
-      val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
+      val androidStencil = StencilService.getStencilByName(s"ckt-${pnInfo.appName.toLowerCase}-android").get.headOption.orNull
 
-      val appDataWithId = PNPlatformStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
+      val appDataWithId = StencilService.render(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 

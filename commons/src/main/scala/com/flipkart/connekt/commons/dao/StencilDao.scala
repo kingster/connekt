@@ -12,10 +12,10 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilTypeRegistry}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 
-class StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) extends TStencilDao with MySQLDao {
+class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) extends TStencilDao with MySQLDao {
 
   val mysqlHelper = jdbcHelper
 
@@ -66,18 +66,18 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
     implicit val j = mysqlHelper.getJDBCInterface
     val q1 =
       s"""
-         |INSERT INTO $tableName (id, name, tag, sType, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                  |ON DUPLICATE KEY UPDATE name = ?,tag = ?, sType = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
+         |INSERT INTO $tableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                  |ON DUPLICATE KEY UPDATE name = ?,component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
       """.stripMargin
 
     val q2 =
       s"""
-         |INSERT INTO $historyTableName (id, name, tag, sType, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ? and tag = ? ), ?)
+         |INSERT INTO $historyTableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ? and component = ? ), ?)
       """.stripMargin
 
     try {
-      update(q1, stencil.id, stencil.name, stencil.tag, stencil.sType, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.tag, stencil.sType, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.name, stencil.tag, stencil.sType, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.tag, stencil.bucket)
+      update(q1, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
+      update(q2, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)
@@ -93,18 +93,18 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
 
     val q1 =
       s"""
-         |INSERT INTO $tableName (id, name, tag, sType, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                  |ON DUPLICATE KEY UPDATE name = ?,tag = ?, sType = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
+         |INSERT INTO $tableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                  |ON DUPLICATE KEY UPDATE name = ?,component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
       """.stripMargin
 
     val q2 =
       s"""
-         |INSERT INTO $historyTableName (id, name, tag, sType, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ? and tag = ? ), ?)
+         |INSERT INTO $historyTableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ? and component = ? ), ?)
       """.stripMargin
 
     try {
-      update(q1, stencil.id, stencil.name, stencil.tag, stencil.sType, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.tag, stencil.sType, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.name, stencil.tag, stencil.sType, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.tag, stencil.bucket)
+      update(q1, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
+      update(q2, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)
@@ -120,9 +120,9 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
     try {
       val q =
         s"""
-           |DELETE FROM $tableName WHERE id = ? AND name = ? AND tag = ?
+           |DELETE FROM $tableName WHERE id = ? AND name = ? AND component = ?
             """.stripMargin
-      update(q, stencil.id, prevName, stencil.tag)
+      update(q, stencil.id, prevName, stencil.component)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error deleting bucket [$stencil.id] ${e.getMessage}", e)
@@ -146,6 +146,39 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
     }
   }
 
+  override def getStencilType(id: String): Option[StencilTypeRegistry] = {
+    implicit val j = mysqlHelper.getJDBCInterface
+
+    try {
+      val q =
+        s"""
+           |SELECT * FROM $stencilTypeTable WHERE id = ?
+            """.stripMargin
+      query[StencilTypeRegistry](q, id)
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.DAO).error(s"Error fetching stencil type [$id] ${e.getMessage}", e)
+        throw e
+    }
+  }
+
+  override def writeStencilType(stencilType: StencilTypeRegistry): Unit = {
+    implicit val j = mysqlHelper.getJDBCInterface
+    val q =
+      s"""
+         |INSERT INTO $stencilTypeTable (id, sType, components, createdBy, updatedBy) VALUES(?, ? , ? , ? , ?)
+         |ON DUPLICATE KEY UPDATE sType = ?,components = ?
+      """.stripMargin
+
+    try {
+      update(q, stencilType.id, stencilType.sType, stencilType.components, stencilType.createdBy, stencilType.updatedBy, stencilType.sType, stencilType.components)
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.DAO).error(s"Error updating stencil type [${stencilType.sType}}] ${e.getMessage}", e)
+        throw e
+    }
+  }
+
   override def writeBucket(bucket: Bucket): Unit = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
@@ -164,6 +197,6 @@ class StencilDao(tableName: String, historyTableName: String, bucketRegistryTabl
 }
 
 object StencilDao {
-  def apply(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) =
-    new StencilDao(tableName: String, historyTableName: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory)
+  def apply(tableName: String, historyTableName: String, stencilTypeTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) =
+    new StencilDao(tableName: String, historyTableName: String, stencilTypeTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory)
 }

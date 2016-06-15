@@ -33,14 +33,11 @@ class Stencil() {
   @Column(name = "engineFabric")
   var engineFabric: String = _
 
-  @Column(name = "tag")
-  var tag: String = _
+  @Column(name = "component")
+  var component: String = _
 
   @Column(name = "name")
   var name: String = _
-
-  @Column(name = "sType")
-  var sType: String = _
 
   @Column(name = "createdBy")
   var createdBy: String = _

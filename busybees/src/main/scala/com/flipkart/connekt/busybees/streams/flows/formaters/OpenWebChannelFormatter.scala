@@ -22,7 +22,7 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager, PNPlatformStencilService, StencilService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -45,7 +45,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.client, _, InternalStatus.MissingDeviceInfo, MobilePlatform.OPENWEB, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
-      val openWebStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-openweb").get
+      val openWebStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-openweb").get.headOption.orNull
 
       if (ttl > 0) {
         devicesInfo.flatMap(device => {
@@ -53,7 +53,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
           if (device.token != null && device.token.nonEmpty && device.token.isValidUrl) {
             val token = device.token.replace("https://android.googleapis.com/gcm/send", "https://gcm-http.googleapis.com/gcm")
             val headers = scala.collection.mutable.Map("TTL" -> ttl.toString)
-            val appDataWithId = PNPlatformStencilService.getPNData(openWebStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id).getJson
+            val appDataWithId = StencilService.render(openWebStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id).getJson
 
             if (device.token.startsWith("https://android.googleapis.com/gcm/send"))
               headers += ("Authorization" -> s"key=${KeyChainManager.getGoogleCredential(message.appName).get.apiKey}")

@@ -45,6 +45,7 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
         "channel" -> request.channel.getUtf8Bytes,
         "sla" -> request.sla.getUtf8Bytes,
         "client" -> request.client.getUtf8Bytes,
+        "templateId" -> request.templateId.getOrElse("").getUtf8Bytes,
         "meta" -> KryoSerializer.serialize(request.meta)
       )
 

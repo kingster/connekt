@@ -12,7 +12,6 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -21,8 +20,9 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNPlatformStencilService, StencilService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
+
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
@@ -39,13 +39,14 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.client, _, InternalStatus.MissingDeviceInfo, MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
-      val iosStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
+      val iosStencil = StencilService.getStencilByName(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
+
 
       val ttlInMillis = message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
         val data = message.channelData.asInstanceOf[PNRequestData].data
-        val requestData = PNPlatformStencilService.getPNData(iosStencil, data).getObj[ObjectNode]
-        val apnsTopic = pnInfo.topic.getOrElse(PNPlatformStencilService.getPNTopic(iosStencil, data))
+        val requestData = StencilService.render(iosStencil.find(_.component.equals("data")).orNull, data)
+        val apnsTopic = pnInfo.topic.getOrElse(StencilService.render(iosStencil.find(_.component.equals("topic")).orNull, data))
         val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData)
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, message.client, apnsPayload, message.meta)
       })

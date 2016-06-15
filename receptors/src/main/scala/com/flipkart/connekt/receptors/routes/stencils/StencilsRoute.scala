@@ -17,7 +17,7 @@ import java.util.Date
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
 import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilTypeRegistry}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
@@ -72,6 +72,66 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
                   }
                 }
+            } ~ pathPrefix("type" / "registry") {
+              pathEndOrSingleSlash {
+                post {
+                  meteredResource("stencilTypeRegistry") {
+                    authorize(user, "ADMIN_BUCKET") {
+                      entity(as[StencilTypeRegistry]) { obj =>
+                        val id = StringUtils.generateRandomStr(4)
+                        val stencilType = new StencilTypeRegistry()
+                        stencilType.id = id
+                        stencilType.components = obj.components.toLowerCase.replaceAll("\\s", "")
+                        stencilType.sType = obj.sType.toUpperCase.trim
+                        stencilType.createdBy = user.userId
+                        stencilType.updatedBy = user.userId
+                        StencilService.addStencilType(stencilType) match {
+                          case Success(sten) =>
+                            complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil type registered with id: $id", Map("stencilType" -> stencilType))))
+                          case Failure(e) =>
+                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil type for id: $id, e: ${e.getMessage}", null)))
+                        }
+
+                      }
+                    }
+                  }
+                }
+              } ~ path(Segment) {
+                (id: String) =>
+                  StencilService.getStencilType(id) match {
+                    case Some(stencilType) =>
+                      put {
+                        meteredResource("stencilTypeUpdate") {
+                          authorize(user, "ADMIN_BUCKET") {
+                            entity(as[StencilTypeRegistry]) { obj =>
+                              val stencilType = new StencilTypeRegistry()
+                              stencilType.id = id
+                              stencilType.components = obj.components.toLowerCase.replaceAll("\\s", "")
+                              stencilType.sType = obj.sType.toUpperCase.trim
+                              stencilType.updatedBy = user.userId
+                              stencilType.creationTS = stencilType.creationTS
+                              StencilService.addStencilType(stencilType) match {
+                                case Success(sten) =>
+                                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil type updated with id: $id", Map("stencilType" -> stencilType))))
+                                case Failure(e) =>
+                                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil type for id: $id, e: ${e.getMessage}", null)))
+                              }
+
+                            }
+                          }
+                        }
+                      }
+                      get {
+                        meteredResource("getStencilType") {
+                          authorize(user, "ADMIN_BUCKET") {
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil fetched for id: $id", Map("stencilType" -> stencilType))))
+                          }
+                        }
+                      }
+                    case None =>
+                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil type not found for id: $id", null)))
+                  }
+              }
             } ~ pathPrefix(Segment) {
               (id: String) =>
                 StencilService.get(id) match {
@@ -82,8 +142,8 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         meteredResource("stencilPreviewHead") {
                           entity(as[ObjectNode]) { entity =>
                             authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
-                              var preview = stencils.map(stencil => {
-                                stencil.tag -> StencilService.render(stencil, entity.get(stencil.tag).asInstanceOf[ObjectNode])
+                              val preview = stencils.map(stencil => {
+                                stencil.component -> StencilService.render(stencil, entity)
                               }).toMap
                               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", preview)))
                             }
@@ -99,8 +159,8 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
                                   StencilService.get(id, Some(version)) match {
                                     case Some(stencils) =>
-                                      var preview = stencils.map(stencil => {
-                                        stencil.tag -> StencilService.render(stencil, entity.get(stencil.tag).asInstanceOf[ObjectNode])
+                                      val preview = stencils.map(stencil => {
+                                        stencil.component -> StencilService.render(stencil, entity.get(stencil.component).asInstanceOf[ObjectNode])
                                       }).toMap
                                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", preview)))
                                     case None =>
@@ -150,7 +210,6 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                   stencil.id = id
                                   stencil.createdBy = stencils.head.createdBy
                                   stencil.updatedBy = user.userId
-                                  stencil.sType = stencilType
                                   stencil.version = stencil.version + 1
                                   stencil.name = stencilName
                                   stencil.creationTS = stencils.head.creationTS
@@ -214,7 +273,6 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           stencil.id = stencilId
                           stencil.createdBy = user.userId
                           stencil.updatedBy = user.userId
-                          stencil.sType = stencilType
                           stencil.version = 1
                           stencil.name = stencilName
                           stencil.creationTS = new Date(System.currentTimeMillis())
@@ -229,7 +287,6 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           case Failure(e) =>
                             complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $stencilId, e: ${e.getMessage}", null)))
                         }
-
                       } catch {
                         case e: Throwable =>
                           complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $stencilId, e: ${e.getMessage}", null)))

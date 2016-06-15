@@ -34,6 +34,7 @@ object LocalCacheManager extends CacheManager {
   cacheTTLMap += LocalCacheType.UserConfiguration -> CacheProperty(1000, 24.hour)
   cacheTTLMap += LocalCacheType.Stencils -> CacheProperty(1000, 24.hour)
   cacheTTLMap += LocalCacheType.StencilsBucket -> CacheProperty(100, 24.hour)
+  cacheTTLMap += LocalCacheType.StencilType -> CacheProperty(100, 24.hour)
   cacheTTLMap += LocalCacheType.AppCredential -> CacheProperty(100, 2.hour)
   cacheTTLMap += LocalCacheType.EngineFabrics -> CacheProperty(1000, 24.hour)
   cacheTTLMap += LocalCacheType.UserGroups -> CacheProperty(500, 10.hour)

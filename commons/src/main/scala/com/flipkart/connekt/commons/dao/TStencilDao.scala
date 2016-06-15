@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilTypeRegistry}
 
 trait TStencilDao extends Dao {
 
@@ -30,4 +30,9 @@ trait TStencilDao extends Dao {
   def getBucket(name: String): Option[Bucket]
 
   def writeBucket(bucket: Bucket): Unit
+
+  def getStencilType(id: String): Option[StencilTypeRegistry]
+
+  def writeStencilType(stencilType: StencilTypeRegistry): Unit
 }
+

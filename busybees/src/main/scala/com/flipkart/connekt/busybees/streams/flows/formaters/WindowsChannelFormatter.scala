@@ -20,8 +20,9 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNPlatformStencilService, StencilService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, StencilService}
 import com.flipkart.connekt.commons.utils.StringUtils._
+
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
@@ -46,11 +47,11 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         .map(d => PNCallbackEvent(message.id, message.client, d.deviceId, InternalStatus.InvalidToken, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty))
         .persist
 
-      val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-windows").get
+      val windowsStencil = StencilService.getStencilByName(s"ckt-${pnInfo.appName.toLowerCase}-windows").get.head
       val ttlInSeconds = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hours.toSeconds)
 
       val wnsRequestEnvelopes = validDevices.map(d => {
-        val wnsPayload = WNSToastPayload(PNPlatformStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
+        val wnsPayload = WNSToastPayload(StencilService.render(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
         WNSPayloadEnvelope(message.id, message.client, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, wnsPayload, message.meta)
       })
 
