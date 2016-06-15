@@ -15,6 +15,7 @@ if [ ! -f $sbtjar ]; then
   if ! curl --silent -L --fail --remote-name $sbtrepo/$sbtver/$sbtjar; then
     exit 1
   fi
+  echo "download complete..."
 fi
 
 checksum=`openssl dgst -sha1 $sbtjar | awk '{ print $2 }'`
