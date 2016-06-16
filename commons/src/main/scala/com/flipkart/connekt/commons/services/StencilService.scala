@@ -31,7 +31,7 @@ object StencilService extends Instrumented with SyncDelegate {
 
   private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
-  private def fabricKey(id: String, component: String) = id + component
+  def fabricKey(id: String, component: String) = id + component
 
   def checkStencil(stencil: Stencil): Unit = {
     try {
@@ -149,6 +149,8 @@ object StencilService extends Instrumented with SyncDelegate {
       case SyncType.STENCIL_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString))
         LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
+      }
+      case SyncType.STENCIL_FABRIC_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.EngineFabrics).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
       }
       case SyncType.STENCIL_BUCKET_CHANGE => Try_ {
