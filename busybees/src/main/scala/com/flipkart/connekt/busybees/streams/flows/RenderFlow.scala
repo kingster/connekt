@@ -35,7 +35,7 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
         case None =>
           (Channel.withName(input.channel) match {
             case Channel.PUSH =>
-              (stencils.map(s => s.component -> StencilService.render(s, input.channelDataModel).getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
+              (stencils.map(s => s.component -> StencilService.render(s, input.channelDataModel).asInstanceOf[String].getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
             case _ =>
               (stencils.map(s => s.component -> StencilService.render(s, input.channelDataModel)) ++ Map("type" -> input.channel)).toMap
           }).getJson.getObj[ChannelRequestData]

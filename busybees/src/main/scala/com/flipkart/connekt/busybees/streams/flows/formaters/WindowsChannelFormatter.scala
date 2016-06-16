@@ -51,7 +51,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val ttlInSeconds = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hours.toSeconds)
 
       val wnsRequestEnvelopes = validDevices.map(d => {
-        val wnsPayload = WNSToastPayload(StencilService.render(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
+        val wnsPayload = WNSToastPayload(StencilService.render(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String])
         WNSPayloadEnvelope(message.id, message.clientId, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, wnsPayload, message.meta)
       })
 
