@@ -15,4 +15,4 @@ package com.flipkart.connekt.commons.iomodels
 case class APSPayloadEnvelope(messageId: String, deviceId: String, appName: String, contextId: String, client:String, apsPayload: APSPayload, meta: Map[String, Any])
 
 abstract class APSPayload
-case class iOSPNPayload(token: String, topic:String,  expiryInMillis: Long, data: Any) extends APSPayload
+case class iOSPNPayload(token: String, topic:String,  expiryInMillis: Long, data: String) extends APSPayload

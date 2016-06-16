@@ -41,9 +41,9 @@ class OpenWebTopologyTest extends TopologyUTSpec {
       DeviceDetails(
         deviceId = deviceId1,
         userId = "",
-        token = "https://android.googleapis.com/gcm/send/eHW_Dj74uEM:APA91bEoKPRfR4VWK8bs5p5LqERfL9iG9RAZeqQvzSoE1wlF3N0varb5v6x8ryenmYXFyD-HJQ6M4t7V8lb3oaRqnV12X-1nSA5K8Yh0jw2dnHRHWyKvdfCZVR8puK_YZ7WNQe9ZwmQL",
+        token = "https://android.googleapis.com/gcm/send/dU1sgI55n50:APA91bHCZ-zzthdB-Z2XkksXyCgVkHk6Hg0uxNeUfiakvJCzmbkINL6WmOSFtc7lSOIUmnW2kEH5yWCrC8ZqJY8mq6swV7HNn4Q_SiHWeunEczzfNLKtd325JPOjAkUuQ-n9a0C5G6Vz",
         osName = "openweb", osVersion = "6.0.1", appName, appVersion = "UT", brand = "UT", model = "",
-        keys = Map("auth" -> "lYykEnete-tm2E1h0Izaog==", "p256dh" -> "BJCpis23C7P7HHV7GRS3y6wqq7VaaPT5uTscQG64mES6U4pegJ80b4zYxUu3TEpgrAXjIYLpLlgfriqq0XgWE6A=")
+        keys = Map("auth" -> "5XaVQhrOCRxOBsOqbRG2lw==", "p256dh" -> "BNKAlTkQk3aFxohWP0maxNoN1lwmQa7qu0ztqYFLhVboz5Nu6JRwL7V1zbx7HoHqrHlSXqQi23jNjAVoKStkVlk=")
       )
     )
 
@@ -87,7 +87,6 @@ class OpenWebTopologyTest extends TopologyUTSpec {
                       |		"deviceIds": ["$deviceId3" , "$deviceId1" , "$deviceId2"]
                       |	},
                       |	"meta": {
-                      |		"client": "Openweb"
                       |	}
                       |}
                       |""".stripMargin.getObj[ConnektRequest]
