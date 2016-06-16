@@ -18,8 +18,8 @@ import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 case class ConnektRequest(@JsonProperty(required = false) id: String,
+                          @JsonProperty(required = false) clientId: String,
                           contextId: Option[String],
-                          @JsonProperty(required = false) client: String,
                           channel: String,
                           @JsonProperty(required = true) sla: String,
                           templateId: Option[String],
@@ -30,10 +30,10 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
                           @JsonProperty(required = false) channelDataModel: ObjectNode = getObjectNode,
                           meta: Map[String, String]) {
 
-  def this(id: String, contextId: Option[String], client: String, channel: String, sla: String, templateId: Option[String],
+  def this(id: String, clientId: String, contextId: Option[String], channel: String, sla: String, templateId: Option[String],
            scheduleTs: Option[Long], expiryTs: Option[Long], channelInfo: ChannelRequestInfo,
            channelData: ChannelRequestData, channelDataModel: ObjectNode) {
-    this(id, contextId, client, channel, sla, templateId, scheduleTs, expiryTs, channelInfo, channelData, channelDataModel, Map.empty[String, String])
+    this(id, clientId, contextId, channel, sla, templateId, scheduleTs, expiryTs, channelInfo, channelData, channelDataModel, Map.empty[String, String])
   }
 
   def validate() = {

@@ -45,7 +45,7 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow error", e)
-        throw new ConnektPNStageException(input.id, input.client, input.deviceId, InternalStatus.RenderFailure, input.appName, input.platform, input.contextId.orEmpty, input.meta ++ input.templateId.map("stencilId" -> _).toMap, s"RenderFlow-${e.getMessage}", e)
+        throw new ConnektPNStageException(input.id, input.clientId,input.deviceId, InternalStatus.RenderFailure, input.appName, input.platform, input.contextId.orEmpty,  input.meta ++ input.templateId.map("stencilId" -> _).toMap, s"RenderFlow-${e.getMessage}", e)
     }
   }
 }
