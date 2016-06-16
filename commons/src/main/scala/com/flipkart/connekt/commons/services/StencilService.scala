@@ -31,7 +31,7 @@ object StencilService extends Instrumented with SyncDelegate {
 
   private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
-  private def fabricKey(id: String, component: String) = id + component
+  def fabricKey(id: String, component: String) = id + component
 
   def checkStencil(stencil: Stencil): Unit = {
     try {
@@ -67,7 +67,7 @@ object StencilService extends Instrumented with SyncDelegate {
       DaoFactory.getStencilDao.writeStencil(stencil)
     })
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
-    Success()
+    Success(Unit)
   }
 
   @Timed("update")
@@ -77,7 +77,7 @@ object StencilService extends Instrumented with SyncDelegate {
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
-    Success()
+    Success(Unit)
   }
 
   @Timed("update")
@@ -87,7 +87,7 @@ object StencilService extends Instrumented with SyncDelegate {
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
-    Success()
+    Success(Unit)
   }
 
   @Timed("get")
@@ -141,7 +141,7 @@ object StencilService extends Instrumented with SyncDelegate {
   def addStencilType(stencilType: StencilTypeRegistry): Try[Unit] = {
     DaoFactory.getStencilDao.writeStencilType(stencilType)
     LocalCacheManager.getCache(LocalCacheType.StencilType).put[StencilTypeRegistry](stencilType.sType, stencilType)
-    Success()
+    Success(Unit)
   }
 
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Unit = {
@@ -149,6 +149,8 @@ object StencilService extends Instrumented with SyncDelegate {
       case SyncType.STENCIL_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString))
         LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
+      }
+      case SyncType.STENCIL_FABRIC_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.EngineFabrics).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
       }
       case SyncType.STENCIL_BUCKET_CHANGE => Try_ {
