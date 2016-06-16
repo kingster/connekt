@@ -79,11 +79,11 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                   case Success(id) =>
                                     val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                     success += id -> deviceIds
-                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                   case Failure(t) =>
                                     val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                     failure ++= deviceIds
-                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                                 }
                               }
                             }
@@ -138,11 +138,11 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 case Success(id) =>
                                   val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                   success += id -> deviceIds
-                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                 case Failure(t) =>
                                   val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                   failure ++= deviceIds
-                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                               }
                             }
 
