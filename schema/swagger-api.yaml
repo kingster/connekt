@@ -787,9 +787,9 @@ definitions:
           - L
           - M
           - H
-      templateId:
+      stencilId:
         type: string
-        description: Optional TemplateId
+        description: Optional StencilId
       contextId:
         type: string
         description: Optional contextId for tracking
@@ -823,7 +823,7 @@ definitions:
         description:  Channel Payload, incase channelDataModel is not provided.
       channelDataModel:
         type: object
-        description:  Data Model to be rendered incase templateId is provided
+        description:  Data Model to be rendered incase stencilId is provided
 
   Error:
     type: object

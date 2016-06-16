@@ -42,10 +42,10 @@ class CallbackServiceTest extends CommonsBaseTest {
   var pnInfo = ConnektRequest(
     mid,
     contextId = None,
-    client = StringUtils.EMPTY,
+    clientId = StringUtils.EMPTY,
     channel = "push",
     sla = "H",
-    templateId = Some(UUID.randomUUID().toString),
+    stencilId = Some(UUID.randomUUID().toString),
     scheduleTs = Some(System.currentTimeMillis()),
     expiryTs = Some(System.currentTimeMillis()),
     channelInfo = PNRequestInfo(platform = callBackEvent.platform,

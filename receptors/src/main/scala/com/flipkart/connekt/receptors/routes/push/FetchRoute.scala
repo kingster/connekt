@@ -60,7 +60,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       })
 
                       val pushRequests = messages.get.map(r => {
-                        val stencils = r.templateId.flatMap(StencilService.get(_)).getOrElse(List.empty)
+                        val stencils = r.stencilId.flatMap(StencilService.get(_)).getOrElse(List.empty)
                         val cR = r.copy(channelData = Option(r.channelData) match {
                           case Some(cD) => cD
                           case None =>

@@ -28,7 +28,7 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
     try {
       ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow received message: ${input.id}")
       ConnektLogger(LogFile.PROCESSORS).trace(s"RenderFlow received message: ${input.getJson}")
-      val stencils = input.templateId.flatMap(StencilService.get(_)).getOrElse(List.empty)
+      val stencils = input.stencilId.flatMap(StencilService.get(_)).getOrElse(List.empty)
 
       val mRendered = input.copy(channelData = Option(input.channelData) match {
         case Some(cD) => cD
@@ -39,13 +39,13 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
             case _ =>
               (stencils.map(s => s.component -> StencilService.render(s, input.channelDataModel)) ++ Map("type" -> input.channel)).toMap
           }).getJson.getObj[ChannelRequestData]
-      }, meta = input.meta ++ input.templateId.map("stencilId" -> _).toMap)
+      }, meta = input.meta ++ input.stencilId.map("stencilId" -> _).toMap)
 
       List(mRendered)
     } catch {
       case e: Throwable =>
         ConnektLogger(LogFile.PROCESSORS).error(s"RenderFlow error", e)
-        throw new ConnektPNStageException(input.id, input.client, input.deviceId, InternalStatus.RenderFailure, input.appName, input.platform, input.contextId.orEmpty, input.meta ++ input.templateId.map("stencilId" -> _).toMap, s"RenderFlow-${e.getMessage}", e)
+        throw new ConnektPNStageException(input.id, input.clientId,input.deviceId, InternalStatus.RenderFailure, input.appName, input.platform, input.contextId.orEmpty,  input.meta ++ input.stencilId.map("stencilId" -> _).toMap, s"RenderFlow-${e.getMessage}", e)
     }
   }
 }

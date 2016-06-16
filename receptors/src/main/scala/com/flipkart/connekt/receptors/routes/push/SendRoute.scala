@@ -14,7 +14,6 @@ package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
@@ -44,7 +43,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendDevicePush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-                          val request = r.copy(client = user.userId, channel = "push", meta = {
+                          val request = r.copy(clientId = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
@@ -80,11 +79,11 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                   case Success(id) =>
                                     val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                     success += id -> deviceIds
-                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                   case Failure(t) =>
                                     val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                     failure ++= deviceIds
-                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                                 }
                               }
                             }
@@ -105,7 +104,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"sendUserPush.$appPlatform.$appName") {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
-                          val request = r.copy(client = user.userId, channel = "push", meta = {
+                          val request = r.copy(clientId = user.userId, channel = "push", meta = {
                             //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
@@ -139,11 +138,11 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 case Success(id) =>
                                   val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                   success += id -> deviceIds
-                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                 case Failure(t) =>
                                   val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                   failure ++= deviceIds
-                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                               }
                             }
 
