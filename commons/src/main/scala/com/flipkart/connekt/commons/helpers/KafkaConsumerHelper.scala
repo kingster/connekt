@@ -106,7 +106,10 @@ class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Co
       })
     }).toMap
   }
+
 }
+
+
 
 object KafkaConsumerHelper extends KafkaConsumer {
 

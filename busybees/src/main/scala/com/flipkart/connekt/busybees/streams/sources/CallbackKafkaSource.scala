@@ -1,17 +1,6 @@
-/*
- *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
- *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
- *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
- *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
- *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
- *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
- *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
- *        ``˚¬ ⌐              ˚˚⌐´
- *
- *      Copyright © 2016 Flipkart.com
- */
 package com.flipkart.connekt.busybees.streams.sources
 
+import java.util.Properties
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler, TimerGraphStageLogic}
@@ -21,7 +10,8 @@ import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
-import kafka.consumer.{ConsumerConnector, ConsumerTimeoutException}
+import com.typesafe.config.Config
+import kafka.consumer.{Consumer, ConsumerConfig, ConsumerConnector, ConsumerTimeoutException}
 import kafka.message.MessageAndMetadata
 import kafka.serializer.{Decoder, DefaultDecoder}
 import kafka.utils.ZKStringSerializer
@@ -33,7 +23,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.Try
 
-class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented{
+/**
+  * Created by harshit.sinha on 15/06/16.
+  */
+class CallbackKafkaSource [V: ClassTag](groupId: String, topic: String, val factoryConf: Config)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented {
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
@@ -41,7 +34,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
   override def shape: SourceShape[V] = SourceShape(out)
 
-  lazy val zk = new ZkClient(kafkaConsumerHelper.zkPath(), 5000, 5000, ZKStringSerializer)
+  lazy val zk = new ZkClient(factoryConf.getString("zookeeper.connect"), 5000, 5000, ZKStringSerializer)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new TimerGraphStageLogic(shape) {
 
@@ -87,7 +80,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
       } catch {
         case e: Exception =>
           ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource iteration error: ${e.getMessage}", e)
-          kafkaConsumerHelper.returnConnector(kafkaConsumerConnector)
+          //kafkaConsumerHelper.returnConnector(kafkaConsumerConnector)
           createKafkaConsumer()
         /*failStage(e)*/
       }
@@ -96,17 +89,18 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
     override def preStart(): Unit = {
       createKafkaConsumer()
-      val startOffset = kafkaConsumerHelper.offsets(topic)
-      ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Start for topic $topic are: ${startOffset.toString()}")
+    //  val startOffset = kafkaConsumerHelper.offsets(topic)
+    //  ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Start for topic $topic are: ${startOffset.toString()}")
 
-      val handle = getAsyncCallback[String] { (r: String) => completeStage()
-      }
+      val handle = getAsyncCallback[String] { (r: String) =>
+        kafkaConsumerConnector.shutdown()
+        completeStage()}
 
       shutdownTrigger onComplete { t =>
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
         handle.invoke(t.getOrElse("_external topology shutdown signal_"))
-        val stopOffsets = kafkaConsumerHelper.offsets(topic)
-        ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
+    //    val stopOffsets = kafkaConsumerHelper.offsets(topic)
+    //    ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
 
       }
 
@@ -126,7 +120,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
       * Using threadCount = 1, since for now we got the best performance with this.
       * Once akka/reactive-kafka get's stable, we will move to it provided it gives better performance.
       */
-    val consumerStreams = kafkaConnector.createMessageStreams(Map[String, Int](topic -> 1), new DefaultDecoder(), new MessageDecoder[V]())
+    val consumerStreams = kafkaConnector.createMessageStreams(Map[String, Int](topic -> 1), new DefaultDecoder(), new CallbackMessageDecoder[V]())
     val streams = consumerStreams.getOrElse(topic,throw new Exception(s"No KafkaStreams for topic: $topic"))
     Try(streams.map(_.iterator()).head).getOrElse {
       ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource stream could not be created for $topic")
@@ -137,13 +131,23 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
   private def createKafkaConsumer(): Unit = {
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource create kafka consumer")
 
-    kafkaConsumerConnector = kafkaConsumerHelper.getConnector
+    val factoryProps = new Properties()
+    factoryProps.setProperty("zookeeper.connect", factoryConf.getString("zookeeper.connect"))
+    factoryProps.setProperty("group.id", groupId)
+    factoryProps.setProperty("zookeeper.session.timeout.ms", factoryConf.getString("zookeeper.session.timeout.ms"))
+    factoryProps.setProperty("zookeeper.sync.time.ms", factoryConf.getString("zookeeper.sync.time.ms"))
+    factoryProps.setProperty("auto.commit.interval.ms", factoryConf.getString("auto.commit.interval.ms"))
+    factoryProps.setProperty("consumer.timeout.ms", factoryConf.getString("consumer.timeout.ms"))
+    val config: ConsumerConfig = new ConsumerConfig(factoryProps)
+
+    kafkaConsumerConnector = Consumer.create(config)
+
     iterator = initIterator(kafkaConsumerConnector)
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource init iterator complete")
   }
 }
 
-class MessageDecoder[T: ClassTag](implicit tag: ClassTag[T]) extends Decoder[Option[T]] {
+class CallbackMessageDecoder[T: ClassTag](implicit tag: ClassTag[T]) extends Decoder[Option[T]] {
   override def fromBytes(bytes: Array[Byte]): Option[T] = try {
     Option(objMapper.readValue(bytes.getString, tag.runtimeClass).asInstanceOf[T])
   } catch {
@@ -152,3 +156,4 @@ class MessageDecoder[T: ClassTag](implicit tag: ClassTag[T]) extends Decoder[Opt
       None
   }
 }
+

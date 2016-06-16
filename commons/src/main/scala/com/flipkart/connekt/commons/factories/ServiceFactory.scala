@@ -24,8 +24,8 @@ object ServiceFactory {
     serviceCache += ServiceType.PN_MESSAGE -> new MessageService(requestDao, userConfiguration, queueProducerHelper, queueConsumerHelper)
   }
 
-  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao) = {
-    serviceCache += ServiceType.CALLBACK -> new CallbackService(pnCallbackDao, emailCallbackDao, requestInfoDao, emailRequestDao)
+  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao, queueProducerHelper: KafkaProducerHelper) = {
+    serviceCache += ServiceType.CALLBACK -> new CallbackService(pnCallbackDao, emailCallbackDao, requestInfoDao, emailRequestDao,queueProducerHelper)
   }
 
   def initAuthorisationService(priv: PrivDao, userInfo: TUserInfo) = {
@@ -54,7 +54,6 @@ object ServiceFactory {
   def getKeyChainService = serviceCache(ServiceType.KEY_CHAIN).asInstanceOf[TStorageService]
 
   def getReportingService = serviceCache(ServiceType.STATS_REPORTING).asInstanceOf[ReportingService]
-
 }
 
 object ServiceType extends Enumeration {

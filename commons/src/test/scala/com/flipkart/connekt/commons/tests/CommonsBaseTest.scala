@@ -68,11 +68,10 @@ class CommonsBaseTest extends ConnektUTSpec {
     DaoFactory.initSpecterSocket(specterConfig)
 
     ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null)
-    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
+    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null,getKafkaProducerHelper)
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
     ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
     ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
-
 
     ConnektLogger(LogFile.SERVICE).info("BaseReceptorsTest bootstrapped.")
 

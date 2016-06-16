@@ -1,24 +1,12 @@
-/*
- *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
- *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
- *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
- *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
- *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
- *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
- *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
- *        ``˚¬ ⌐              ˚˚⌐´
- *
- *      Copyright © 2016 Flipkart.com
- */
-package com.flipkart.connekt.busybees
+package callback
 
 import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import callback.topologyManager.ClientTopologyManager
 import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
-import com.flipkart.connekt.busybees.streams.topologies.PushTopology
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
@@ -29,33 +17,42 @@ import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
 import com.typesafe.config.ConfigFactory
 
-object BusyBeesBoot extends BaseApp {
+import scala.concurrent.ExecutionContext
+
+/**
+  * Created by harshit.sinha on 13/06/16.
+  */
+object CallbackBoot extends BaseApp {
+
 
   private val initialized = new AtomicBoolean(false)
 
-  implicit val system = ActorSystem("busyBees-system")
+  implicit val system = ActorSystem("callback-system")
 
   val settings = ActorMaterializerSettings(system)
     .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
     .withSupervisionStrategy(StageSupervision.decider)
 
   lazy implicit val mat = ActorMaterializer(settings.withDispatcher("akka.actor.default-dispatcher"))
+  implicit val ec = mat.executionContext
+  val dispatcher = system.dispatcher
 
   lazy val ioMat = ActorMaterializer(settings.withDispatcher("akka.actor.io-dispatcher"))
 
-  var pushTopology: PushTopology = _
+  var clientTopologyManager: ClientTopologyManager = _
+
 
   def start() {
 
     if (!initialized.getAndSet(true)) {
-      ConnektLogger(LogFile.SERVICE).info("BusyBees initializing.")
+      ConnektLogger(LogFile.SERVICE).info("Callback service initializing.")
 
       val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-busybees.xml")
 
-      ConnektLogger(LogFile.SERVICE).info(s"BusyBees logging using: $configFile")
+      ConnektLogger(LogFile.SERVICE).info(s"Callback logging using: $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-busybees", "fk-connekt-busybees-akka"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-busybees", "fk-connekt-busybees-akka"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
@@ -86,33 +83,22 @@ object BusyBeesBoot extends BaseApp {
       val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
       val kafkaProducerHelper = KafkaProducerHelper.init(kafkaProducerConnConf, kafkaProducerPoolConf)
 
-      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null,kafkaProducerHelper)
+      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null, kafkaProducerHelper)
 
 
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
       ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
 
       //TODO : Fix this, this is for bootstraping hbase connection.
-      println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
+      println(DeviceDetailsService.get("ConnectSampleApp", StringUtils.generateRandomStr(15)))
 
       HttpDispatcher.init(ConnektConfig.getConfig("react").get)
-      pushTopology = new PushTopology(kafkaHelper)
-      pushTopology.run
-    }
-  }
 
-  def terminate() = {
-    ConnektLogger(LogFile.SERVICE).info("BusyBees shutting down")
-    if (initialized.get()) {
-      DaoFactory.shutdownHTableDaoFactory()
-      Option(pushTopology).foreach(_.shutdown())
-
-      ConnektLogger.shutdown()
+      clientTopologyManager = new ClientTopologyManager()
     }
   }
 
   def main(args: Array[String]) {
-    System.setProperty("log4j.configurationFile", "log4j2-test.xml")
     start()
   }
 }

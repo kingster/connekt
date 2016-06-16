@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer,
 
 object SyncType extends Enumeration {
    type SyncType = Value
-   val CLIENT_ADD, CLIENT_QUEUE_CREATE,  TEMPLATE_CHANGE, AUTH_CHANGE, STENCIL_CHANGE, STENCIL_BUCKET_CHANGE = Value
+   val CLIENT_ADD, CLIENT_QUEUE_CREATE,  TEMPLATE_CHANGE, AUTH_CHANGE, STENCIL_CHANGE, STENCIL_BUCKET_CHANGE, SUBSCRIPTION_REQUEST = Value
 }
 
 

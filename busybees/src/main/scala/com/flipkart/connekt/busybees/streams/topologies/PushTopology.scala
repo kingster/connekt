@@ -54,7 +54,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
   var sourceSwitches: List[Promise[String]] = _
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
-    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
+    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.filter("push_86726ba26f92fbbc71480880b8fbaef0076ea5f39fad95a008a7d0211ca441d0".equals(_))
 
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 

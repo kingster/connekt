@@ -15,17 +15,19 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.connekt.commons.dao._
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
 import org.apache.commons.lang.RandomStringUtils
 
 import scala.util.Try
 
-class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService with Instrumented {
+class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao,  queueProducerHelper: KafkaProducerHelper) extends TCallbackService with Instrumented {
 
   lazy val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))
-
+  lazy val CALLBACK_QUEUE_NAME = ConnektConfig.get("receptors.callback.queuename").getOrElse("active_events")
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
     case Channel.EMAIL => emailEventsDao
@@ -40,9 +42,15 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
     Try {
       channelEventsDao(channel).asyncSaveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
+      enqueueCallbackEvent(callbackEvent)
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
       requestId
     }
+  }
+
+  @Timed("enqueueCallbackEvent")
+  private def enqueueCallbackEvent(callbackEvent: CallbackEvent): Unit ={
+    queueProducerHelper.writeMessages(CALLBACK_QUEUE_NAME, callbackEvent.getJson)
   }
 
   @Timed("fetchCallbackEvent")

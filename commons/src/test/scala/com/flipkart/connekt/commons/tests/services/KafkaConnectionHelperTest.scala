@@ -28,6 +28,8 @@ class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelp
   var kafkaConsumerPool: GenericObjectPool[ConsumerConnector] = null
   var kafkaProducerPool: GenericObjectPool[Producer[String, String]] = null
 
+
+
   def createKafkaConsumerFactory = {
     val consumerConnProps = new Properties()
     consumerConnProps.setProperty("zookeeper.connect", ConnektConfig.getString("connections.kafka.consumerConnProps.zookeeper.connect").getOrElse("10.32.197.54:2181,10.32.165.183:2181,10.32.237.188:2181/kafka/preprod6")  )
@@ -100,4 +102,5 @@ class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelp
   }
 
   override def zkPath(): String = ""
+
 }

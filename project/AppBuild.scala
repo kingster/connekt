@@ -130,6 +130,10 @@ object AppBuild extends Build  {
     .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(commons % "test->test;compile->compile")
 
+  lazy val callbacks = Project("callbacks", file("callbacks"), settings = _commonSettings)
+    .enablePlugins(AutomateHeaderPlugin)
+    .dependsOn(busybees % "test->test;compile->compile")
+
 
   val mergeStrategy: String => sbtassembly.MergeStrategy = {
     case PathList(ps@_*) if ps.last endsWith ".html" => MergeStrategy.first

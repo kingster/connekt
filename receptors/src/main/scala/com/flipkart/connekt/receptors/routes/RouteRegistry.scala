@@ -15,7 +15,7 @@ package com.flipkart.connekt.receptors.routes
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
-import com.flipkart.connekt.receptors.routes.callbacks.CallbackRoute
+import com.flipkart.connekt.receptors.routes.callbacks.{CallbackRoute, SubscriptionsRoute}
 import com.flipkart.connekt.receptors.routes.common._
 import com.flipkart.connekt.receptors.routes.push.{FetchRoute, RegistrationRoute, SendRoute}
 import com.flipkart.connekt.receptors.routes.reports.ReportsRoute
@@ -36,7 +36,8 @@ class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirec
   val keyChain = new KeyChainRoute().route
   val debugger = new DebuggerRoute().route
   val admin = new AdminRoute().route
+  val subscription = new SubscriptionsRoute().route
 
   val allRoutes =
-    health ~ ldap ~ send ~ registration ~ callback ~ report ~ fetch ~ stencil ~ client ~ keyChain ~ debugger ~ admin
+    health ~ ldap ~ send ~ registration ~ callback ~ report ~ fetch ~ stencil ~ client ~ keyChain ~ debugger ~ admin ~ subscription
 }
