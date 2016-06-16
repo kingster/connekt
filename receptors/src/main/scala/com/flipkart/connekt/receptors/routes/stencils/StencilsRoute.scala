@@ -131,6 +131,12 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     case None =>
                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil type not found for id: $id", null)))
                   }
+              } ~ path(Segment / "touch") {
+                (id: String) =>
+                  post {
+                    SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_TYPE, List(id)))
+                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for stencil type: $id", null)))
+                  }
               }
             } ~ pathPrefix(Segment) {
               (id: String) =>

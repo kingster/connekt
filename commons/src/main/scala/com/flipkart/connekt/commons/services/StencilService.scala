@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 
 object StencilService extends Instrumented with SyncDelegate {
 
-  SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE))
+  SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE, SyncType.STENCIL_TYPE, SyncType.STENCIL_FABRIC_CHANGE))
 
   private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
@@ -155,6 +155,9 @@ object StencilService extends Instrumented with SyncDelegate {
       }
       case SyncType.STENCIL_BUCKET_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).remove(args.head.toString)
+      }
+      case SyncType.STENCIL_TYPE => Try_ {
+        LocalCacheManager.getCache(LocalCacheType.StencilType).remove(args.head.toString)
       }
       case _ =>
     }
