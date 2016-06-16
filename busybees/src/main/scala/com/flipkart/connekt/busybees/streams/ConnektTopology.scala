@@ -18,10 +18,12 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{ActorAttributes, Attributes, Materializer}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ConnektRequest}
 
-trait ConnektTopology[E <:CallbackEvent] {
+trait ConnektTopology[E <: CallbackEvent] {
 
   def source: Source[ConnektRequest, NotUsed]
+
   def transform: Flow[ConnektRequest, E, NotUsed]
+
   def sink: Sink[E, NotUsed]
 
   def graph() = source.withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(transform).to(sink)
@@ -29,7 +31,13 @@ trait ConnektTopology[E <:CallbackEvent] {
     .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
 
   def run(implicit mat: Materializer) = graph().run()
+
   def shutdown()
 
+  def restart(implicit mat: Materializer): Unit = {
+    shutdown()
+    Thread.sleep(30 * 1000)
+    run(mat)
+  }
 
 }
