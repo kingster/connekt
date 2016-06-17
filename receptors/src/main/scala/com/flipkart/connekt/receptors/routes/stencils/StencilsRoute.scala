@@ -189,7 +189,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         post {
                           meteredResource("stencilTouch") {
                             SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id, version)))
-                            SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_FABRIC_CHANGE, List(StencilService.fabricKey(id, component), version)))
+                            SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_FABRIC_CHANGE, List(StencilService.fabricCacheKey(id, component, version))))
                             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
                           }
                         }

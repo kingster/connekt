@@ -30,8 +30,9 @@ object StencilService extends Instrumented with SyncDelegate {
   SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE, SyncType.STENCIL_COMPONENTS_UPDATE, SyncType.STENCIL_FABRIC_CHANGE))
   private val stencilDao = DaoFactory.getStencilDao
 
-  private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
-  def fabricKey(id: String, component: String) = id + component
+  private def stencilCacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
+
+  def fabricCacheKey(id: String, component: String, version: String) = id + component + version
 
   def checkStencil(stencil: Stencil): Try[Boolean] = {
     try {
@@ -50,14 +51,14 @@ object StencilService extends Instrumented with SyncDelegate {
 
   @Timed("render")
   def render(stencil: Stencil, req: ObjectNode): AnyRef = {
-    LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.component), Option(stencil.version.toString))).orElse {
+    LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](fabricCacheKey(stencil.id, stencil.component, stencil.version.toString)).orElse {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
           FabricMaker.create[GroovyFabric](stencil.engineFabric)
         case StencilEngine.VELOCITY =>
           FabricMaker.createVtlFabric(stencil.engineFabric)
       }
-      LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.component), Option(stencil.version.toString)), fabric)
+      LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](fabricCacheKey(stencil.id, stencil.component, stencil.version.toString), fabric)
       Option(fabric)
     }.map(_.compute(stencil.id, req)).orNull
   }
@@ -67,7 +68,7 @@ object StencilService extends Instrumented with SyncDelegate {
     stencils.foreach(stencil => {
       stencilDao.writeStencil(stencil)
     })
-    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
+    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id), stencils)
     Success(Unit)
   }
 
@@ -77,7 +78,7 @@ object StencilService extends Instrumented with SyncDelegate {
       stencilDao.writeStencil(stencil)
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
-    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
+    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id), stencils)
     Success(Unit)
   }
 
@@ -87,24 +88,24 @@ object StencilService extends Instrumented with SyncDelegate {
       stencilDao.updateStencilWithIdentity(prevName, stencil)
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
-    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
+    LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id), stencils)
     Success(Unit)
   }
 
   @Timed("get")
   def get(id: String, version: Option[String] = None) = {
-    LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](cacheKey(id, version)).orElse {
+    LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](stencilCacheKey(id, version)).orElse {
       val stencils = stencilDao.getStencils(id, version)
-      LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id, version), stencils)
+      LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id, version), stencils)
       Option(stencils)
     }
   }
 
   @Timed("get")
   def getStencilByName(name: String, version: Option[String] = None) = {
-    LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](cacheKey(name, version)).orElse {
+    LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](stencilCacheKey(name, version)).orElse {
       val stencils = stencilDao.getStencilByName(name, version)
-      LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(name, version), stencils)
+      LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(name, version), stencils)
       Option(stencils)
     }
   }
@@ -148,11 +149,11 @@ object StencilService extends Instrumented with SyncDelegate {
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Unit = {
     _type match {
       case SyncType.STENCIL_CHANGE => Try_ {
-        LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString))
-        LocalCacheManager.getCache(LocalCacheType.Stencils).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
+        LocalCacheManager.getCache(LocalCacheType.Stencils).remove(stencilCacheKey(args.head.toString))
+        LocalCacheManager.getCache(LocalCacheType.Stencils).remove(stencilCacheKey(args.head.toString, args.lastOption.map(_.toString)))
       }
       case SyncType.STENCIL_FABRIC_CHANGE => Try_ {
-        LocalCacheManager.getCache(LocalCacheType.EngineFabrics).remove(cacheKey(args.head.toString, args.lastOption.map(_.toString)))
+        LocalCacheManager.getCache(LocalCacheType.EngineFabrics).remove(args.head.toString)
       }
       case SyncType.STENCIL_BUCKET_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).remove(args.head.toString)
