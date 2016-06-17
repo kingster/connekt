@@ -18,7 +18,7 @@ import javax.persistence.Column
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.apache.commons.lang.StringUtils
 
-class StencilTypeRegistry {
+class StencilComponents {
 
   @Column(name = "id")
   var id: String = _
@@ -41,7 +41,7 @@ class StencilTypeRegistry {
   @Column(name = "createdBy")
   var createdBy: String = StringUtils.EMPTY
 
-  override def toString = s"StencilTypeRegistry($id, $sType, $components)"
+  override def toString = s"StencilComponents($id, $sType, $components)"
 
   def validate() = {
     require(sType.isDefined, "`sType` must be defined.")

@@ -12,14 +12,14 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilTypeRegistry}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilComponents}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 
-class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) extends TStencilDao with MySQLDao {
+class StencilDao(tableName: String, historyTableName: String, stencilComponentsTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) extends TStencilDao with MySQLDao {
 
   val mysqlHelper = jdbcHelper
 
-  override def getStencil(id: String, version: Option[String] = None): List[Stencil] = {
+  override def getStencils(id: String, version: Option[String] = None): List[Stencil] = {
     implicit val j = mysqlHelper.getJDBCInterface
     try {
       val q1 =
@@ -67,7 +67,7 @@ class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: 
     val q1 =
       s"""
          |INSERT INTO $tableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                  |ON DUPLICATE KEY UPDATE name = ?,component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
+                                  |ON DUPLICATE KEY UPDATE component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
       """.stripMargin
 
     val q2 =
@@ -76,8 +76,8 @@ class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: 
       """.stripMargin
 
     try {
-      update(q1, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
+      update(q1, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
+      update(q2, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)
@@ -103,8 +103,8 @@ class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: 
       """.stripMargin
 
     try {
-      update(q1, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.name, stencil.component,  stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
+      update(q1, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
+      update(q2, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)
@@ -146,15 +146,15 @@ class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: 
     }
   }
 
-  override def getStencilType(id: String): Option[StencilTypeRegistry] = {
+  override def getStencilComponents(id: String): Option[StencilComponents] = {
     implicit val j = mysqlHelper.getJDBCInterface
 
     try {
       val q =
         s"""
-           |SELECT * FROM $stencilTypeTable WHERE id = ?
+           |SELECT * FROM $stencilComponentsTable WHERE id = ?
             """.stripMargin
-      query[StencilTypeRegistry](q, id)
+      query[StencilComponents](q, id)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching stencil type [$id] ${e.getMessage}", e)
@@ -162,19 +162,19 @@ class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: 
     }
   }
 
-  override def writeStencilType(stencilType: StencilTypeRegistry): Unit = {
+  override def writeStencilComponents(stencilComponents: StencilComponents): Unit = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-         |INSERT INTO $stencilTypeTable (id, sType, components, createdBy, updatedBy) VALUES(?, ? , ? , ? , ?)
+         |INSERT INTO $stencilComponentsTable (id, sType, components, createdBy, updatedBy) VALUES(?, ? , ? , ? , ?)
          |ON DUPLICATE KEY UPDATE sType = ?,components = ?
       """.stripMargin
 
     try {
-      update(q, stencilType.id, stencilType.sType, stencilType.components, stencilType.createdBy, stencilType.updatedBy, stencilType.sType, stencilType.components)
+      update(q, stencilComponents.id, stencilComponents.sType, stencilComponents.components, stencilComponents.createdBy, stencilComponents.updatedBy, stencilComponents.sType, stencilComponents.components)
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.DAO).error(s"Error updating stencil type [${stencilType.sType}}] ${e.getMessage}", e)
+        ConnektLogger(LogFile.DAO).error(s"Error updating stencil type [${stencilComponents.sType}}] ${e.getMessage}", e)
         throw e
     }
   }
@@ -197,6 +197,6 @@ class StencilDao(tableName: String, historyTableName: String, stencilTypeTable: 
 }
 
 object StencilDao {
-  def apply(tableName: String, historyTableName: String, stencilTypeTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) =
-    new StencilDao(tableName: String, historyTableName: String, stencilTypeTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory)
+  def apply(tableName: String, historyTableName: String, stencilComponentsTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) =
+    new StencilDao(tableName: String, historyTableName: String, stencilComponentsTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory)
 }

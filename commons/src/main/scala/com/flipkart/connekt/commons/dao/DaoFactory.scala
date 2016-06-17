@@ -63,7 +63,7 @@ object DaoFactory {
     daoMap += DaoType.USER_INFO -> UserInfoDao("USER_INFO", mysqlFactoryWrapper)
     daoMap += DaoType.USER_CONFIG -> UserConfigurationDao("USER_CONFIG", mysqlFactoryWrapper)
     daoMap += DaoType.PRIVILEGE -> PrivDao("RESOURCE_PRIV", mysqlFactoryWrapper)
-    daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", "STENCIL_HISTORY_STORE", "STENCIL_TYPE_REGISTRY", "BUCKET_REGISTRY", mysqlFactoryWrapper)
+    daoMap += DaoType.STENCIL -> StencilDao("STENCIL_STORE", "STENCIL_HISTORY_STORE", "STENCIL_COMPONENTS", "BUCKET_REGISTRY", mysqlFactoryWrapper)
     daoMap += DaoType.KEY_CHAIN -> KeyChainDao("DATA_STORE", mysqlFactoryWrapper)
   }
 
