@@ -28,9 +28,9 @@ import scala.util.{Failure, Success, Try}
 object StencilService extends Instrumented with SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE, SyncType.STENCIL_COMPONENTS_UPDATE, SyncType.STENCIL_FABRIC_CHANGE))
+  private val stencilDao = DaoFactory.getStencilDao
 
   private def cacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
-
   def fabricKey(id: String, component: String) = id + component
 
   def checkStencil(stencil: Stencil): Try[Boolean] = {
@@ -65,7 +65,7 @@ object StencilService extends Instrumented with SyncDelegate {
   @Timed("add")
   def add(id: String, stencils: List[Stencil]): Try[Unit] = {
     stencils.foreach(stencil => {
-      DaoFactory.getStencilDao.writeStencil(stencil)
+      stencilDao.writeStencil(stencil)
     })
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
     Success(Unit)
@@ -74,7 +74,7 @@ object StencilService extends Instrumented with SyncDelegate {
   @Timed("update")
   def update(id: String, stencils: List[Stencil]): Try[Unit] = {
     stencils.foreach(stencil => {
-      DaoFactory.getStencilDao.writeStencil(stencil)
+      stencilDao.writeStencil(stencil)
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
@@ -84,7 +84,7 @@ object StencilService extends Instrumented with SyncDelegate {
   @Timed("update")
   def updateWithIdentity(id: String, prevName: String, stencils: List[Stencil]): Try[Unit] = {
     stencils.foreach(stencil => {
-      DaoFactory.getStencilDao.updateStencilWithIdentity(prevName, stencil)
+      stencilDao.updateStencilWithIdentity(prevName, stencil)
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id), stencils)
@@ -94,7 +94,7 @@ object StencilService extends Instrumented with SyncDelegate {
   @Timed("get")
   def get(id: String, version: Option[String] = None) = {
     LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](cacheKey(id, version)).orElse {
-      val stencils = DaoFactory.getStencilDao.getStencils(id, version)
+      val stencils = stencilDao.getStencils(id, version)
       LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(id, version), stencils)
       Option(stencils)
     }
@@ -103,7 +103,7 @@ object StencilService extends Instrumented with SyncDelegate {
   @Timed("get")
   def getStencilByName(name: String, version: Option[String] = None) = {
     LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](cacheKey(name, version)).orElse {
-      val stencils = DaoFactory.getStencilDao.getStencilByName(name, version)
+      val stencils = stencilDao.getStencilByName(name, version)
       LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](cacheKey(name, version), stencils)
       Option(stencils)
     }
@@ -112,7 +112,7 @@ object StencilService extends Instrumented with SyncDelegate {
   @Timed("getBucket")
   def getBucket(name: String): Option[Bucket] = {
     LocalCacheManager.getCache(LocalCacheType.StencilsBucket).get[Bucket](name).orElse {
-      val bucket = DaoFactory.getStencilDao.getBucket(name)
+      val bucket = stencilDao.getBucket(name)
       bucket.foreach(b => LocalCacheManager.getCache(LocalCacheType.StencilsBucket).put[Bucket](name, b))
       bucket
     }
@@ -125,14 +125,14 @@ object StencilService extends Instrumented with SyncDelegate {
         Failure(new Exception(s"Bucket already exist for name: ${bucket.name}"))
       case _ =>
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).put[Bucket](bucket.name, bucket)
-        Success(DaoFactory.getStencilDao.writeBucket(bucket))
+        Success(stencilDao.writeBucket(bucket))
     }
   }
 
   @Timed("getStencilComponents")
   def getStencilComponents(id: String): Option[StencilComponents] = {
     LocalCacheManager.getCache(LocalCacheType.StencilComponents).get[StencilComponents](id).orElse {
-      val stencilComponents = DaoFactory.getStencilDao.getStencilComponents(id)
+      val stencilComponents = stencilDao.getStencilComponents(id)
       stencilComponents.foreach(b => LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](id, b))
       stencilComponents
     }
@@ -140,7 +140,7 @@ object StencilService extends Instrumented with SyncDelegate {
 
   @Timed("addstencilComponents")
   def addStencilComponents(stencilComponents: StencilComponents): Try[Unit] = {
-    DaoFactory.getStencilDao.writeStencilComponents(stencilComponents)
+    stencilDao.writeStencilComponents(stencilComponents)
     LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](stencilComponents.sType, stencilComponents)
     Success(Unit)
   }

@@ -12,14 +12,11 @@
  */
 package com.flipkart.connekt.busybees.streams.flows
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
-import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
+import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
-import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ConnektRequest}
-import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
@@ -28,17 +25,10 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
     try {
       ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow received message: ${input.id}")
       ConnektLogger(LogFile.PROCESSORS).trace(s"RenderFlow received message: ${input.getJson}")
-      val stencils = input.stencilId.flatMap(StencilService.get(_)).getOrElse(List.empty)
 
       val mRendered = input.copy(channelData = Option(input.channelData) match {
         case Some(cD) => cD
-        case None =>
-          (Channel.withName(input.channel) match {
-            case Channel.PUSH =>
-              (stencils.map(s => s.component -> StencilService.render(s, input.channelDataModel).asInstanceOf[String].getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
-            case _ =>
-              (stencils.map(s => s.component -> StencilService.render(s, input.channelDataModel)) ++ Map("type" -> input.channel)).toMap
-          }).getJson.getObj[ChannelRequestData]
+        case None => input.getRequestData()
       }, meta = input.meta ++ input.stencilId.map("stencilId" -> _).toMap)
 
       List(mRendered)
