@@ -14,6 +14,7 @@ package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
@@ -42,5 +43,15 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
     require(sla.isDefined, "`sla` field can cannot be null or empty.")
     require(meta != null, "`meta` field cannot be null. It is optional but non-null")
     require(channelInfo != null, "`channelInfo` field cannot be null.")
+  }
+
+  def getRequestData() = {
+    val stencils = stencilId.flatMap(StencilService.get(_)).getOrElse(List.empty)
+    (Channel.withName(channel) match {
+      case Channel.PUSH =>
+        (stencils.map(s => s.component -> StencilService.render(s, channelDataModel).asInstanceOf[String].getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
+      case _ =>
+        (stencils.map(s => s.component -> StencilService.render(s, channelDataModel)) ++ Map("type" -> channel)).toMap
+    }).getJson.getObj[ChannelRequestData]
   }
 }

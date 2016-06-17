@@ -15,13 +15,11 @@ package com.flipkart.connekt.receptors.routes.push
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.{ConnektConfig, StencilService}
-import com.flipkart.connekt.commons.utils.StringUtils.{JSONMarshallFunctions, JSONUnMarshallFunctions}
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
@@ -64,12 +62,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         val cR = r.copy(channelData = Option(r.channelData) match {
                           case Some(cD) => cD
                           case None =>
-                            (Channel.withName(r.channel) match {
-                              case Channel.PUSH =>
-                                (stencils.map(s => s.component -> StencilService.render(s, r.channelDataModel).asInstanceOf[String].getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
-                              case _ =>
-                                (stencils.map(s => s.component -> StencilService.render(s, r.channelDataModel)) ++ Map("type" -> r.channel)).toMap
-                            }).getJson.getObj[ChannelRequestData]
+                            r.getRequestData()
                         })
                         r.id -> cR
                       }).toMap
