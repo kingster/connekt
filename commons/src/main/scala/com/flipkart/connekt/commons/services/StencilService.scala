@@ -49,7 +49,7 @@ object StencilService extends Instrumented with SyncDelegate {
   }
 
   @Timed("render")
-  def render(stencil: Stencil, req: ObjectNode): String = {
+  def render(stencil: Stencil, req: ObjectNode): AnyRef = {
     LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.component), Option(stencil.version.toString))).orElse {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
@@ -59,7 +59,7 @@ object StencilService extends Instrumented with SyncDelegate {
       }
       LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.component), Option(stencil.version.toString)), fabric)
       Option(fabric)
-    }.map(_.renderData(stencil.id, req)).orNull
+    }.map(_.compute(stencil.id, req)).orNull
   }
 
   @Timed("add")

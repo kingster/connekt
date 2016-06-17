@@ -66,7 +66,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           case None =>
                             (Channel.withName(r.channel) match {
                               case Channel.PUSH =>
-                                (stencils.map(s => s.component -> StencilService.render(s, r.channelDataModel).getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
+                                (stencils.map(s => s.component -> StencilService.render(s, r.channelDataModel).asInstanceOf[String].getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
                               case _ =>
                                 (stencils.map(s => s.component -> StencilService.render(s, r.channelDataModel)) ++ Map("type" -> r.channel)).toMap
                             }).getJson.getObj[ChannelRequestData]

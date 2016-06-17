@@ -15,5 +15,5 @@ package com.flipkart.connekt.commons.entities.fabric
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 trait EngineFabric {
-  def renderData(id: String, context: ObjectNode) : String
+  def compute(id: String, context: ObjectNode) : AnyRef
 }

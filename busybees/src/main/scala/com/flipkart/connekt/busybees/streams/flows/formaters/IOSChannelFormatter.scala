@@ -45,8 +45,8 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val ttlInMillis = message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
         val data = message.channelData.asInstanceOf[PNRequestData].data
-        val requestData = StencilService.render(iosStencil.find(_.component.equals("data")).orNull, data)
-        val apnsTopic = pnInfo.topic.getOrElse(StencilService.render(iosStencil.find(_.component.equals("topic")).orNull, data))
+        val requestData = StencilService.render(iosStencil.find(_.component.equals("data")).orNull, data).asInstanceOf[String]
+        val apnsTopic = pnInfo.topic.getOrElse(StencilService.render(iosStencil.find(_.component.equals("topic")).orNull, data).asInstanceOf[String])
         val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData)
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, message.clientId, apnsPayload, message.meta)
       })
