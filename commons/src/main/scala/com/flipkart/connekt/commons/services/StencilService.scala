@@ -37,9 +37,9 @@ object StencilService extends Instrumented with SyncDelegate {
     try {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
-          FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
+          FabricMaker.create[GroovyFabric](stencil.engineFabric)
         case StencilEngine.VELOCITY =>
-          FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
+          FabricMaker.createVtlFabric(stencil.engineFabric)
       }
       Success(true)
     } catch {
@@ -53,9 +53,9 @@ object StencilService extends Instrumented with SyncDelegate {
     LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.component), Option(stencil.version.toString))).orElse {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
-          FabricMaker.create[GroovyFabric](stencil.id, stencil.engineFabric)
+          FabricMaker.create[GroovyFabric](stencil.engineFabric)
         case StencilEngine.VELOCITY =>
-          FabricMaker.createVtlFabric(stencil.id, stencil.engineFabric)
+          FabricMaker.createVtlFabric(stencil.engineFabric)
       }
       LocalCacheManager.getCache(LocalCacheType.EngineFabrics).put[EngineFabric](cacheKey(fabricKey(stencil.id, stencil.component), Option(stencil.version.toString)), fabric)
       Option(fabric)
