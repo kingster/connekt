@@ -45,7 +45,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.OPENWEB, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
-      val openWebStencil = StencilService.getStencilByName(s"ckt-${pnInfo.appName.toLowerCase}-openweb").get.headOption.orNull
+      val openWebStencil = StencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-openweb").get.headOption.orNull
 
       if (ttl > 0) {
         devicesInfo.flatMap(device => {

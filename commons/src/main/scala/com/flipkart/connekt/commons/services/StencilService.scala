@@ -102,9 +102,9 @@ object StencilService extends Instrumented with SyncDelegate {
   }
 
   @Timed("get")
-  def getStencilByName(name: String, version: Option[String] = None) = {
+  def getStencilsByName(name: String, version: Option[String] = None) = {
     LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](stencilCacheKey(name, version)).orElse {
-      val stencils = stencilDao.getStencilByName(name, version)
+      val stencils = stencilDao.getStencilsByName(name, version)
       LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(name, version), stencils)
       Option(stencils)
     }

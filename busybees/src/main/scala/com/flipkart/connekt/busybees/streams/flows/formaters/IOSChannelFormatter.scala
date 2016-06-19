@@ -39,7 +39,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
-      val iosStencil = StencilService.getStencilByName(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
+      val iosStencil = StencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-ios").get
 
 
       val ttlInMillis = message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)

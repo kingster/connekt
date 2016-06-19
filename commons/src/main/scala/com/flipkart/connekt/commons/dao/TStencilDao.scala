@@ -18,7 +18,7 @@ trait TStencilDao extends Dao {
 
   def getStencils(id: String, version: Option[String] = None): List[Stencil]
 
-  def getStencilByName(name: String, version: Option[String] = None): List[Stencil]
+  def getStencilsByName(name: String, version: Option[String] = None): List[Stencil]
 
   //  def updateStencil(stencil: Stencil): Unit
   def writeStencil(stencil: Stencil): Unit

@@ -40,7 +40,7 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
     }
   }
 
-  override def getStencilByName(name: String, version: Option[String] = None): List[Stencil] = {
+  override def getStencilsByName(name: String, version: Option[String] = None): List[Stencil] = {
     implicit val j = mysqlHelper.getJDBCInterface
     try {
       val q1 =
