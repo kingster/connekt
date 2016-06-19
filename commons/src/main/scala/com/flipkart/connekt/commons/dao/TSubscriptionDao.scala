@@ -11,7 +11,8 @@ import scala.util.Try
   */
 trait TSubscriptionDao {
 
-  def getSubscription(sId: String, createdBy: String) : Option[Subscription]
-  def writeSubscription(subscription: Subscription) : Option[Subscription]
-  def deleteSubscription(sId: String): Boolean
+  def get(sId: String) : Option[Subscription]
+  def add(subscription: Subscription) : Boolean
+  def delete(sId: String): Boolean
 }
+
