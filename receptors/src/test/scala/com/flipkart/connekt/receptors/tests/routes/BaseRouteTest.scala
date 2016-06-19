@@ -20,7 +20,7 @@ import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.receptors.routes.common.ClientRoute
-import com.flipkart.connekt.receptors.routes.push.{SendRoute, RegistrationRoute}
+import com.flipkart.connekt.receptors.routes.push.{RegistrationRoute, SendRoute}
 import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 import org.scalatest.Matchers
 
@@ -40,7 +40,7 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
 
   override def beforeAll() = {
     super.beforeAll()
-    user = DaoFactory.getUserInfoDao.getUserByKey("sandbox-key-01").get
+    user = DaoFactory.getUserInfoDao.getUserByKey("sandbox-key-01").getOrElse(new AppUser("", "", "", ""))
     stencilRoute = new StencilsRoute().route
     registrationRoute = new RegistrationRoute().route
     unicastRoute = new SendRoute().route
