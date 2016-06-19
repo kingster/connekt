@@ -15,44 +15,43 @@ import com.fasterxml.jackson.databind._
 
 class Subscription {
 
-  @Column(name = "sId")
-  var sId : String = _
+  @Column(name = "id")
+  var id : String = _
 
-  @Column(name = "sName")
-  var sName : String = _
+  @Column(name = "name")
+  var name: String = _
 
-  @Column(name = "endpoint")
-  var endpoint : Endpoint  = _
+  @Column(name = "relayPoint")
+  var relayPoint : RelayPoint  = _
 
   @Column(name = "createdBy")
   var createdBy : String = _
 
   @Column(name = "createdTS")
-  var createdTS: Date = _
+  var createdTS: Date = new Date(System.currentTimeMillis())
 
   @Column(name = "lastUpdatedTS")
-  var lastUpdatedTS: Date = _
+  var lastUpdatedTS: Date = new Date(System.currentTimeMillis())
 
-  @Column( name = "groovyString")
-  var groovyString : String = _
+  @Column( name = "groovyFilter")
+  var groovyFilter : String = _
 
   @Column( name = "shutdownThreshold")
   var shutdownThreshold : Int = _
 
-  def this(sId: String, sName: String, endpoint: Endpoint ,
+  def this(sId: String, sName: String, endpoint: RelayPoint,
            createdBy: String, createdTS: Date, lastUpdatedTS: Date, groovyString: String, shutdownThreshold: Int) = {
     this
-    this.sId = sId
-    this.sName = sName
-    this.endpoint = endpoint
+    this.id = sId
+    this.name = sName
+    this.relayPoint = endpoint
     this.createdBy = createdBy
     this.createdTS = createdTS
     this.lastUpdatedTS = lastUpdatedTS
-    this.groovyString = groovyString
+    this.groovyFilter = groovyString
     this.shutdownThreshold = shutdownThreshold
   }
 
-  override def toString = s"Subscription($sId, $sName, ${endpoint.getJson}, $createdBy, ${createdTS.toString}," +
-    s" ${lastUpdatedTS.toString}, $groovyString, ${shutdownThreshold.toString})"
+  override def toString = s"Subscription($id, $name, ${relayPoint.getJson}, $createdBy, ${createdTS.toString}," +
+    s" ${lastUpdatedTS.toString}, $groovyFilter, ${shutdownThreshold.toString})"
 }
-
