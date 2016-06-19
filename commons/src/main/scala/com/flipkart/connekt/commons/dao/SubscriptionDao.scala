@@ -1,10 +1,8 @@
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.entities.{Subscription}
+import com.flipkart.connekt.commons.entities.Subscription
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 import com.flipkart.connekt.commons.utils.StringUtils._
-
-import scala.util.Try
 
 /**
   * Created by harshit.sinha on 08/06/16.
@@ -14,53 +12,51 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
 
   val mySQLHelper = jdbcHelper
 
-  override def getSubscription(sId: String, createdBy: String): Option[ Subscription ] = {
+  override def add(subscription: Subscription): Boolean = {
+    implicit val j = mySQLHelper.getJDBCInterface
+    try {
+      val q1 = s"""
+                  |INSERT INTO $subscriptionTable (id, name, relayPoint, createdBy, createdTS, lastUpdatedTS, groovyFilter, shutdownThreshold) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                  |ON DUPLICATE KEY UPDATE  name = ?, relayPoint = ?, lastUpdatedTS = ?, groovyFilter = ?, shutdownThreshold = ?
+        """.stripMargin
+      update(q1,subscription.id, subscription.name, subscription.relayPoint.getJson,subscription.createdBy, subscription.createdTS,
+        subscription.lastUpdatedTS, subscription.groovyFilter,subscription.shutdownThreshold,
+        subscription.name, subscription.relayPoint.getJson, subscription.lastUpdatedTS, subscription.groovyFilter,subscription.shutdownThreshold)
+      true
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.DAO).error(s"Error writing subscription [${subscription.id}] ${e.getMessage}", e)
+        throw e
+    }
+  }
+
+  override def get(id: String): Option[ Subscription ] = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
       val q1 =
         s"""
-           |SELECT * FROM $subscriptionTable WHERE sId = ? AND createdBy = ?
+           |SELECT * FROM $subscriptionTable WHERE id = ?
             """.stripMargin
 
-      query[Subscription](q1, sId, createdBy)
+      query[Subscription](q1, id)
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.DAO).error(s"Error fetching subscription [$sId] ${e.getMessage}", e)
+        ConnektLogger(LogFile.DAO).error(s"Error fetching subscription [$id] ${e.getMessage}", e)
         throw e
     }
   }
 
-
-  override def writeSubscription(subscription: Subscription): Option[Subscription] = {
+  override def delete(id: String): Boolean = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
       val q1 = s"""
-         |INSERT INTO $subscriptionTable (sId, sName, endpoint, createdBy, createdTS, lastUpdatedTS, groovyString, shutdownThreshold) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-         |ON DUPLICATE KEY UPDATE  endpoint = ?, lastUpdatedTS = ?, groovyString = ?, shutdownThreshold = ?
+                  |DELETE FROM $subscriptionTable WHERE id = ?
         """.stripMargin
-       update(q1,subscription.sId, subscription.sName, subscription.endpoint.getJson,subscription.createdBy, subscription.createdTS,
-         subscription.lastUpdatedTS, subscription.groovyString,subscription.shutdownThreshold,
-         subscription.endpoint.getJson, subscription.lastUpdatedTS, subscription.groovyString,subscription.shutdownThreshold)
-      Option(subscription)
-    } catch {
-      case e: Exception =>
-        ConnektLogger(LogFile.DAO).error(s"Error writing subscription [${subscription.sId}] ${e.getMessage}", e)
-        throw e
-    }
-  }
-
-
-  override def deleteSubscription(sId: String): Boolean = {
-    implicit val j = mySQLHelper.getJDBCInterface
-    try {
-      val q1 = s"""
-                  |DELETE FROM $subscriptionTable WHERE sId = ?
-        """.stripMargin
-      update(q1,sId)
+      update(q1,id)
       true
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.DAO).error(s"Error writing subscription [$sId] ${e.getMessage}", e)
+        ConnektLogger(LogFile.DAO).error(s"Error writing subscription [$id] ${e.getMessage}", e)
         throw e
     }
   }
