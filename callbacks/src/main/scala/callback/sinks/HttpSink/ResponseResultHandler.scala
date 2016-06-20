@@ -1,4 +1,4 @@
-package callback.stages.httpStage
+package callback.sinks.HttpSink
 
 import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext
   * @param ec implict executioner
   */
 
-class ResponseResultHandler(implicit val ec: ExecutionContext) extends GraphStage[FanOutShape3[Either[HttpResponse,HttpCallbackTracker],(HttpRequest,HttpCallbackTracker), HttpResponse,HttpCallbackTracker]] {
+class ResponseResultHandler(url: String)(implicit val ec: ExecutionContext) extends GraphStage[FanOutShape3[Either[HttpResponse,HttpCallbackTracker],(HttpRequest,HttpCallbackTracker), HttpResponse,HttpCallbackTracker]] {
 
   val in = Inlet[Either[HttpResponse, HttpCallbackTracker]]("input")
   val retryOutlet = Outlet[(HttpRequest, HttpCallbackTracker)]("error.out")
@@ -36,11 +36,11 @@ class ResponseResultHandler(implicit val ec: ExecutionContext) extends GraphStag
         val responseEvaluatorResult = grab(in)
         responseEvaluatorResult match {
           case Left(httpResponse) => push(sinkOutlet, httpResponse)
-          case Right(callbackTracker) => if (callbackTracker.discarded == true) push(discardOutlet, callbackTracker)
+          case Right(httpCallbackTracker) => if (httpCallbackTracker.discarded) push(discardOutlet, httpCallbackTracker)
           else {
-            val httpEntity = HttpEntity(ContentTypes.`application/json`, callbackTracker.payload)
-            val httpRequest = HttpRequest(method = HttpMethods.POST, uri = callbackTracker.serverPath, entity = httpEntity)
-            push(retryOutlet, (httpRequest, callbackTracker))
+            val httpEntity = HttpEntity(ContentTypes.`application/json`, httpCallbackTracker.payload)
+            val httpRequest = HttpRequest(method = HttpMethods.POST, uri = url, entity = httpEntity)
+            push(retryOutlet, (httpRequest, httpCallbackTracker))
           }
         }
       }

@@ -4,7 +4,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
-import callback.topologyManager.ClientTopologyManager
 import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.commons.connections.ConnectionProvider
@@ -39,9 +38,6 @@ object CallbackBoot extends BaseApp {
 
   lazy val ioMat = ActorMaterializer(settings.withDispatcher("akka.actor.io-dispatcher"))
 
-  var clientTopologyManager: ClientTopologyManager = _
-
-
   def start() {
 
     if (!initialized.getAndSet(true)) {
@@ -58,43 +54,18 @@ object CallbackBoot extends BaseApp {
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
-      val hConfig = ConnektConfig.getConfig("connections.hbase")
-      DaoFactory.initHTableDaoFactory(hConfig.get)
-
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
-
-      val couchbaseCf = ConnektConfig.getConfig("connections.couchbase").getOrElse(ConfigFactory.empty())
-      DaoFactory.initCouchbaseCluster(couchbaseCf)
-
-      DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
-
-      val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
-      DaoFactory.initSpecterSocket(specterConfig)
-
-      ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaConsumerPoolConf = ConnektConfig.getConfig("connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
       ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConnConf.toString}")
       val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
-      val kafkaProducerConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
-      val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
-      val kafkaProducerHelper = KafkaProducerHelper.init(kafkaProducerConnConf, kafkaProducerPoolConf)
-
-      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null, kafkaProducerHelper)
-
-
-      ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
-      ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
-
-      //TODO : Fix this, this is for bootstraping hbase connection.
-      println(DeviceDetailsService.get("ConnectSampleApp", StringUtils.generateRandomStr(15)))
 
       HttpDispatcher.init(ConnektConfig.getConfig("react").get)
 
-      clientTopologyManager = new ClientTopologyManager()
+      ClientTopologyManager()
     }
   }
 
