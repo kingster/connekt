@@ -12,7 +12,7 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
 
   val mySQLHelper = jdbcHelper
 
-  override def add(subscription: Subscription): Boolean = {
+  override def add(subscription: Subscription): Unit = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
       val q1 = s"""
@@ -22,7 +22,6 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
       update(q1,subscription.id, subscription.name, subscription.relayPoint.getJson,subscription.createdBy, subscription.createdTS,
         subscription.lastUpdatedTS, subscription.groovyFilter,subscription.shutdownThreshold,
         subscription.name, subscription.relayPoint.getJson, subscription.lastUpdatedTS, subscription.groovyFilter,subscription.shutdownThreshold)
-      true
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error writing subscription [${subscription.id}] ${e.getMessage}", e)
@@ -46,14 +45,13 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
     }
   }
 
-  override def delete(id: String): Boolean = {
+  override def delete(id: String): Unit = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
       val q1 = s"""
                   |DELETE FROM $subscriptionTable WHERE id = ?
         """.stripMargin
       update(q1,id)
-      true
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error writing subscription [$id] ${e.getMessage}", e)

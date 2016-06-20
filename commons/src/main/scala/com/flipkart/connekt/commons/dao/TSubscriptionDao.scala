@@ -12,7 +12,7 @@ import scala.util.Try
 trait TSubscriptionDao {
 
   def get(sId: String) : Option[Subscription]
-  def add(subscription: Subscription) : Boolean
-  def delete(sId: String): Boolean
+  def add(subscription: Subscription) : Unit
+  def delete(sId: String): Unit
 }
 

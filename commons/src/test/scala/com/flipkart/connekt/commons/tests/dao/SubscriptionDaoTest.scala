@@ -21,16 +21,16 @@ class SubscriptionDaoTest extends CommonsBaseTest {
   subscription.relayPoint = new HTTPRelayPoint("http://localhost:8080/testingRoute")
   subscription.groovyFilter = "This is a groovyFilter string for testing"
 
-  "add test" should "return true" in {
-    assert(DaoFactory.getSubscriptionDao.add(subscription))
+  "add test" should "not throw exception" in {
+    noException should be thrownBy DaoFactory.getSubscriptionDao.add(subscription)
   }
 
   "get test" should "return a Subscription" in {
     assert(DaoFactory.getSubscriptionDao.get(subscription.id).isDefined)
   }
 
-  "delete test" should "return true" in {
-    assert(DaoFactory.getSubscriptionDao.delete(subscription.id))
+  "delete test" should "not throw exception" in {
+    noException should be thrownBy DaoFactory.getSubscriptionDao.delete(subscription.id)
   }
 
 }
