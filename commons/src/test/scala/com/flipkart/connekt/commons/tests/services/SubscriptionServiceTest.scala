@@ -24,17 +24,18 @@ class SubscriptionServiceTest extends CommonsBaseTest{
 
   "add Test" should "add a subscription and return success" in {
     val assertion = SubscriptionService.add(subscription)
-    assert(assertion.isSuccess && assertion.isInstanceOf[Subscription])
+    assert(assertion.isSuccess && assertion.get.isInstanceOf[Subscription])
   }
 
   "get Test" should "return a subscription" in {
-    assert(SubscriptionService.get(subscription.id).get.isInstanceOf[Subscription])
+    val assertion = SubscriptionService.get(subscription.id)
+    assert(assertion.get.isInstanceOf[Subscription])
   }
 
   "Update test" should "update subscription and return success" in {
     subscription.groovyFilter = "This is a updated groovyFilter string for SubscriptionServiceTest"
     val assertion = SubscriptionService.update(subscription, subscription.id)
-    assert(assertion.isSuccess && assertion.isInstanceOf[Subscription])
+    assert(assertion.isSuccess && assertion.get.isInstanceOf[Subscription])
   }
 
   "remove test" should "not throw exception" in {

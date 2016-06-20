@@ -22,20 +22,22 @@ object SubscriptionService {
   def add(subscription: Subscription): Try[Subscription] = Try_#(message = "SubscriptionService.add failed") {
     subscription.id = UUID.randomUUID().toString
     if(dao.add(subscription)) {
-      LocalCacheManager.getCache(LocalCacheType.Subscription).put(subscription.id, subscription)
+      LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
       subscription
     }
     else throw new Exception(s"No Subscription added for id: [${subscription.id}].")
   }
 
   def get(id: String): Try[Subscription] = Try_#(message = "SubscriptionService.get failed") {
-    val optionSubscription = LocalCacheManager.getCache(LocalCacheType.Subscription).get(id)
+    val optionSubscription = LocalCacheManager.getCache(LocalCacheType.Subscription).get[Subscription](id)
     optionSubscription match {
-      case Some(subscription) => subscription
+      case Some(subscription) =>
+        LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
+        subscription
       case None =>
         dao.get(id) match {
           case Some(subscription) =>
-            LocalCacheManager.getCache(LocalCacheType.Subscription).put(subscription.id, subscription)
+            LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
             subscription
           case None => throw new Exception(s"No Subscription found for id: [$id].")
         }
@@ -49,8 +51,11 @@ object SubscriptionService {
     val result = get(newSubscription.id)
     result match {
       case Success(subscription) =>
-        add(newSubscription)
-        newSubscription
+        if(dao.add(newSubscription)) {
+          LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](newSubscription.id, newSubscription)
+          newSubscription
+        }
+        else throw new Exception(s"No Subscription added for id: [${newSubscription.id}].")
       case Failure(e) => throw new Exception(s"No Subscription found for id: [$id]. to update")
     }
   }
