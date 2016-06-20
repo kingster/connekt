@@ -26,9 +26,7 @@ class ClientTopology(subscription: Subscription)(implicit am: ActorMaterializer,
   val myEvaluator = FabricMaker.create[Evaluator](subscription.id, subscription.groovyFilter)
   val topologyShutdownTrigger =  Promise[String]()
   var kafkaCallbackSource: CallbackKafkaSource[CallbackEvent]  = _
-  var currentShutdown = 0
   val kafkaConsumerConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
-  val kafkaConsumerPoolConf = ConnektConfig.getConfig("connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
   val retryLimit = 4
 
   private def HttpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) =
