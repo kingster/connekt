@@ -28,7 +28,7 @@ import com.flipkart.utils.http.HttpClient
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
@@ -78,7 +78,7 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                               request.setEntity(new StringEntity(d.copy(token = null).getJson))
 
                               client.doExecute(request)
-                            }(executor = am.executionContext)
+                            }(executor = ExecutionContext.global)
                           }
                           /* , shall be removed like it never existed */
 
