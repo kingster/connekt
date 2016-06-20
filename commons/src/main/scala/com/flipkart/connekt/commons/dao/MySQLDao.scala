@@ -17,11 +17,11 @@ import java.sql.ResultSet
 import javax.persistence.Column
 
 import com.flipkart.connekt.commons.entities.EnumTypeHint
+import com.flipkart.connekt.commons.utils.StringUtils._
 import org.springframework.jdbc.core.{JdbcTemplate, RowMapper}
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
-import com.flipkart.connekt.commons.utils.StringUtils._
 
 trait JSONField
 
