@@ -6,68 +6,51 @@ import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.Subscription
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 import com.flipkart.connekt.commons.core.Wrappers._
-
-
-/**
-  * Created by harshit.sinha on 09/06/16.
-  **/
-
 
 object SubscriptionService {
 
-  val dao = DaoFactory.getSubscriptionDao
+  lazy val dao = DaoFactory.getSubscriptionDao
 
-  def add(subscription: Subscription): Try[Subscription] = Try_#(message = "SubscriptionService.add failed") {
+  def add(subscription: Subscription): Try[String] = Try_#(message = "SubscriptionService.add failed") {
     subscription.id = UUID.randomUUID().toString
-    if(dao.add(subscription)) {
-      LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
-      subscription
-    }
-    else throw new Exception(s"No Subscription added for id: [${subscription.id}].")
+    dao.add(subscription)
+    LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
+    subscription.id
   }
 
-  def get(id: String): Try[Subscription] = Try_#(message = "SubscriptionService.get failed") {
-    val optionSubscription = LocalCacheManager.getCache(LocalCacheType.Subscription).get[Subscription](id)
-    optionSubscription match {
-      case Some(subscription) =>
+  def get(id: String): Try[Option[Subscription]] = Try_#(message = "SubscriptionService.get failed") {
+    LocalCacheManager.getCache(LocalCacheType.Subscription).get[Subscription](id).orElse {
+      dao.get(id) match {
+        case Some(subscription) =>
+          LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
+          Some(subscription)
+        case None => None
+      }
+    }
+  }
+
+  def update(subscription: Subscription): Try[Boolean] = {
+    subscription.lastUpdatedTS = new Date(System.currentTimeMillis())
+    get(subscription.id).flatMap {
+      case Some(subscription) => Try_#(message = "SubscriptionService.update failed") {
+        dao.add(subscription)
         LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
-        subscription
-      case None =>
-        dao.get(id) match {
-          case Some(subscription) =>
-            LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
-            subscription
-          case None => throw new Exception(s"No Subscription found for id: [$id].")
-        }
+        true
+      }
+      case None => Failure(new Throwable(s"No Subscription found for id: [${subscription.id}] to update."))
     }
   }
 
-  def update(newSubscription: Subscription, id: String): Try[Subscription] = Try_#(message = "SubscriptionService.update failed") {
-    newSubscription.id = id
-    newSubscription.lastUpdatedTS = new Date(System.currentTimeMillis())
-
-    val result = get(newSubscription.id)
-    result match {
-      case Success(subscription) =>
-        if(dao.add(newSubscription)) {
-          LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](newSubscription.id, newSubscription)
-          newSubscription
-        }
-        else throw new Exception(s"No Subscription added for id: [${newSubscription.id}].")
-      case Failure(e) => throw new Exception(s"No Subscription found for id: [$id]. to update")
-    }
-  }
-
-  def remove(id: String): Try[Boolean] = Try_#(message = "SubscriptionService.delete failed") {
-    val result = get(id)
-    result match {
-      case Success(subscription) =>
+  def remove(id: String): Try[Boolean] = {
+    get(id).flatMap {
+      case Some(subscription) => Try_#(message = "SubscriptionService.delete failed") {
         dao.delete(id)
         LocalCacheManager.getCache(LocalCacheType.Subscription).remove(id)
         true
-      case Failure(e) => throw new Exception(s"No Subscription found for id: [$id]. to delete")
+      }
+      case None => Failure(new Throwable(s"No Subscription found for id: [$id] to delete."))
     }
   }
 

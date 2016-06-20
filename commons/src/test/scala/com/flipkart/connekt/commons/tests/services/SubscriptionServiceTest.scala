@@ -6,41 +6,45 @@ import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
 import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
+import jdk.nashorn.internal.runtime.Specialization
 
 /**
   * Created by harshit.sinha on 17/06/16.
   */
-class SubscriptionServiceTest extends CommonsBaseTest{
 
-  val subscription = new Subscription
+class SubscriptionServiceTest extends CommonsBaseTest {
+
+  val subscription = new Subscription()
 
   subscription.name = "SubscriptionServiceTest"
-  subscription.id = UUID.randomUUID().toString
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
   subscription.relayPoint = new HTTPRelayPoint("http://localhost:8080/serviceTestingRoute")
   subscription.groovyFilter = "This is groovyFilter string for SubscriptionServiceTest"
 
-
-  "add Test" should "add a subscription and return success" in {
-    val assertion = SubscriptionService.add(subscription)
-    assert(assertion.isSuccess && assertion.get.isInstanceOf[Subscription])
+  "add Test" should "return success" in {
+    val id = SubscriptionService.add(subscription)
+    subscription.id = id.get
+    assert(id.isSuccess)
   }
 
   "get Test" should "return a subscription" in {
-    val assertion = SubscriptionService.get(subscription.id)
-    assert(assertion.get.isInstanceOf[Subscription])
+    val sub = SubscriptionService.get(subscription.id)
+    assert(sub.get.get.isInstanceOf[Subscription])
+
   }
 
-  "Update test" should "update subscription and return success" in {
+  "Update test" should "return success" in {
     subscription.groovyFilter = "This is a updated groovyFilter string for SubscriptionServiceTest"
-    val assertion = SubscriptionService.update(subscription, subscription.id)
-    assert(assertion.isSuccess && assertion.get.isInstanceOf[Subscription])
+    val sub = SubscriptionService.update(subscription)
+    assert(sub.isSuccess)
+
   }
 
   "remove test" should "not throw exception" in {
     noException should be thrownBy SubscriptionService.remove(subscription.id)
   }
+
 
 
 }
