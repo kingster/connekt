@@ -1,22 +1,27 @@
 package com.flipkart.connekt.receptors.tests.routes.callbacks
 
-import akka.http.scaladsl.model.{HttpEntity, HttpResponse, MediaTypes, StatusCodes}
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.Subscription
+import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.callbacks.SubscriptionsRoute
 import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 import org.apache.commons.lang.StringEscapeUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
+import scala.collection.immutable.HashMap
+
 /**
   * Created by harshit.sinha on 08/06/16.
   */
 
-class SubscriptionsRouteTest extends BaseRouteTest {
+class SubscriptionsRouteTest() extends BaseRouteTest {
 
   val subscriptionRoute = new SubscriptionsRoute().route
   override val header = RawHeader("x-api-key", "b0979afd-2ce3-4786-af62-ab53f88204ae")
   var subscription: Subscription = _
+  implicit val mat = ActorMaterializer()
 
   "Create Test" should "return OK" in {
     val groovyString =
@@ -48,7 +53,7 @@ class SubscriptionsRouteTest extends BaseRouteTest {
 
     Post("/v1/subscription", HttpEntity(MediaTypes.`application/json`, JSONRequest)).addHeader(header) ~>
     subscriptionRoute ~> check {
-      subscription = HttpResponse.getJson.getObj
+      subscription = response.entity.getString(mat).getObj[GenericResponse].response.getJson.getObj[Response].data.asInstanceOf[Map[String,String]].getJson.getObj[Subscription]
       status shouldEqual StatusCodes.OK
     }
   }
