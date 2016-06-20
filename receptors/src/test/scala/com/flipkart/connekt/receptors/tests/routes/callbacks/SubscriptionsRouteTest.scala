@@ -10,8 +10,6 @@ import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 import org.apache.commons.lang.StringEscapeUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-import scala.collection.immutable.HashMap
-
 /**
   * Created by harshit.sinha on 08/06/16.
   */
@@ -54,7 +52,7 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
     Post("/v1/subscription", HttpEntity(MediaTypes.`application/json`, JSONRequest)).addHeader(header) ~>
     subscriptionRoute ~> check {
       subscription = response.entity.getString(mat).getObj[GenericResponse].response.getJson.getObj[Response].data.asInstanceOf[Map[String,String]].getJson.getObj[Subscription]
-      status shouldEqual StatusCodes.OK
+      status shouldEqual StatusCodes.Created
     }
   }
 

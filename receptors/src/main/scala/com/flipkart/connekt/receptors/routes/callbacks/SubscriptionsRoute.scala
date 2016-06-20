@@ -14,62 +14,76 @@ import scala.util.{Failure, Success}
 /**
   * Created by harshit.sinha on 07/06/16.
   */
+
 class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val route = pathPrefix("v1" / "subscription") {
     authenticate { user =>
       pathEndOrSingleSlash {
         post {
-          entity(as[Subscription]) { sub =>
-            sub.createdBy = user.userId
-            SubscriptionService.add(sub) match {
-              case Success(createdSubscription) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription created", createdSubscription)))
-              case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription creation failed: " + e, null)))
+          entity(as[Subscription]) { subscription =>
+            subscription.createdBy = user.userId
+            SubscriptionService.add(subscription) match {
+              case Success(id) =>
+                subscription.id = id
+                complete(GenericResponse(StatusCodes.Created.intValue, null, Response("Subscription created", subscription)))
+              case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription creation failed: " + e, null)))
             }
           }
         }
       } ~
-      pathPrefix(Segment) { (id: String) =>
-        post {
-          entity(as[Subscription]) { sub =>
-            sub.createdBy = user.userId
-            SubscriptionService.update(sub, id) match {
-              case Success(updatedSubscription) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription updated", updatedSubscription)))
-              case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription updation failed: "+ e, null)))
-            }
-          }
-        } ~
-        get {
-          pathEndOrSingleSlash {
-            SubscriptionService.get(id) match {
-              case Success(fetchedSubscription) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription fetched", fetchedSubscription)))
-              case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription fetching failed: "+ e, null)))
-            }
-          } ~
-          path("start") {
-            SubscriptionService.get(id) match {
-              case Success(subscription) =>
-                SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION_REQUEST, List("start", subscription)))
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription started successfully", subscription)))
-              case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription starting failed: "+ e, null)))
-            }
-          } ~
-          path("stop") {
-            SubscriptionService.get(id) match {
-              case Success(subscription) =>
-                SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION_REQUEST, List("stop", subscription)))
-                complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription stopped successfully", subscription)))
-              case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription stopping failed: "+ e, null)))
-            }
-          }
-        } ~
-        delete {
-          SubscriptionService.remove(id) match {
-            case Success(code) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
-            case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subsciption deletion failed: "+ e, null)))
-          }
+        pathPrefix(Segment) {
+          (subscriptionId: String) =>
+            post {
+              entity(as[Subscription]) { subscription =>
+                subscription.createdBy = user.userId
+                subscription.id = subscriptionId
+                SubscriptionService.update(subscription) match {
+                  case Success(result) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription updated", subscription)))
+                  case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription updation failed: " + e, null)))
+                  case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription updation failed: " + e, null)))
+                }
+              }
+            } ~
+              get {
+                pathEndOrSingleSlash {
+                  SubscriptionService.get(subscriptionId) match {
+                    case Success(subscription) =>
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription fetched", subscription)))
+                    case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription fetching failed: " + e, null)))
+                  }
+                } ~
+                  path("start") {
+                    SubscriptionService.get(subscriptionId) match {
+                      case Success(sub) => sub match {
+                        case Some(subscription) =>
+                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List("start", subscription)))
+                          complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription started successfully", subscription)))
+                        case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription starting failed: No such subscription found", null)))
+                      }
+                      case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription starting failed: " + e, null)))
+                    }
+                  } ~
+                  path("stop") {
+                    SubscriptionService.get(subscriptionId) match {
+                      case Success(sub) => sub match {
+                        case Some(subscription) =>
+                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List("stop", subscription)))
+                          complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription stopped successfully", subscription)))
+                        case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription stopping failed: No such subscription found", null)))
+                      }
+                      case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription stopping failed: " + e, null)))
+                    }
+                  }
+              } ~
+              delete {
+                SubscriptionService.remove(subscriptionId) match {
+                  case Success(code) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
+                  case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
+                  case Failure(e) =>  complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
+                }
+              }
         }
-      }
     }
   }
 }
