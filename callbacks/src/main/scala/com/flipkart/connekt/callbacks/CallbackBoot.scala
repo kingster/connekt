@@ -28,6 +28,7 @@ import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
+
 object CallbackBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
