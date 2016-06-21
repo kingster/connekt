@@ -175,7 +175,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                               case Some(stencils) if stencils.nonEmpty =>
                                 authorize(user, stencils.head.bucket.split(",").map("STENCIL_PREVIEW_" + _): _*) {
                                   val preview = stencils.map(stencil => {
-                                    stencil.component -> StencilService.render(stencil, entity.get(stencil.component).asInstanceOf[ObjectNode])
+                                    stencil.component -> StencilService.render(stencil, entity)
                                   }).toMap
                                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", preview)))
                                 }
