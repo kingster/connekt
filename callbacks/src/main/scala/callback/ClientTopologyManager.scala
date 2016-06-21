@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Promise}
   * Created by harshit.sinha on 13/06/16.
   */
 
-class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends SyncDelegate {
+class giClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.SUBSCRIPTION))
 
