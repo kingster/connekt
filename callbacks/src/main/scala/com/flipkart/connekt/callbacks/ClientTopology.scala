@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callback
+package com.flipkart.connekt.callbacks
 
 import java.net.URL
 import akka.actor.ActorSystem
@@ -18,8 +18,8 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequ
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.flipkart.connekt.busybees.streams.sources.CallbackKafkaSource
-import com.flipkart.connekt.callback.sinks.HttpSink.{HttpCallbackTracker, HttpSink}
-import com.flipkart.connekt.callback.sinks.KafkaSink.KafkaSink
+import com.flipkart.connekt.callbacks.sinks.HttpSink.{HttpCallbackTracker, HttpSink}
+import com.flipkart.connekt.callbacks.sinks.KafkaSink.KafkaSink
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.entities.fabric.FabricMaker
 import com.flipkart.connekt.commons.iomodels.CallbackEvent

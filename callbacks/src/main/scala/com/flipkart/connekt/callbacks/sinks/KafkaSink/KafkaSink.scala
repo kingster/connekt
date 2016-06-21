@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callback.sinks.KafkaSink
+package com.flipkart.connekt.callbacks.sinks.KafkaSink
 
 import akka.stream.scaladsl.Sink
 

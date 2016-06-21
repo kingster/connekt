@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callback
+package com.flipkart.connekt.callbacks
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer

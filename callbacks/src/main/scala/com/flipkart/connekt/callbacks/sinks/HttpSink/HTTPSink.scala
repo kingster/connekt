@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callback.sinks.HttpSink
+package com.flipkart.connekt.callbacks.sinks.HttpSink
 
 import java.net.URL
 
