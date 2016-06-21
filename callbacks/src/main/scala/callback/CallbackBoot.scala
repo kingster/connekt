@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package callback
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -18,9 +30,6 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.ExecutionContext
 
-/**
-  * Created by harshit.sinha on 13/06/16.
-  */
 object CallbackBoot extends BaseApp {
 
 
