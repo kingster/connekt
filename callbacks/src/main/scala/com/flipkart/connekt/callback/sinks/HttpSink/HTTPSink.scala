@@ -1,4 +1,16 @@
-package callback.sinks.HttpSink
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
+package com.flipkart.connekt.callback.sinks.HttpSink
 
 import java.net.URL
 
@@ -6,17 +18,13 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
+import akka.stream.scaladsl.GraphDSL.Implicits._
+import akka.stream.scaladsl.{GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
-import akka.stream.scaladsl.GraphDSL.Implicits._
 
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.util.{Failure, Success, Try}
-
-/**
-  * Created by harshit.sinha on 16/06/16.
-  */
 
 class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[String], retryLimit: Int)(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
 

@@ -1,16 +1,8 @@
 package com.flipkart.connekt.commons.tests.services
 
-import java.util.{Date, UUID}
-
-import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
 import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
-import jdk.nashorn.internal.runtime.Specialization
-
-/**
-  * Created by harshit.sinha on 17/06/16.
-  */
 
 class SubscriptionServiceTest extends CommonsBaseTest {
 
@@ -44,7 +36,6 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   "remove test" should "not throw exception" in {
     noException should be thrownBy SubscriptionService.remove(subscription.id)
   }
-
 
 
 }

@@ -1,13 +1,21 @@
-package callback.sinks.HttpSink
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
+package com.flipkart.connekt.callback.sinks.HttpSink
 
 import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FanOutShape3, Inlet, Outlet}
 import scala.concurrent.ExecutionContext
-
-/**
-  * Created by harshit.sinha on 04/06/16.
-  */
 
 /**
   *  this class takes the result from response evaluator and if the response is ok sent it out through

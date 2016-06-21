@@ -16,11 +16,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import com.flipkart.connekt.commons.dao.JSONField
 
-/**
-  * Created by harshit.sinha on 10/06/16.
-  **/
-
-
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
   include = JsonTypeInfo.As.PROPERTY,

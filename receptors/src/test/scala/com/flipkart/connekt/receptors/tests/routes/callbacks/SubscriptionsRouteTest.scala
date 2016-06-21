@@ -10,10 +10,6 @@ import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
 import org.apache.commons.lang.StringEscapeUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-/**
-  * Created by harshit.sinha on 08/06/16.
-  */
-
 class SubscriptionsRouteTest() extends BaseRouteTest {
 
   val subscriptionRoute = new SubscriptionsRoute().route
@@ -50,28 +46,28 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
       """.stripMargin
 
     Post("/v1/subscription", HttpEntity(MediaTypes.`application/json`, JSONRequest)).addHeader(header) ~>
-    subscriptionRoute ~> check {
-      subscription = response.entity.getString(mat).getObj[GenericResponse].response.getJson.getObj[Response].data.asInstanceOf[Map[String,String]].getJson.getObj[Subscription]
+      subscriptionRoute ~> check {
+      subscription = response.entity.getString(mat).getObj[GenericResponse].response.getJson.getObj[Response].data.asInstanceOf[Map[String, String]].getJson.getObj[Subscription]
       status shouldEqual StatusCodes.Created
     }
   }
 
   "Get Test" should "return OK" in {
-    Get("/v1/subscription/"+subscription.id).addHeader(header) ~>
+    Get("/v1/subscription/" + subscription.id).addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
     }
   }
 
   "Start Test" should "return OK" in {
-    Get("/v1/subscription/"+subscription.id).addHeader(header) ~>
+    Get("/v1/subscription/" + subscription.id).addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
     }
   }
 
   "Stop Test" should "return OK" in {
-    Get("/v1/subscription/"+subscription.id).addHeader(header) ~>
+    Get("/v1/subscription/" + subscription.id).addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
     }
@@ -105,14 +101,14 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
          |}
       """.stripMargin
 
-    Post("/v1/subscription/"+subscription.id, HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+    Post("/v1/subscription/" + subscription.id, HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
     }
   }
 
   "Delete Test" should "return OK" in {
-    Delete("/v1/subscription/"+subscription.id).addHeader(header) ~>
+    Delete("/v1/subscription/" + subscription.id).addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
     }

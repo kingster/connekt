@@ -16,10 +16,6 @@ import com.flipkart.connekt.commons.entities.Subscription
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-/**
-  * Created by harshit.sinha on 08/06/16.
-  */
-
 class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) extends TSubscriptionDao with MySQLDao {
 
   val mySQLHelper = jdbcHelper

@@ -1,4 +1,16 @@
-package callback
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
+package com.flipkart.connekt.callback
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -6,14 +18,9 @@ import com.flipkart.connekt.commons.entities.{Subscription, SubscriptionAction}
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
-
 import scala.concurrent.{ExecutionContext, Promise}
 
-/**
-  * Created by harshit.sinha on 13/06/16.
-  */
-
-class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends SyncDelegate {
+class ClientTopologyManager(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.SUBSCRIPTION))
 
@@ -35,7 +42,7 @@ class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, 
     _type match {
       case SyncType.SUBSCRIPTION =>
         val action = args.head
-        val subscription = args.tail(0).getJson.getObj[Subscription]
+        val subscription = args.tail.head.getJson.getObj[Subscription]
         if (action.equals(SubscriptionAction.START)) {
           if (!isTopologyActive(subscription.id)) startTopology(subscription)
         }
@@ -53,7 +60,7 @@ object ClientTopologyManager {
   def apply()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) = {
     if (null == instance)
       this.synchronized {
-        instance = new ClientTopologyManager()
+        instance = new ClientTopologyManager
       }
     instance
   }
