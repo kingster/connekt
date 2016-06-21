@@ -45,7 +45,7 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
     require(channelInfo != null, "`channelInfo` field cannot be null.")
   }
 
-  def getRequestData() = {
+  def getRequestData = {
     val stencils = stencilId.flatMap(StencilService.get(_)).getOrElse(List.empty)
     (Channel.withName(channel) match {
       case Channel.PUSH =>
