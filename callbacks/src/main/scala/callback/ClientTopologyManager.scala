@@ -6,6 +6,7 @@ import com.flipkart.connekt.commons.entities.{Subscription, SubscriptionAction}
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import org.codehaus.jettison.json.JSONObject
 
 import scala.concurrent.{ExecutionContext, Promise}
 
@@ -34,12 +35,14 @@ class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, 
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
     _type match {
       case SyncType.SUBSCRIPTION =>
-        val action = args.head
+        val action = args.head.getJson
+        val jObject: JSONObject = new JSONObject(action)
         val subscription = args.tail(0).getJson.getObj[Subscription]
-        if (action.equals(SubscriptionAction.START)) {
+
+        if (jObject.get("value").equals(SubscriptionAction.START.toString)) {
           if (!isTopologyActive(subscription.id)) startTopology(subscription)
         }
-        else if (action.equals(SubscriptionAction.STOP)) {
+        else if (  jObject.get("value").equals(SubscriptionAction.STOP.toString)) {
           if (isTopologyActive(subscription.id)) getTrigger(subscription.id).success("User Signal shutdown")
         }
     }

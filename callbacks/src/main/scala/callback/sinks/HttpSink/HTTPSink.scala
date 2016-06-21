@@ -6,7 +6,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
+import akka.stream.scaladsl.{GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
 import akka.stream.scaladsl.GraphDSL.Implicits._
@@ -35,14 +35,14 @@ class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[Stri
 
       mergePreferredStaged.out ~> httpCachedClient.map(responseEvaluator) ~> resultHandler.in
       resultHandler.out0 ~> mergePreferredStaged.preferred
-      resultHandler.out1 ~> Sink.ignore
-      resultHandler.out2 ~> Sink.ignore
+      resultHandler.out1 ~> Sink.foreach(println)
+      resultHandler.out2 ~> Sink.foreach(println)
 
       SinkShape(mergePreferredStaged.in(0))
     })
   }
 
-  def responseEvaluator(responseObject: (Try[HttpResponse],HttpCallbackTracker)) : Either[HttpResponse, HttpCallbackTracker] = {
+  private def responseEvaluator(responseObject: (Try[HttpResponse],HttpCallbackTracker)) : Either[HttpResponse, HttpCallbackTracker] = {
     currentShutdown = currentShutdown + 1
     val response = responseObject._1
     val callbackTracker = responseObject._2
