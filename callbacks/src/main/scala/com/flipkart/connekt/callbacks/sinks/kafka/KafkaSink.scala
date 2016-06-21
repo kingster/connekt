@@ -10,8 +10,10 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callbacks.sinks.HttpSink
+package com.flipkart.connekt.callbacks.sinks.kafka
 
-case class HttpCallbackTracker(payload:String,
-                               error: Int,
-                               discarded: Boolean)
+import akka.stream.scaladsl.Sink
+
+class KafkaSink(brokers:String, topic:String) {
+  def getKafkaSink = Sink.foreach(println)
+}

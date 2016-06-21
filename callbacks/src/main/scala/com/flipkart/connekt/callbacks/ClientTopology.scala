@@ -18,8 +18,8 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequ
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.flipkart.connekt.busybees.streams.sources.CallbackKafkaSource
-import com.flipkart.connekt.callbacks.sinks.HttpSink.{HttpCallbackTracker, HttpSink}
-import com.flipkart.connekt.callbacks.sinks.KafkaSink.KafkaSink
+import com.flipkart.connekt.callbacks.sinks.http.{HttpCallbackTracker, HttpSink}
+import com.flipkart.connekt.callbacks.sinks.kafka.KafkaSink
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.entities.fabric.FabricMaker
 import com.flipkart.connekt.commons.iomodels.CallbackEvent

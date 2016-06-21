@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callbacks.sinks.HttpSink
+package com.flipkart.connekt.callbacks.sinks.http
 
 import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}

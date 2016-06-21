@@ -72,7 +72,7 @@ object CallbackBoot extends BaseApp {
 
       HttpDispatcher.init(ConnektConfig.getConfig("react").get)
 
-      ClientTopologyManager
+      ClientTopologyManager()
     }
   }
 

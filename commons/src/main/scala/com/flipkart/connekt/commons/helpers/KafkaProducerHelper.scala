@@ -51,7 +51,10 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
     val producer = kafkaProducerPool.borrowObject()
     try {
       val keyedMessages = message.map(new KeyedMessage[String, String](topic, _))
-      producer.send(keyedMessages:_*)
+      producer.send(keyedMessages: _*)
+    } catch {
+      case e: Exception =>
+        println(e)
     } finally {
       kafkaProducerPool.returnObject(producer)
     }

@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callbacks.sinks.HttpSink
+package com.flipkart.connekt.callbacks.sinks.http
 
 import java.net.URL
 
@@ -37,6 +37,7 @@ class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[Stri
   def getHttpSink(): Sink[(HttpRequest, HttpCallbackTracker), NotUsed] = {
 
     val responseResultHandler = new ResponseResultHandler(url.getPath)
+
     Sink.fromGraph(GraphDSL.create() { implicit b =>
       val mergePreferredStaged = b.add(MergePreferred[(HttpRequest,HttpCallbackTracker)](1))
       val resultHandler = b.add(responseResultHandler)
