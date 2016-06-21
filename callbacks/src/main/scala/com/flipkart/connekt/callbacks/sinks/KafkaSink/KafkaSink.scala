@@ -10,13 +10,10 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.commons.dao
+package com.flipkart.connekt.callbacks.sinks.KafkaSink
 
-import com.flipkart.connekt.commons.entities.Subscription
+import akka.stream.scaladsl.Sink
 
-trait TSubscriptionDao {
-
-  def get(sId: String) : Option[Subscription]
-  def add(subscription: Subscription) : Unit
-  def delete(sId: String): Unit
+class KafkaSink(brokers:String, topic:String) {
+  def getKafkaSink = Sink.foreach(println)
 }

@@ -1,4 +1,16 @@
-package callback
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
+package com.flipkart.connekt.callbacks
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -10,11 +22,7 @@ import org.codehaus.jettison.json.JSONObject
 
 import scala.concurrent.{ExecutionContext, Promise}
 
-/**
-  * Created by harshit.sinha on 13/06/16.
-  */
-
-class giClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends SyncDelegate {
+class ClientTopologyManager(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.SUBSCRIPTION))
 

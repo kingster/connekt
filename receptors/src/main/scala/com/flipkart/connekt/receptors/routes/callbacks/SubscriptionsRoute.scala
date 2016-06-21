@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.receptors.routes.callbacks
 
 import akka.http.scaladsl.model.StatusCodes
@@ -10,10 +22,6 @@ import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 
 import scala.util.{Failure, Success}
-
-/**
-  * Created by harshit.sinha on 07/06/16.
-  */
 
 class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -80,7 +88,7 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
                 SubscriptionService.remove(subscriptionId) match {
                   case Success(code) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
                   case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
-                  case Failure(e) =>  complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
+                  case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
                 }
               }
         }

@@ -6,10 +6,6 @@ import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
-/**
-  * Created by harshit.sinha on 17/06/16.
-  */
-
 class SubscriptionDaoTest extends CommonsBaseTest {
 
   val subscription = new Subscription()
