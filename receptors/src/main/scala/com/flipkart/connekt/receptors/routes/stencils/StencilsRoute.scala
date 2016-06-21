@@ -102,7 +102,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
               } ~ path(Segment) {
                 (id: String) =>
                   put {
-                    meteredResource("stencilTypeUpdate") {
+                    meteredResource("stencilComponentsUpdate") {
                       authorize(user, "ADMIN_BUCKET") {
                         entity(as[StencilComponents]) { obj =>
                           StencilService.getStencilComponents(id) match {
@@ -159,7 +159,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                               }).toMap
                               complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", preview)))
                             }
-                          case None =>
+                          case _ =>
                             complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id", null)))
                         }
                       }
@@ -179,7 +179,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                   }).toMap
                                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", preview)))
                                 }
-                              case None =>
+                              case _ =>
                                 complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencils Not found for id: $id", null)))
                             }
                           }
@@ -260,7 +260,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                               }
                             }
                           }
-                        case None =>
+                        case _ =>
                           complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for id: $id", null)))
                       }
                     }
@@ -271,7 +271,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_GET_" + _): _*) {
                             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencils))))
                           }
-                        case None =>
+                        case _ =>
                           complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for id: $id", null)))
                       }
                     }
