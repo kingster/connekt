@@ -1,6 +1,16 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.callback.topologies
-
-import java.util.UUID
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.callbacks.ClientTopologyManager
@@ -10,15 +20,11 @@ import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.typesafe.config.ConfigFactory
 
-import scala.concurrent.Await
-
-/**
-  * Created by harshit.sinha on 21/06/16.
-  */
 class HttpTopologyTest extends TopologyUTSpec {
 
   "HttpTopology Test" should "run" in {
 
+    implicit val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
     ClientTopologyManager()
     val subscription = new Subscription()
     subscription.name = "endTest"
@@ -37,7 +43,7 @@ class HttpTopologyTest extends TopologyUTSpec {
                                   |
                                   |}
                                 """.stripMargin
-    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START, subscription)))
+    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscription)))
 
     val kafkaProducerConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").get
     val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())

@@ -13,6 +13,5 @@
 package com.flipkart.connekt.commons.entities
 
 object SubscriptionAction extends Enumeration {
-  val START,
-  STOP = Value
+  val START, STOP = Value
 }

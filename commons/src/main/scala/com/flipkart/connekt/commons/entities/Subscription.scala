@@ -20,16 +20,16 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 class Subscription {
 
   @Column(name = "id")
-  var id: String = _
+  var id : String = _
 
   @Column(name = "name")
   var name: String = _
 
   @Column(name = "relayPoint")
-  var relayPoint: RelayPoint = _
+  var relayPoint : RelayPoint  = _
 
   @Column(name = "createdBy")
-  var createdBy: String = _
+  var createdBy : String = _
 
   @Column(name = "createdTS")
   var createdTS: Date = new Date(System.currentTimeMillis())
@@ -37,11 +37,11 @@ class Subscription {
   @Column(name = "lastUpdatedTS")
   var lastUpdatedTS: Date = new Date(System.currentTimeMillis())
 
-  @Column(name = "groovyFilter")
-  var groovyFilter: String = _
+  @Column( name = "groovyFilter")
+  var groovyFilter : String = _
 
-  @Column(name = "shutdownThreshold")
-  var shutdownThreshold: Int = _
+  @Column( name = "shutdownThreshold")
+  var shutdownThreshold : Int = _
 
   def this(sId: String, sName: String, endpoint: RelayPoint,
            createdBy: String, createdTS: Date, lastUpdatedTS: Date, groovyString: String, shutdownThreshold: Int) = {

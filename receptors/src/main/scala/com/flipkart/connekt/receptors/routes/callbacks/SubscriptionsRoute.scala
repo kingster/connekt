@@ -14,12 +14,12 @@ package com.flipkart.connekt.receptors.routes.callbacks
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.{Subscription, SubscriptionAction}
+import com.flipkart.connekt.commons.entities.{SubscriptionAction, Subscription}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
-import com.flipkart.connekt.receptors.routes.BaseJsonHandler
-import com.flipkart.connekt.receptors.wire.ResponseUtils._
 import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
+import com.flipkart.connekt.receptors.routes.BaseJsonHandler
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 import scala.util.{Failure, Success}
 
@@ -65,7 +65,7 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
                     SubscriptionService.get(subscriptionId) match {
                       case Success(sub) => sub match {
                         case Some(subscription) =>
-                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START, subscription)))
+                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscription)))
                           complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription started successfully", subscription)))
                         case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription starting failed: No such subscription found", null)))
                       }
@@ -76,7 +76,7 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
                     SubscriptionService.get(subscriptionId) match {
                       case Success(sub) => sub match {
                         case Some(subscription) =>
-                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.STOP, subscription)))
+                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.STOP.toString, subscription)))
                           complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription stopped successfully", subscription)))
                         case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription stopping failed: No such subscription found", null)))
                       }

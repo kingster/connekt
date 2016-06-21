@@ -15,16 +15,19 @@ package com.flipkart.connekt.callbacks
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.{Subscription, SubscriptionAction}
+import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import org.codehaus.jettison.json.JSONObject
+import com.typesafe.config.Config
 
 import scala.concurrent.{ExecutionContext, Promise}
 
-class ClientTopologyManager(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends SyncDelegate {
+class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext, kafkaConsumerConnConf: Config) extends SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.SUBSCRIPTION))
+
+  implicit val topic = ConnektConfig.getString("callbacks.kafka.source.topic").get
 
   private val triggers = scala.collection.mutable.Map[String, Promise[String]]()
 
@@ -43,15 +46,13 @@ class ClientTopologyManager(implicit am: ActorMaterializer, sys: ActorSystem, ec
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
     _type match {
       case SyncType.SUBSCRIPTION =>
-        val action = args.head.getJson
-        val jObject: JSONObject = new JSONObject(action)
-        val subscription = args.tail(0).getJson.getObj[Subscription]
-
-        if (jObject.get("value").equals(SubscriptionAction.START.toString)) {
-          if (!isTopologyActive(subscription.id)) startTopology(subscription)
+        val action = args.head
+        val subscription = args.tail.head.getJson.getObj[Subscription]
+        if (action.equals(SubscriptionAction.START.toString) && !isTopologyActive(subscription.id)) {
+          startTopology(subscription)
         }
-        else if (  jObject.get("value").equals(SubscriptionAction.STOP.toString)) {
-          if (isTopologyActive(subscription.id)) getTrigger(subscription.id).success("User Signal shutdown")
+        else if (action.equals(SubscriptionAction.STOP.toString) && isTopologyActive(subscription.id)) {
+          getTrigger(subscription.id).success("User Signal shutdown")
         }
     }
   }
@@ -61,7 +62,7 @@ class ClientTopologyManager(implicit am: ActorMaterializer, sys: ActorSystem, ec
 object ClientTopologyManager {
   var instance: ClientTopologyManager = null
 
-  def apply()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) = {
+  def apply()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext, kafkaConsumerConnConf: Config) = {
     if (null == instance)
       this.synchronized {
         instance = new ClientTopologyManager()

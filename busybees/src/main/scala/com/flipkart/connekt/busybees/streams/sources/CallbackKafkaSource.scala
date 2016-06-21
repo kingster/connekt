@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler, TimerGraphStageLogic}
 import akka.stream.{Attributes, Outlet, SourceShape}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
@@ -35,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.Try
 
-class CallbackKafkaSource [V: ClassTag](groupId: String, topic: String, val factoryConf: Config)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented {
+class CallbackKafkaSource[V: ClassTag](groupId: String)(shutdownTrigger: Future[String])(implicit topic: String, factoryConf: Config, ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented {
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
@@ -80,7 +79,11 @@ class CallbackKafkaSource [V: ClassTag](groupId: String, topic: String, val fact
         scheduleOnce(TimerPollTrigger, timerDelayInMs)
       }
 
-      def safeHasNext = try { iterator.hasNext } catch { case e: ConsumerTimeoutException => false }
+      def safeHasNext = try {
+        iterator.hasNext
+      } catch {
+        case e: ConsumerTimeoutException => false
+      }
     }
 
     setHandler(out, new OutHandler {
@@ -98,8 +101,8 @@ class CallbackKafkaSource [V: ClassTag](groupId: String, topic: String, val fact
 
     override def preStart(): Unit = {
       createKafkaConsumer()
-    //  val startOffset = kafkaConsumerHelper.offsets(topic)
-    //  ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Start for topic $topic are: ${startOffset.toString()}")
+      //  val startOffset = kafkaConsumerHelper.offsets(topic)
+      //  ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Start for topic $topic are: ${startOffset.toString()}")
 
       val handle = getAsyncCallback[String] { (r: String) =>
         kafkaConsumerConnector.shutdown()
@@ -108,8 +111,8 @@ class CallbackKafkaSource [V: ClassTag](groupId: String, topic: String, val fact
       shutdownTrigger onComplete { t =>
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
         handle.invoke(t.getOrElse("_external topology shutdown signal_"))
-    //    val stopOffsets = kafkaConsumerHelper.offsets(topic)
-    //    ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
+        //    val stopOffsets = kafkaConsumerHelper.offsets(topic)
+        //    ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
 
       }
 
@@ -126,11 +129,11 @@ class CallbackKafkaSource [V: ClassTag](groupId: String, topic: String, val fact
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource Init Topic[$topic], Streams[1]")
 
     /**
-      * Using threadCount = 1, since for now we got the best performance with this.
-      * Once akka/reactive-kafka get's stable, we will move to it provided it gives better performance.
-      */
+     * Using threadCount = 1, since for now we got the best performance with this.
+     * Once akka/reactive-kafka get's stable, we will move to it provided it gives better performance.
+     */
     val consumerStreams = kafkaConnector.createMessageStreams(Map[String, Int](topic -> 1), new DefaultDecoder(), new CallbackMessageDecoder[V]())
-    val streams = consumerStreams.getOrElse(topic,throw new Exception(s"No KafkaStreams for topic: $topic"))
+    val streams = consumerStreams.getOrElse(topic, throw new Exception(s"No KafkaStreams for topic: $topic"))
     Try(streams.map(_.iterator()).head).getOrElse {
       ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource stream could not be created for $topic")
       Iterator.empty
