@@ -17,16 +17,6 @@ import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FanOutShape3, Inlet, Outlet}
 import scala.concurrent.ExecutionContext
 
-/**
-  *  this class takes the result from response evaluator and if the response is ok sent it out through
-  *  sinkOutlet to be feed into the sink
-  *  otherwise if the passiveState is true then it will be sent out through passiveOutlet waiting to be
-  *  feed into sideline queue
-  *  otherwise pushes it out of retryOutlet from where it joins the stream through merge.preferred stage
-  *
-  * @param ec implict executioner
-  */
-
 class ResponseResultHandler(url: String)(implicit val ec: ExecutionContext) extends GraphStage[FanOutShape3[Either[HttpResponse,HttpCallbackTracker],(HttpRequest,HttpCallbackTracker), HttpResponse,HttpCallbackTracker]] {
 
   val in = Inlet[Either[HttpResponse, HttpCallbackTracker]]("input")
@@ -48,6 +38,7 @@ class ResponseResultHandler(url: String)(implicit val ec: ExecutionContext) exte
           else {
             val httpEntity = HttpEntity(ContentTypes.`application/json`, httpCallbackTracker.payload)
             val httpRequest = HttpRequest(method = HttpMethods.POST, uri = url, entity = httpEntity)
+            //println("retry")
             push(retryOutlet, (httpRequest, httpCallbackTracker))
           }
         }

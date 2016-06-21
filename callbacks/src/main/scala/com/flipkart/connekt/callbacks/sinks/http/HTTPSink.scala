@@ -26,7 +26,7 @@ import akka.stream.scaladsl.GraphDSL.Implicits._
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.util.{Failure, Success, Try}
 
-class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[String], retryLimit: Int)(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
+class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[String])(implicit retryLimit:Int, am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
 
   val url = new URL(subscription.relayPoint.asInstanceOf[HTTPRelayPoint].url)
   val httpCachedClient = Http().cachedHostConnectionPool[HttpCallbackTracker](url.getHost, url.getPort)

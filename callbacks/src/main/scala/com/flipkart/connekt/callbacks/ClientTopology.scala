@@ -29,14 +29,13 @@ import com.typesafe.config.Config
 
 import scala.concurrent.{ExecutionContext, Promise}
 
-class ClientTopology(subscription: Subscription)(implicit topic: String, kafkaConsumerConnConf: Config, am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
+class ClientTopology(subscription: Subscription)(implicit topic: String,retryLimit: Int, kafkaConsumerConnConf: Config, am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
 
   val evaluator = FabricMaker.create[Evaluator](subscription.id, subscription.groovyFilter)
   val topologyShutdownTrigger = Promise[String]()
   var kafkaCallbackSource: CallbackKafkaSource[CallbackEvent] = _
-  val retryLimit = 4
 
-  private def HttpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
+  private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
     val url = new URL(subscription.relayPoint.asInstanceOf[HTTPRelayPoint].url)
     val payload = event.getJson
     val httpEntity = HttpEntity(ContentTypes.`application/json`, payload)
@@ -49,7 +48,7 @@ class ClientTopology(subscription: Subscription)(implicit topic: String, kafkaCo
     kafkaCallbackSource = new CallbackKafkaSource[CallbackEvent](subscription.id)(topologyShutdownTrigger.future)
     val source = Source.fromGraph(kafkaCallbackSource).filter(evaluator.evaluate)
     subscription.relayPoint match {
-      case http: HTTPRelayPoint => source.map(HttpPrepare).runWith(new HttpSink(subscription, topologyShutdownTrigger, retryLimit).getHttpSink())
+      case http: HTTPRelayPoint => source.map(httpPrepare).runWith(new HttpSink(subscription, topologyShutdownTrigger).getHttpSink())
       case kafka: KafkaRelayPoint => source.runWith(new KafkaSink(kafka.broker, kafka.zookeeper).getKafkaSink)
     }
 

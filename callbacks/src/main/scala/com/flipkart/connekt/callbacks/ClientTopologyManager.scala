@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.Config
+import org.bouncycastle.crypto.agreement.kdf.ConcatenationKDFGenerator
 
 import scala.concurrent.{ExecutionContext, Promise}
 
@@ -28,6 +29,7 @@ class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, 
   SyncManager.get().addObserver(this, List(SyncType.SUBSCRIPTION))
 
   implicit val topic = ConnektConfig.getString("callbacks.kafka.source.topic").get
+  implicit val retryLimit = ConnektConfig.getInt("callbacks.retry.limit").get
 
   private val triggers = scala.collection.mutable.Map[String, Promise[String]]()
 

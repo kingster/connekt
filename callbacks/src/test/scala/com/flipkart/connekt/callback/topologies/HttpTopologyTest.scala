@@ -51,6 +51,7 @@ class HttpTopologyTest extends TopologyUTSpec {
     val msg =s"""
              {"type":"PN","messageId":"9c75d26e-f82a-42e9-8896-41fcbab27369","clientId":"connekt-insomnia","deviceId":"6aebb89b060c442764f7b940a16e109c","eventType":"gcm_received","platform":"android","appName":"retailapp","contextId":"","cargo":"0:1466498004107001%c7d00653f9fd7ecd","timestamp":1466498004226}
       """
+
     kafkaProducerHelper.writeMessages("active_events", msg)
 
     Thread.sleep(10000)
