@@ -47,7 +47,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         .map(d => PNCallbackEvent(message.id, message.clientId, d.deviceId, InternalStatus.InvalidToken, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty))
         .persist
 
-      val windowsStencil = StencilService.getStencilByName(s"ckt-${pnInfo.appName.toLowerCase}-windows").get.head
+      val windowsStencil = StencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-windows").get.head
       val ttlInSeconds = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hours.toSeconds)
 
       val wnsRequestEnvelopes = validDevices.map(d => {
