@@ -138,6 +138,16 @@ object StencilService extends Instrumented with SyncDelegate {
     }
   }
 
+  @Timed("getStencilComponentsByType")
+  def getStencilComponentsByType(sType: String): Option[StencilComponents] = {
+    LocalCacheManager.getCache(LocalCacheType.StencilComponents).get[StencilComponents](sType).orElse {
+      val stencilComponents = stencilDao.getStencilComponentsByType(sType)
+      stencilComponents.foreach(b => LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](sType, b))
+      stencilComponents
+    }
+  }
+
+
   @Timed("addstencilComponents")
   def addStencilComponents(stencilComponents: StencilComponents): Try[Unit] = {
     stencilDao.writeStencilComponents(stencilComponents)

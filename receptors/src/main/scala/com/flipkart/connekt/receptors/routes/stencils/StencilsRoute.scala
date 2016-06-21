@@ -85,13 +85,16 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         stencilComponents.sType = obj.sType.toUpperCase.trim
                         stencilComponents.createdBy = user.userId
                         stencilComponents.updatedBy = user.userId
-                        StencilService.addStencilComponents(stencilComponents) match {
-                          case Success(sten) =>
-                            complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil components registered with id: $id", Map("stencilComponents" -> stencilComponents))))
-                          case Failure(e) =>
-                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil components for id: $id, e: ${e.getMessage}", null)))
+                        StencilService.getStencilComponentsByType(stencilComponents.sType) match {
+                          case Some(s) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil components with `sType` ${stencilComponents.sType} already exists.", null)))
+                          case None =>
+                            StencilService.addStencilComponents(stencilComponents) match {
+                              case Success(sten) =>
+                                complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil components registered with id: $id", Map("StencilComponents" -> stencilComponents))))
+                              case Failure(e) =>
+                                complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil components for id: $id, e: ${e.getMessage}", null)))
+                            }
                         }
-
                       }
                     }
                   }
@@ -122,8 +125,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         }
                       }
                     }
-                  }
-                  get {
+                  } ~ get {
                     meteredResource("getStencilComponents") {
                       authorize(user, "ADMIN_BUCKET") {
                         StencilService.getStencilComponents(id) match {
@@ -215,7 +217,6 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_UPDATE_" + _): _*) {
                             entity(as[ObjectNode]) { obj =>
                               val stencilName = obj.get("name").asText()
-                              val stencilComponents = obj.get("sType").asText()
                               val components = obj.get("components").asInstanceOf[ArrayNode].elements()
                               val bucket = obj.get("bucket").asText()
                               val bucketIds = bucket.split(",").map(StencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "")

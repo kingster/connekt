@@ -28,7 +28,7 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
 
       val mRendered = input.copy(channelData = Option(input.channelData) match {
         case Some(cD) => cD
-        case None => input.getRequestData()
+        case None => input.getRequestData
       }, meta = input.meta ++ input.stencilId.map("stencilId" -> _).toMap)
 
       List(mRendered)

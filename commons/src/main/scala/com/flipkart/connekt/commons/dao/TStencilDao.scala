@@ -31,6 +31,8 @@ trait TStencilDao extends Dao {
 
   def writeBucket(bucket: Bucket): Unit
 
+  def getStencilComponentsByType(sType: String): Option[StencilComponents]
+
   def getStencilComponents(id: String): Option[StencilComponents]
 
   def writeStencilComponents(stencilComponents: StencilComponents): Unit

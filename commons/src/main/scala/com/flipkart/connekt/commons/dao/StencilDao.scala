@@ -66,18 +66,18 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
     implicit val j = mysqlHelper.getJDBCInterface
     val q1 =
       s"""
-         |INSERT INTO $tableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                  |ON DUPLICATE KEY UPDATE component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
+         |INSERT INTO $tableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+         |ON DUPLICATE KEY UPDATE component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
       """.stripMargin
 
     val q2 =
       s"""
-         |INSERT INTO $historyTableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ? and component = ? ), ?)
+         |INSERT INTO $historyTableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ? ,(SELECT version FROM $tableName WHERE id = ? AND component = ? AND name = ?), ?)
       """.stripMargin
 
     try {
       update(q1, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
+      update(q2, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.name, stencil.bucket)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)
@@ -89,22 +89,21 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
 
     implicit val j = mysqlHelper.getJDBCInterface
     j.execute("START TRANSACTION")
-    deleteStencil(prevName, stencil)
 
     val q1 =
       s"""
-         |INSERT INTO $tableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                  |ON DUPLICATE KEY UPDATE name = ?,component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ?
+         UPDATE  $tableName SET name = ?,component = ?, engine = ?, engineFabric = ?, updatedBy = ?, version = version + 1, bucket = ? WHERE id = ? AND component = ?
       """.stripMargin
 
     val q2 =
       s"""
-         |INSERT INTO $historyTableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, (SELECT VERSION from $tableName where id = ? and component = ? ), ?)
+         |INSERT INTO $historyTableName (id, name, component, engine, engineFabric, createdBy, updatedBy, version, bucket) VALUES(?, ?, ?, ?, ?, ?, ? ,(SELECT version from $tableName where id = ? and component = ? and name = ? ), ?)
       """.stripMargin
 
     try {
-      update(q1, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.createdBy, stencil.updatedBy, stencil.version.toString, stencil.bucket, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket)
-      update(q2, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.bucket)
+      update(q1, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.bucket, stencil.id, stencil.component)
+      update(q2, stencil.id, stencil.name, stencil.component, stencil.engine.toString, stencil.engineFabric, stencil.updatedBy, stencil.updatedBy, stencil.id, stencil.component, stencil.name, stencil.bucket)
+      deleteStencil(prevName, stencil)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil [${stencil.id}] ${e.getMessage}", e)
@@ -162,16 +161,33 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
     }
   }
 
+  override def getStencilComponentsByType(sType: String): Option[StencilComponents] = {
+    implicit val j = mysqlHelper.getJDBCInterface
+
+    try {
+      val q =
+        s"""
+           |SELECT * FROM $stencilComponentsTable WHERE sType = ?
+            """.stripMargin
+      query[StencilComponents](q, sType)
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.DAO).error(s"Error fetching stencil type [$sType] ${e.getMessage}", e)
+        throw e
+    }
+  }
+
+
   override def writeStencilComponents(stencilComponents: StencilComponents): Unit = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
          |INSERT INTO $stencilComponentsTable (id, sType, components, createdBy, updatedBy) VALUES(?, ? , ? , ? , ?)
-         |ON DUPLICATE KEY UPDATE sType = ?,components = ?
+         |ON DUPLICATE KEY UPDATE sType = ?,components = ?, updatedBy = ?
       """.stripMargin
 
     try {
-      update(q, stencilComponents.id, stencilComponents.sType, stencilComponents.components, stencilComponents.createdBy, stencilComponents.updatedBy, stencilComponents.sType, stencilComponents.components)
+      update(q, stencilComponents.id, stencilComponents.sType, stencilComponents.components, stencilComponents.createdBy, stencilComponents.updatedBy, stencilComponents.sType, stencilComponents.components, stencilComponents.updatedBy)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating stencil type [${stencilComponents.sType}}] ${e.getMessage}", e)

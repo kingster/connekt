@@ -62,7 +62,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         val cR = r.copy(channelData = Option(r.channelData) match {
                           case Some(cD) => cD
                           case None =>
-                            r.getRequestData()
+                            r.getRequestData
                         })
                         r.id -> cR
                       }).toMap
