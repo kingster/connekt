@@ -57,7 +57,7 @@ class Stencil() {
   @Column(name = "bucket")
   var bucket: String = _
 
-  override def toString = s"Stencil($id, $engine, $engineFabric)"
+  override def toString = s"Stencil($id, $name, $component, $engine, $engineFabric)"
 }
 
 object StencilEngine extends Enumeration {

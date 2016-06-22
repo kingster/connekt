@@ -20,11 +20,11 @@ import com.flipkart.connekt.commons.utils.StringUtils
 class StencilDaoTest extends CommonsBaseTest {
   val stencil = new Stencil
   stencil.id = StringUtils.generateRandomStr(10)
+  stencil.name = StringUtils.generateRandomStr(10)
+  stencil.component = "data"
   stencil.engine = StencilEngine.VELOCITY
   stencil.engineFabric = """{
-                           |	"cType": "EMAIL",
-                           |	"subjectVtl": "Order for $product, $booleanValue, $integerValue",
-                           |	"bodyHtmlVtl": "Hello $name, Price for $product is $price"
+                           |	"data": "Order for $product, $booleanValue, $integerValue"
                            |}""".stripMargin
   stencil.createdBy = "connekt-genesis"
   stencil.updatedBy = "connekt-genesis"

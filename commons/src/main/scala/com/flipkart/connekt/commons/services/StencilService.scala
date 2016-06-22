@@ -152,7 +152,7 @@ object StencilService extends Instrumented with SyncDelegate {
   @Timed("addstencilComponents")
   def addStencilComponents(stencilComponents: StencilComponents): Try[Unit] = {
     stencilDao.writeStencilComponents(stencilComponents)
-    LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](stencilComponents.sType, stencilComponents)
+    LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](stencilComponents.id, stencilComponents)
     Success(Unit)
   }
 
