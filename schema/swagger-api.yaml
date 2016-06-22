@@ -243,6 +243,8 @@ paths:
       responses:
         '201':
           description:  PN Created
+        '404':
+          description:  No valid devices found for given userId
         default:
           description: Unexpected error
           schema:
