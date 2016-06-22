@@ -42,6 +42,8 @@ object CallbackBoot extends BaseApp {
   val dispatcher = system.dispatcher
 
   lazy val ioMat = ActorMaterializer(settings.withDispatcher("akka.actor.io-dispatcher"))
+  implicit val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+
 
   def start() {
     if (!initialized.getAndSet(true)) {
@@ -52,7 +54,7 @@ object CallbackBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"Callback logging using: $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-busybees", "fk-connekt-busybees-akka"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment)))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
@@ -61,7 +63,6 @@ object CallbackBoot extends BaseApp {
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
-      implicit val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
       ClientTopologyManager()
     }
   }

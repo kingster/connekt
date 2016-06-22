@@ -18,7 +18,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
+import akka.stream.scaladsl.{GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
 import akka.stream.scaladsl.GraphDSL.Implicits._
@@ -39,38 +39,38 @@ class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[Stri
     val responseResultHandler = new ResponseResultHandler(url.getPath)
 
     Sink.fromGraph(GraphDSL.create() { implicit b =>
-      val mergePreferredStaged = b.add(MergePreferred[(HttpRequest,HttpCallbackTracker)](1))
+      val mergePref = b.add(MergePreferred[(HttpRequest,HttpCallbackTracker)](1))
       val resultHandler = b.add(responseResultHandler)
 
-      mergePreferredStaged.out ~> httpCachedClient.map(responseEvaluator) ~> resultHandler.in
-      resultHandler.out0 ~> mergePreferredStaged.preferred
+      mergePref.out ~> httpCachedClient.map(responseEvaluator) ~> resultHandler.in
+      resultHandler.out0 ~> mergePref.preferred
       resultHandler.out1 ~> Sink.foreach(println)
       resultHandler.out2 ~> Sink.foreach(println)
 
-      SinkShape(mergePreferredStaged.in(0))
+      SinkShape(mergePref.in(0))
     })
   }
 
   private def responseEvaluator(responseObject: (Try[HttpResponse],HttpCallbackTracker)) : Either[HttpResponse, HttpCallbackTracker] = {
     currentShutdown = currentShutdown + 1
-    val response = responseObject._1
-    val callbackTracker = responseObject._2
-    response match {
-      case Success(r) =>
-        response.get.entity.dataBytes.runWith(Sink.ignore)
-        r.status.intValue() match {
+    val resp = responseObject._1
+    val httpCallbackTracker = responseObject._2
+    resp match {
+      case Success(response) =>
+        resp.get.entity.dataBytes.runWith(Sink.ignore)
+        response.status.intValue() match {
           case 200 =>
             currentShutdown = 0
-            Left(response.get)
+            Left(response)
           case _ =>
             if( currentShutdown > shutdownThreshold && !topologyShutdownTrigger.isCompleted) topologyShutdownTrigger.success("Too many error from server")
-            if(callbackTracker.error == retryLimit) Right(new HttpCallbackTracker(callbackTracker.payload, callbackTracker.error+1, true))
-            else Right (new HttpCallbackTracker(callbackTracker.payload, callbackTracker.error+1, false))
+            if(httpCallbackTracker.error == retryLimit) Right(new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, true))
+            else Right (new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, false))
         }
       case Failure(e) =>
         if( currentShutdown > shutdownThreshold && !topologyShutdownTrigger.isCompleted) topologyShutdownTrigger.success("Too many error from server")
-        if(callbackTracker.error == retryLimit) Right(new HttpCallbackTracker(callbackTracker.payload, callbackTracker.error+1, true))
-        else Right (new HttpCallbackTracker(callbackTracker.payload, callbackTracker.error+1, false))
+        if(httpCallbackTracker.error == retryLimit) Right(new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, true))
+        else Right (new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, false))
     }
   }
 

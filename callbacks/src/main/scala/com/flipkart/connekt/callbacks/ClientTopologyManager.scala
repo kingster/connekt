@@ -20,7 +20,6 @@ import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.Config
-import org.bouncycastle.crypto.agreement.kdf.ConcatenationKDFGenerator
 
 import scala.concurrent.{ExecutionContext, Promise}
 
@@ -37,12 +36,11 @@ class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, 
 
   private def getTrigger(id: String): Promise[String] = triggers(id)
 
-  def startTopology(subscription: Subscription): Unit = {
+  private def startTopology(subscription: Subscription): Unit = {
     val promise = new ClientTopology(subscription).start()
     triggers += subscription.id -> promise
     promise.future onComplete { t =>
-      triggers -= subscription.id
-    }
+      triggers -= subscription.id }
   }
 
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
@@ -50,12 +48,10 @@ class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, 
       case SyncType.SUBSCRIPTION =>
         val action = args.head
         val subscription = args.tail.head.getJson.getObj[Subscription]
-        if (action.equals(SubscriptionAction.START.toString) && !isTopologyActive(subscription.id)) {
+        if (action.equals(SubscriptionAction.START.toString) && !isTopologyActive(subscription.id))
           startTopology(subscription)
-        }
-        else if (action.equals(SubscriptionAction.STOP.toString) && isTopologyActive(subscription.id)) {
+        else if (action.equals(SubscriptionAction.STOP.toString) && isTopologyActive(subscription.id))
           getTrigger(subscription.id).success("User Signal shutdown")
-        }
     }
   }
 
