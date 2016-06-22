@@ -21,24 +21,23 @@ class ResponseResultHandler(url: String)(implicit val ec: ExecutionContext) exte
 
   val in = Inlet[Either[HttpResponse, HttpCallbackTracker]]("input")
   val retryOutlet = Outlet[(HttpRequest, HttpCallbackTracker)]("error.out")
-  val sinkOutlet = Outlet[HttpResponse]("fine.out")
+  val success = Outlet[HttpResponse]("success.out")
   val discardOutlet = Outlet[HttpCallbackTracker]("discardedEvents.out")
 
-  override def shape = new FanOutShape3(in, retryOutlet, sinkOutlet, discardOutlet)
+  override def shape = new FanOutShape3(in, retryOutlet, success, discardOutlet)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     setHandler(in, new InHandler {
 
       override def onPush(): Unit = {
-        val responseEvaluatorResult = grab(in)
-        responseEvaluatorResult match {
-          case Left(httpResponse) => push(sinkOutlet, httpResponse)
+        val result = grab(in)
+        result match {
+          case Left(httpResponse) => push(success, httpResponse)
           case Right(httpCallbackTracker) => if (httpCallbackTracker.discarded) push(discardOutlet, httpCallbackTracker)
           else {
             val httpEntity = HttpEntity(ContentTypes.`application/json`, httpCallbackTracker.payload)
             val httpRequest = HttpRequest(method = HttpMethods.POST, uri = url, entity = httpEntity)
-            //println("retry")
             push(retryOutlet, (httpRequest, httpCallbackTracker))
           }
         }
@@ -46,7 +45,7 @@ class ResponseResultHandler(url: String)(implicit val ec: ExecutionContext) exte
     })
 
 
-    setHandler(sinkOutlet, new OutHandler {
+    setHandler(success, new OutHandler {
       override def onPull(): Unit = if (!hasBeenPulled(in)) pull(in)
     })
 

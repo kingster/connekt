@@ -13,5 +13,5 @@
 package com.flipkart.connekt.callbacks.sinks.http
 
 case class HttpCallbackTracker(payload:String,
-                               error: Int,
+                               failureCount: Int,
                                discarded: Boolean)

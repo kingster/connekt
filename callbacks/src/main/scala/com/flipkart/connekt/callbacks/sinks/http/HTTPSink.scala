@@ -30,7 +30,7 @@ class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[Stri
 
   val url = new URL(subscription.relayPoint.asInstanceOf[HTTPRelayPoint].url)
   val httpCachedClient = Http().cachedHostConnectionPool[HttpCallbackTracker](url.getHost, url.getPort)
-  var currentShutdown = 0
+  var serverFailure = 0
   val shutdownThreshold= subscription.shutdownThreshold
 
 
@@ -52,7 +52,7 @@ class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[Stri
   }
 
   private def responseEvaluator(responseObject: (Try[HttpResponse],HttpCallbackTracker)) : Either[HttpResponse, HttpCallbackTracker] = {
-    currentShutdown = currentShutdown + 1
+    serverFailure = serverFailure + 1
     val resp = responseObject._1
     val httpCallbackTracker = responseObject._2
     resp match {
@@ -60,17 +60,17 @@ class HttpSink(subscription: Subscription, topologyShutdownTrigger: Promise[Stri
         resp.get.entity.dataBytes.runWith(Sink.ignore)
         response.status.intValue() match {
           case 200 =>
-            currentShutdown = 0
+            serverFailure = 0
             Left(response)
           case _ =>
-            if( currentShutdown > shutdownThreshold && !topologyShutdownTrigger.isCompleted) topologyShutdownTrigger.success("Too many error from server")
-            if(httpCallbackTracker.error == retryLimit) Right(new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, true))
-            else Right (new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, false))
+            if( serverFailure > shutdownThreshold && !topologyShutdownTrigger.isCompleted) topologyShutdownTrigger.success("Too many error from server")
+            if(httpCallbackTracker.failureCount == retryLimit) Right(new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.failureCount+1, true))
+            else Right (new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.failureCount+1, false))
         }
       case Failure(e) =>
-        if( currentShutdown > shutdownThreshold && !topologyShutdownTrigger.isCompleted) topologyShutdownTrigger.success("Too many error from server")
-        if(httpCallbackTracker.error == retryLimit) Right(new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, true))
-        else Right (new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.error+1, false))
+        if( serverFailure > shutdownThreshold && !topologyShutdownTrigger.isCompleted) topologyShutdownTrigger.success("Too many error from server")
+        if(httpCallbackTracker.failureCount == retryLimit) Right(new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.failureCount+1, true))
+        else Right (new HttpCallbackTracker(httpCallbackTracker.payload, httpCallbackTracker.failureCount+1, false))
     }
   }
 
