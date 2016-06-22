@@ -15,20 +15,21 @@ package com.flipkart.connekt.callbacks
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.{Subscription, SubscriptionAction}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.Config
 
-import scala.concurrent.{ExecutionContext, Promise}
+import scala.concurrent.Promise
 
-class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext, kafkaConsumerConnConf: Config) extends SyncDelegate {
+class ClientTopologyManager(kafkaConsumerConnConf: Config)(implicit am: ActorMaterializer, sys: ActorSystem) extends SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.SUBSCRIPTION))
 
-  implicit val topic = ConnektConfig.getString("callbacks.kafka.source.topic").get
-  implicit val retryLimit = ConnektConfig.getInt("callbacks.retry.limit").get
+  private val topic = ConnektConfig.getString("callbacks.kafka.source.topic").get
+  private val retryLimit = ConnektConfig.getInt("callbacks.retry.limit").get
 
   private val triggers = scala.collection.mutable.Map[String, Promise[String]]()
 
@@ -37,21 +38,25 @@ class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, 
   private def getTrigger(id: String): Promise[String] = triggers(id)
 
   private def startTopology(subscription: Subscription): Unit = {
-    val promise = new ClientTopology(subscription).start()
+    val promise = new ClientTopology(topic, retryLimit, kafkaConsumerConnConf, subscription).start()
     triggers += subscription.id -> promise
-    promise.future onComplete { t =>
-      triggers -= subscription.id }
+    promise.future.onComplete(t => triggers -= subscription.id )(am.executionContext)
+
   }
 
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
     _type match {
       case SyncType.SUBSCRIPTION =>
-        val action = args.head
-        val subscription = args.tail.head.getJson.getObj[Subscription]
-        if (action.equals(SubscriptionAction.START.toString) && !isTopologyActive(subscription.id))
-          startTopology(subscription)
-        else if (action.equals(SubscriptionAction.STOP.toString) && isTopologyActive(subscription.id))
-          getTrigger(subscription.id).success("User Signal shutdown")
+        val action = SubscriptionAction.withName(args.head.toString)
+        val subscription = args.last.toString.getObj[Subscription]
+        action match {
+          case SubscriptionAction.START if !isTopologyActive(subscription.id) =>
+            startTopology(subscription)
+          case SubscriptionAction.STOP if isTopologyActive(subscription.id) =>
+            getTrigger(subscription.id).success("User Signal shutdown")
+          case _ =>
+            ConnektLogger(LogFile.SERVICE).warn(s"Unhandled State $action")
+        }
     }
   }
 
@@ -60,10 +65,10 @@ class ClientTopologyManager()(implicit am: ActorMaterializer, sys: ActorSystem, 
 object ClientTopologyManager {
   var instance: ClientTopologyManager = null
 
-  def apply()(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext, kafkaConsumerConnConf: Config) = {
+  def apply(kafkaConsumerConnConf: Config)(implicit am: ActorMaterializer, sys: ActorSystem) = {
     if (null == instance)
       this.synchronized {
-        instance = new ClientTopologyManager()
+        instance = new ClientTopologyManager(kafkaConsumerConnConf)(am, sys)
       }
     instance
   }

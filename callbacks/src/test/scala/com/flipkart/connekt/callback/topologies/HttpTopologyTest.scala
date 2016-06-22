@@ -18,20 +18,21 @@ import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription, Subs
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.ConfigFactory
 
 class HttpTopologyTest extends TopologyUTSpec {
 
   "HttpTopology Test" should "run" in {
 
-    implicit val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
-    ClientTopologyManager()
+    val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+    ClientTopologyManager(kafkaConnConf)
     val subscription = new Subscription()
     subscription.name = "endTest"
     subscription.id = "35bfea58-7166-44a1-8985-e8e8b96249a7"
     subscription.shutdownThreshold = 3
     subscription.createdBy = "connekt-insomnia"
-    subscription.relayPoint = new HTTPRelayPoint("http://localhost:8080/receive")
+    subscription.relayPoint = new HTTPRelayPoint("http://requestb.in/ytz8deyt")
     subscription.groovyFilter = """
                                   |package com.flipkart.connekt.commons.entities;
                                   |import com.flipkart.connekt.commons.iomodels.CallbackEvent
@@ -43,7 +44,7 @@ class HttpTopologyTest extends TopologyUTSpec {
                                   |
                                   |}
                                 """.stripMargin
-    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscription)))
+    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscription.getJson)))
 
     val kafkaProducerConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").get
     val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
@@ -54,7 +55,7 @@ class HttpTopologyTest extends TopologyUTSpec {
 
     kafkaProducerHelper.writeMessages("active_events", msg)
 
-    Thread.sleep(10000)
+    Thread.sleep(30000)
   }
 
 }

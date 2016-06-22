@@ -22,6 +22,7 @@ import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
 import scala.util.{Failure, Success}
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -65,7 +66,7 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
                     SubscriptionService.get(subscriptionId) match {
                       case Success(sub) => sub match {
                         case Some(subscription) =>
-                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscription)))
+                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscription.getJson)))
                           complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription started successfully", subscription)))
                         case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription starting failed: No such subscription found", null)))
                       }
@@ -76,7 +77,7 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
                     SubscriptionService.get(subscriptionId) match {
                       case Success(sub) => sub match {
                         case Some(subscription) =>
-                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.STOP.toString, subscription)))
+                          SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.STOP.toString, subscription.getJson)))
                           complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription stopped successfully", subscription)))
                         case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription stopping failed: No such subscription found", null)))
                       }

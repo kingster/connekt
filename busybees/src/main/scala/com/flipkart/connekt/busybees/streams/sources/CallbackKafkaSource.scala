@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.Try
 
-class CallbackKafkaSource[V: ClassTag](groupId: String)(shutdownTrigger: Future[String])(implicit topic: String, factoryConf: Config, ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented {
+class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryConf: Config)(shutdownTrigger: Future[String])(implicit  ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented {
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 

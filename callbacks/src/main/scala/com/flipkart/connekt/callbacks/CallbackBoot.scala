@@ -31,19 +31,16 @@ object CallbackBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
 
-  implicit val system = ActorSystem("callback-system")
+  private implicit val system = ActorSystem("callback-system")
 
   val settings = ActorMaterializerSettings(system)
     .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
     .withSupervisionStrategy(StageSupervision.decider)
 
-  lazy implicit val mat = ActorMaterializer(settings.withDispatcher("akka.actor.default-dispatcher"))
-  implicit val ec = mat.executionContext
-  val dispatcher = system.dispatcher
+  private implicit val mat = ActorMaterializer(settings.withDispatcher("akka.actor.default-dispatcher"))
+  private implicit val ec = mat.executionContext
 
   lazy val ioMat = ActorMaterializer(settings.withDispatcher("akka.actor.io-dispatcher"))
-  implicit val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
-
 
   def start() {
     if (!initialized.getAndSet(true)) {
@@ -63,7 +60,9 @@ object CallbackBoot extends BaseApp {
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 
-      ClientTopologyManager()
+      val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+
+      ClientTopologyManager(kafkaConnConf)
     }
   }
 
