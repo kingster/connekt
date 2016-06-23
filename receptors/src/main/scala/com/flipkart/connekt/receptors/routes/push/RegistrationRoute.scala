@@ -19,15 +19,35 @@ import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
+import com.flipkart.utils.http.HttpClient
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.StringEntity
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
+
+  @deprecated("delete after callback gets live")
+  lazy val isVaradhiRelayEnabled = ConnektConfig.getBoolean("flags.varadhi.enabled").get
+
+  @deprecated("delete after callback gets live")
+  lazy val varadhiUri = s"http://${ConnektConfig.getString("connections.varadhi.host").get}/topics/${ConnektConfig.getString("connections.varadhi.topic").get}/messages"
+
+  @deprecated("delete after callback gets live")
+  lazy val client = new HttpClient(
+    name = "varadhi-relay-client",
+    ttlInMillis = ConnektConfig.getInt("http.apache.ttlInMillis").getOrElse(60000).toLong,
+    maxConnections = ConnektConfig.getInt("http.apache.maxConnections").getOrElse(50),
+    processQueueSize = ConnektConfig.getInt("http.apache.processQueueSize").getOrElse(50),
+    connectionTimeoutInMillis = ConnektConfig.getInt("http.apache.connectionTimeoutInMillis").getOrElse(30000).toInt,
+    socketTimeoutInMillis = ConnektConfig.getInt("http.apache.socketTimeoutInMillis").getOrElse(60000).toInt
+  )
 
   val route =
     authenticate {
@@ -48,6 +68,19 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                             case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(Unit))
                             case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(Unit))
                           }, Failure(_)).get
+
+                          /* temporary workaround to enable relay of registration */
+                          if(isVaradhiRelayEnabled) {
+                            Future {
+                              val request = new HttpPost(varadhiUri)
+                              request.setHeader("X_EVENT_TYPE", "REGISTRATION")
+                              request.setHeader("X_RESTBUS_MESSAGE_ID", d.deviceId)
+                              request.setEntity(new StringEntity(d.copy(token = null).getJson))
+
+                              client.doExecute(request)
+                            }(executor = ExecutionContext.global)
+                          }
+                          /* , shall be removed like it never existed */
 
                           result match {
                             case Right(x) =>
@@ -117,5 +150,3 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
         }
     }
 }
-
-

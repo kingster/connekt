@@ -132,7 +132,7 @@ class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryCo
      * Using threadCount = 1, since for now we got the best performance with this.
      * Once akka/reactive-kafka get's stable, we will move to it provided it gives better performance.
      */
-    val consumerStreams = kafkaConnector.createMessageStreams(Map[String, Int](topic -> 1), new DefaultDecoder(), new CallbackMessageDecoder[V]())
+    val consumerStreams = kafkaConnector.createMessageStreams(Map[String, Int](topic -> 1), new DefaultDecoder(), new MessageDecoder[V]())
     val streams = consumerStreams.getOrElse(topic, throw new Exception(s"No KafkaStreams for topic: $topic"))
     Try(streams.map(_.iterator()).head).getOrElse {
       ConnektLogger(LogFile.PROCESSORS).warn(s"KafkaSource stream could not be created for $topic")
@@ -159,12 +159,3 @@ class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryCo
   }
 }
 
-class CallbackMessageDecoder[T: ClassTag](implicit tag: ClassTag[T]) extends Decoder[Option[T]] {
-  override def fromBytes(bytes: Array[Byte]): Option[T] = try {
-    Option(objMapper.readValue(bytes.getString, tag.runtimeClass).asInstanceOf[T])
-  } catch {
-    case e: Exception =>
-      ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource de-serialization failure, ${e.getMessage}", e)
-      None
-  }
-}

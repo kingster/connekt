@@ -34,12 +34,9 @@ object SubscriptionService {
 
   def get(id: String): Try[Option[Subscription]] = Try_#(message = "SubscriptionService.get failed") {
     LocalCacheManager.getCache(LocalCacheType.Subscription).get[Subscription](id).orElse {
-      dao.get(id) match {
-        case Some(subscription) =>
-          LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
-          Some(subscription)
-        case None => None
-      }
+      val subscription = dao.get(id)
+      subscription.foreach( s => LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](s.id, s))
+      subscription
     }
   }
 

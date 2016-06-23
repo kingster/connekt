@@ -21,6 +21,7 @@ import akka.stream.scaladsl.{GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.Subscription
 import akka.stream.scaladsl.GraphDSL.Implicits._
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.util.{Failure, Success, Try}
@@ -39,9 +40,10 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
 
       mergePref.out ~> httpCachedClient.map(updateTracker) ~> resultHandler.in
       resultHandler.out(0) ~> mergePref.preferred
-      resultHandler.out(1) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)]{ x => println("passed")}
-      resultHandler.out(2) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)]{ x => println("failed")}
-
+      resultHandler.out(1) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)] { event =>
+        ConnektLogger(LogFile.SERVICE).debug(s"message delivered: $event")}
+      resultHandler.out(2) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)] { event =>
+        ConnektLogger(LogFile.SERVICE).debug(s"message delivered: $event")}
       SinkShape(mergePref.in(0))
     })
   }

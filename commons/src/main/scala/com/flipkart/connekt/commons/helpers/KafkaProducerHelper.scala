@@ -53,8 +53,7 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
       val keyedMessages = message.map(new KeyedMessage[String, String](topic, _))
       producer.send(keyedMessages: _*)
     } catch {
-      case e: Exception =>
-        println(e)
+      case e: Exception => ConnektLogger(LogFile.FACTORY).error(s"Error in writing the message to kafka. ${e.getMessage}", e)
     } finally {
       kafkaProducerPool.returnObject(producer)
     }

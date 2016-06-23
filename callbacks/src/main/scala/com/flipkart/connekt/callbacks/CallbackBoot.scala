@@ -46,12 +46,12 @@ object CallbackBoot extends BaseApp {
     if (!initialized.getAndSet(true)) {
       ConnektLogger(LogFile.SERVICE).info("Callback service initializing.")
 
-      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-busybees.xml")
+      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-callbacks.xml")
 
       ConnektLogger(LogFile.SERVICE).info(s"Callback logging using: $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment)))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-receptors"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 

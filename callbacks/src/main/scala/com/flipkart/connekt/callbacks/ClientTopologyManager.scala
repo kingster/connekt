@@ -14,7 +14,7 @@ package com.flipkart.connekt.callbacks
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.{Subscription, SubscriptionAction}
+import com.flipkart.connekt.commons.entities.{Subscription, GenericAction}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
@@ -47,12 +47,12 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config)(implicit am: ActorMat
   override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
     _type match {
       case SyncType.SUBSCRIPTION =>
-        val action = SubscriptionAction.withName(args.head.toString)
+        val action = GenericAction.withName(args.head.toString)
         val subscription = args.last.toString.getObj[Subscription]
         action match {
-          case SubscriptionAction.START if !isTopologyActive(subscription.id) =>
+          case GenericAction.START if !isTopologyActive(subscription.id) =>
             startTopology(subscription)
-          case SubscriptionAction.STOP if isTopologyActive(subscription.id) =>
+          case GenericAction.STOP if isTopologyActive(subscription.id) =>
             getTrigger(subscription.id).success("User Signal shutdown")
           case _ =>
             ConnektLogger(LogFile.SERVICE).warn(s"Unhandled State $action")

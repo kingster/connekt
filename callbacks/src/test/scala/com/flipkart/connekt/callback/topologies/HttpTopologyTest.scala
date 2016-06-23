@@ -13,8 +13,8 @@
 package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
-import com.flipkart.connekt.callbacks.ClientTopologyManager
-import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription, SubscriptionAction}
+import com.flipkart.connekt.callbacks.{CallbackBoot, ClientTopologyManager}
+import com.flipkart.connekt.commons.entities.{GenericAction, HTTPRelayPoint, Subscription}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
@@ -25,8 +25,10 @@ class HttpTopologyTest extends TopologyUTSpec {
 
   "HttpTopology Test" should "run" in {
 
-    val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
-    ClientTopologyManager(kafkaConnConf)
+    CallbackBoot.start()
+//
+//    val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+//    ClientTopologyManager(kafkaConnConf)
 
     val subscriptionSuccess = new Subscription()
     subscriptionSuccess.name = "endTest"
@@ -45,7 +47,7 @@ class HttpTopologyTest extends TopologyUTSpec {
                                   |
                                   |}
                                 """.stripMargin
-    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscriptionSuccess.getJson)))
+    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.START.toString, subscriptionSuccess.getJson)))
 
     val subscriptionFailed = new Subscription()
     subscriptionFailed.name = "endTestFailed"
@@ -64,7 +66,7 @@ class HttpTopologyTest extends TopologyUTSpec {
                                          |
                                          |}
                                        """.stripMargin
-    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(SubscriptionAction.START.toString, subscriptionFailed.getJson)))
+    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.START.toString, subscriptionFailed.getJson)))
 
 
     val kafkaProducerConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").get

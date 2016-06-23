@@ -26,7 +26,6 @@ object Wrappers {
     catch {
       case e: Throwable =>
         ConnektLogger(fileName).error(s"$message, e: ${e.getMessage}",e)
-        println(s"$message, e: ${e.getMessage} exception = $e")
         Failure(e)
     }
   }

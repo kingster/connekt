@@ -12,6 +12,6 @@
  */
 package com.flipkart.connekt.commons.entities
 
-object SubscriptionAction extends Enumeration {
+object GenericAction extends Enumeration {
   val START, STOP = Value
 }

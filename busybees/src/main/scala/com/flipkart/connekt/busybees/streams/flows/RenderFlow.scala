@@ -26,13 +26,13 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
     try {
       ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow received message: ${input.id}")
       ConnektLogger(LogFile.PROCESSORS).trace(s"RenderFlow received message: ${input.getJson}")
-//      lazy val cRD = input.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, input.channelDataModel)).get
+      lazy val cRD = input.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, input.channelDataModel)).get
 
-      val mRendered = input/*.copy(channelData = Option(input.channelData) match {
+      val mRendered = input.copy(channelData = Option(input.channelData) match {
         case Some(cD) => cD
         case None => cRD
       }, meta = input.meta ++ input.templateId.map("stencilId" -> _).toMap)
-*/
+
       List(mRendered)
     } catch {
       case e: Throwable =>
