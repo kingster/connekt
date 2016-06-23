@@ -243,6 +243,8 @@ paths:
       responses:
         '201':
           description:  PN Created
+        '404':
+          description:  No valid devices found for given userId
         default:
           description: Unexpected error
           schema:
@@ -329,11 +331,11 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /reports/push/{appName}/message/{deviceId}:
+  /reports/push/{appName}/messages/{deviceId}:
     get:
-      summary: Fetch Notifications by account id
+      summary: Fetch Notifications by device ID
       description: |
-        Fetch messages send for given account
+        Fetch messages sent for given device ID
       parameters:
         - $ref: '#/parameters/appName'
         - $ref: '#/parameters/deviceId'
