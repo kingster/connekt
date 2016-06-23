@@ -18,18 +18,24 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils
 
 class StencilDaoTest extends CommonsBaseTest {
+
   val stencil = new Stencil
   stencil.id = StringUtils.generateRandomStr(10)
   stencil.name = StringUtils.generateRandomStr(10)
   stencil.component = "data"
   stencil.engine = StencilEngine.VELOCITY
-  stencil.engineFabric = """{
-                           |	"data": "Order for $product, $booleanValue, $integerValue"
-                           |}""".stripMargin
+  stencil.engineFabric =
+    """
+      |{
+      |	"data": "Order for $product, $booleanValue, $integerValue"
+      |}
+    """.stripMargin
+
   stencil.createdBy = "connekt-genesis"
   stencil.updatedBy = "connekt-genesis"
   stencil.version = 1
   stencil.bucket = "GLOBAL"
+
   var bucket: Bucket = new Bucket
   bucket.id = StringUtils.generateRandomStr(10)
   bucket.name = StringUtils.generateRandomStr(10)
