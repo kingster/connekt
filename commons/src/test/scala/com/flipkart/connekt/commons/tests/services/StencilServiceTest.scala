@@ -39,6 +39,7 @@ class StencilServiceTest extends CommonsBaseTest {
   stencil.bucket = "GLOBAL"
 
   val product = StringUtils.generateRandomStr(10)
+  lazy val stencilService = ServiceFactory.getStencilService
 
   val payload =
     """
@@ -60,9 +61,8 @@ class StencilServiceTest extends CommonsBaseTest {
   bucket.id = StringUtils.generateRandomStr(10)
   bucket.name = StringUtils.generateRandomStr(10)
 
-  val stencilService = ServiceFactory.getStencilService
-
   "Stencil Service" should "add stencil" in {
+
     noException should be thrownBy stencilService.add(stencil.id, List(stencil))
   }
 
