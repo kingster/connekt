@@ -40,7 +40,7 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
 
   override def beforeAll() = {
     super.beforeAll()
-    user = DaoFactory.getUserInfoDao.getUserByKey("sandbox-key-01").getOrElse(new AppUser("", "", "", ""))
+    user = new AppUser("test", "test", "", "")
     stencilRoute = new StencilsRoute().route
     registrationRoute = new RegistrationRoute().route
     unicastRoute = new SendRoute().route

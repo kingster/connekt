@@ -13,7 +13,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 class SubscriptionsRouteTest() extends BaseRouteTest {
 
   val subscriptionRoute = new SubscriptionsRoute().route
-  override val header = RawHeader("x-api-key", "b0979afd-2ce3-4786-af62-ab53f88204ae")
+  override val header = RawHeader("x-api-key", "connekt-genesis")
   var subscription: Subscription = _
   implicit val mat = ActorMaterializer()
 
