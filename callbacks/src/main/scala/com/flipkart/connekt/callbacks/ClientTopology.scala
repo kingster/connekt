@@ -45,10 +45,10 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
   }
 
   private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
-    val payload = event.getJson
-    val httpEntity = HttpEntity(ContentTypes.`application/json`, payload)
-    val httpRequest = HttpRequest(method = HttpMethods.POST, uri = subscription.relayPoint.asInstanceOf[HTTPRelayPoint].url, entity = httpEntity)
-    val callbackTracker = HttpCallbackTracker(payload)
+    val httpEntity = HttpEntity(ContentTypes.`application/json`, event.getJson)
+    val endpointDetail = subscription.relayPoint.asInstanceOf[HTTPRelayPoint]
+    val httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = subscription.relayPoint.asInstanceOf[HTTPRelayPoint].url, entity = httpEntity)
+    val callbackTracker = HttpCallbackTracker(httpRequest)
     (httpRequest, callbackTracker)
   }
 }

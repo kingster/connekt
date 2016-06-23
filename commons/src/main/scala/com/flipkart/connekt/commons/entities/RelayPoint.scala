@@ -26,5 +26,5 @@ import com.flipkart.connekt.commons.dao.JSONField
   new Type(value = classOf[KafkaRelayPoint], name = "KAFKA")
 ))
 abstract class RelayPoint extends JSONField
-case class HTTPRelayPoint(url: String) extends RelayPoint
+case class HTTPRelayPoint(method:String, url: String) extends RelayPoint
 case class KafkaRelayPoint(zookeeper: String, broker: String) extends RelayPoint

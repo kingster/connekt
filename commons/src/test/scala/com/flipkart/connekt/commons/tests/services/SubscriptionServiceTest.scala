@@ -11,7 +11,7 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   subscription.name = "SubscriptionServiceTest"
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.relayPoint = new HTTPRelayPoint("http://localhost:8080/serviceTestingRoute")
+  subscription.relayPoint = new HTTPRelayPoint("POST", "http://localhost:8080/serviceTestingRoute")
   subscription.groovyFilter = "This is groovyFilter string for SubscriptionServiceTest"
 
   "add Test" should "return success" in {

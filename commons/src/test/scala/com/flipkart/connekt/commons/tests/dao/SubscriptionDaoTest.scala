@@ -14,7 +14,7 @@ class SubscriptionDaoTest extends CommonsBaseTest {
   subscription.id = UUID.randomUUID().toString
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.relayPoint = new HTTPRelayPoint("http://localhost:8080/testingRoute")
+  subscription.relayPoint = new HTTPRelayPoint("POST","http://localhost:8080/testingRoute")
   subscription.groovyFilter = "This is a groovyFilter string for testing"
 
   "add test" should "not throw exception" in {

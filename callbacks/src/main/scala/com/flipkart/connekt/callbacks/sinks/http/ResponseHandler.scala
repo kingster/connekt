@@ -15,10 +15,14 @@ package com.flipkart.connekt.callbacks.sinks.http
 import akka.http.scaladsl.model.{HttpEntity, _}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream._
+import akka.stream.scaladsl.Sink
+import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
+import com.flipkart.connekt.commons.utils.StringUtils._
+
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
-class ResponseHandler(url: String)(implicit val ec: ExecutionContext) extends GraphStage[UniformFanOutShape[(Try[HttpResponse], HttpCallbackTracker),(HttpRequest,HttpCallbackTracker)]] {
+class ResponseHandler(implicit mat:ActorMaterializer,  ec: ExecutionContext) extends GraphStage[UniformFanOutShape[(Try[HttpResponse], HttpCallbackTracker),(HttpRequest,HttpCallbackTracker)]] {
 
   val in = Inlet[(Try[HttpResponse], HttpCallbackTracker)]("input")
 
@@ -34,21 +38,25 @@ class ResponseHandler(url: String)(implicit val ec: ExecutionContext) extends Gr
 
       override def onPush(): Unit = {
         val result = grab(in)
-        val httpRequest = HttpRequest(method = HttpMethods.POST, uri = url, entity = HttpEntity(ContentTypes.`application/json`, result._2.payload))
         val httpCallbackTracker = result._2
 
         result._1 match {
           case Success(response) =>
+            response.entity.dataBytes.runWith(Sink.ignore)
             response.status.intValue() match {
-              case 200 =>
-                push(success, (httpRequest, httpCallbackTracker))
+              case s if s/100 == 2 =>
+                push(success, (httpCallbackTracker.httpRequest, httpCallbackTracker))
               case _ =>
-                if (httpCallbackTracker.discarded) push(discardOutlet, (httpRequest, httpCallbackTracker))
-                else push(retryOutlet, (httpRequest, httpCallbackTracker))
+                if (httpCallbackTracker.discarded)
+                  push(discardOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
+                else
+                  push(retryOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
             }
           case Failure(e) =>
-            if (httpCallbackTracker.discarded) push(discardOutlet, (httpRequest, httpCallbackTracker))
-            else push(retryOutlet, (httpRequest, httpCallbackTracker))
+            if (httpCallbackTracker.discarded)
+              push(discardOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
+            else
+              push(retryOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
         }
 
       }

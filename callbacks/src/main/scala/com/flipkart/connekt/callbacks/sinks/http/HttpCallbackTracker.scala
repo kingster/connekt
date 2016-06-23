@@ -12,6 +12,8 @@
  */
 package com.flipkart.connekt.callbacks.sinks.http
 
-case class HttpCallbackTracker(payload: String,
+import akka.http.scaladsl.model.HttpRequest
+
+case class HttpCallbackTracker(httpRequest: HttpRequest,
                                failureCount: Int = 0,
                                discarded: Boolean = false)
