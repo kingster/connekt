@@ -43,6 +43,8 @@ object ServiceFactory {
     serviceCache += ServiceType.STATS_REPORTING -> instance
   }
 
+  def initStencilService(dao: TStencilDao) = serviceCache += ServiceType.STENCIL -> new StencilService(dao)
+
   def getPNMessageService = serviceCache(ServiceType.PN_MESSAGE).asInstanceOf[TMessageService]
 
   def getCallbackService = serviceCache(ServiceType.CALLBACK).asInstanceOf[TCallbackService]
@@ -55,8 +57,10 @@ object ServiceFactory {
 
   def getReportingService = serviceCache(ServiceType.STATS_REPORTING).asInstanceOf[ReportingService]
 
+  def getStencilService = serviceCache(ServiceType.STENCIL).asInstanceOf[TStencilService]
+
 }
 
 object ServiceType extends Enumeration {
-  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING = Value
+  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING, STENCIL = Value
 }

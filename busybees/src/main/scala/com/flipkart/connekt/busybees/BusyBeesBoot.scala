@@ -85,6 +85,7 @@ object BusyBeesBoot extends BaseApp {
 
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
       ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
+      ServiceFactory.initStencilService(DaoFactory.getStencilDao)
 
       //TODO : Fix this, this is for bootstraping hbase connection.
       println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
