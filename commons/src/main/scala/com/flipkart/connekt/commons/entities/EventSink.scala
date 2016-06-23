@@ -22,9 +22,9 @@ import com.flipkart.connekt.commons.dao.JSONField
   property = "type"
 )
 @JsonSubTypes(Array(
-  new Type(value = classOf[HTTPRelayPoint], name = "HTTP"),
-  new Type(value = classOf[KafkaRelayPoint], name = "KAFKA")
+  new Type(value = classOf[HTTPEventSink], name = "HTTP"),
+  new Type(value = classOf[KafkaEventSink], name = "KAFKA")
 ))
-abstract class RelayPoint extends JSONField
-case class HTTPRelayPoint(method:String, url: String) extends RelayPoint
-case class KafkaRelayPoint(zookeeper: String, broker: String) extends RelayPoint
+abstract class EventSink extends JSONField
+case class HTTPEventSink(method:String, url: String) extends EventSink
+case class KafkaEventSink(zookeeper: String, broker: String) extends EventSink

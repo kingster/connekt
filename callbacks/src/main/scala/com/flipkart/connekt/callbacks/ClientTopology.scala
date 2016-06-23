@@ -13,16 +13,14 @@
 package com.flipkart.connekt.callbacks
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.flipkart.connekt.busybees.streams.sources.CallbackKafkaSource
-import com.flipkart.connekt.callbacks.sinks.http.{HttpCallbackTracker, HttpSink}
+import com.flipkart.connekt.callbacks.sinks.http.HttpSink
 import com.flipkart.connekt.callbacks.sinks.kafka.KafkaSink
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.entities.fabric.FabricMaker
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
-import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.Config
 
 import scala.concurrent.Promise
@@ -34,21 +32,13 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
 
   def start(): Promise[String] = {
     val topologyShutdownTrigger = Promise[String]()
-    val evaluator = FabricMaker.create[Evaluator](subscription.id, subscription.groovyFilter)
+    val evaluator = FabricMaker.create[Evaluator](subscription.id, subscription.eventFilter)
     kafkaCallbackSource = new CallbackKafkaSource[CallbackEvent](topic, subscription.id, kafkaConsumerConnConf)(topologyShutdownTrigger.future)
     val source = Source.fromGraph(kafkaCallbackSource).filter(evaluator.evaluate)
-    subscription.relayPoint match {
-      case http: HTTPRelayPoint => source.map(httpPrepare).runWith(new HttpSink(subscription, retryLimit, topologyShutdownTrigger).getHttpSink())
-      case kafka: KafkaRelayPoint => source.runWith(new KafkaSink(kafka.broker, kafka.zookeeper).getKafkaSink)
+    subscription.eventSink match {
+      case http: HTTPEventSink => source.runWith(new HttpSink(subscription, retryLimit, topologyShutdownTrigger).getHttpSink)
+      case kafka: KafkaEventSink => source.runWith(new KafkaSink(kafka.broker, kafka.zookeeper).getKafkaSink)
     }
     topologyShutdownTrigger
-  }
-
-  private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
-    val httpEntity = HttpEntity(ContentTypes.`application/json`, event.getJson)
-    val endpointDetail = subscription.relayPoint.asInstanceOf[HTTPRelayPoint]
-    val httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = subscription.relayPoint.asInstanceOf[HTTPRelayPoint].url, entity = httpEntity)
-    val callbackTracker = HttpCallbackTracker(httpRequest)
-    (httpRequest, callbackTracker)
   }
 }

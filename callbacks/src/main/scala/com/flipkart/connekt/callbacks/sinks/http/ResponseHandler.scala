@@ -12,12 +12,10 @@
  */
 package com.flipkart.connekt.callbacks.sinks.http
 
-import akka.http.scaladsl.model.{HttpEntity, _}
-import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import akka.http.scaladsl.model._
 import akka.stream._
 import akka.stream.scaladsl.Sink
-import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
-import com.flipkart.connekt.commons.utils.StringUtils._
+import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
@@ -26,11 +24,11 @@ class ResponseHandler(implicit mat:ActorMaterializer,  ec: ExecutionContext) ext
 
   val in = Inlet[(Try[HttpResponse], HttpCallbackTracker)]("input")
 
-  val retryOutlet = Outlet[(HttpRequest,HttpCallbackTracker)]("error.out")
-  val success = Outlet[(HttpRequest,HttpCallbackTracker)]("success.out")
-  val discardOutlet = Outlet[(HttpRequest,HttpCallbackTracker)]("discardedEvents.out")
+  val retryOnErrorOutlet = Outlet[(HttpRequest,HttpCallbackTracker)]("retryOnError.out")
+  val successOutlet = Outlet[(HttpRequest,HttpCallbackTracker)]("success.out")
+  val discardOutlet = Outlet[(HttpRequest,HttpCallbackTracker)]("discard.out")
 
-  override def shape = new UniformFanOutShape(in, Array(retryOutlet, success, discardOutlet))
+  override def shape = new UniformFanOutShape(in, Array(retryOnErrorOutlet, successOutlet, discardOutlet))
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
@@ -45,29 +43,28 @@ class ResponseHandler(implicit mat:ActorMaterializer,  ec: ExecutionContext) ext
             response.entity.dataBytes.runWith(Sink.ignore)
             response.status.intValue() match {
               case s if s/100 == 2 =>
-                push(success, (httpCallbackTracker.httpRequest, httpCallbackTracker))
+                push(successOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
               case _ =>
                 if (httpCallbackTracker.discarded)
                   push(discardOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
                 else
-                  push(retryOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
+                  push(retryOnErrorOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
             }
           case Failure(e) =>
             if (httpCallbackTracker.discarded)
               push(discardOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
             else
-              push(retryOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
+              push(retryOnErrorOutlet, (httpCallbackTracker.httpRequest, httpCallbackTracker))
         }
 
       }
     })
 
-
-    setHandler(success, new OutHandler {
+    setHandler(retryOnErrorOutlet, new OutHandler {
       override def onPull(): Unit = if (!hasBeenPulled(in)) pull(in)
     })
-
-    setHandler(retryOutlet, new OutHandler {
+    
+    setHandler(successOutlet, new OutHandler {
       override def onPull(): Unit = if (!hasBeenPulled(in)) pull(in)
     })
 

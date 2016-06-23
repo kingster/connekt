@@ -1,6 +1,6 @@
 package com.flipkart.connekt.commons.tests.services
 
-import com.flipkart.connekt.commons.entities.{HTTPRelayPoint, Subscription}
+import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
@@ -11,8 +11,8 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   subscription.name = "SubscriptionServiceTest"
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.relayPoint = new HTTPRelayPoint("POST", "http://localhost:8080/serviceTestingRoute")
-  subscription.groovyFilter = "This is groovyFilter string for SubscriptionServiceTest"
+  subscription.eventSink = new HTTPEventSink("POST", "http://localhost:8080/serviceTestingRoute")
+  subscription.eventFilter = "This is groovy eventFilter string for SubscriptionServiceTest"
 
   "add Test" should "return success" in {
     val id = SubscriptionService.add(subscription)
@@ -27,7 +27,7 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   }
 
   "Update test" should "return success" in {
-    subscription.groovyFilter = "This is a updated groovyFilter string for SubscriptionServiceTest"
+    subscription.eventFilter = "This is a updated groovy eventFilter string for SubscriptionServiceTest"
     val sub = SubscriptionService.update(subscription)
     assert(sub.isSuccess)
 

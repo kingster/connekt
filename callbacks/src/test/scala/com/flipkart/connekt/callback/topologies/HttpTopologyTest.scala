@@ -14,7 +14,7 @@ package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.callbacks.{CallbackBoot, ClientTopologyManager}
-import com.flipkart.connekt.commons.entities.{GenericAction, HTTPRelayPoint, Subscription}
+import com.flipkart.connekt.commons.entities.{GenericAction, HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
@@ -35,8 +35,8 @@ class HttpTopologyTest extends TopologyUTSpec {
     subscriptionSuccess.id = "35bfea58-7166-44a1-8985-e8e8b96249a7"
     subscriptionSuccess.shutdownThreshold = 3
     subscriptionSuccess.createdBy = "connekt-insomnia"
-    subscriptionSuccess.relayPoint = new HTTPRelayPoint("POST", "http://requestb.in/1hz15xo1")
-    subscriptionSuccess.groovyFilter = """
+    subscriptionSuccess.eventSink = new HTTPEventSink("POST", "http://requestb.in/1hz15xo1")
+    subscriptionSuccess.eventFilter = """
                                   |package com.flipkart.connekt.commons.entities;
                                   |import com.flipkart.connekt.commons.iomodels.CallbackEvent
                                   |import com.flipkart.connekt.commons.iomodels.PNCallbackEvent;
@@ -54,8 +54,8 @@ class HttpTopologyTest extends TopologyUTSpec {
     subscriptionFailed.id = "d90f0656-f31b-4337-95ca-1cce4abc912e"
     subscriptionFailed.shutdownThreshold = 3
     subscriptionFailed.createdBy = "connekt-insomnia"
-    subscriptionFailed.relayPoint = new HTTPRelayPoint("POST", "http://equestb.in/1hz15xo1")
-    subscriptionFailed.groovyFilter = """
+    subscriptionFailed.eventSink = new HTTPEventSink("POST", "http://equestb.in/1hz15xo1")
+    subscriptionFailed.eventFilter = """
                                          |package com.flipkart.connekt.commons.entities;
                                          |import com.flipkart.connekt.commons.iomodels.CallbackEvent
                                          |import com.flipkart.connekt.commons.iomodels.PNCallbackEvent;

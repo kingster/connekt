@@ -25,8 +25,8 @@ class Subscription {
   @Column(name = "name")
   var name: String = _
 
-  @Column(name = "relayPoint")
-  var relayPoint : RelayPoint  = _
+  @Column(name = "eventSink")
+  var eventSink : EventSink  = _
 
   @Column(name = "createdBy")
   var createdBy : String = _
@@ -37,25 +37,25 @@ class Subscription {
   @Column(name = "lastUpdatedTS")
   var lastUpdatedTS: Date = new Date(System.currentTimeMillis())
 
-  @Column( name = "groovyFilter")
-  var groovyFilter : String = _
+  @Column(name = "eventFilter")
+  var eventFilter : String = _
 
-  @Column( name = "shutdownThreshold")
+  @Column(name = "shutdownThreshold")
   var shutdownThreshold : Int = _
 
-  def this(sId: String, sName: String, endpoint: RelayPoint,
+  def this(sId: String, sName: String, endpoint: EventSink,
            createdBy: String, createdTS: Date, lastUpdatedTS: Date, groovyString: String, shutdownThreshold: Int) = {
     this
     this.id = sId
     this.name = sName
-    this.relayPoint = endpoint
+    this.eventSink = endpoint
     this.createdBy = createdBy
     this.createdTS = createdTS
     this.lastUpdatedTS = lastUpdatedTS
-    this.groovyFilter = groovyString
+    this.eventFilter = groovyString
     this.shutdownThreshold = shutdownThreshold
   }
 
-  override def toString = s"Subscription($id, $name, ${relayPoint.getJson}, $createdBy, ${createdTS.toString}," +
-    s" ${lastUpdatedTS.toString}, $groovyFilter, ${shutdownThreshold.toString})"
+  override def toString =
+    s"Subscription($id, $name, ${eventSink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $eventFilter, ${shutdownThreshold.toString})"
 }

@@ -44,8 +44,8 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config)(implicit am: ActorMat
 
   }
 
-  override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
-    _type match {
+  override def onUpdate(syncType: SyncType, args: List[AnyRef]): Any = {
+    syncType match {
       case SyncType.SUBSCRIPTION =>
         val action = GenericAction.withName(args.head.toString)
         val subscription = args.last.toString.getObj[Subscription]

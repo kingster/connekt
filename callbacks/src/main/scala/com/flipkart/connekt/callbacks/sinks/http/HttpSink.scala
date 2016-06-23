@@ -16,13 +16,14 @@ package com.flipkart.connekt.callbacks.sinks.http
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.stream.scaladsl.{GraphDSL, MergePreferred, Sink}
+import akka.http.scaladsl.model._
+import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
-import com.flipkart.connekt.commons.entities.Subscription
+import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription}
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-
+import com.flipkart.connekt.commons.iomodels.CallbackEvent
+import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.util.{Failure, Success, Try}
 
@@ -32,19 +33,25 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
   var serverFailure = 0
   val shutdownThreshold = subscription.shutdownThreshold
 
-  def getHttpSink(): Sink[(HttpRequest, HttpCallbackTracker), NotUsed] = {
+  def getHttpSink: Sink[CallbackEvent, NotUsed] = {
 
     Sink.fromGraph(GraphDSL.create() { implicit b =>
-      val mergePref = b.add(MergePreferred[(HttpRequest,HttpCallbackTracker)](1))
-      val resultHandler = b.add(new ResponseHandler())
+      val httpResponseHandler = b.add(new ResponseHandler())
+      val event2HttpRequestMapper = b.add(Flow[CallbackEvent].map(httpPrepare))
+      val httpRequestMergePref = b.add(MergePreferred[(HttpRequest, HttpCallbackTracker)](1))
 
-      mergePref.out ~> httpCachedClient.map(updateTracker) ~> resultHandler.in
-      resultHandler.out(0) ~> mergePref.preferred
-      resultHandler.out(1) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)] { event =>
-        ConnektLogger(LogFile.SERVICE).debug(s"message delivered: $event")}
-      resultHandler.out(2) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)] { event =>
-        ConnektLogger(LogFile.SERVICE).debug(s"message delivered: $event")}
-      SinkShape(mergePref.in(0))
+      event2HttpRequestMapper ~> httpRequestMergePref.in(0)
+      httpRequestMergePref.out ~> httpCachedClient.map(updateTracker) ~> httpResponseHandler.in
+      httpResponseHandler.out(0) ~> httpRequestMergePref.preferred
+      httpResponseHandler.out(1) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)] { event =>
+          ConnektLogger(LogFile.SERVICE).debug(s"HttpSink message delivered: $event")
+      }
+
+      httpResponseHandler.out(2) ~> Sink.foreach[(HttpRequest,HttpCallbackTracker)] { event =>
+        ConnektLogger(LogFile.SERVICE).debug(s"HttpSink message delivered: $event")
+      }
+
+      SinkShape(event2HttpRequestMapper.in)
     })
   }
 
@@ -74,4 +81,11 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
     }
   }
 
+  private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
+    val httpEntity = HttpEntity(ContentTypes.`application/json`, event.getJson)
+    val endpointDetail = subscription.eventSink.asInstanceOf[HTTPEventSink]
+    val httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = subscription.eventSink.asInstanceOf[HTTPEventSink].url, entity = httpEntity)
+    val callbackTracker = HttpCallbackTracker(httpRequest)
+    (httpRequest, callbackTracker)
+  }
 }
