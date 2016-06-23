@@ -13,7 +13,7 @@
 package com.flipkart.connekt.busybees.streams.flows
 
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
-import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
@@ -21,7 +21,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
 
-  implicit val stencilService = ServiceFactory.getStencilService
+  lazy implicit val stencilService = ServiceFactory.getStencilService
 
   override val map: (ConnektRequest) => List[ConnektRequest] = input => {
     try {

@@ -28,7 +28,7 @@ import scala.concurrent.duration._
 
 class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, APSPayloadEnvelope](parallelism)(ec) {
 
-  val stencilService = ServiceFactory.getStencilService
+  lazy val stencilService = ServiceFactory.getStencilService
 
   override def map: (ConnektRequest) => List[APSPayloadEnvelope] = message => {
     try {

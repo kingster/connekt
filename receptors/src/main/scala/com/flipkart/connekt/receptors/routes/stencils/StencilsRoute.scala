@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilsEnsemble}
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.StencilService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -31,7 +30,7 @@ import scala.util.{Failure, Success}
 
 class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  val stencilService = ServiceFactory.getStencilService
+  lazy val stencilService = ServiceFactory.getStencilService
 
   val route =
     authenticate {

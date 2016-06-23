@@ -31,7 +31,7 @@ import scala.util.{Failure, Success}
 
 class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  implicit val stencilService = ServiceFactory.getStencilService
+  lazy implicit val stencilService = ServiceFactory.getStencilService
 
   val route =
     authenticate {

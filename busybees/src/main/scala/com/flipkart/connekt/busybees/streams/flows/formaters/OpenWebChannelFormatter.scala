@@ -31,7 +31,7 @@ import scala.util.{Failure, Success, Try}
 
 class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, OpenWebStandardPayloadEnvelope](parallelism)(ec) {
 
-  val stencilService = ServiceFactory.getStencilService
+  lazy val stencilService = ServiceFactory.getStencilService
 
   override def map: ConnektRequest => List[OpenWebStandardPayloadEnvelope] = message => {
 

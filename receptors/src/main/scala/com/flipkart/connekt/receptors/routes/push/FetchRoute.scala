@@ -32,7 +32,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events").map(_.toLowerCase)
 
-  implicit val stencilService = ServiceFactory.getStencilService
+  lazy implicit val stencilService = ServiceFactory.getStencilService
 
   val route =
     authenticate {
