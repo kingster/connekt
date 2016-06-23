@@ -31,6 +31,8 @@ import scala.util.{Failure, Success}
 
 class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
+  implicit val stencilService = ServiceFactory.getStencilService
+
   val route =
     authenticate {
       user =>
@@ -47,7 +49,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                             //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
-                          request.validate()
+                          request.validate
 
                           ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
 
@@ -105,10 +107,9 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
                           val request = r.copy(clientId = user.userId, channel = "push", meta = {
-                            //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
-                          request.validate()
+                          request.validate
 
                           ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : $userId with payload: ${request.toString}")
 

@@ -14,7 +14,7 @@ package com.flipkart.connekt.receptors.tests.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.commons.entities.{Stencil, StencilComponents, StencilEngine}
+import com.flipkart.connekt.commons.entities.{Stencil, StencilsEnsemble, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.Response
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -43,7 +43,7 @@ class StencilsRouteTest extends BaseRouteTest {
   val stencilComponents =
     s"""
       |{
-      |	"sType" : "PN${StringUtils.generateRandomStr(4)}" ,
+      |	"name" : "PN${StringUtils.generateRandomStr(4)}" ,
       |	"components" :  "data"
       |}
     """.stripMargin
@@ -51,7 +51,7 @@ class StencilsRouteTest extends BaseRouteTest {
   val stencilComponentsUpdated =
     s"""
       |{
-      |	"sType" : "PN-Updated${StringUtils.generateRandomStr(4)}" ,
+      |	"name" : "PN-Updated${StringUtils.generateRandomStr(4)}" ,
       |	"components" :  "data"
       |}
     """.stripMargin
@@ -194,7 +194,7 @@ class StencilsRouteTest extends BaseRouteTest {
       check {
         val responseString = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
         val responseData = responseString.getObj[ObjectNode].get("response").asInstanceOf[ObjectNode].put("type", "RESPONSE").getJson.getObj[Response]
-        stencilComponentsId = StringUtils.getDetail(responseData.data, "StencilComponents").get.asInstanceOf[Map[String, AnyRef]].getJson.getObj[StencilComponents].id
+        stencilComponentsId = StringUtils.getDetail(responseData.data, "StencilComponents").get.asInstanceOf[Map[String, AnyRef]].getJson.getObj[StencilsEnsemble].id
         status shouldEqual StatusCodes.Created
       }
   }

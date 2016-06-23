@@ -15,9 +15,9 @@ package com.flipkart.connekt.commons.services
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
 import com.flipkart.connekt.commons.core.Wrappers._
-import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.dao.TStencilDao
 import com.flipkart.connekt.commons.entities.fabric._
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilComponents, StencilEngine}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilsEnsemble, StencilEngine}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.sync.SyncType._
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncMessage, SyncType}
@@ -25,10 +25,9 @@ import com.flipkart.metrics.Timed
 
 import scala.util.{Failure, Success, Try}
 
-object StencilService extends Instrumented with SyncDelegate {
+class StencilService(stencilDao: TStencilDao) extends TStencilService with Instrumented with SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.STENCIL_CHANGE, SyncType.STENCIL_BUCKET_CHANGE, SyncType.STENCIL_COMPONENTS_UPDATE, SyncType.STENCIL_FABRIC_CHANGE))
-  private val stencilDao = DaoFactory.getStencilDao
 
   private def stencilCacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
@@ -50,7 +49,7 @@ object StencilService extends Instrumented with SyncDelegate {
   }
 
   @Timed("render")
-  def render(stencil: Stencil, req: ObjectNode): AnyRef = {
+  def materialize(stencil: Stencil, req: ObjectNode): AnyRef = {
     LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](fabricCacheKey(stencil.id, stencil.component, stencil.version.toString)).orElse {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
@@ -123,7 +122,7 @@ object StencilService extends Instrumented with SyncDelegate {
   def addBucket(bucket: Bucket): Try[Unit] = {
     getBucket(bucket.name) match {
       case Some(bck) =>
-        Failure(new Exception(s"Bucket already exist for name: ${bucket.name}"))
+        Failure(new Exception(s"Bucket already exists for name: ${bucket.name}"))
       case _ =>
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).put[Bucket](bucket.name, bucket)
         Success(stencilDao.writeBucket(bucket))
@@ -131,33 +130,33 @@ object StencilService extends Instrumented with SyncDelegate {
   }
 
   @Timed("getStencilComponents")
-  def getStencilComponents(id: String): Option[StencilComponents] = {
-    LocalCacheManager.getCache(LocalCacheType.StencilComponents).get[StencilComponents](id).orElse {
-      val stencilComponents = stencilDao.getStencilComponents(id)
-      stencilComponents.foreach(b => LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](id, b))
+  def getStencilsEnsemble(id: String): Option[StencilsEnsemble] = {
+    LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).get[StencilsEnsemble](id).orElse {
+      val stencilComponents = stencilDao.getStencilsEnsemble(id)
+      stencilComponents.foreach(b => LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).put[StencilsEnsemble](id, b))
       stencilComponents
     }
   }
 
   @Timed("getStencilComponentsByType")
-  def getStencilComponentsByType(sType: String): Option[StencilComponents] = {
-    LocalCacheManager.getCache(LocalCacheType.StencilComponents).get[StencilComponents](sType).orElse {
-      val stencilComponents = stencilDao.getStencilComponentsByType(sType)
-      stencilComponents.foreach(b => LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](sType, b))
+  def getStencilsEnsembleByName(name: String): Option[StencilsEnsemble] = {
+    LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).get[StencilsEnsemble](name).orElse {
+      val stencilComponents = stencilDao.getStencilsEnsembleByName(name)
+      stencilComponents.foreach(b => LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).put[StencilsEnsemble](name, b))
       stencilComponents
     }
   }
 
 
   @Timed("addstencilComponents")
-  def addStencilComponents(stencilComponents: StencilComponents): Try[Unit] = {
-    stencilDao.writeStencilComponents(stencilComponents)
-    LocalCacheManager.getCache(LocalCacheType.StencilComponents).put[StencilComponents](stencilComponents.id, stencilComponents)
+  def addStencilComponents(stencilComponents: StencilsEnsemble): Try[Unit] = {
+    stencilDao.writeStencilsEnsemble(stencilComponents)
+    LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).put[StencilsEnsemble](stencilComponents.id, stencilComponents)
     Success(Unit)
   }
 
-  override def onUpdate(_type: SyncType, args: List[AnyRef]): Unit = {
-    _type match {
+  override def onUpdate(syncType: SyncType, args: List[AnyRef]): Unit = {
+    syncType match {
       case SyncType.STENCIL_CHANGE => Try_ {
         LocalCacheManager.getCache(LocalCacheType.Stencils).remove(stencilCacheKey(args.head.toString))
         LocalCacheManager.getCache(LocalCacheType.Stencils).remove(stencilCacheKey(args.head.toString, args.lastOption.map(_.toString)))
@@ -169,7 +168,7 @@ object StencilService extends Instrumented with SyncDelegate {
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).remove(args.head.toString)
       }
       case SyncType.STENCIL_COMPONENTS_UPDATE => Try_ {
-        LocalCacheManager.getCache(LocalCacheType.StencilComponents).remove(args.head.toString)
+        LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).remove(args.head.toString)
       }
       case _ =>
     }

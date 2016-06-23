@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.commons.dao
 
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilComponents}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilsEnsemble}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, TMySQLFactory}
 
 class StencilDao(tableName: String, historyTableName: String, stencilComponentsTable: String, bucketRegistryTable: String, jdbcHelper: TMySQLFactory) extends TStencilDao with MySQLDao {
@@ -145,7 +145,7 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
     }
   }
 
-  override def getStencilComponents(id: String): Option[StencilComponents] = {
+  override def getStencilsEnsemble(id: String): Option[StencilsEnsemble] = {
     implicit val j = mysqlHelper.getJDBCInterface
 
     try {
@@ -153,7 +153,7 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
         s"""
            |SELECT * FROM $stencilComponentsTable WHERE id = ?
             """.stripMargin
-      query[StencilComponents](q, id)
+      query[StencilsEnsemble](q, id)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching stencil type [$id] ${e.getMessage}", e)
@@ -161,36 +161,36 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
     }
   }
 
-  override def getStencilComponentsByType(sType: String): Option[StencilComponents] = {
+  override def getStencilsEnsembleByName(name: String): Option[StencilsEnsemble] = {
     implicit val j = mysqlHelper.getJDBCInterface
 
     try {
       val q =
         s"""
-           |SELECT * FROM $stencilComponentsTable WHERE sType = ?
+           |SELECT * FROM $stencilComponentsTable WHERE name = ?
             """.stripMargin
-      query[StencilComponents](q, sType)
+      query[StencilsEnsemble](q, name)
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.DAO).error(s"Error fetching stencil type [$sType] ${e.getMessage}", e)
+        ConnektLogger(LogFile.DAO).error(s"Error fetching stencil type [$name] ${e.getMessage}", e)
         throw e
     }
   }
 
 
-  override def writeStencilComponents(stencilComponents: StencilComponents): Unit = {
+  override def writeStencilsEnsemble(stencilComponents: StencilsEnsemble): Unit = {
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-         |INSERT INTO $stencilComponentsTable (id, sType, components, createdBy, updatedBy) VALUES(?, ? , ? , ? , ?)
-         |ON DUPLICATE KEY UPDATE sType = ?,components = ?, updatedBy = ?
+         |INSERT INTO $stencilComponentsTable (id, name, components, createdBy, updatedBy) VALUES(?, ? , ? , ? , ?)
+         |ON DUPLICATE KEY UPDATE name = ?,components = ?, updatedBy = ?
       """.stripMargin
 
     try {
-      update(q, stencilComponents.id, stencilComponents.sType, stencilComponents.components, stencilComponents.createdBy, stencilComponents.updatedBy, stencilComponents.sType, stencilComponents.components, stencilComponents.updatedBy)
+      update(q, stencilComponents.id, stencilComponents.name, stencilComponents.components, stencilComponents.createdBy, stencilComponents.updatedBy, stencilComponents.name, stencilComponents.components, stencilComponents.updatedBy)
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.DAO).error(s"Error updating stencil type [${stencilComponents.sType}}] ${e.getMessage}", e)
+        ConnektLogger(LogFile.DAO).error(s"Error updating stencil type [${stencilComponents.name}}] ${e.getMessage}", e)
         throw e
     }
   }

@@ -56,22 +56,22 @@ class StencilServiceTest extends CommonsBaseTest {
 
 
   "Stencil Service" should "add stencil" in {
-    noException should be thrownBy StencilService.add(stencil.id, List(stencil))
+    noException should be thrownBy IStencilService.add(stencil.id, List(stencil))
   }
 
   "Stencil Service" should "get the stencil" in {
-    StencilService.get(stencil.id).get.head.toString shouldEqual stencil.toString
+    IStencilService.get(stencil.id).get.head.toString shouldEqual stencil.toString
   }
 
   "Stencil Service" should "render the stencil for given ConnektRequest" in {
-    StencilService.render(stencil, payload.getObj[ObjectNode])  shouldEqual dataResult
+    IStencilService.render(stencil, payload.getObj[ObjectNode])  shouldEqual dataResult
   }
 
     "Stencil Service" should "add bucket" in {
-      noException should be thrownBy StencilService.addBucket(bucket)
+      noException should be thrownBy IStencilService.addBucket(bucket)
     }
 
     "Stencil Service" should "get bucket" in {
-      StencilService.getBucket(bucket.name).get.toString shouldEqual bucket.toString
+      IStencilService.getBucket(bucket.name).get.toString shouldEqual bucket.toString
     }
 }

@@ -15,7 +15,7 @@ package com.flipkart.connekt.commons.iomodels
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.Channel
-import com.flipkart.connekt.commons.services.StencilService
+import com.flipkart.connekt.commons.services.TStencilService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 case class ConnektRequest(@JsonProperty(required = false) id: String,
@@ -37,21 +37,21 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
     this(id, clientId, contextId, channel, sla, stencilId, scheduleTs, expiryTs, channelInfo, channelData, channelDataModel, Map.empty[String, String])
   }
 
-  def validate() = {
-    require(stencilId.map(StencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
+  def validate(implicit stencilService: TStencilService) = {
+    require(stencilId.map(stencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
     require(contextId.forall(_.hasOnlyAllowedChars), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
     require(sla.isDefined, "`sla` field can cannot be null or empty.")
     require(meta != null, "`meta` field cannot be null. It is optional but non-null")
     require(channelInfo != null, "`channelInfo` field cannot be null.")
   }
 
-  def getRequestData = {
-    val stencils = stencilId.flatMap(StencilService.get(_)).getOrElse(List.empty)
-    (Channel.withName(channel) match {
-      case Channel.PUSH =>
-        (stencils.map(s => s.component -> StencilService.render(s, channelDataModel).asInstanceOf[String].getObj[ObjectNode]) ++ Map("type" -> "PN")).toMap
-      case _ =>
-        (stencils.map(s => s.component -> StencilService.render(s, channelDataModel)) ++ Map("type" -> channel)).toMap
-    }).getJson.getObj[ChannelRequestData]
-  }
+  def getComputedChannelData(implicit stencilService: TStencilService): ChannelRequestData =
+    stencilId.flatMap(stencilService.get(_)).map { stencils =>
+      Channel.withName(channel) match {
+        case Channel.PUSH =>
+          stencils.map(s => PNRequestData(stencilService.materialize(s, channelDataModel).asInstanceOf[String].getObj[ObjectNode])).head
+        case unMaterializedChannel =>
+          throw new Exception(s"`channelData` compute undefined for $unMaterializedChannel")
+      }
+    }.getOrElse(channelData)
 }

@@ -18,13 +18,13 @@ import javax.persistence.Column
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.apache.commons.lang.StringUtils
 
-class StencilComponents {
+class StencilsEnsemble {
 
   @Column(name = "id")
   var id: String = _
 
-  @Column(name = "sType")
-  var sType: String = _
+  @Column(name = "name")
+  var name: String = _
 
   @Column(name = "components")
   var components: String = StringUtils.EMPTY
@@ -41,10 +41,10 @@ class StencilComponents {
   @Column(name = "createdBy")
   var createdBy: String = StringUtils.EMPTY
 
-  override def toString = s"StencilComponents($id, $sType, $components)"
+  override def toString = s"StencilComponents($id, $name, $components)"
 
   def validate() = {
-    require(sType.isDefined, "`sType` must be defined.")
+    require(name.isDefined, "`name` must be defined.")
     require(components.isDefined, "`components` must be defined.")
   }
 

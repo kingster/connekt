@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ServiceFactory, ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
@@ -29,6 +29,8 @@ import scala.concurrent.duration._
 
 class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, GCMPayloadEnvelope](parallelism)(ec) {
 
+  val stencilService = ServiceFactory.getStencilService
+
   override def map: ConnektRequest => List[GCMPayloadEnvelope] = message => {
 
     try {
@@ -40,12 +42,13 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get.toSeq
       val validDeviceIds = devicesInfo.map(_.deviceId)
       val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds.toSet)
+
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val tokens = devicesInfo.map(_.token)
-      val androidStencil = StencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-android").get.headOption.orNull
+      val androidStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-android").get.headOption.orNull
+      val appDataWithId = stencilService.materialize(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String].getObj[ObjectNode].put("messageId", message.id)
 
-      val appDataWithId = StencilService.render(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String].getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 
