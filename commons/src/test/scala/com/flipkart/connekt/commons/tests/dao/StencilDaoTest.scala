@@ -45,8 +45,8 @@ class StencilDaoTest extends CommonsBaseTest {
   }
 
   "Fetch Stencil" should "return a stencil" in {
-    val stencil = DaoFactory.getStencilDao.getStencils("cktSampleApp-stn0x1")
-    assert(stencil.nonEmpty)
+    val s = DaoFactory.getStencilDao.getStencils(stencil.id)
+    assert(s.nonEmpty)
   }
 
   "Fetch Stencil by version" should "return a stencil" in {
