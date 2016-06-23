@@ -129,7 +129,7 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
     }
   }
 
-  @Timed("getStencilComponents")
+  @Timed("getStencilsEnsemble")
   def getStencilsEnsemble(id: String): Option[StencilsEnsemble] = {
     LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).get[StencilsEnsemble](id).orElse {
       val stencilComponents = stencilDao.getStencilsEnsemble(id)
@@ -138,7 +138,7 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
     }
   }
 
-  @Timed("getStencilComponentsByType")
+  @Timed("getStencilsEnsembleByName")
   def getStencilsEnsembleByName(name: String): Option[StencilsEnsemble] = {
     LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).get[StencilsEnsemble](name).orElse {
       val stencilComponents = stencilDao.getStencilsEnsembleByName(name)
@@ -148,7 +148,7 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
   }
 
 
-  @Timed("addstencilComponents")
+  @Timed("addStencilsEnsemble")
   def addStencilComponents(stencilComponents: StencilsEnsemble): Try[Unit] = {
     stencilDao.writeStencilsEnsemble(stencilComponents)
     LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).put[StencilsEnsemble](stencilComponents.id, stencilComponents)
