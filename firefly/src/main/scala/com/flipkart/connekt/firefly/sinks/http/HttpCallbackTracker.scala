@@ -10,10 +10,8 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callbacks.sinks.http
+package com.flipkart.connekt.firefly.sinks.http
 
 import akka.http.scaladsl.model.HttpRequest
 
-case class HttpCallbackTracker(httpRequest: HttpRequest,
-                               failureCount: Int = 0,
-                               discarded: Boolean = false)
+case class HttpCallbackTracker(httpRequest: HttpRequest, failureCount: Int = 0)

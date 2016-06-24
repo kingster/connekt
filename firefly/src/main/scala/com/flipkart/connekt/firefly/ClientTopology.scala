@@ -10,14 +10,14 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callbacks
+package com.flipkart.connekt.firefly
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.flipkart.connekt.busybees.streams.sources.CallbackKafkaSource
-import com.flipkart.connekt.callbacks.sinks.http.HttpSink
-import com.flipkart.connekt.callbacks.sinks.kafka.KafkaSink
+import com.flipkart.connekt.firefly.sinks.http.HttpSink
+import com.flipkart.connekt.firefly.sinks.kafka.KafkaSink
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.entities.fabric.FabricMaker
 import com.flipkart.connekt.commons.iomodels.CallbackEvent

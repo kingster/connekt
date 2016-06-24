@@ -13,7 +13,7 @@
 package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
-import com.flipkart.connekt.callbacks.{CallbackBoot, ClientTopologyManager}
+import com.flipkart.connekt.firefly.FireflyBoot
 import com.flipkart.connekt.commons.entities.{GenericAction, HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
@@ -25,7 +25,7 @@ class HttpTopologyTest extends TopologyUTSpec {
 
   "HttpTopology Test" should "run" in {
 
-    CallbackBoot.start()
+    FireflyBoot.start()
 //
 //    val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
 //    ClientTopologyManager(kafkaConnConf)

@@ -10,7 +10,7 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.callbacks
+package com.flipkart.connekt.firefly
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -27,20 +27,18 @@ import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
 
-object CallbackBoot extends BaseApp {
+object FireflyBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
 
   private implicit val system = ActorSystem("callback-system")
 
   val settings = ActorMaterializerSettings(system)
-    .withAutoFusing(enable = false) //TODO: Enable async boundaries and then enable auto-fusing
+    .withAutoFusing(enable = false)
     .withSupervisionStrategy(StageSupervision.decider)
 
   private implicit val mat = ActorMaterializer(settings.withDispatcher("akka.actor.default-dispatcher"))
   private implicit val ec = mat.executionContext
-
-  lazy val ioMat = ActorMaterializer(settings.withDispatcher("akka.actor.io-dispatcher"))
 
   def start() {
     if (!initialized.getAndSet(true)) {
@@ -48,7 +46,7 @@ object CallbackBoot extends BaseApp {
 
       val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-callbacks.xml")
 
-      ConnektLogger(LogFile.SERVICE).info(s"Callback logging using: $configFile")
+      ConnektLogger(LogFile.SERVICE).info(s"Callback service logging using: $configFile")
       ConnektLogger.init(configFile)
 
       ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-receptors"))
@@ -62,7 +60,7 @@ object CallbackBoot extends BaseApp {
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
 
-      ClientTopologyManager(kafkaConnConf)
+      ClientTopologyManager(kafkaConnConf, ConnektConfig.getString("callbacks.kafka.source.topic").get, ConnektConfig.getInt("callbacks.retry.limit").get)
     }
   }
 
