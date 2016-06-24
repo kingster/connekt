@@ -40,11 +40,7 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
   override def get(id: String): Option[ Subscription ] = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
-      val sql =
-        s"""
-           |SELECT * FROM $subscriptionTable WHERE id = ?
-            """.stripMargin
-
+      val sql = s"SELECT * FROM $subscriptionTable WHERE id = ? "
       query[Subscription](sql, id)
     } catch {
       case e: Exception =>
@@ -56,9 +52,7 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
   override def delete(id: String): Unit = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
-      val sql = s"""
-                  |DELETE FROM $subscriptionTable WHERE id = ?
-        """.stripMargin
+      val sql = s"DELETE FROM $subscriptionTable WHERE id = ? "
       update(sql,id)
     } catch {
       case e: Exception =>
