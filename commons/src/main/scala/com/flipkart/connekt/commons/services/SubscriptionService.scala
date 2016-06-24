@@ -43,7 +43,7 @@ object SubscriptionService {
   def update(subscription: Subscription): Try[Boolean] = {
     subscription.lastUpdatedTS = new Date(System.currentTimeMillis())
     get(subscription.id).flatMap {
-      case Some(subscription) => Try_#(message = "SubscriptionService.update failed") {
+      case Some(sub) => Try_#(message = "SubscriptionService.update failed") {
         dao.add(subscription)
         LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
         true

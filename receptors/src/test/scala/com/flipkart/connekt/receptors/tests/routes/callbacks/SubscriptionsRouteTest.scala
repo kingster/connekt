@@ -38,6 +38,7 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
          |	"endpoint":
          |    {
          |        "type" : "HTTP",
+         |        "method" : "POST",
          |        "url" : "http://localhost:8080/SubscriptionRouteTesting"
          |    },
          |	"groovyString": "${StringEscapeUtils.escapeJava(groovyString)}",
@@ -94,6 +95,7 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
          |	"endpoint":
          |    {
          |        "type" : "HTTP",
+         |        "method" : "POST",
          |        "url" : "http://localhost:8080/SubscriptionRouteUpdateTesting"
          |    },
          |	"groovyString": "${StringEscapeUtils.escapeJava(groovyString)}",
