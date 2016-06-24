@@ -67,7 +67,7 @@ class StencilServiceTest extends CommonsBaseTest {
   }
 
   "Stencil Service" should "get the stencil" in {
-    stencilService.get(stencil.id).get.head.toString shouldEqual stencil.toString
+    stencilService.get(stencil.id).head.toString shouldEqual stencil.toString
   }
 
   "Stencil Service" should "render the stencil for given ConnektRequest" in {

@@ -30,9 +30,9 @@ trait TStencilService extends TService {
 
   def updateWithIdentity(id: String, prevName: String, stencils: List[Stencil]): Try[Unit]
 
-  def get(id: String, version: Option[String] = None): Option[List[Stencil]]
+  def get(id: String, version: Option[String] = None): List[Stencil]
 
-  def getStencilsByName(name: String, version: Option[String] = None): Option[List[Stencil]]
+  def getStencilsByName(name: String, version: Option[String] = None): List[Stencil]
 
   def getBucket(name: String): Option[Bucket]
 
