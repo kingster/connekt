@@ -33,13 +33,13 @@ import scala.util.Failure
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  @deprecated("delete after callback gets live")
+  @deprecated("delete after callback gets live", "bigbang")
   lazy val isVaradhiRelayEnabled = ConnektConfig.getBoolean("flags.varadhi.enabled").get
 
-  @deprecated("delete after callback gets live")
+  @deprecated("delete after callback gets live", "bigbang")
   lazy val varadhiUri = s"http://${ConnektConfig.getString("connections.varadhi.host").get}/topics/${ConnektConfig.getString("connections.varadhi.topic").get}/messages"
 
-  @deprecated("delete after callback gets live")
+  @deprecated("delete after callback gets live", "bigbang")
   lazy val client = new HttpClient(
     name = "varadhi-relay-client",
     ttlInMillis = ConnektConfig.getInt("http.apache.ttlInMillis").getOrElse(60000).toLong,
