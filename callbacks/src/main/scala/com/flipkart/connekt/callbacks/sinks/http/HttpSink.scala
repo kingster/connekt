@@ -83,8 +83,8 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
 
   private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
     val httpEntity = HttpEntity(ContentTypes.`application/json`, event.getJson)
-    val endpointDetail = subscription.eventSink.asInstanceOf[HTTPEventSink]
-    val httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = subscription.eventSink.asInstanceOf[HTTPEventSink].url, entity = httpEntity)
+    val endpointDetail = subscription.sink.asInstanceOf[HTTPEventSink]
+    val httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = subscription.sink.asInstanceOf[HTTPEventSink].url, entity = httpEntity)
     val callbackTracker = HttpCallbackTracker(httpRequest)
     (httpRequest, callbackTracker)
   }

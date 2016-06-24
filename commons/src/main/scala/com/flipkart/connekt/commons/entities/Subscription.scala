@@ -25,8 +25,8 @@ class Subscription {
   @Column(name = "name")
   var name: String = _
 
-  @Column(name = "eventSink")
-  var eventSink : EventSink  = _
+  @Column(name = "sink")
+  var sink : EventSink  = _
 
   @Column(name = "createdBy")
   var createdBy : String = _
@@ -48,7 +48,7 @@ class Subscription {
     this
     this.id = sId
     this.name = sName
-    this.eventSink = endpoint
+    this.sink = endpoint
     this.createdBy = createdBy
     this.createdTS = createdTS
     this.lastUpdatedTS = lastUpdatedTS
@@ -57,5 +57,5 @@ class Subscription {
   }
 
   override def toString =
-    s"Subscription($id, $name, ${eventSink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $eventFilter, ${shutdownThreshold.toString})"
+    s"Subscription($id, $name, ${sink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $eventFilter, ${shutdownThreshold.toString})"
 }

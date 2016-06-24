@@ -26,7 +26,7 @@ class SubscriptionDaoTest extends CommonsBaseTest {
   subscription.id = UUID.randomUUID().toString
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.eventSink = new HTTPEventSink("POST","http://localhost:8080/testingRoute")
+  subscription.sink = new HTTPEventSink("POST","http://localhost:8080/testingRoute")
   subscription.eventFilter = "This is a groovy eventFilter string for testing"
 
   "add test" should "not throw exception" in {

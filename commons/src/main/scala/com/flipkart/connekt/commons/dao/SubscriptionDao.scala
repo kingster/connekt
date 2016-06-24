@@ -24,12 +24,12 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
     implicit val j = mySQLHelper.getJDBCInterface
     try {
       val q1 = s"""
-                  |INSERT INTO $subscriptionTable (id, name, eventSink, createdBy, createdTS, lastUpdatedTS, eventFilter, shutdownThreshold) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-                  |ON DUPLICATE KEY UPDATE  name = ?, eventSink = ?, lastUpdatedTS = ?, eventFilter = ?, shutdownThreshold = ?
+                  |INSERT INTO $subscriptionTable (id, name, sink, createdBy, createdTS, lastUpdatedTS, eventFilter, shutdownThreshold) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                  |ON DUPLICATE KEY UPDATE  name = ?, sink = ?, lastUpdatedTS = ?, eventFilter = ?, shutdownThreshold = ?
         """.stripMargin
-      update(q1,subscription.id, subscription.name, subscription.eventSink.getJson,subscription.createdBy, subscription.createdTS,
+      update(q1,subscription.id, subscription.name, subscription.sink.getJson,subscription.createdBy, subscription.createdTS,
         subscription.lastUpdatedTS, subscription.eventFilter,subscription.shutdownThreshold,
-        subscription.name, subscription.eventSink.getJson, subscription.lastUpdatedTS, subscription.eventFilter,subscription.shutdownThreshold)
+        subscription.name, subscription.sink.getJson, subscription.lastUpdatedTS, subscription.eventFilter,subscription.shutdownThreshold)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error writing subscription [${subscription.id}] ${e.getMessage}", e)

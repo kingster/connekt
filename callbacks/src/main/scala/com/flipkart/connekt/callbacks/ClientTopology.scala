@@ -35,7 +35,7 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
     val evaluator = FabricMaker.create[Evaluator](subscription.id, subscription.eventFilter)
     kafkaCallbackSource = new CallbackKafkaSource[CallbackEvent](topic, subscription.id, kafkaConsumerConnConf)(topologyShutdownTrigger.future)
     val source = Source.fromGraph(kafkaCallbackSource).filter(evaluator.evaluate)
-    subscription.eventSink match {
+    subscription.sink match {
       case http: HTTPEventSink => source.runWith(new HttpSink(subscription, retryLimit, topologyShutdownTrigger).getHttpSink)
       case kafka: KafkaEventSink => source.runWith(new KafkaSink(kafka.broker, kafka.zookeeper).getKafkaSink)
     }
