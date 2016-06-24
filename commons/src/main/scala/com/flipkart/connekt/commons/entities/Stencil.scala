@@ -33,9 +33,14 @@ class Stencil() {
   @Column(name = "engineFabric")
   var engineFabric: String = _
 
+  @Column(name = "component")
+  var component: String = _
+
+  @Column(name = "name")
+  var name: String = _
+
   @Column(name = "createdBy")
   var createdBy: String = _
-
 
   @Column(name = "updatedBy")
   var updatedBy: String = _
@@ -52,16 +57,7 @@ class Stencil() {
   @Column(name = "bucket")
   var bucket: String = _
 
-
-  def this(id: String, engine: StencilEngine, engineFabric: String) = {
-    this
-    this.id = id
-    this.engine = engine
-    this.engineFabric = engineFabric
-    this.bucket = bucket
-  }
-
-  override def toString = s"Stencil($id, $engine, $engineFabric)"
+  override def toString = s"Stencil($id, $name, $component, $engine, $engineFabric)"
 }
 
 object StencilEngine extends Enumeration {
@@ -77,7 +73,7 @@ class StencilEngineToStringSerializer extends JsonSerializer[StencilEngine] {
 
 class StencilEngineToStringDeserializer extends JsonDeserializer[StencilEngine] {
   @Override
-  override def deserialize(parser:JsonParser, context:DeserializationContext):StencilEngine.Value={
+  override def deserialize(parser: JsonParser, context: DeserializationContext): StencilEngine.Value = {
     try {
       StencilEngine.withName(parser.getValueAsString.toUpperCase)
     } catch {

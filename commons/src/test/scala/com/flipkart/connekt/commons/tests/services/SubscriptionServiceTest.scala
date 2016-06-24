@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.tests.services
 
 import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription}
@@ -11,7 +23,7 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   subscription.name = "SubscriptionServiceTest"
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.eventSink = new HTTPEventSink("POST", "http://localhost:8080/serviceTestingRoute")
+  subscription.sink = new HTTPEventSink("POST", "http://localhost:8080/serviceTestingRoute")
   subscription.eventFilter = "This is groovy eventFilter string for SubscriptionServiceTest"
 
   "add Test" should "return success" in {

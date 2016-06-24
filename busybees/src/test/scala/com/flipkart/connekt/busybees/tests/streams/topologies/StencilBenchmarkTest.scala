@@ -55,7 +55,7 @@ class StencilBenchmarkTest extends TopologyUTSpec with Instrumented {
         |{
         |	"channel": "PN",
         |	"sla": "H",
-        | "templateId": "ckt-retailqa-android",
+        | "stencilId": "ckt-retailqa-android",
         | "channelDataModel": {
         |     "message" : "hello",
         |     "id" : "abcd",
