@@ -31,6 +31,8 @@ import scala.util.{Failure, Success}
 
 class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
+  lazy implicit val stencilService = ServiceFactory.getStencilService
+
   val route =
     authenticate {
       user =>
@@ -47,7 +49,7 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                             //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
-                          request.validate()
+                          request.validate
 
                           ConnektLogger(LogFile.SERVICE).debug(s"Received PN request with payload: ${request.toString}")
 
@@ -79,11 +81,11 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                   case Success(id) =>
                                     val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                     success += id -> deviceIds
-                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                   case Failure(t) =>
                                     val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                     failure ++= deviceIds
-                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
+                                    ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                                 }
                               }
                             }
@@ -105,10 +107,9 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       getXHeaders { headers =>
                         entity(as[ConnektRequest]) { r =>
                           val request = r.copy(clientId = user.userId, channel = "push", meta = {
-                            //TODO: Crazy jackson bug
                             Option(r.meta).getOrElse(Map.empty[String,String]) ++ headers
                           })
-                          request.validate()
+                          request.validate
 
                           ConnektLogger(LogFile.SERVICE).debug(s"Received PN request sent for user : $userId with payload: ${request.toString}")
 
@@ -138,11 +139,11 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 case Success(id) =>
                                   val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                   success += id -> deviceIds
-                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Received, deviceIds.size)
                                 case Failure(t) =>
                                   val deviceIds = p.channelInfo.asInstanceOf[PNRequestInfo].deviceIds
                                   failure ++= deviceIds
-                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.templateId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
+                                  ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                               }
                             }
 
