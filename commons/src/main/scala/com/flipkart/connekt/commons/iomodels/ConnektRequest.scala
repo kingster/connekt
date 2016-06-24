@@ -38,7 +38,7 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
   }
 
   def validate(implicit stencilService: TStencilService) = {
-    require(stencilId.map(stencilService.get(_).isDefined).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
+    require(stencilId.map(stencilService.get(_).nonEmpty).getOrElse(Option(channelData).isDefined), "given template doesn't exist")
     require(contextId.forall(_.hasOnlyAllowedChars), "`contextId` field can only contain [A-Za-z0-9_.-:|] allowed chars.")
     require(sla.isDefined, "`sla` field can cannot be null or empty.")
     require(meta != null, "`meta` field cannot be null. It is optional but non-null")
@@ -46,12 +46,12 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
   }
 
   def getComputedChannelData(implicit stencilService: TStencilService): ChannelRequestData =
-    stencilId.flatMap(stencilService.get(_)).map { stencils =>
+    stencilId.map(stencilService.get(_)).map { stencil =>
       Channel.withName(channel) match {
         case Channel.PUSH =>
-          stencils.map(s => PNRequestData(stencilService.materialize(s, channelDataModel).asInstanceOf[String].getObj[ObjectNode])).head
-        case unMaterializedChannel =>
-          throw new Exception(s"`channelData` compute undefined for $unMaterializedChannel")
+           PNRequestData(stencilService.materialize(stencil.head, channelDataModel).asInstanceOf[String].getObj[ObjectNode])
+        case unsupportedChannel =>
+          throw new Exception(s"`channelData` compute undefined for $unsupportedChannel")
       }
     }.getOrElse(channelData)
 }

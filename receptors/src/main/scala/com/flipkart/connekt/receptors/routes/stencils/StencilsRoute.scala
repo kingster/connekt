@@ -153,7 +153,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource("stencilPreviewHead") {
                       entity(as[ObjectNode]) { entity =>
                         stencilService.get(id) match {
-                          case Some(stencils) if stencils.nonEmpty =>
+                          case stencils if stencils.nonEmpty =>
                             val bucketIds = stencils.head.bucket.split(",")
                             authorize(user, bucketIds.map("STENCIL_PREVIEW_" + _): _*) {
                               val preview = stencils.map(stencil => {
@@ -174,7 +174,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         meteredResource("stencilPreviewVersion") {
                           entity(as[ObjectNode]) { entity =>
                             stencilService.get(id, Some(version)) match {
-                              case Some(stencils) if stencils.nonEmpty =>
+                              case stencils if stencils.nonEmpty =>
                                 authorize(user, stencils.head.bucket.split(",").map("STENCIL_PREVIEW_" + _): _*) {
                                   val preview = stencils.map(stencil => {
                                     stencil.component -> stencilService.materialize(stencil, entity)
@@ -201,11 +201,11 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       get {
                         meteredResource("stencilGetVersion") {
                           stencilService.get(id, Option(version)) match {
-                            case Some(stnc) if stnc.nonEmpty =>
+                            case stnc if stnc.nonEmpty =>
                               authorize(user, stnc.head.bucket.split(",").map("STENCIL_GET_" + _): _*) {
                                 complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stnc))))
                               }
-                            case None =>
+                            case _ =>
                               complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for name: $id with version: $version", null)))
                           }
                         }
@@ -215,7 +215,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   put {
                     meteredResource("stencilUpdate") {
                       stencilService.get(id) match {
-                        case Some(stencils) if stencils.nonEmpty =>
+                        case stencils if stencils.nonEmpty =>
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_UPDATE_" + _): _*) {
                             entity(as[ObjectNode]) { obj =>
                               val stencilName = obj.get("name").asText()
@@ -269,7 +269,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   } ~ get {
                     meteredResource("stencilGet") {
                       stencilService.get(id) match {
-                        case Some(stencils) if stencils.nonEmpty =>
+                        case stencils if stencils.nonEmpty =>
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_GET_" + _): _*) {
                             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencils))))
                           }
