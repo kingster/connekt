@@ -38,7 +38,7 @@ class CallbackRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     authorize(user, "ADD_EVENTS", s"ADD_EVENTS_$appName") {
                       post {
                         entity(as[PNCallbackEvent]) { e =>
-                          val event = e.copy(platform = appPlatform.toString, appName = appName, deviceId = deviceId, messageId = Option(e.messageId).orEmpty, eventType = e.eventType.toLowerCase)
+                          val event = e.copy(clientId = user.userId , platform = appPlatform.toString, appName = appName, deviceId = deviceId, messageId = Option(e.messageId).orEmpty, eventType = Option(e.eventType).map(_.toLowerCase).orNull)
                           event.validate()
                           event.persist
                           ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, Some(event.contextId), None, Some(event.platform), event.appName, event.eventType)

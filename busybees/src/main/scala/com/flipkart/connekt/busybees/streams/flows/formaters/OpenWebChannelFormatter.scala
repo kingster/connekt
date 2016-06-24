@@ -17,12 +17,12 @@ import com.flipkart.connekt.busybees.encryption.WebPushEncryptionUtils
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager, PNPlatformStencilService, StencilService}
+import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -30,6 +30,8 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, OpenWebStandardPayloadEnvelope](parallelism)(ec) {
+
+  lazy val stencilService = ServiceFactory.getStencilService
 
   override def map: ConnektRequest => List[OpenWebStandardPayloadEnvelope] = message => {
 
@@ -45,7 +47,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.OPENWEB, pnInfo.appName, message.contextId.orEmpty)).persist
 
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
-      val openWebStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-openweb").get
+      val openWebStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-openweb").get.headOption.orNull
 
       if (ttl > 0) {
         devicesInfo.flatMap(device => {
@@ -53,9 +55,9 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
           if (device.token != null && device.token.nonEmpty && device.token.isValidUrl) {
             val token = device.token.replace("https://android.googleapis.com/gcm/send", "https://gcm-http.googleapis.com/gcm")
             val headers = scala.collection.mutable.Map("TTL" -> ttl.toString)
-            val appDataWithId = PNPlatformStencilService.getPNData(openWebStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id).getJson
+            val appDataWithId = stencilService.materialize(openWebStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String].getObj[ObjectNode].put("messageId", message.id).getJson
 
-            if (device.token.startsWith("https://android.googleapis.com/gcm/send"))
+            if (token.startsWith("https://gcm-http.googleapis.com/gcm"))
               headers += ("Authorization" -> s"key=${KeyChainManager.getGoogleCredential(message.appName).get.apiKey}")
 
             if (device.keys != null && device.keys.nonEmpty) {

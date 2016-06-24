@@ -12,7 +12,6 @@
  */
 package com.flipkart.connekt.commons.entities.fabric
 
-import com.flipkart.connekt.commons.utils.StringUtils._
 import com.roundeights.hasher.Implicits._
 import groovy.lang.GroovyClassLoader
 
@@ -20,7 +19,6 @@ object FabricMaker {
 
   /**
    *
-   * @param stencilId stencil identifier
    * @param groovyFabric groovy class content
    * @param cTag implicit erased class of type T
    * @tparam T classType of groovy class
@@ -32,7 +30,7 @@ object FabricMaker {
     gcl.parseClass(groovyFabric, groovyFabricKey).newInstance().asInstanceOf[T]
   }
 
-  def createVtlFabric(stencilId: String, objRep: String): VelocityFabric = {
-    objRep.getObj[VelocityFabric]
+  def createVtlFabric(objRep: String): VelocityFabric = {
+    new VelocityFabric(objRep)
   }
 }
