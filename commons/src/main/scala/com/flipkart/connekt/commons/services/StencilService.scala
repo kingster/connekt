@@ -92,21 +92,21 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
   }
 
   @Timed("get")
-  def get(id: String, version: Option[String] = None) = {
+  def get(id: String, version: Option[String] = None): List[Stencil] = {
     LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](stencilCacheKey(id, version)).orElse {
       val stencils = stencilDao.getStencils(id, version)
       LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id, version), stencils)
       Option(stencils)
-    }
+    }.get
   }
 
   @Timed("get")
-  def getStencilsByName(name: String, version: Option[String] = None) = {
+  def getStencilsByName(name: String, version: Option[String] = None): List[Stencil] = {
     LocalCacheManager.getCache(LocalCacheType.Stencils).get[List[Stencil]](stencilCacheKey(name, version)).orElse {
       val stencils = stencilDao.getStencilsByName(name, version)
       LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(name, version), stencils)
       Option(stencils)
-    }
+    }.get
   }
 
   @Timed("getBucket")
