@@ -12,6 +12,8 @@
  */
 package com.flipkart.connekt.busybees.streams.topologies
 
+import java.util.Random
+
 import akka.NotUsed
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Implicits._
@@ -39,6 +41,9 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
 
+object AndroidProtocols extends Enumeration {
+  val http, xmpp = Value
+}
 
 class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] with SyncDelegate {
 
@@ -115,13 +120,13 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
      */
     val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
     val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare().flow)
+    val gcmHttpPrepare = b.add(new GCMHttpDispatcherPrepare().flow)
 
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
 
     val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
 
-    platformPartition.out(1) ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle ~> merger.in(1)
+    platformPartition.out(1) ~> androidTopology ~> merger.in(1)
 
     /**
      * Windows Topology
@@ -171,6 +176,62 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     FlowShape(render.in, merger.out)
   })
+
+  val androidTopology = if ( xmppShare == 100) xmppOnlyTopology else if ( xmppShare == 0 ) httpOnlyTopology else combinedTopology
+
+  lazy val httpOnlyTopology = GraphDSL.create() {
+    implicit b ⇒
+      val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
+      val fmtAndroid = b.add(new AndroidHttpChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
+      val gcmHttpPrepare = b.add(new GCMHttpDispatcherPrepare().flow)
+
+      val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
+
+      val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
+
+      fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle
+      FlowShape(fmtAndroid.in, gcmResponseHandle.out)
+  }
+
+  lazy val xmppOnlyTopology = GraphDSL.create() {
+    implicit b ⇒
+      val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
+      val fmtAndroid = b.add(new AndroidXmppChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
+
+      val gcmXmppPoolFlow = b.add(new GcmXmppDispatcher)
+
+      val downstreamHandler = b.add(new XmppDownstreamHandler()(ioMat, ioDispatcher).flow)
+
+      val upstreamHandler = b.add(new XmppUpstreamHandler()(ioMat, ioDispatcher).flow)
+
+      val merger = b.add(Merge[PNCallbackEvent](2))
+
+      fmtAndroid ~> gcmXmppPoolFlow.in
+                                gcmXmppPoolFlow.out0 ~> downstreamHandler ~> merger.in(0)
+                                gcmXmppPoolFlow.out1 ~> upstreamHandler ~> merger.in(0)
+      FlowShape(fmtAndroid.in, merger.out)
+  }
+
+  lazy val xmppShare:Float = ConnektConfig.get("android.protocol.xmppshare").getOrElse("100").toFloat
+
+  def chooseProtocol = if ( randomGenerator.nextInt(100) < xmppShare ) AndroidProtocols.xmpp else AndroidProtocols.http
+
+  lazy val randomGenerator = new Random()
+
+  lazy val combinedTopology = GraphDSL.create() {
+    implicit b ⇒
+      val platformPartition = b.add(new Partition[ConnektRequest](2, { _ =>
+        chooseProtocol match {
+          case AndroidProtocols.xmpp => 0
+          case AndroidProtocols.http => 1
+        }
+      }))
+      val merger = b.add(Merge[PNCallbackEvent](2))
+      platformPartition.out(0) ~> xmppOnlyTopology ~> merger.in(0)
+      platformPartition.out(1) ~> httpOnlyTopology ~> merger.in(1)
+
+      FlowShape(platformPartition.in, merger.out)
+  }
 
   override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create() { implicit b =>
 

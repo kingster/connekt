@@ -15,7 +15,7 @@ package com.flipkart.connekt.busybees.streams.flows.formaters
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
-import com.flipkart.connekt.commons.entities.MobilePlatform
+import com.flipkart.connekt.commons.entities.{DeviceDetails, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
@@ -27,7 +27,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
-class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, GCMPayloadEnvelope](parallelism)(ec) {
+abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, GCMPayloadEnvelope](parallelism)(ec) {
 
   override def map: ConnektRequest => List[GCMPayloadEnvelope] = message => {
 
@@ -42,7 +42,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds.toSet)
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
-      val tokens = devicesInfo.map(_.token)
+      val tokens:Map[String, DeviceDetails] = devicesInfo.map{device => (device.token,device)}.toMap
       val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
 
       val appDataWithId = PNPlatformStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
@@ -50,8 +50,7 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 
       if (tokens.nonEmpty && ttl > 0) {
-        val payload = GCMPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(ttl), dry_run = dryRun)
-        List(GCMPayloadEnvelope(message.id, message.clientId, validDeviceIds, pnInfo.appName, message.contextId.orEmpty, payload, message.meta))
+        formPayload(message, tokens, pnInfo, appDataWithId, ttl, dryRun)
       } else if (tokens.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, message.clientId, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
@@ -64,4 +63,11 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         throw new ConnektPNStageException(message.id, message.clientId, message.deviceId, InternalStatus.StageError, message.appName, message.platform, message.contextId.orEmpty, message.meta, "AndroidChannelFormatter::".concat(e.getMessage), e)
     }
   }
+
+  def formPayload(message:ConnektRequest,
+                  devices:Map[String, DeviceDetails],
+                  pnInfo:PNRequestInfo,
+                  appDataWithId:Any,
+                  timeToLive:Long,
+                  dryRun:Option[Boolean]):List[GCMPayloadEnvelope]
 }
