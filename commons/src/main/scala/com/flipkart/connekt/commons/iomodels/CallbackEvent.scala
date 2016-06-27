@@ -24,4 +24,4 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
   new Type(value = classOf[PNCallbackEvent], name = "PN"),
   new Type(value = classOf[EmailCallbackEvent], name = "EMAIL")
 ))
-abstract class CallbackEvent
+abstract class CallbackEvent(val messageId: String, val eventId: String)

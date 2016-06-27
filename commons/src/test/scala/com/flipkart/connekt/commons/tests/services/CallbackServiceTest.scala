@@ -63,7 +63,7 @@ class CallbackServiceTest extends CommonsBaseTest {
     pnInfo = pnInfo.copy(id = mid)
 
     val callbackService = ServiceFactory.getCallbackService
-    callbackService.persistCallbackEvent(callBackEvent.messageId, s"${callBackEvent.appName}${callBackEvent.deviceId}", Channel.PUSH, callBackEvent).isSuccess shouldEqual true
+    callbackService.persistCallbackEvents(s"${callBackEvent.appName.toLowerCase}${callBackEvent.deviceId}" , Channel.PUSH , List(callBackEvent)).isSuccess shouldEqual true
   }
 
   "Callback Service" should "fetchCallbackEvent" in {

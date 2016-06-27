@@ -18,7 +18,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.metrics.Timed
-import org.apache.commons.lang.RandomStringUtils
 
 import scala.util.Try
 
@@ -37,11 +36,11 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   }
 
   @Timed("persistCallbackEvent")
-  override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
+  override def persistCallbackEvents(forContact: String, channel: Channel.Value, callbackEvents: List[CallbackEvent]): Try[List[String]] = {
     Try {
-      channelEventsDao(channel).asyncSaveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
-      ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
-      requestId
+      val rowkeys = channelEventsDao(channel).asyncSaveCallbackEvents(forContact, callbackEvents)
+      ConnektLogger(LogFile.SERVICE).debug(s"Event saved with rowkeys $rowkeys")
+      rowkeys
     }
   }
 
@@ -51,8 +50,6 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
       channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None, MAX_FETCH_EVENTS)
     }
   }
-
-  private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 
   @Timed("fetchCallbackEventByContactId")
   def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[(CallbackEvent, Long)]] = {
