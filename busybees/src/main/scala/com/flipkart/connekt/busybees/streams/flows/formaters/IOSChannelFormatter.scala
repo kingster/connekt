@@ -39,6 +39,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val devicesInfo = DeviceDetailsService.get(pnInfo.appName, pnInfo.deviceIds).get
       val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.IOS, pnInfo.appName, message.contextId.orEmpty)).persist
+      ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.MissingDeviceInfo, invalidDeviceIds.size)
 
       val listOfTokenDeviceId = devicesInfo.map(r => (r.token, r.deviceId))
       val iosStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-ios")
@@ -64,6 +65,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
         }
       } else if (apnsEnvelopes.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"IOSChannelFormatter dropping ttl-expired message: ${message.id}")
+        ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.TTLExpired, devicesInfo.size)
         apnsEnvelopes.map(e => PNCallbackEvent(e.messageId, message.clientId, e.deviceId, InternalStatus.TTLExpired, MobilePlatform.IOS, e.appName, message.contextId.orEmpty)).persist
         List.empty[APSPayloadEnvelope]
       } else
