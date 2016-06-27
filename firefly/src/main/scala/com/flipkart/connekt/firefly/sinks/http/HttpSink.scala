@@ -28,6 +28,7 @@ import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.utils.StringUtils._
+import collection.JavaConverters._
 
 import scala.collection._
 import scala.concurrent.{ExecutionContext, Promise}
@@ -67,18 +68,15 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
       val _sink = subscription.sink.asInstanceOf[HTTPEventSink]
       stencilService.get(subscription.header).find(_.component == "header") match {
         case Some(stencil) =>
-          val customHeaders = stencilService.materialize(stencil,event.getJson.getObj[ObjectNode]).asInstanceOf[Map[String,String]]
-          _sink.copy(headers = _sink.headers ++ customHeaders)
-        case None =>
-          _sink
+          val customHeaders = stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
+          _sink.copy(headers = customHeaders.asInstanceOf[scala.collection.immutable.Map[String,String]])
+        case None => _sink
       }
     }
 
-    var httpRequest : HttpRequest = null
-
-    endpointDetail.headers match {
-      case null =>  httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity)
-      case  _ =>  httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity,
+    val httpRequest = endpointDetail.headers match {
+      case null =>  HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity)
+      case  _ => HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity,
         headers = immutable.Seq[HttpHeader](endpointDetail.headers.map { case (key, value) => RawHeader(key, value) }.toArray: _ *))
     }
 

@@ -35,9 +35,9 @@ class HttpTopologyTest extends TopologyUTSpec {
     subscriptionSuccess.name = "TestDrive"
     subscriptionSuccess.id = "8a4b3dfa-31b4-4608-addb-fe48a6669cd5"
     subscriptionSuccess.shutdownThreshold = 3
-    subscriptionSuccess.header = null
+    subscriptionSuccess.header = "8a4b3dfa-31b4-4608-addb-fe48a6669cd5"
     subscriptionSuccess.createdBy = "connekt-genesis"
-    subscriptionSuccess.sink = new HTTPEventSink("POST", "http://requestb.in/qhqc4zqh",null)
+    subscriptionSuccess.sink = new HTTPEventSink("POST", "http://requestb.in/wis41kwi",null)
     subscriptionSuccess.eventFilter = "8a4b3dfa-31b4-4608-addb-fe48a6669cd5"
     SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.START.toString, subscriptionSuccess.getJson)))
 
@@ -95,7 +95,7 @@ class HttpTopologyTest extends TopologyUTSpec {
       kafkaProducerHelper.writeMessages("active_events", msg)
 //    kafkaProducerHelper.writeMessages("active_events", msgFailed)
 
-    Thread.sleep(100000)
+    Thread.sleep(10000)
 
   }
 
