@@ -25,3 +25,8 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
   new Type(value = classOf[EmailCallbackEvent], name = "EMAIL")
 ))
 abstract class CallbackEvent
+{
+  var header: Map[String, String] = _
+  var payload: AnyRef = _
+}
+

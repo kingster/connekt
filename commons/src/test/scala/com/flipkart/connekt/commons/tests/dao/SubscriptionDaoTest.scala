@@ -22,12 +22,13 @@ class SubscriptionDaoTest extends CommonsBaseTest {
 
   val subscription = new Subscription()
 
-  subscription.name = "SubscriptionDaoTest"
+  subscription.name = "SubscriptionTest"
   subscription.id = UUID.randomUUID().toString
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.sink = new HTTPEventSink("POST","http://localhost:8080/subscriptionDaoTestRoute",null)
+  subscription.sink = new HTTPEventSink("POST","http://localhost:8080/subscriptionDaoTestRoute")
   subscription.eventFilter = "This is a groovy eventFilter string for testing"
+  subscription.eventTransformer = new EventTx("testHeader","testPayload")
 
   "add test" should "not throw exception" in {
     noException should be thrownBy DaoFactory.getSubscriptionDao.add(subscription)

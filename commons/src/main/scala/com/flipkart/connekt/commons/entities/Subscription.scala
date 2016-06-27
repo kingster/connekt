@@ -40,26 +40,26 @@ class Subscription {
   @Column(name = "eventFilter")
   var eventFilter : String = _
 
-  @Column(name = "header")
-  var header : String = _
+  @Column(name = "eventTransformer")
+  var eventTransformer: EventTx = _
 
   @Column(name = "shutdownThreshold")
   var shutdownThreshold : Int = _
 
   def this(sId: String, sName: String, endpoint: EventSink, createdBy: String,
-           createdTS: Date, lastUpdatedTS: Date, eventFilter: String, header:String, shutdownThreshold: Int) = {
+           createdTS: Date, lastUpdatedTS: Date, eventFilter:String, eventTransformer:EventTx, shutdownThreshold: Int) = {
     this
     this.id = sId
     this.name = sName
     this.sink = endpoint
     this.createdBy = createdBy
     this.createdTS = createdTS
-    this.lastUpdatedTS = lastUpdatedTS
     this.eventFilter = eventFilter
-    this.header = header
+    this.lastUpdatedTS = lastUpdatedTS
+    this.eventTransformer = eventTransformer
     this.shutdownThreshold = shutdownThreshold
   }
 
   override def toString =
-    s"Subscription($id, $name, ${sink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $eventFilter, ${shutdownThreshold.toString})"
+    s"Subscription($id, $name, ${sink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, ${shutdownThreshold.toString})"
 }

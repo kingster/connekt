@@ -63,21 +63,12 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
   private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
 
     val httpEntity = HttpEntity(ContentTypes.`application/json`, event.getJson)
-    val endpointDetail = {
-      val stencilService = ServiceFactory.getStencilService
-      val _sink = subscription.sink.asInstanceOf[HTTPEventSink]
-      stencilService.get(subscription.header).find(_.component == "header") match {
-        case Some(stencil) =>
-          val customHeaders = stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
-          _sink.copy(headers = customHeaders.asInstanceOf[scala.collection.immutable.Map[String,String]])
-        case None => _sink
-      }
-    }
+    val sink = subscription.sink.asInstanceOf[HTTPEventSink]
 
-    val httpRequest = endpointDetail.headers match {
-      case null =>  HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity)
-      case  _ => HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity,
-        headers = immutable.Seq[HttpHeader](endpointDetail.headers.map { case (key, value) => RawHeader(key, value) }.toArray: _ *))
+    val httpRequest = event.header match {
+      case null => HttpRequest(method = HttpMethods.getForKey(sink.method.toUpperCase).get, uri = sink.url, entity = httpEntity)
+      case _ => HttpRequest(method = HttpMethods.getForKey(sink.method.toUpperCase).get, uri = sink.url, entity = httpEntity,
+        headers = immutable.Seq[HttpHeader]( event.header.map { case (key, value) => RawHeader(key, value) }.toArray: _ *))
     }
 
     val callbackTracker = HttpCallbackTracker(httpRequest)
