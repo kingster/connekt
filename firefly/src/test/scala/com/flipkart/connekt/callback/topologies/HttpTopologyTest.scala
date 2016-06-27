@@ -16,7 +16,7 @@ import java.util.UUID
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.firefly.FireflyBoot
-import com.flipkart.connekt.commons.entities.{EventTx, GenericAction, HTTPEventSink, Subscription}
+import com.flipkart.connekt.commons.entities.{Transformers, GenericAction, HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.{ConnektConfig, SubscriptionService}
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
@@ -37,7 +37,7 @@ class HttpTopologyTest extends TopologyUTSpec {
     subscriptionSuccess.createdBy = "connekt-genesis"
     subscriptionSuccess.sink = new HTTPEventSink("POST", "http://requestb.in/wis41kwi")
     subscriptionSuccess.eventFilter = "testEventFilter"
-    subscriptionSuccess.eventTransformer = new EventTx("testHeader", null)
+    subscriptionSuccess.eventTransformer = new Transformers("testHeader", null)
 
 
     SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.START.toString, subscriptionSuccess.getJson)))

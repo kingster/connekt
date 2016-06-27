@@ -13,8 +13,6 @@
 package com.flipkart.connekt.firefly
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{HttpHeader, HttpMethods, HttpRequest}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -56,11 +54,16 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
 
 
   def transform(event: CallbackEvent): CallbackEvent = {
-    event.header = ServiceFactory.getStencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
-        case Some(stencil) =>
-         ServiceFactory.getStencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
+    val stencilService = ServiceFactory.getStencilService
+    event.header = stencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
+        case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
         case None => null
       }
+    event.payload = ServiceFactory.getStencilService.get(subscription.eventTransformer.payload).find(_.component == "payload") match {
+      case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
+      case None => null
+    }
     event
   }
+
 }

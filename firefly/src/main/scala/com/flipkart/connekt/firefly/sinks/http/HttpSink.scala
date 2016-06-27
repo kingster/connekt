@@ -23,12 +23,10 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription}
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.utils.StringUtils._
-import collection.JavaConverters._
 
 import scala.collection._
 import scala.concurrent.{ExecutionContext, Promise}
@@ -62,8 +60,12 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
 
   private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
 
-    val httpEntity = HttpEntity(ContentTypes.`application/json`, event.getJson)
     val sink = subscription.sink.asInstanceOf[HTTPEventSink]
+
+    val httpEntity = event.payload match {
+      case null => HttpEntity(ContentTypes.`application/json`, event.getJson)
+      case _ => HttpEntity(ContentTypes.`application/json`, event.payload.getJson)
+    }
 
     val httpRequest = event.header match {
       case null => HttpRequest(method = HttpMethods.getForKey(sink.method.toUpperCase).get, uri = sink.url, entity = httpEntity)
