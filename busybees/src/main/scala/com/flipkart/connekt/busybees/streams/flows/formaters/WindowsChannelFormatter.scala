@@ -42,6 +42,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
 
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
+      ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.MissingDeviceInfo, invalidDeviceIds.size)
 
       val (validDevices, invalidTokenDevices) = devicesInfo.partition(_.token.isValidUrl)
 
@@ -68,6 +69,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         }
       } else if (wnsRequestEnvelopes.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter dropping ttl-expired message: ${message.id}")
+        ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.TTLExpired, devicesInfo.size)
         wnsRequestEnvelopes.map(w => PNCallbackEvent(w.messageId, message.clientId, w.deviceId, InternalStatus.TTLExpired, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
         List.empty[WNSPayloadEnvelope]
       } else
