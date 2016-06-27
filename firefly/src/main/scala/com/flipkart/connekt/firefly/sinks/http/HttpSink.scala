@@ -31,6 +31,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.collection._
 import scala.concurrent.{ExecutionContext, Promise}
+
 class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrigger: Promise[String])(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
 
   val httpCachedClient = Http().superPool[HttpCallbackTracker]()
@@ -64,7 +65,7 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
     val endpointDetail = {
       val stencilService = ServiceFactory.getStencilService
       val _sink = subscription.sink.asInstanceOf[HTTPEventSink]
-      stencilService.getStencilsByName(subscription.id).get.headOption match {
+      stencilService.get(subscription.header).find(_.component == "header") match {
         case Some(stencil) =>
           val customHeaders = stencilService.materialize(stencil,event.getJson.getObj[ObjectNode]).asInstanceOf[Map[String,String]]
           _sink.copy(headers = _sink.headers ++ customHeaders)
@@ -73,9 +74,17 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
       }
     }
 
-    val httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity, headers = immutable.Seq[HttpHeader](endpointDetail.headers.map{  case (key, value)  =>  RawHeader(key, value)}.toArray: _ *))
+    var httpRequest : HttpRequest = null
+
+    endpointDetail.headers match {
+      case null =>  httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity)
+      case  _ =>  httpRequest = HttpRequest(method = HttpMethods.getForKey(endpointDetail.method.toUpperCase).get, uri = endpointDetail.url, entity = httpEntity,
+        headers = immutable.Seq[HttpHeader](endpointDetail.headers.map { case (key, value) => RawHeader(key, value) }.toArray: _ *))
+    }
+
     val callbackTracker = HttpCallbackTracker(httpRequest)
 
     httpRequest -> callbackTracker
   }
+
 }

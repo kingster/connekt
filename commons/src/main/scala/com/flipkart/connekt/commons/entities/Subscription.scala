@@ -40,11 +40,14 @@ class Subscription {
   @Column(name = "eventFilter")
   var eventFilter : String = _
 
+  @Column(name = "header")
+  var header : String = _
+
   @Column(name = "shutdownThreshold")
   var shutdownThreshold : Int = _
 
-  def this(sId: String, sName: String, endpoint: EventSink,
-           createdBy: String, createdTS: Date, lastUpdatedTS: Date, groovyString: String, shutdownThreshold: Int) = {
+  def this(sId: String, sName: String, endpoint: EventSink, createdBy: String,
+           createdTS: Date, lastUpdatedTS: Date, eventFilter: String, header:String, shutdownThreshold: Int) = {
     this
     this.id = sId
     this.name = sName
@@ -52,7 +55,8 @@ class Subscription {
     this.createdBy = createdBy
     this.createdTS = createdTS
     this.lastUpdatedTS = lastUpdatedTS
-    this.eventFilter = groovyString
+    this.eventFilter = eventFilter
+    this.header = header
     this.shutdownThreshold = shutdownThreshold
   }
 

@@ -20,7 +20,7 @@ import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.ConfigUtils
@@ -57,6 +57,8 @@ object FireflyBoot extends BaseApp {
 
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
+
+      ServiceFactory.initStencilService(DaoFactory.getStencilDao)
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
 

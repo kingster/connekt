@@ -23,7 +23,7 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   subscription.name = "SubscriptionServiceTest"
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.sink = new HTTPEventSink("POST", "http://localhost:8080/serviceTestingRoute")
+  subscription.sink = new HTTPEventSink("POST", "http://localhost:8080/serviceTestingRoute",null)
   subscription.eventFilter = "This is groovy eventFilter string for SubscriptionServiceTest"
 
   "add Test" should "return success" in {
