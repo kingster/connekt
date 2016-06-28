@@ -75,7 +75,6 @@ class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryCo
             scheduleOnce(TimerPollTrigger, timerDelayInMs)
         }
       } else {
-        //ConnektLogger(LogFile.PROCESSORS).trace(s"KafkaSource pushElement no-data")
         scheduleOnce(TimerPollTrigger, timerDelayInMs)
       }
 
@@ -92,30 +91,21 @@ class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryCo
       } catch {
         case e: Exception =>
           ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource iteration error: ${e.getMessage}", e)
-          //kafkaConsumerHelper.returnConnector(kafkaConsumerConnector)
           createKafkaConsumer()
-        /*failStage(e)*/
       }
     })
 
-
     override def preStart(): Unit = {
       createKafkaConsumer()
-      //  val startOffset = kafkaConsumerHelper.offsets(topic)
-      //  ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Start for topic $topic are: ${startOffset.toString()}")
 
-      val handle = getAsyncCallback[String] { (r: String) =>
-        kafkaConsumerConnector.shutdown()
-        completeStage()}
+      val handle = getAsyncCallback[String] { (r: String) => kafkaConsumerConnector.shutdown()
+        completeStage()
+      }
 
       shutdownTrigger onComplete { t =>
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
         handle.invoke(t.getOrElse("_external topology shutdown signal_"))
-        //    val stopOffsets = kafkaConsumerHelper.offsets(topic)
-        //    ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
-
       }
-
       super.preStart()
     }
   }

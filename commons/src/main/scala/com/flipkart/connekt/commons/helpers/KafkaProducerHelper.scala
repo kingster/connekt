@@ -30,7 +30,6 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
 
   override def zkPath(): String = producerFactoryConf.getString("zookeeper.connect")
 
-
   val kafkaProducerPool: GenericObjectPool[Producer[String, String]] = {
     try {
       createKafkaProducerPool(producerFactoryConf,
@@ -51,10 +50,9 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
     val producer = kafkaProducerPool.borrowObject()
     try {
       val keyedMessages = message.map(new KeyedMessage[String, String](topic, _))
-      producer.send(keyedMessages: _*)
-    } catch {
-      case e: Exception => ConnektLogger(LogFile.FACTORY).error(s"Error in writing the message to kafka. ${e.getMessage}", e)
-    } finally {
+      producer.send(keyedMessages:_*)
+    }
+    finally {
       kafkaProducerPool.returnObject(producer)
     }
   }

@@ -32,7 +32,6 @@ object CallbackRecorder extends Instrumented {
         meter(s"event.${e.eventType}").mark()
         BigfootService.ingest(e.toBigfootFormat)
       })
-
       if (events.nonEmpty) {
         ServiceFactory.getCallbackService.persistCallbackEvents(Channel.PUSH, events.toList).get
       }

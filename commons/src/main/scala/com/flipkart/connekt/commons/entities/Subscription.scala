@@ -15,8 +15,10 @@ package com.flipkart.connekt.commons.entities
 import java.util.Date
 import javax.persistence.Column
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.dao.JSONField
+
+case class Transformers (header: String, payload: String) extends JSONField
 
 class Subscription {
 

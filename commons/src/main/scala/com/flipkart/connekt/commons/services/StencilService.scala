@@ -37,7 +37,7 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
     try {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
-          FabricMaker.create[GroovyFabric](stencil.id,stencil.engineFabric)
+          FabricMaker.create[GroovyFabric](stencil.id)
         case StencilEngine.VELOCITY =>
           FabricMaker.createVtlFabric(stencil.engineFabric)
       }
@@ -53,7 +53,7 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
     LocalCacheManager.getCache(LocalCacheType.EngineFabrics).get[EngineFabric](fabricCacheKey(stencil.id, stencil.component, stencil.version.toString)).orElse {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
-          FabricMaker.create[GroovyFabric](stencil.id,stencil.engineFabric)
+          FabricMaker.create[GroovyFabric](stencil.engineFabric)
         case StencilEngine.VELOCITY =>
           FabricMaker.createVtlFabric(stencil.engineFabric)
       }

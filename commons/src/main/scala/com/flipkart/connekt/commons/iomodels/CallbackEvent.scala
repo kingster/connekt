@@ -30,5 +30,4 @@ abstract class CallbackEvent {
   def messageId: String
 
   def eventId: String
-
 }

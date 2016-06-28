@@ -99,7 +99,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
       val startOffset = kafkaConsumerHelper.offsets(topic)
       ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Start for topic $topic are: ${startOffset.toString()}")
 
-      val handle = getAsyncCallback[String] { (r: String) => completeStage() }
+      val handle = getAsyncCallback[String] { (r: String) => completeStage()}
 
       shutdownTrigger onComplete { t =>
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
