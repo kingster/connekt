@@ -1,5 +1,7 @@
 package com.flipkart.connekt.receptors.tests.routes.callbacks
 
+import java.util.UUID
+
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
@@ -17,39 +19,83 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
   var subscription: Subscription = _
   implicit val mat = ActorMaterializer()
 
-  "Create Test" should "return OK" in {
-    val groovyString =
-      """
-        |package com.flipkart.connekt.commons.entities;
-        |import com.flipkart.connekt.commons.iomodels.CallbackEvent
-        |import com.flipkart.connekt.commons.iomodels.PNCallbackEvent;
-        |class ConnektSampleAppGroovy implements Evaluator {
-        |public boolean evaluate(CallbackEvent context) {
-        |return (context as PNCallbackEvent).eventType().equals("gcm_received")
-        |}
-        |
-        |}
+  var JSONRequest =
+    s"""
+       |{
+       |	"name" : "SubscriptionRouteTest",
+       |	"sink":
+       |    {
+       |        "type" : "HTTP",
+       |        "method" : "POST",
+       |        "url" : "http://requestb.in/wis41kwi"
+       |    },
+       |	"eventFilter": "testEventFilter",
+       |  "eventTransformer":
+       |    {
+       |        "header" : "testHeader",
+       |        "payload" : "testPayload"
+       |    },
+       |	"shutdownThreshold" : "4"
+       |}
       """.stripMargin
 
-    val JSONRequest =
-      s"""
-         |{
-         |	"sName" : "SubscriptionRouteTest",
-         |	"endpoint":
-         |    {
-         |        "type" : "HTTP",
-         |        "method" : "POST",
-         |        "url" : "http://localhost:8080/SubscriptionRouteTesting"
-         |    },
-         |	"groovyString": "${StringEscapeUtils.escapeJava(groovyString)}",
-         |	"shutdownThreshold" : "4"
-         |}
+
+  val failureJSONRequest =
+    s"""
+       |{
+       |	"nameFail" : "SubscriptionRouteTest",
+       |	"sinkFail":
+       |    {
+       |        "type" : "HTTP",
+       |        "method" : "POST",
+       |        "url" : "http://requestb.in/wis41kwi"
+       |    },
+       |	"eventFilter": "testEventFilter",
+       |  "eventTransformer":
+       |    {
+       |        "header" : "testHeader",
+       |        "payload" : "testPayload"
+       |    },
+       |	"shutdownThreshold" : "4"
+       |}
       """.stripMargin
+
+
+  val updatedJSONRequest =
+    s"""
+       |{
+       |	"name" : "SubscriptionRouteTestUpdate",
+       |	"sink":
+       |    {
+       |        "type" : "HTTP",
+       |        "method" : "PUT",
+       |        "url" : "http://requestb.in/wis41kwi"
+       |    },
+       |	"eventFilter": "updatedEventFilter",
+       |  "eventTransformer":
+       |    {
+       |        "header" : "updatedHeader",
+       |        "payload" : "updatedPayload"
+       |    },
+       |	"shutdownThreshold" : "6"
+       |}
+      """.stripMargin
+
+
+  "Create Test" should "return Created" in {
 
     Post("/v1/subscription", HttpEntity(MediaTypes.`application/json`, JSONRequest)).addHeader(header) ~>
       subscriptionRoute ~> check {
       subscription = response.entity.getString(mat).getObj[GenericResponse].response.getJson.getObj[Response].data.asInstanceOf[Map[String, String]].getJson.getObj[Subscription]
       status shouldEqual StatusCodes.Created
+    }
+  }
+
+  "Create Test" should "return Internal Server Error" in {
+
+    Post("/v1/subscription", HttpEntity(MediaTypes.`application/json`, failureJSONRequest)).addHeader(header) ~>
+      subscriptionRoute ~> check {
+      status shouldEqual StatusCodes.InternalServerError
     }
   }
 
@@ -61,51 +107,44 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
   }
 
   "Start Test" should "return OK" in {
-    Get("/v1/subscription/" + subscription.id).addHeader(header) ~>
+    Get("/v1/subscription/" + subscription.id + "/start").addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
+    }
+  }
+
+  "Start Test" should "return BadRequest" in {
+    Get("/v1/subscription/" + UUID.randomUUID().toString + "/start").addHeader(header) ~>
+      subscriptionRoute ~> check {
+      status shouldEqual StatusCodes.BadRequest
     }
   }
 
   "Stop Test" should "return OK" in {
-    Get("/v1/subscription/" + subscription.id).addHeader(header) ~>
+    Get("/v1/subscription/" + subscription.id + "/stop").addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
     }
   }
 
+  "Stop Test" should "return BadRequest" in {
+    Get("/v1/subscription/" + UUID.randomUUID().toString + "/stop").addHeader(header) ~>
+      subscriptionRoute ~> check {
+      status shouldEqual StatusCodes.BadRequest
+    }
+  }
+
   "Update Test" should "return OK" in {
-    val groovyString =
-      """
-        |ackage com.flipkart.connekt.commons.entities;
-        |import com.flipkart.connekt.commons.iomodels.CallbackEvent
-        |import com.flipkart.connekt.commons.iomodels.PNCallbackEvent;
-        |class ConnektSampleAppGroovy implements Evaluator {
-        |public boolean evaluate(CallbackEvent context) {
-        |return (context as PNCallbackEvent).eventType().equals("gcm_received")
-        |}
-        |
-        |}
-      """.stripMargin
-
-    val payload =
-      s"""
-         |{
-         |	"sName" : "SubscriptionRouteUpdateTest",
-         |	"endpoint":
-         |    {
-         |        "type" : "HTTP",
-         |        "method" : "POST",
-         |        "url" : "http://localhost:8080/SubscriptionRouteUpdateTesting"
-         |    },
-         |	"groovyString": "${StringEscapeUtils.escapeJava(groovyString)}",
-         |	"shutdownThreshold" : "2"
-         |}
-      """.stripMargin
-
-    Post("/v1/subscription/" + subscription.id, HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
+    Post("/v1/subscription/" + subscription.id, HttpEntity(MediaTypes.`application/json`, updatedJSONRequest)).addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
+    }
+  }
+
+  "Update Test" should "return BadRequest" in {
+    Post("/v1/subscription/" + UUID.randomUUID().toString, HttpEntity(MediaTypes.`application/json`, updatedJSONRequest)).addHeader(header) ~>
+      subscriptionRoute ~> check {
+      status shouldEqual StatusCodes.BadRequest
     }
   }
 
@@ -113,6 +152,13 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
     Delete("/v1/subscription/" + subscription.id).addHeader(header) ~>
       subscriptionRoute ~> check {
       status shouldEqual StatusCodes.OK
+    }
+  }
+
+  "Delete Test" should "return BadRequest" in {
+    Delete("/v1/subscription/" + UUID.randomUUID().toString).addHeader(header) ~>
+      subscriptionRoute ~> check {
+      status shouldEqual StatusCodes.BadRequest
     }
   }
 

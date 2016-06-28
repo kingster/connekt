@@ -12,7 +12,9 @@
  */
 package com.flipkart.connekt.commons.tests.services
 
-import com.flipkart.connekt.commons.entities.{Transformers, HTTPEventSink, Subscription}
+import java.util.UUID
+
+import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, Transformers}
 import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
@@ -23,8 +25,8 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   subscription.name = "SubscriptionServiceTest"
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
-  subscription.sink = new HTTPEventSink("POST", "http://localhost:8080/serviceTestingRoute")
-  subscription.eventFilter = "This is groovy eventFilter string for SubscriptionServiceTest"
+  subscription.sink = new HTTPEventSink("POST", "http://requestb.in/wis41kwi")
+  subscription.eventFilter = "testEventFilter"
   subscription.eventTransformer = new Transformers("testHeader","testPayload")
 
   "add Test" should "return success" in {
@@ -34,20 +36,33 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   }
 
   "get Test" should "return a subscription" in {
-    val sub = SubscriptionService.get(subscription.id)
-    assert(sub.get.get.isInstanceOf[Subscription])
+    assert(SubscriptionService.get(subscription.id).get.get.isInstanceOf[Subscription])
 
   }
 
-  "Update test" should "return success" in {
-    subscription.eventFilter = "This is a updated groovy eventFilter string for SubscriptionServiceTest"
-    val sub = SubscriptionService.update(subscription)
-    assert(sub.isSuccess)
+  "get Test" should "not return a subscription" in {
+    assert(SubscriptionService.get(UUID.randomUUID().toString).get.isEmpty)
+  }
 
+  "update Test" should "return success" in {
+    subscription.eventFilter = "updatedEventFilter"
+    assert(SubscriptionService.update(subscription).isSuccess)
+
+  }
+
+  "update Test" should "return failure" in {
+    val id = subscription.id
+    subscription.id = UUID.randomUUID().toString
+    assert(SubscriptionService.update(subscription).isFailure)
+    subscription.id = id
   }
 
   "remove test" should "not throw exception" in {
     noException should be thrownBy SubscriptionService.remove(subscription.id)
+  }
+
+  "remove Test" should "return failure" in {
+    assert(SubscriptionService.remove(UUID.randomUUID().toString).isFailure)
   }
 
 
