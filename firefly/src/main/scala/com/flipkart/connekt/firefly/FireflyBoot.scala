@@ -26,7 +26,6 @@ import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
-
 object FireflyBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
@@ -44,7 +43,7 @@ object FireflyBoot extends BaseApp {
     if (!initialized.getAndSet(true)) {
       ConnektLogger(LogFile.SERVICE).info("Callback service initializing.")
 
-      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-callbacks.xml")
+      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-firefly.xml")
 
       ConnektLogger(LogFile.SERVICE).info(s"Callback service logging using: $configFile")
       ConnektLogger.init(configFile)

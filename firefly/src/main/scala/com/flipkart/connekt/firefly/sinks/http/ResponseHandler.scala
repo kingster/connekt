@@ -25,8 +25,6 @@ import scala.util.{Failure, Success, Try}
 class ResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownTrigger: Promise[String])(implicit mat:ActorMaterializer,  ec: ExecutionContext)
   extends GraphStage[UniformFanOutShape[(Try[HttpResponse], HttpCallbackTracker),(HttpRequest,HttpCallbackTracker)]] {
 
-  val consecutiveSendFailures = new AtomicInteger(0)
-
   val in = Inlet[(Try[HttpResponse], HttpCallbackTracker)]("input")
   val retryOnErrorOut = Outlet[(HttpRequest, HttpCallbackTracker)]("retryOnError.out")
   val successOut = Outlet[(HttpRequest, HttpCallbackTracker)]("success.out")
@@ -36,6 +34,7 @@ class ResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownT
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
+    val consecutiveSendFailures = new AtomicInteger(0)
     setHandler(in, new InHandler {
 
       override def onPush(): Unit = {

@@ -52,7 +52,6 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
     topologyShutdownTrigger
   }
 
-
   def transform(event: CallbackEvent): SubscriptionEvent = {
     val stencilService = ServiceFactory.getStencilService
     val subscriptionEvent = new SubscriptionEvent()
