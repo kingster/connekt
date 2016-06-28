@@ -20,7 +20,6 @@ import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
-import org.apache.commons.lang.RandomStringUtils
 
 import scala.util.Try
 
@@ -39,18 +38,18 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   }
 
   @Timed("persistCallbackEvent")
-  override def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String] = {
+  override def persistCallbackEvents(channel: Channel.Value, events: List[CallbackEvent]): Try[List[String]] = {
     Try {
-      channelEventsDao(channel).asyncSaveCallbackEvent(requestId, forContact, nextEventId(), callbackEvent)
-      enqueueCallbackEvent(callbackEvent)
-      ConnektLogger(LogFile.SERVICE).debug(s"Event saved for $requestId")
-      requestId
+      val rowKeys = channelEventsDao(channel).asyncSaveCallbackEvents(events)
+      enqueueCallbackEvent(events)
+      ConnektLogger(LogFile.SERVICE).debug(s"Event saved with rowKeys $rowKeys")
+      rowKeys
     }
   }
 
   @Timed("enqueueCallbackEvent")
-  private def enqueueCallbackEvent(callbackEvent: CallbackEvent): Unit ={
-    queueProducerHelper.writeMessages(CALLBACK_QUEUE_NAME, callbackEvent.getJson)
+  private def enqueueCallbackEvent(events: List[CallbackEvent]): Unit ={
+    queueProducerHelper.writeMessages(CALLBACK_QUEUE_NAME, events.map(_.getJson) : _*)
   }
 
   @Timed("fetchCallbackEvent")
@@ -59,8 +58,6 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
       channelEventsDao(channel).fetchCallbackEvents(requestId, contactId, None, MAX_FETCH_EVENTS)
     }
   }
-
-  private def nextEventId() = RandomStringUtils.randomAlphabetic(10)
 
   @Timed("fetchCallbackEventByContactId")
   def fetchCallbackEventByContactId(contactId: String, channel: Channel.Value, minTimestamp: Long, maxTimestamp: Long): Try[List[(CallbackEvent, Long)]] = {
@@ -90,7 +87,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
 
   @Timed("deleteCallBackEvent")
   def deleteCallBackEvent(requestId: String, forContact: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
-    Try{
+    Try {
       channelEventsDao(channel).deleteCallbackEvents(requestId, forContact)
     }
   }

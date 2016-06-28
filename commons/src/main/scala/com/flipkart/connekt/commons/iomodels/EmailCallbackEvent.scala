@@ -12,4 +12,6 @@
  */
 package com.flipkart.connekt.commons.iomodels
 
-case class EmailCallbackEvent(eventType: String, reason: String) extends CallbackEvent
+case class EmailCallbackEvent(override val messageId: String, eventType: String, reason: String) extends CallbackEvent(messageId, null) {
+  override def contactId: String = ???
+}

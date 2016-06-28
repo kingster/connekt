@@ -25,13 +25,18 @@ object CallbackRecorder extends Instrumented {
   implicit def callbackRecorder(event: PNCallbackEvent): PNListCallbackRecorder = new PNListCallbackRecorder(List(event))
 
   implicit class PNListCallbackRecorder(val events: Iterable[PNCallbackEvent]) {
-    def persist = Try_ {
-      events.foreach(e => {
-        ServiceFactory.getCallbackService.persistCallbackEvent(e.messageId, s"${e.appName.toLowerCase}${e.deviceId}", Channel.PUSH, e)
-        meter(s"event.${e.eventType}").mark()
-	      BigfootService.ingest(e.toBigfootFormat)
 
+    def persist = Try_ {
+
+      events.foreach(e => {
+        meter(s"event.${e.eventType}").mark()
+        BigfootService.ingest(e.toBigfootFormat)
       })
+
+      if (events.nonEmpty) {
+        ServiceFactory.getCallbackService.persistCallbackEvents(Channel.PUSH, events.toList).get
+      }
     }
   }
+
 }

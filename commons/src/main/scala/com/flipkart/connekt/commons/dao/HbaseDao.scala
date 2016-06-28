@@ -29,7 +29,6 @@ import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 
 trait HbaseDao extends Instrumented {
 

@@ -45,6 +45,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val validDeviceIds = devicesInfo.map(_.deviceId)
       val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds.toSet)
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.OPENWEB, pnInfo.appName, message.contextId.orEmpty)).persist
+      ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.MissingDeviceInfo, invalidDeviceIds.size)
 
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
       val openWebStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-openweb").head
@@ -86,6 +87,7 @@ class OpenWebChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         })
       } else {
         ConnektLogger(LogFile.PROCESSORS).warn(s"OpenWebChannelFormatter dropping ttl-expired message: ${message.id}")
+        ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.TTLExpired, devicesInfo.size)
         devicesInfo.map(d => PNCallbackEvent(message.id, message.clientId, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.OPENWEB, d.appName, message.contextId.orEmpty)).persist
         List.empty[OpenWebStandardPayloadEnvelope]
       }

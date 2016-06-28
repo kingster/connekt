@@ -17,10 +17,9 @@ import java.io.IOException
 import com.flipkart.connekt.commons.dao.HbaseDao.ColumnData
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, THTableFactory}
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, ChannelRequestInfo}
+import com.flipkart.connekt.commons.utils.StringUtils.JSONMarshallFunctions
 import com.roundeights.hasher.Implicits._
 import org.apache.hadoop.hbase.client.BufferedMutator
-
-import scala.util.{Success, Try}
 
 abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) extends TCallbackDao with HbaseDao {
   private val hTableConnFactory = hTableFactory
@@ -37,36 +36,40 @@ abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) ext
     Option(hTableMutator).foreach(_.close())
   }
 
-  def asyncSaveCallbackEvent(requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String] = {
+  override def asyncSaveCallbackEvents(events: List[CallbackEvent]): List[String] = {
     try {
-      val channelEventProps = channelEventPropsMap(callbackEvent)
-      val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
-      val rowKey = s"${forContact.sha256.hash.hex}:$requestId:$eventId"
-      asyncAddRow(rowKey, rawData)
-
-      ConnektLogger(LogFile.DAO).info(s"Event details async-persisted for $requestId")
-      Success(requestId)
+      val rowKeys = events.map(e => {
+        val channelEventProps = channelEventPropsMap(e)
+        val rawData = Map[String, ColumnData](columnFamily -> channelEventProps)
+        val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
+        asyncAddRow(rowKey, rawData)
+        rowKey
+      })
+      ConnektLogger(LogFile.DAO).info(s"Events details async-persisted with rowkeys ${rowKeys.mkString(",")}")
+      rowKeys
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Event details async-persistence failed for $requestId ${e.getMessage}", e)
-        throw new IOException("Event details async-persistence failed for %s".format(requestId), e)
+        ConnektLogger(LogFile.DAO).error(s"Events details async-persistence failed for ${events.getJson} ${e.getMessage}", e)
+        throw new IOException("Events details async-persistence failed for %s".format(events.getJson), e)
     }
   }
 
-  override def saveCallbackEvent(requestId: String, forContact: String, eventId: String, callbackEvent: CallbackEvent): Try[String] = {
+  override def saveCallbackEvents(events: List[CallbackEvent]): List[String] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
-      val channelEventProps = channelEventPropsMap(callbackEvent)
-      val rawData = Map[String,ColumnData](columnFamily -> channelEventProps)
-      val rowKey = s"${forContact.sha256.hash.hex}:$requestId:$eventId"
-      addRow(rowKey, rawData)
-
-      ConnektLogger(LogFile.DAO).info(s"Event details persisted for $requestId")
-      Success(requestId)
+      val rowKeys = events.map(e => {
+        val channelEventProps = channelEventPropsMap(e)
+        val rawData = Map[String, ColumnData](columnFamily -> channelEventProps)
+        val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
+        addRow(rowKey, rawData)
+        rowKey
+      })
+      ConnektLogger(LogFile.DAO).info(s"Events details persisted with rowkeys ${rowKeys.mkString(",")}")
+      rowKeys
     } catch {
       case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Event details persistence failed for $requestId ${e.getMessage}", e)
-        throw new IOException("Event details persistence failed for %s".format(requestId), e)
+        ConnektLogger(LogFile.DAO).error(s"Events details persistence failed for ${events.getJson} ${e.getMessage}", e)
+        throw new IOException("Events details persistence failed for %s".format(events.getJson), e)
     } finally {
       hTableConnFactory.releaseTableInterface(hTableInterface)
     }
