@@ -48,19 +48,17 @@ class Subscription {
   var shutdownThreshold : Int = _
 
   def this(sId: String, sName: String, endpoint: EventSink, createdBy: String,
-           createdTS: Date, lastUpdatedTS: Date, eventFilter:String, eventTransformer:Transformers, shutdownThreshold: Int) = {
+           eventFilter:String, eventTransformer:Transformers, shutdownThreshold: Int) = {
     this
     this.id = sId
     this.name = sName
     this.sink = endpoint
     this.createdBy = createdBy
-    this.createdTS = createdTS
     this.eventFilter = eventFilter
-    this.lastUpdatedTS = lastUpdatedTS
     this.eventTransformer = eventTransformer
     this.shutdownThreshold = shutdownThreshold
   }
 
   override def toString =
-    s"Subscription($id, $name, ${sink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $eventFilter, ${eventTransformer.getJson}, ${shutdownThreshold.toString})"
+    s"Subscription($id, $name, ${sink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $eventFilter, ${eventTransformer.getJson}, $shutdownThreshold)"
 }

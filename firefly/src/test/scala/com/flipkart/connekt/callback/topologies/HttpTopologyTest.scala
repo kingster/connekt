@@ -16,7 +16,7 @@ import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.firefly.FireflyBoot
 import com.flipkart.connekt.commons.entities.{Transformers, GenericAction, HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
-import com.flipkart.connekt.commons.services.{ConnektConfig, SubscriptionService}
+import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.ConfigFactory
@@ -27,18 +27,18 @@ class HttpTopologyTest extends TopologyUTSpec {
 
     FireflyBoot.start()
 
-    val subscriptionSuccess = new Subscription()
+    val subscription = new Subscription()
 
-    subscriptionSuccess.name = "HttpTopologyTest"
-    subscriptionSuccess.id = "e7fe4e8b-ea16-402a-b0b6-7568eadc0bf6"
-    subscriptionSuccess.shutdownThreshold = 3
-    subscriptionSuccess.createdBy = "connekt-genesis"
-    subscriptionSuccess.sink = new HTTPEventSink("POST", "http://requestb.in/wis41kwi")
-    subscriptionSuccess.eventFilter = "testEventFilter"
-    subscriptionSuccess.eventTransformer = new Transformers("testHeader", "testPayload")
+    subscription.name = "HttpTopologyTest"
+    subscription.id = "e7fe4e8b-ea16-402a-b0b6-7568eadc0bf6"
+    subscription.shutdownThreshold = 3
+    subscription.createdBy = "connekt-genesis"
+    subscription.sink = new HTTPEventSink("POST", "http://requestb.in/wis41kwi")
+    subscription.eventFilter = "testEventFilter"
+    subscription.eventTransformer = new Transformers("testHeader", "testPayload")
 
 
-    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.START.toString, subscriptionSuccess.getJson)))
+    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.START.toString, subscription.getJson)))
 
     val kafkaProducerConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").get
     val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
@@ -50,7 +50,11 @@ class HttpTopologyTest extends TopologyUTSpec {
 
     kafkaProducerHelper.writeMessages("active_events", msg)
 
-    Thread.sleep(1000000)
+    Thread.sleep(10000)
+
+    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.STOP.toString, subscription.getJson)))
+
+    Thread.sleep(1000)
 
   }
 
