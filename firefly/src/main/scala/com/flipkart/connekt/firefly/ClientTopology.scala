@@ -55,14 +55,17 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
 
   def transform(event: CallbackEvent): CallbackEvent = {
     val stencilService = ServiceFactory.getStencilService
+
     event.header = stencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
         case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
         case None => null
-      }
+    }
+
     event.payload = ServiceFactory.getStencilService.get(subscription.eventTransformer.payload).find(_.component == "payload") match {
       case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
       case None => null
     }
+
     event
   }
 

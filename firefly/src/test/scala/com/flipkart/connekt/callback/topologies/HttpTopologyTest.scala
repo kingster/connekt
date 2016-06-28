@@ -37,7 +37,7 @@ class HttpTopologyTest extends TopologyUTSpec {
     subscriptionSuccess.createdBy = "connekt-genesis"
     subscriptionSuccess.sink = new HTTPEventSink("POST", "http://requestb.in/wis41kwi")
     subscriptionSuccess.eventFilter = "testEventFilter"
-    subscriptionSuccess.eventTransformer = new Transformers("testHeader", null)
+    subscriptionSuccess.eventTransformer = new Transformers("testHeader", "testPayload")
 
 
     SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.START.toString, subscriptionSuccess.getJson)))
