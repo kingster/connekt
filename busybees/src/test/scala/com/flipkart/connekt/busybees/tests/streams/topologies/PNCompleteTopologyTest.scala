@@ -18,7 +18,7 @@ import akka.stream.ClosedShape
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl._
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcherPrepare, APNSDispatcher, GCMDispatcherPrepare}
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{APNSDispatcherPrepare, APNSDispatcher, GCMHttpDispatcherPrepare}
 import com.flipkart.connekt.busybees.streams.flows.formaters.IOSChannelFormatter
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.APNSResponseHandler
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
@@ -120,7 +120,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
     val appleCredentials = KeyChainManager.getAppleCredentials("RetailApp").get
 
-    val httpDispatcher = new GCMDispatcherPrepare
+    val httpDispatcher = new GCMHttpDispatcherPrepare
 
     lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[String]("android.googleapis.com", 443)
 

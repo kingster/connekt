@@ -1,37 +1,26 @@
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.ActorRef
 import akka.stream.{Inlet, Outlet, FanOutShape2}
 import akka.stream.stage.{AsyncCallback, GraphStage}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionActor.InitXmpp
-import com.flipkart.connekt.busybees.xmpp.{XmppConnectionActor, XmppConnectionRouter}
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.busybees.xmpp.{XmppMessageIdHelper, XmppGatewayCache}
 import com.flipkart.connekt.commons.iomodels._
 import akka.stream._
 import akka.stream.stage._
 import com.flipkart.connekt.commons.services.ConnektConfig
-import scala.collection.mutable
-import scala.util.Try
+import scala.util.{Success, Try}
 
 /**
  * Created by subir.dey on 22/06/16.
  */
-class GcmXmppDispatcher extends GraphStage[FanOutShape2[GCMPayloadEnvelope, (Try[XmppResponse], GCMRequestTracker), Either[XmppUpstreamData, XmppReceipt]]] {
+class GcmXmppDispatcher extends GraphStage[FanOutShape2[(GcmXmppRequest,GCMRequestTracker), (Try[XmppResponse], GCMRequestTracker), XmppUpstreamData]] {
 
-  val in = Inlet[GCMPayloadEnvelope]("GcmXmppDispatcher.In")
+  val maxPendingUpstreamCount = ConnektConfig.get("gcm.xmpp.appIds").getOrElse("100").toInt
+  val in = Inlet[(GcmXmppRequest,GCMRequestTracker)]("GcmXmppDispatcher.In")
   val outDownstream = Outlet[(Try[XmppResponse], GCMRequestTracker)]("GcmXmppDispatcher.outDownstream")
-  val outUpstream = Outlet[Either[XmppUpstreamData, XmppReceipt]]("GcmXmppDispatcher.outUpstream")
-  override def shape = new FanOutShape2[GCMPayloadEnvelope, (Try[XmppResponse], GCMRequestTracker), Either[XmppUpstreamData, XmppReceipt]](in, outDownstream, outUpstream)
-
-  val appIdsSupprted:Array[String] = ConnektConfig.getString("gcm.xmpp.appIds").getOrElse("retailBroadcast").split(",")
-  val xmppRequestRouters:Map[String, ActorRef] =
-                          appIdsSupprted.map{
-                            appId => {
-                              val xmppRequestRouter:ActorRef = XmppConnectionActor.system.actorOf(Props(classOf[XmppConnectionRouter], this, appId))
-                              (appId, xmppRequestRouter)
-                            }
-                          }.toMap
+  val outUpstream = Outlet[XmppUpstreamData]("GcmXmppDispatcher.outUpstream")
+  override def shape = new FanOutShape2[(GcmXmppRequest,GCMRequestTracker), (Try[XmppResponse], GCMRequestTracker), XmppUpstreamData](in, outDownstream, outUpstream)
 
   //to ask for more from in
   var getMoreCallback: AsyncCallback[String] = null
@@ -39,35 +28,18 @@ class GcmXmppDispatcher extends GraphStage[FanOutShape2[GCMPayloadEnvelope, (Try
   //to push downstream
   var ackRecvdCallback: AsyncCallback[(Try[XmppResponse], GCMRequestTracker)] = null
 
-  //to push upstream
-  var upStreamRecvdCallback: AsyncCallback[Either[XmppUpstreamData, XmppReceipt]] = null
+  //to push upstream data
+  var upStreamRecvdCallback: AsyncCallback[(ActorRef,XmppUpstreamData)] = null
 
-  def  mapXmppRequest(payload:GCMPayloadEnvelope):(GCMXmppPNPayload, GCMRequestTracker) = {
-    val xmppRequest:GCMXmppPNPayload = payload.gcmPayload.asInstanceOf[GCMXmppPNPayload]
-    val requestTrace = GCMRequestTracker(payload.messageId, payload.clientId, payload.deviceId, payload.appName, payload.contextId, payload.meta)
-    (xmppRequest, requestTrace)
-  }
+  var drRecvdCallback: AsyncCallback[(ActorRef,XmppReceipt)] = null
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-    val responsesDownStream:mutable.Queue[(Try[XmppResponse], GCMRequestTracker)] = collection.mutable.Queue[(Try[XmppResponse], GCMRequestTracker)]()
-    val responsesUpStream:mutable.Queue[Either[XmppUpstreamData, XmppReceipt]] = collection.mutable.Queue[Either[XmppUpstreamData, XmppReceipt]]()
-    val requestBuffer:collection.mutable.Map[String,mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)]]
-            = collection.mutable.Map() ++ appIdsSupprted.map{appId => (appId,new mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)]())}.toMap
-    val connectionFreeCount:collection.mutable.Map[String,Int] = collection.mutable.Map() ++ appIdsSupprted.map{appId => (appId,0)}.toMap
-    var connectionAvailable = 0
-
-    def addRequest(requestPair:(GCMXmppPNPayload, GCMRequestTracker)) = {
-      val requests:mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)] = requestBuffer.get(requestPair._2.appName).get
-      requests.enqueue(requestPair)
-      requestBuffer.put(requestPair._2.appName, requests)
-    }
+  val xmppState = new XmppGatewayCache
 
     override def preStart(): Unit = {
       getMoreCallback = getAsyncCallback[String] {
         appId => {
-          connectionAvailable = connectionAvailable + 1
-          val available:Int = connectionFreeCount.get(appId).get + 1
-          connectionFreeCount.put(appId, available)
+          xmppState.incrementConnectionFreeCount(appId)
           if ( !hasBeenPulled(in) )
             pull(in)
         }
@@ -78,48 +50,53 @@ class GcmXmppDispatcher extends GraphStage[FanOutShape2[GCMPayloadEnvelope, (Try
           if ( isAvailable(outDownstream))
             push(outDownstream, downstreamResponse)
           else
-            responsesDownStream.enqueue(downstreamResponse)
+            xmppState.enqueuDownstream(downstreamResponse)
         }
       }
 
-      upStreamRecvdCallback = getAsyncCallback[Either[XmppUpstreamData, XmppReceipt]] {
-        upstreamResponse => {
-          if ( isAvailable(outUpstream) )
-            push(outUpstream, upstreamResponse)
+      drRecvdCallback = getAsyncCallback[(ActorRef,XmppReceipt)] {
+        drResponse => {
+          if ( isAvailable(outDownstream) ) {
+            val deliveryReceipt:XmppReceipt = drResponse._2
+            drResponse._1 ! deliveryReceipt
+            val parsedMessage = XmppMessageIdHelper.parseMessageIdTo(deliveryReceipt.data.originalMessageId)
+            push(outDownstream, (Success(deliveryReceipt),
+                                          GCMRequestTracker(messageId = parsedMessage._1,
+                                          clientId = deliveryReceipt.from,
+                                          deviceId = Seq(deliveryReceipt.data.deviceRegistrationId),
+                                          appName = deliveryReceipt.category,
+                                          contextId = parsedMessage._2,
+                                          meta = Map())))
+          }
           else
-            responsesUpStream.enqueue(upstreamResponse)
+            xmppState.enqueuDR(drResponse)
         }
       }
 
-      xmppRequestRouters.foreach{ case (appId,router) => router ! InitXmpp}
+      upStreamRecvdCallback = getAsyncCallback[(ActorRef,XmppUpstreamData)] {
+        upstreamResponse => {
+          if ( isAvailable(outUpstream) ) {
+            upstreamResponse._1 ! upstreamResponse._2
+            push(outUpstream, upstreamResponse._2)
+          }
+          else
+            xmppState.enqueuUpstream(upstreamResponse)
+        }
+      }
     }
 
     val inhandler = new InHandler {
       override def onPush(): Unit = {
         val input:GCMPayloadEnvelope = grab(in)
         val requestPair = mapXmppRequest(input)
-        addRequest(requestPair)
+        xmppState.addIncomingRequest(requestPair)
 
         //exhaust buffer as long as connections available
-        requestBuffer.map{ case (appId, requests) =>
-            var freeCount:Int = connectionFreeCount.get(appId).get
-            while ( requests.nonEmpty && freeCount > 0 ) {
-              connectionAvailable = connectionAvailable - 1
-              freeCount = freeCount - 1
-              xmppRequestRouters.get(appId).get ! requests.dequeue()
-            }
-            connectionFreeCount.put(appId, freeCount)
-        }
+        xmppState.sendRequests
 
         //pull more if connections available
-        if ( connectionAvailable > 0 )
+        if ( (xmppState.responsesUpStream.size + xmppState.responsesDR.size) < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 )
           pull(in)
-
-        if ( responsesDownStream.nonEmpty && isAvailable(outDownstream))
-          push(outDownstream, responsesDownStream.dequeue())
-
-        if ( responsesUpStream.nonEmpty && isAvailable(outUpstream))
-          push(outUpstream, responsesUpStream.dequeue())
       }
 
       override def onUpstreamFinish(): Unit = {
@@ -131,10 +108,25 @@ class GcmXmppDispatcher extends GraphStage[FanOutShape2[GCMPayloadEnvelope, (Try
 
     val downstreamOutHandler = new OutHandler {
       override def onPull(): Unit = {
-        if ( responsesDownStream.nonEmpty )
-          push(outDownstream, responsesDownStream.dequeue())
+        if (xmppState.responsesDR.nonEmpty ) {
+          val drResponse = xmppState.responsesDR.dequeue()
+          val deliveryReceipt:XmppReceipt = drResponse._2
 
-        if ( connectionAvailable > 0 && !hasBeenPulled(in))
+          drResponse._1 ! deliveryReceipt
+
+          val parsedMessage = XmppMessageIdHelper.parseMessageIdTo(deliveryReceipt.data.originalMessageId)
+          push(outDownstream, (Success(deliveryReceipt),
+            GCMRequestTracker(messageId = parsedMessage._1,
+              clientId = deliveryReceipt.from,
+              deviceId = Seq(deliveryReceipt.data.deviceRegistrationId),
+              appName = deliveryReceipt.category,
+              contextId = parsedMessage._2,
+              meta = Map())))
+        }
+        else if ( xmppState.responsesDownStream.nonEmpty )
+          push(outDownstream, xmppState.responsesDownStream.dequeue())
+
+        if ( (xmppState.responsesUpStream.size  + xmppState.responsesDR.size) < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 && !hasBeenPulled(in))
           pull(in)
       }
     }
@@ -142,10 +134,14 @@ class GcmXmppDispatcher extends GraphStage[FanOutShape2[GCMPayloadEnvelope, (Try
 
     val upstreamUphandler = new OutHandler {
       override def onPull(): Unit = {
-        if ( responsesUpStream.nonEmpty )
-          push(outUpstream, responsesUpStream.dequeue())
+        if (xmppState.responsesUpStream.nonEmpty) {
+          val upstreamResponse = xmppState.responsesUpStream.dequeue()
+          upstreamResponse._1 ! upstreamResponse._2
+          push(outUpstream, upstreamResponse._2)
+        }
+        if ((xmppState.responsesUpStream.size + xmppState.responsesDR.size) < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 && !hasBeenPulled(in))
+          pull(in)
       }
-      //DO NOT PULL. PULL is created from downstream
     }
     setHandler(outUpstream, upstreamUphandler)
   }

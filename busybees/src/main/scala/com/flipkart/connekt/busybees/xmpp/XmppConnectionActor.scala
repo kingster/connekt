@@ -12,9 +12,11 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionActor._
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper._
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.google.common.cache._
 import com.typesafe.config.Config
 import org.jivesoftware.smack.filter.StanzaFilter
@@ -30,48 +32,13 @@ import scala.util.{Failure, Success}
 /**
  * Created by subir.dey on 22/06/16.
  */
-object XmppConnectionActor {
-  implicit val system = ActorSystem("xmpp-connection-system")
-  case object InitXmpp
-  case object ReConnect
-  case object ConnectionDraining
-  case object FreeConnectionAvailable
-  case object XmppRequestAvailable
-  case class ConnectionClosed(connection: XMPPTCPConnection)
-  case class XmppAckExpired(tracker: GCMRequestTracker)
-
-  val GCM_NAMESPACE:String = "google:mobile:data"
-  val GCM_ELEMENT_NAME:String = "gcm"
-
-  val jacksonModules = Seq(DefaultScalaModule)
-  val mapper = new ObjectMapper() with ScalaObjectMapper
-  mapper.registerModules(jacksonModules: _*)
-  mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false)
-
-  val archivedConnections: java.util.Set[XMPPConnection] = new java.util.HashSet[XMPPConnection]()
-
-  lazy val xmppHost: String = ConnektConfig.get("gcm.ccs.gcmServer").getOrElse("gcm.googleapis.com")
-  lazy val xmppPort: Int = ConnektConfig.get("gcm.ccs.gcmPort").getOrElse("5235").toInt
-}
-
-class XmppNeverAckException(message: String) extends Exception(message)
-class XmppNackException(val response: XmppNack) extends Exception(response.errorDescription)
-
-class XmppConnectionPriorityMailbox(settings: ActorSystem.Settings, config: Config) extends UnboundedPriorityMailbox(
-  PriorityGenerator {
-    case com.flipkart.connekt.busybees.xmpp.XmppConnectionActor.ConnectionDraining => 0
-    case com.flipkart.connekt.busybees.xmpp.XmppConnectionActor.ReConnect => 1
-    case com.flipkart.connekt.commons.iomodels.XmppAck => 2
-    case com.flipkart.connekt.commons.iomodels.XmppNack => 3
-    case _ => 2
-  })
 
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends Actor {
   val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(100)
   lazy val username: String = ConnektConfig.get("gcm.ccs." + appId + ".username").get
   lazy val apiKey: String = ConnektConfig.get("gcm.ccs." + appId + ".apiKey").get
 
-  private var removalListener: RemovalListener[String, GCMRequestTracker] =
+  private val removalListener: RemovalListener[String, GCMRequestTracker] =
     new RemovalListener[String, GCMRequestTracker]() {
     def onRemoval(removal: RemovalNotification[String, GCMRequestTracker]) {
       if (removal.getCause != RemovalCause.EXPLICIT) {
@@ -89,8 +56,6 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
   var pendingAckCount:Int = 0
   var connection: XMPPTCPConnection = null
-
-  @volatile protected var connectionDraining: Boolean = false
 
   import context._
   //message processing in the beginning
@@ -131,7 +96,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
       processUpstreamMessage(upstreamMsg)
 
     case ConnectionDraining =>
-      processConnectionDraining
+      processConnectionDraining()
 
     case connClosed:ConnectionClosed =>
       processConnectionClosed(connClosed)
@@ -157,7 +122,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
       processUpstreamMessage(upstreamMsg)
 
     case ConnectionDraining =>
-      processConnectionDraining
+      processConnectionDraining()
 
     case connClosed:ConnectionClosed =>
       processConnectionClosed(connClosed)
@@ -192,7 +157,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     val stanzaFilter = new StanzaFilter() {
       override def accept(stanza:Stanza):Boolean = if (stanza.hasExtension(GCM_ELEMENT_NAME, GCM_NAMESPACE)) true else false
     }
-    val stanzaListener = new ConnektStanzaListener(self)
+    val stanzaListener = new ConnektStanzaListener(self, dispatcher)
     connection.addAsyncStanzaListener(stanzaListener, stanzaFilter)
 
     try {
@@ -209,7 +174,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
   private def processSendRequest(parent:ActorRef, xmppRequest:(GCMXmppPNPayload, GCMRequestTracker)) = {
     pendingAckCount = pendingAckCount + 1
     val xmppPayload:GCMXmppPNPayload = xmppRequest._1
-    val xmppPayloadString:String = XmppConnectionActor.mapper.writeValueAsString(xmppPayload)
+    val xmppPayloadString:String = StringUtils.objMapper.writeValueAsString(xmppPayload)
     val packet = new GcmXmppPacketExtension(xmppPayloadString)
     val stanza:Stanza = new Stanza() {
       override def toXML():CharSequence = packet.toXML()
@@ -220,7 +185,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
     if ( pendingAckCount >= maxPendingAckCount ) {
       become(busy)
-      ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionActor for ${appId} turned busy")
+      ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionActor for $appId turned busy")
     } else {
       dispatcher.getMoreCallback.invoke(appId)
       parent ! FreeConnectionAvailable
@@ -272,7 +237,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
   private def sendUpstreamAck(to: String, messageId: String) = {
     val ackMsg = XmppUpstreamAck(messageId, "ack", to)
-    val xmppPayloadString:String = XmppConnectionActor.mapper.writeValueAsString(ackMsg)
+    val xmppPayloadString:String = StringUtils.objMapper.writeValueAsString(ackMsg)
     val packet = new GcmXmppPacketExtension(xmppPayloadString)
     val stanza:Stanza = new Stanza() {
       override def toXML():CharSequence = packet.toXML()
@@ -284,25 +249,20 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
   private def processDeliveryReceipt(receipt:XmppReceipt) = {
     sendUpstreamAck(receipt.from, receipt.messageId)
-    dispatcher.upStreamRecvdCallback.invoke(Right(receipt))
   }
 
   private def processUpstreamMessage(upstreamMsg:XmppUpstreamData) = {
     sendUpstreamAck(upstreamMsg.from, upstreamMsg.messageId)
-    dispatcher.upStreamRecvdCallback.invoke(Left(upstreamMsg))
   }
 
   private def processConnectionDraining() = {
     ConnektLogger(LogFile.CLIENTS).error("Received ConnectionDraining!!:", appId)
-    connectionDraining = true
-    XmppConnectionActor.archivedConnections.add(connection)
+    XmppConnectionHelper.archivedConnections.add(connection)
     createConnection()
-    connectionDraining = false
-
   }
 
   private def processConnectionClosed(connClosed:ConnectionClosed) = {
     ConnektLogger(LogFile.CLIENTS).error("Received Connectionclosed!!:", appId)
-    XmppConnectionActor.archivedConnections.remove(connection)
+    XmppConnectionHelper.archivedConnections.remove(connection)
   }
 }
