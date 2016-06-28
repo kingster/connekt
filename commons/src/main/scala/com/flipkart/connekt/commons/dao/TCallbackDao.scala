@@ -16,9 +16,9 @@ import com.flipkart.connekt.commons.iomodels.CallbackEvent
 
 trait TCallbackDao extends Dao {
 
-  def asyncSaveCallbackEvents(forContact: String, events: List[CallbackEvent]): List[String]
+  def asyncSaveCallbackEvents(events: List[CallbackEvent]): List[String]
 
-  def saveCallbackEvents(forContact: String, events: List[CallbackEvent]): List[String]
+  def saveCallbackEvents(events: List[CallbackEvent]): List[String]
 
   def deleteCallbackEvents(requestId: String, forContact: String): List[CallbackEvent]
 

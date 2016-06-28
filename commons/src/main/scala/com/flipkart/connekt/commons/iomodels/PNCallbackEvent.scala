@@ -36,4 +36,6 @@ case class PNCallbackEvent(override val messageId: String,
     require(contextId == null || contextId.hasOnlyAllowedChars, "`contextId` field can only contain [A-Za-z0-9_\\.\\-\\:\\|] allowed chars.")
     require(eventType.isDefined, "`eventType` field cannot be empty or null.")
   }
+
+  override def contactId: String = s"${appName.toLowerCase}$deviceId"
 }

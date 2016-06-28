@@ -31,12 +31,9 @@ object CallbackRecorder extends Instrumented {
         meter(s"event.${e.eventType}").mark()
         BigfootService.ingest(e.toBigfootFormat)
       })
-
-      if(events.nonEmpty ) {
-        val forContact = s"${events.head.appName.toLowerCase}${events.head.deviceId}"
-        ServiceFactory.getCallbackService.persistCallbackEvents(forContact, Channel.PUSH, events.toList).get
+      if (events.nonEmpty) {
+        ServiceFactory.getCallbackService.persistCallbackEvents(Channel.PUSH, events.toList).get
       }
-
     }
   }
 

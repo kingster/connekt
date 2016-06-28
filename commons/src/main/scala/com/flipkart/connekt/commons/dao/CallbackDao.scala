@@ -36,12 +36,12 @@ abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) ext
     Option(hTableMutator).foreach(_.close())
   }
 
-  override def asyncSaveCallbackEvents(forContact: String, events: List[CallbackEvent]): List[String] = {
+  override def asyncSaveCallbackEvents(events: List[CallbackEvent]): List[String] = {
     try {
       val rowKeys = events.map(e => {
         val channelEventProps = channelEventPropsMap(e)
         val rawData = Map[String, ColumnData](columnFamily -> channelEventProps)
-        val rowKey = s"${forContact.sha256.hash.hex}:${e.messageId}:${e.eventId}"
+        val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
         asyncAddRow(rowKey, rawData)
         rowKey
       })
@@ -54,13 +54,13 @@ abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) ext
     }
   }
 
-  override def saveCallbackEvents(forContact: String, events: List[CallbackEvent]): List[String] = {
+  override def saveCallbackEvents(events: List[CallbackEvent]): List[String] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val rowKeys = events.map(e => {
         val channelEventProps = channelEventPropsMap(e)
         val rawData = Map[String, ColumnData](columnFamily -> channelEventProps)
-        val rowKey = s"${forContact.sha256.hash.hex}:${e.messageId}:${e.eventId}"
+        val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
         addRow(rowKey, rawData)
         rowKey
       })

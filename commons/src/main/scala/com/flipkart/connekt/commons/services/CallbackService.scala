@@ -36,11 +36,11 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   }
 
   @Timed("persistCallbackEvent")
-  override def persistCallbackEvents(forContact: String, channel: Channel.Value, callbackEvents: List[CallbackEvent]): Try[List[String]] = {
+  override def persistCallbackEvents(channel: Channel.Value, events: List[CallbackEvent]): Try[List[String]] = {
     Try {
-      val rowkeys = channelEventsDao(channel).asyncSaveCallbackEvents(forContact, callbackEvents)
-      ConnektLogger(LogFile.SERVICE).debug(s"Event saved with rowkeys $rowkeys")
-      rowkeys
+      val rowKeys = channelEventsDao(channel).asyncSaveCallbackEvents(events)
+      ConnektLogger(LogFile.SERVICE).debug(s"Event saved with rowKeys $rowKeys")
+      rowKeys
     }
   }
 
@@ -79,7 +79,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
 
   @Timed("deleteCallBackEvent")
   def deleteCallBackEvent(requestId: String, forContact: String, channel: Channel.Value): Try[List[CallbackEvent]] = {
-    Try{
+    Try {
       channelEventsDao(channel).deleteCallbackEvents(requestId, forContact)
     }
   }
