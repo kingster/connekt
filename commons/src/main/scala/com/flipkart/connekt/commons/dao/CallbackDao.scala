@@ -43,7 +43,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) ext
         val rawData = Map[String, ColumnData](columnFamily -> channelEventProps)
         val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
         asyncAddRow(rowKey, rawData)
-        rowKey
+        e.messageId
       })
       ConnektLogger(LogFile.DAO).info(s"Events details async-persisted with rowkeys ${rowKeys.mkString(",")}")
       rowKeys
@@ -62,7 +62,7 @@ abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) ext
         val rawData = Map[String, ColumnData](columnFamily -> channelEventProps)
         val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
         addRow(rowKey, rawData)
-        rowKey
+        e.messageId
       })
       ConnektLogger(LogFile.DAO).info(s"Events details persisted with rowkeys ${rowKeys.mkString(",")}")
       rowKeys
