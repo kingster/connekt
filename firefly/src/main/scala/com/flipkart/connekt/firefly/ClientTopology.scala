@@ -34,7 +34,7 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
   implicit val ec = am.executionContext
 
   def evaluator(data: CallbackEvent): Boolean = {
-    ServiceFactory.getStencilService.get(subscription.eventFilter).find(_.component == "filter") match {
+    ServiceFactory.getStencilService.get(subscription.eventFilter).find(_.component == "eventFilter") match {
       case Some(stencil) => ServiceFactory.getStencilService.materialize(stencil, data.getJson.getObj[ObjectNode]).asInstanceOf[Boolean]
       case None => true
     }
@@ -53,20 +53,21 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
   }
 
 
-  def transform(event: CallbackEvent): CallbackEvent = {
+  def transform(event: CallbackEvent): SubscriptionEvent = {
     val stencilService = ServiceFactory.getStencilService
+    val subscriptionEvent = new SubscriptionEvent()
 
-    event.header = stencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
-        case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
-        case None => null
-    }
-
-    event.payload = ServiceFactory.getStencilService.get(subscription.eventTransformer.payload).find(_.component == "payload") match {
-      case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
+    subscriptionEvent.header = stencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
+      case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
       case None => null
     }
 
-    event
+    subscriptionEvent.payload = ServiceFactory.getStencilService.get(subscription.eventTransformer.payload).find(_.component == "payload") match {
+      case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
+      case None => event
+    }
+
+    subscriptionEvent
   }
 
 }

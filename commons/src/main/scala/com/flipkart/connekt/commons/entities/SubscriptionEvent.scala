@@ -10,21 +10,8 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.commons.iomodels
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+package com.flipkart.connekt.commons.entities
 
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "type"
-)
-@JsonSubTypes(Array(
-  new Type(value = classOf[PNCallbackEvent], name = "PN"),
-  new Type(value = classOf[EmailCallbackEvent], name = "EMAIL")
-))
-abstract class CallbackEvent(val messageId: String, val eventId: String) {
-  def contactId: String
-}
-
+case class SubscriptionEvent(var header: Map[String,String] = null,
+                             var payload: AnyRef = null)

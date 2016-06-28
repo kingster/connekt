@@ -23,7 +23,7 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
-import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription}
+import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, SubscriptionEvent}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -36,11 +36,11 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
   val httpCachedClient = Http().superPool[HttpCallbackTracker]()
   val consecutiveSinkFailures = new AtomicInteger(0)
 
-  def getHttpSink: Sink[CallbackEvent, NotUsed] = {
+  def getHttpSink: Sink[SubscriptionEvent, NotUsed] = {
 
     Sink.fromGraph(GraphDSL.create() { implicit b =>
       val httpResponseHandler = b.add(new ResponseHandler(retryLimit, subscription.shutdownThreshold, topologyShutdownTrigger))
-      val event2HttpRequestMapper = b.add(Flow[CallbackEvent].map(httpPrepare))
+      val event2HttpRequestMapper = b.add(Flow[SubscriptionEvent].map(httpPrepare))
       val httpRequestMergePref = b.add(MergePreferred[(HttpRequest, HttpCallbackTracker)](1))
 
       event2HttpRequestMapper ~> httpRequestMergePref.in(0)
@@ -58,15 +58,11 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
     })
   }
 
-  private def httpPrepare(event: CallbackEvent): (HttpRequest, HttpCallbackTracker) = {
+  private def httpPrepare(event: SubscriptionEvent): (HttpRequest, HttpCallbackTracker) = {
 
     val sink = subscription.sink.asInstanceOf[HTTPEventSink]
 
-    val httpEntity = event.payload match {
-      case null => HttpEntity(ContentTypes.`application/json`, event.getJson)
-      case _ => HttpEntity(ContentTypes.`application/json`, event.payload.getJson)
-    }
-
+    val httpEntity = HttpEntity(ContentTypes.`application/json`, event.payload.getJson)
     val httpRequest = event.header match {
       case null => HttpRequest(method = HttpMethods.getForKey(sink.method.toUpperCase).get, uri = sink.url, entity = httpEntity)
       case _ => HttpRequest(method = HttpMethods.getForKey(sink.method.toUpperCase).get, uri = sink.url, entity = httpEntity,
