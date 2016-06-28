@@ -38,7 +38,7 @@ class SubscriptionDaoTest extends CommonsBaseTest {
     assert(DaoFactory.getSubscriptionDao.get(subscription.id).get.isInstanceOf[Subscription])
   }
 
-  "get test" should "not return a Subscription" in {
+  "getFailure test" should "not return a Subscription" in {
     assert(DaoFactory.getSubscriptionDao.get(UUID.randomUUID().toString).isEmpty)
   }
 

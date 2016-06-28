@@ -13,12 +13,12 @@
 package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
-import com.flipkart.connekt.firefly.FireflyBoot
-import com.flipkart.connekt.commons.entities.{Transformers, GenericAction, HTTPEventSink, Subscription}
+import com.flipkart.connekt.commons.entities.{GenericAction, HTTPEventSink, Subscription, Transformers}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.firefly.FireflyBoot
 import com.typesafe.config.ConfigFactory
 
 class HttpTopologyTest extends TopologyUTSpec {
