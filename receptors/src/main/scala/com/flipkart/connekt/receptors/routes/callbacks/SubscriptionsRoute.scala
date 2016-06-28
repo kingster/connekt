@@ -48,7 +48,9 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
               subscription.createdBy = user.userId
               subscription.id = subscriptionId
               SubscriptionService.update(subscription) match {
-                case Success(result) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription updated", subscription)))
+                case Success(result) =>
+                  SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(GenericAction.STOP.toString, subscription.getJson)))
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription updated and stopped", subscription)))
                 case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription updation failed: " + e, null)))
                 case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription updation failed: " + e, null)))
               }
