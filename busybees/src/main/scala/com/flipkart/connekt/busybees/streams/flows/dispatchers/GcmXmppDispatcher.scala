@@ -87,8 +87,7 @@ class GcmXmppDispatcher extends GraphStage[FanOutShape2[(GcmXmppRequest,GCMReque
 
     val inhandler = new InHandler {
       override def onPush(): Unit = {
-        val input:GCMPayloadEnvelope = grab(in)
-        val requestPair = mapXmppRequest(input)
+        val requestPair:(GcmXmppRequest,GCMRequestTracker) = grab(in)
         xmppState.addIncomingRequest(requestPair)
 
         //exhaust buffer as long as connections available

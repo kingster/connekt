@@ -42,16 +42,15 @@ abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionC
       val invalidDeviceIds = pnInfo.deviceIds.diff(validDeviceIds.toSet)
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.ANDROID, pnInfo.appName, message.contextId.orEmpty)).persist
 
-      val tokens:Map[String, DeviceDetails] = devicesInfo.map{device => (device.token,device)}.toMap
       val androidStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-android").get
 
       val appDataWithId = PNPlatformStencilService.getPNData(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).getObj[ObjectNode].put("messageId", message.id)
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 
-      if (tokens.nonEmpty && ttl > 0) {
-        formPayload(message, tokens, pnInfo, appDataWithId, ttl, dryRun)
-      } else if (tokens.nonEmpty) {
+      if (devicesInfo.nonEmpty && ttl > 0) {
+        formPayload(message, devicesInfo, pnInfo, appDataWithId, ttl, dryRun)
+      } else if (devicesInfo.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, message.clientId, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
         List.empty[GCMPayloadEnvelope]
@@ -65,7 +64,7 @@ abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionC
   }
 
   def formPayload(message:ConnektRequest,
-                  devices:Map[String, DeviceDetails],
+                  devices:Seq[DeviceDetails],
                   pnInfo:PNRequestInfo,
                   appDataWithId:Any,
                   timeToLive:Long,

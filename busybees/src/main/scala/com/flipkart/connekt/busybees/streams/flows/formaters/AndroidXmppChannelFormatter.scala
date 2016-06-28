@@ -15,14 +15,14 @@ class AndroidXmppChannelFormatter (parallelism: Int)(implicit ec: ExecutionConte
   val  deliveryReceiptRequired = Some(true)
 
   override def formPayload(message: ConnektRequest,
-                           devicesInfo:Map[String, DeviceDetails],
+                           devicesInfo:Seq[DeviceDetails],
                            pnInfo: PNRequestInfo,
                            appDataWithId: Any,
                            timeToLive: Long,
                            dryRun: Option[Boolean]): List[GCMPayloadEnvelope] = {
-    devicesInfo.map{ case (token, device ) => {
+    devicesInfo.map{ device => {
       val messageId = XmppMessageIdHelper.generateMessageId(message, device)
-      val payload = GCMXmppPNPayload(token, messageId, Option(pnInfo.delayWhileIdle), appDataWithId, Some(timeToLive), deliveryReceiptRequired, dryRun)
+      val payload = GCMXmppPNPayload(device.token, messageId, Option(pnInfo.delayWhileIdle), appDataWithId, Some(timeToLive), deliveryReceiptRequired, dryRun)
       GCMPayloadEnvelope(message.id, message.clientId, Seq(device.deviceId), pnInfo.appName, message.contextId.orEmpty, payload, message.meta)
     }}.toList
   }

@@ -1,19 +1,20 @@
 package com.flipkart.connekt.busybees.xmpp
 
-import akka.actor.{Terminated, Props, Actor}
+import akka.actor.{ActorRef, Terminated, Props, Actor}
 import akka.routing.{ActorRefRoutee, Router, RoundRobinRoutingLogic}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionActor._
-import com.flipkart.connekt.commons.iomodels.GCMXmppPNPayload
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{XmppRequestAvailable, FreeConnectionAvailable, InitXmpp}
+import com.flipkart.connekt.commons.iomodels.GcmXmppRequest
 import com.flipkart.connekt.commons.services.ConnektConfig
 import scala.collection.mutable
 /**
  * Created by subir.dey on 22/06/16.
  */
 class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, appId:String) extends Actor {
-  val requests:mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)] = collection.mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)]()
+  val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] = collection.mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]()
   val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(100)
+  val freeXmppActors = collection.mutable.Queue[ActorRef]()
 
   var router:Router = {
     val routees = Vector.fill(connectionPoolSize) {
@@ -37,9 +38,17 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, appId:String) extends
     case FreeConnectionAvailable =>
       if ( requests.nonEmpty )
         sender ! requests.dequeue()
+      else
+        freeXmppActors.enqueue(sender)
 
-    case xmppRequest:(GCMXmppPNPayload, GCMRequestTracker) =>
-      requests.enqueue(xmppRequest)
-      router.routees.foreach(r => r.send(XmppRequestAvailable, self))
+    case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
+      if ( freeXmppActors.nonEmpty ) {
+        freeXmppActors.dequeue() ! xmppRequest
+      }
+      else {
+        //this case should never arise because connection actor pulls only when they are free
+        requests.enqueue(xmppRequest)
+        router.routees.foreach(r => r.send(XmppRequestAvailable, self))
+      }
   }
 }

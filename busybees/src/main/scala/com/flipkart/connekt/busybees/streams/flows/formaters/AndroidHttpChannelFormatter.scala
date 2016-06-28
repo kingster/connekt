@@ -12,13 +12,13 @@ import scala.concurrent.ExecutionContextExecutor
 class AndroidHttpChannelFormatter (parallelism: Int)(implicit ec: ExecutionContextExecutor) extends AndroidChannelFormatter(parallelism)(ec) {
 
   override def formPayload(message:ConnektRequest,
-                           devicesInfo:Map[String, DeviceDetails],
+                           devicesInfo:Seq[DeviceDetails],
                            pnInfo:PNRequestInfo,
                            appDataWithId:Any,
                            timeToLive:Long,
                            dryRun:Option[Boolean]):List[GCMPayloadEnvelope] = {
-    val tokens = devicesInfo.keySet.toSeq
-    val validDeviceIds = devicesInfo.values.map(_.deviceId).toSeq
+    val tokens = devicesInfo.map(_.token)
+    val validDeviceIds = devicesInfo.map(_.deviceId)
 
     val payload = GCMHttpPNPayload(registration_ids = tokens, delay_while_idle = Option(pnInfo.delayWhileIdle), appDataWithId, time_to_live = Some(timeToLive), dry_run = dryRun)
     List(GCMPayloadEnvelope(message.id, message.clientId, validDeviceIds, pnInfo.appName, message.contextId.orEmpty, payload, message.meta))

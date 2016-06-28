@@ -21,7 +21,7 @@ class ConnektStanzaListener(connectionActor:ActorRef, dispatcher:GcmXmppDispatch
 
   override def processPacket(packet: Stanza)  {
     // Extract the GCM message from the packet.
-    val packetExtension:GcmXmppPacketExtension = packet.getExtension(XmppConnectionActor.GCM_NAMESPACE).asInstanceOf[GcmXmppPacketExtension]
+    val packetExtension:GcmXmppPacketExtension = packet.getExtension(XmppConnectionHelper.GCM_NAMESPACE).asInstanceOf[GcmXmppPacketExtension]
     val jsonGcmDownstreamMessage:XmppResponse = com.flipkart.connekt.commons.utils.StringUtils.objMapper.readValue(packetExtension.getJsonString, classOf[XmppResponse])
     if (jsonGcmDownstreamMessage != null) {
       if ( jsonGcmDownstreamMessage.isInstanceOf[XmppReceipt] )

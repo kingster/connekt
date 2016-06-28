@@ -19,7 +19,7 @@ class XmppGatewayCache {
 
   var connectionAvailable = 0
   val xmppRequestRouters:mutable.Map[String, ActorRef] = mutable.Map[String, ActorRef]()
-  val requestBuffer:collection.mutable.Map[String,mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)]] = collection.mutable.Map()
+  val requestBuffer:collection.mutable.Map[String,mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]] = collection.mutable.Map()
   val connectionFreeCount:collection.mutable.Map[String,Int] = collection.mutable.Map()
   val responsesDownStream:mutable.Queue[(Try[XmppResponse], GCMRequestTracker)] = collection.mutable.Queue[(Try[XmppResponse], GCMRequestTracker)]()
   val responsesUpStream:mutable.Queue[(ActorRef,XmppUpstreamData)] = collection.mutable.Queue[(ActorRef,XmppUpstreamData)]()
@@ -32,7 +32,7 @@ class XmppGatewayCache {
       case None => {
         val xmppRequestRouter:ActorRef = XmppConnectionHelper.system.actorOf(Props(classOf[XmppConnectionRouter], this, appId))
         xmppRequestRouters.put(appId, xmppRequestRouter)
-        requestBuffer.put(appId,new mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)]())
+        requestBuffer.put(appId,new mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]())
         connectionFreeCount.put(appId,0)
         xmppRequestRouter ! InitXmpp
         xmppRequestRouter
@@ -52,8 +52,8 @@ class XmppGatewayCache {
     }
   }
 
-  def addIncomingRequest(requestPair:(GCMXmppPNPayload, GCMRequestTracker)) = {
-    val requests:mutable.Queue[(GCMXmppPNPayload, GCMRequestTracker)] = requestBuffer.get(requestPair._2.appName).get
+  def addIncomingRequest(requestPair:(GcmXmppRequest, GCMRequestTracker)) = {
+    val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] = requestBuffer.get(requestPair._2.appName).get
     requests.enqueue(requestPair)
     requestBuffer.put(requestPair._2.appName, requests)
   }

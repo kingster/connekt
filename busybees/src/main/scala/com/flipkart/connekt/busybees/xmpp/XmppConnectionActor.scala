@@ -13,6 +13,7 @@ import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionActor._
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper._
+import com.flipkart.connekt.commons.entities.{GoogleCredential, Credential}
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
@@ -35,8 +36,7 @@ import scala.util.{Failure, Success}
 
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends Actor {
   val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(100)
-  lazy val username: String = ConnektConfig.get("gcm.ccs." + appId + ".username").get
-  lazy val apiKey: String = ConnektConfig.get("gcm.ccs." + appId + ".apiKey").get
+  var googleCredential:GoogleCredential = null
 
   private val removalListener: RemovalListener[String, GCMRequestTracker] =
     new RemovalListener[String, GCMRequestTracker]() {
@@ -65,9 +65,9 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
       dispatcher.getMoreCallback.invoke(appId)
       parent ! FreeConnectionAvailable
 
-    case xmppRequest:(GCMXmppPNPayload, GCMRequestTracker) =>
+    case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
       //first request----create connection and process request
-      createConnection()
+      createConnection(xmppRequest._1.credential)
       become(free)
       self ! xmppRequest
 
@@ -77,7 +77,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
   //message processing as long as pending ack is less than max
   def free:Actor.Receive = {
-    case xmppRequest:(GCMXmppPNPayload, GCMRequestTracker) =>
+    case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
       processSendRequest(parent, xmppRequest)
 
     case XmppRequestAvailable =>
@@ -131,7 +131,12 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
       prcoessAckExpired(parent, ackExpired)
   }
 
-  private def createConnection() = {
+  private def createConnection(credential: GoogleCredential): Unit = {
+    googleCredential = credential
+    createConnection(googleCredential.projectId, googleCredential.apiKey)
+  }
+
+  private def createConnection(username:String, apiKey:String) = {
     connection = new XMPPTCPConnection(XMPPTCPConnectionConfiguration.builder()
                         .setHost(xmppHost)
                         .setPort(xmppPort)
@@ -171,9 +176,9 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     }
   }
 
-  private def processSendRequest(parent:ActorRef, xmppRequest:(GCMXmppPNPayload, GCMRequestTracker)) = {
+  private def processSendRequest(parent:ActorRef, xmppRequest:(GcmXmppRequest, GCMRequestTracker)) = {
     pendingAckCount = pendingAckCount + 1
-    val xmppPayload:GCMXmppPNPayload = xmppRequest._1
+    val xmppPayload:GCMXmppPNPayload = xmppRequest._1.pnPayload
     val xmppPayloadString:String = StringUtils.objMapper.writeValueAsString(xmppPayload)
     val packet = new GcmXmppPacketExtension(xmppPayloadString)
     val stanza:Stanza = new Stanza() {
@@ -258,7 +263,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
   private def processConnectionDraining() = {
     ConnektLogger(LogFile.CLIENTS).error("Received ConnectionDraining!!:", appId)
     XmppConnectionHelper.archivedConnections.add(connection)
-    createConnection()
+    createConnection(googleCredential.projectId, googleCredential.apiKey)
   }
 
   private def processConnectionClosed(connClosed:ConnectionClosed) = {
