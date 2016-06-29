@@ -44,7 +44,7 @@ object SubscriptionService {
     subscription.lastUpdatedTS = new Date(System.currentTimeMillis())
     get(subscription.id).flatMap {
       case Some(sub) => Try_#(message = "SubscriptionService.update failed") {
-        dao.add(subscription)
+        dao.update(subscription)
         LocalCacheManager.getCache(LocalCacheType.Subscription).put[Subscription](subscription.id, subscription)
         true
       }

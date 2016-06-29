@@ -16,7 +16,8 @@ import com.flipkart.connekt.commons.entities.Subscription
 
 trait TSubscriptionDao {
 
-  def get(sId: String) : Option[Subscription]
   def add(subscription: Subscription) : Unit
+  def update(subscription: Subscription) : Unit
+  def get(sId: String) : Option[Subscription]
   def delete(sId: String): Unit
 }

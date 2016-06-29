@@ -34,6 +34,14 @@ class SubscriptionDaoTest extends CommonsBaseTest {
     noException should be thrownBy DaoFactory.getSubscriptionDao.add(subscription)
   }
 
+  "update test" should "not throw exception" in {
+    subscription.name = "UpdatedSubscriptionName"
+    subscription.shutdownThreshold = 2
+    subscription.eventFilter = "updatedEventFilter"
+    subscription.eventTransformer = new Transformers("updatedTestHeader", "updatedTestPayload")
+    noException should be thrownBy DaoFactory.getSubscriptionDao.update(subscription)
+  }
+
   "get test" should "return a instance of Subscription" in {
     assert(DaoFactory.getSubscriptionDao.get(subscription.id).get.isInstanceOf[Subscription])
   }

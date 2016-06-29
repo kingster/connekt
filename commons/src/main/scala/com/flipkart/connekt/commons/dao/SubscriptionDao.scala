@@ -25,15 +25,29 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
     try {
       val sql = s"""
                   |INSERT INTO $subscriptionTable (id, name, sink, createdBy, createdTS, lastUpdatedTS, eventFilter, eventTransformer, shutdownThreshold) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-                  |ON DUPLICATE KEY UPDATE  name = ?, sink = ?, lastUpdatedTS = ?, eventFilter = ?, eventTransformer = ?, shutdownThreshold = ?
         """.stripMargin
       update(sql,subscription.id, subscription.name, subscription.sink.getJson, subscription.createdBy, subscription.createdTS,
-        subscription.lastUpdatedTS, subscription.eventFilter, subscription.eventTransformer.getJson, subscription.shutdownThreshold,
-        subscription.name, subscription.sink.getJson, subscription.lastUpdatedTS, subscription.eventFilter,
+        subscription.lastUpdatedTS, subscription.eventFilter, subscription.eventTransformer.getJson, subscription.shutdownThreshold)
+       } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.DAO).error(s"Error writing subscription [${subscription.id}] ${e.getMessage}", e)
+        throw e
+    }
+  }
+
+  override def update(subscription: Subscription): Unit = {
+    implicit val j = mySQLHelper.getJDBCInterface
+    try {
+      val sql = s"""
+                   |UPDATE $subscriptionTable SET name = ?, sink = ?, lastUpdatedTS = ?, eventFilter = ?, eventTransformer = ?, shutdownThreshold = ?
+                   |WHERE id = ?
+        """.stripMargin
+
+      update(sql,subscription.name, subscription.sink.getJson, subscription.lastUpdatedTS, subscription.eventFilter,
         subscription.eventTransformer.getJson, subscription.shutdownThreshold)
     } catch {
       case e: Exception =>
-        ConnektLogger(LogFile.DAO).error(s"Error writing subscription [${subscription.id}] ${e.getMessage}", e)
+        ConnektLogger(LogFile.DAO).error(s"Error updating subscription [${subscription.id}] ${e.getMessage}", e)
         throw e
     }
   }
