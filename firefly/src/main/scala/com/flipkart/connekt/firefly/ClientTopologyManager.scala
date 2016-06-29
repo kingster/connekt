@@ -14,7 +14,7 @@ package com.flipkart.connekt.firefly
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.{GenericAction, Subscription}
+import com.flipkart.connekt.commons.entities.Subscription
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
@@ -42,13 +42,13 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
   override def onUpdate(syncType: SyncType, args: List[AnyRef]): Any = {
     syncType match {
       case SyncType.SUBSCRIPTION =>
-        val action = GenericAction.withName(args.head.toString)
+        val action = args.head.toString
         val subscription = args.last.toString.getObj[Subscription]
         action match {
-          case GenericAction.START if !isTopologyActive(subscription.id) =>
+          case "start" if !isTopologyActive(subscription.id) =>
             ConnektLogger(LogFile.SERVICE).info(s"Starting client topology ${subscription.id}")
             startTopology(subscription)
-          case GenericAction.STOP if isTopologyActive(subscription.id) =>
+          case "stop" if isTopologyActive(subscription.id) =>
             ConnektLogger(LogFile.SERVICE).info(s"Stopping client topology ${subscription.id}")
             getTrigger(subscription.id).success("User initiated topology shutdown")
           case _ =>
