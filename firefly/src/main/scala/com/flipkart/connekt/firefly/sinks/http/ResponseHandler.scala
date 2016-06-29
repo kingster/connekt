@@ -51,10 +51,12 @@ class ResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownT
                 println(count.getAndIncrement())
                 push(successOut, (httpCallbackTracker.httpRequest, httpCallbackTracker))
               case _ =>
+                println("other response" + response.status.intValue())
                 consecutiveSendFailures.incrementAndGet()
                 push(if(httpCallbackTracker.failureCount > retryLimit) discardOut else retryOnErrorOut, (httpCallbackTracker.httpRequest, httpCallbackTracker.copy(failureCount = 1 + httpCallbackTracker.failureCount)))
             }
           case Failure(e) =>
+            println("other failed")
             consecutiveSendFailures.incrementAndGet()
             push(if(httpCallbackTracker.failureCount > retryLimit) discardOut else retryOnErrorOut, (httpCallbackTracker.httpRequest, httpCallbackTracker.copy(failureCount = 1 + httpCallbackTracker.failureCount)))
         }

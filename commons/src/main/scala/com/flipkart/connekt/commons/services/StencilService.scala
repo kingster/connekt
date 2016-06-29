@@ -37,7 +37,7 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
     try {
       val fabric = stencil.engine match {
         case StencilEngine.GROOVY =>
-          FabricMaker.create[GroovyFabric](stencil.id)
+          FabricMaker.create[GroovyFabric](stencil.engineFabric)
         case StencilEngine.VELOCITY =>
           FabricMaker.createVtlFabric(stencil.engineFabric)
       }
