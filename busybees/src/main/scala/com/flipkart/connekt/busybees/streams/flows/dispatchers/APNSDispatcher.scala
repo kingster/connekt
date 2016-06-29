@@ -20,8 +20,10 @@ import com.flipkart.connekt.busybees.models.APNSRequestTracker
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.FutureUtils._
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException, PushNotificationResponse}
+import io.netty.channel.nio.NioEventLoopGroup
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContextExecutor, Future, Promise}
@@ -35,7 +37,9 @@ object APNSDispatcher {
   private def createAPNSClient(appName: String): ApnsClient[SimpleApnsPushNotification] = {
     ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher starting $appName apns-client")
     val credential = KeyChainManager.getAppleCredentials(appName).get
-    val client = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey)
+    //TODO: shutdown this eventloop when client is closed.
+    val eventLoop = new NioEventLoopGroup(4, new ThreadFactoryBuilder().setNameFormat(s"apns-nio-$appName").build())
+    val client = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey,eventLoop)
     client.connect(ApnsClient.PRODUCTION_APNS_HOST).await(120, TimeUnit.SECONDS)
     if (!client.isConnected)
       ConnektLogger(LogFile.PROCESSORS).error(s"APNSDispatcher Unable to connect [$appName] apns-client in 2minutes")
