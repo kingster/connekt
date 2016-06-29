@@ -38,7 +38,7 @@ object APNSDispatcher {
     ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher starting $appName apns-client")
     val credential = KeyChainManager.getAppleCredentials(appName).get
     //TODO: shutdown this eventloop when client is closed.
-    val eventLoop = new NioEventLoopGroup(4, new ThreadFactoryBuilder().setNameFormat(s"apns-nio-$appName").build())
+    val eventLoop = new NioEventLoopGroup(4, new ThreadFactoryBuilder().setNameFormat(s"apns-nio-$appName-%s").build())
     val client = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey,eventLoop)
     client.connect(ApnsClient.PRODUCTION_APNS_HOST).await(120, TimeUnit.SECONDS)
     if (!client.isConnected)
