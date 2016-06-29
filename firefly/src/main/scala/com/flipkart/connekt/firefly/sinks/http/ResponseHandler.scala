@@ -34,6 +34,7 @@ class ResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownT
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
+    val count =   new AtomicInteger(0)
     val consecutiveSendFailures = new AtomicInteger(0)
     setHandler(in, new InHandler {
 
@@ -47,6 +48,7 @@ class ResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownT
             response.status.intValue() match {
               case s if s/100 == 2 =>
                 consecutiveSendFailures.set(0)
+                println(count.getAndIncrement())
                 push(successOut, (httpCallbackTracker.httpRequest, httpCallbackTracker))
               case _ =>
                 consecutiveSendFailures.incrementAndGet()

@@ -20,7 +20,7 @@ import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.receptors.routes.common.ClientRoute
-import com.flipkart.connekt.receptors.routes.push.{RegistrationRoute, SendRoute}
+import com.flipkart.connekt.receptors.routes.push.{SendRoute, RegistrationRoute}
 import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 import org.scalatest.Matchers
 
