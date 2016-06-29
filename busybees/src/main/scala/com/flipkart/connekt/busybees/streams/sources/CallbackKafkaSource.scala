@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.Try
 
-class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryConf: Config)(shutdownTrigger: Future[String])(implicit  ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented {
+class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, config: Config)(shutdownTrigger: Future[String])(implicit ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented {
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
@@ -42,7 +42,7 @@ class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryCo
 
   override def shape: SourceShape[V] = SourceShape(out)
 
-  lazy val zk = new ZkClient(factoryConf.getString("zookeeper.connect"), 5000, 5000, ZKStringSerializer)
+  lazy val zk = new ZkClient(config.getString("zookeeper.connect"), 5000, 5000, ZKStringSerializer)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new TimerGraphStageLogic(shape) {
 
@@ -134,18 +134,17 @@ class CallbackKafkaSource[V: ClassTag](topic: String, groupId: String, factoryCo
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource create kafka consumer")
 
     val factoryProps = new Properties()
-    factoryProps.setProperty("zookeeper.connect", factoryConf.getString("zookeeper.connect"))
+    factoryProps.setProperty("zookeeper.connect", config.getString("zookeeper.connect"))
     factoryProps.setProperty("group.id", groupId)
-    factoryProps.setProperty("zookeeper.session.timeout.ms", factoryConf.getString("zookeeper.session.timeout.ms"))
-    factoryProps.setProperty("zookeeper.sync.time.ms", factoryConf.getString("zookeeper.sync.time.ms"))
-    factoryProps.setProperty("auto.commit.interval.ms", factoryConf.getString("auto.commit.interval.ms"))
-    factoryProps.setProperty("consumer.timeout.ms", factoryConf.getString("consumer.timeout.ms"))
-    val config: ConsumerConfig = new ConsumerConfig(factoryProps)
+    factoryProps.setProperty("zookeeper.session.timeout.ms", config.getString("zookeeper.session.timeout.ms"))
+    factoryProps.setProperty("zookeeper.sync.time.ms", config.getString("zookeeper.sync.time.ms"))
+    factoryProps.setProperty("auto.commit.interval.ms", config.getString("auto.commit.interval.ms"))
+    factoryProps.setProperty("consumer.timeout.ms", config.getString("consumer.timeout.ms"))
+    val consumerConfig: ConsumerConfig = new ConsumerConfig(factoryProps)
 
-    kafkaConsumerConnector = Consumer.create(config)
+    kafkaConsumerConnector = Consumer.create(consumerConfig)
 
     iterator = initIterator(kafkaConsumerConnector)
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource init iterator complete")
   }
 }
-
