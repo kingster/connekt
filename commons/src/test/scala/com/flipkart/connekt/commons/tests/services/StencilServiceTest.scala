@@ -14,8 +14,7 @@ package com.flipkart.connekt.commons.tests.services
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
-import com.flipkart.connekt.commons.iomodels.EmailRequestData
-import com.flipkart.connekt.commons.services.StencilService
+import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -24,56 +23,62 @@ class StencilServiceTest extends CommonsBaseTest {
 
   val stencil = new Stencil
   stencil.id = StringUtils.generateRandomStr(10)
+  stencil.name = StringUtils.generateRandomStr(10)
+  stencil.component = "data"
   stencil.engine = StencilEngine.VELOCITY
-  stencil.engineFabric = """{
-                           |	"cType": "EMAIL",
-                           |	"subjectVtl": "Order for $product, $booleanValue, $integerValue",
-                           |	"bodyHtmlVtl": "Hello $name, Price for $product is $price"
-                           |}""".stripMargin
+  stencil.engineFabric =
+    """
+      |{
+      |	"data": "Order for $product, $booleanValue, $integerValue"
+      |}
+    """.stripMargin
+
   stencil.createdBy = "connekt-genesis"
   stencil.updatedBy = "connekt-genesis"
   stencil.version = 1
   stencil.bucket = "GLOBAL"
 
   val product = StringUtils.generateRandomStr(10)
-  val name = StringUtils.generateRandomStr(10)
-  val price = StringUtils.generateRandomStr(10)
+  lazy val stencilService = ServiceFactory.getStencilService
+
   val payload =
-    s"""{
-       |"product" : "$product",
-       |"name" : "$name",
-       |"price" : "$price",
-       |"booleanValue" : true,
-       |"integerValue": 1678
-       |}
+    """
+      |{
+      |	"product": "$product",
+      |	"booleanValue": true,
+      |	"integerValue": 1678
+      |}
     """.stripMargin
 
-  val subjectResult = s"Order for $product, true, 1678"
-  val bodyHtmlResult = s"Hello $name, Price for $product is $price"
+  val dataResult =
+    """
+      |{
+      |	"data": "Order for $product, true, 1678"
+      |}
+    """.stripMargin
 
   val bucket = new Bucket
   bucket.id = StringUtils.generateRandomStr(10)
   bucket.name = StringUtils.generateRandomStr(10)
 
-
   "Stencil Service" should "add stencil" in {
-    noException should be thrownBy StencilService.add(stencil)
+
+    noException should be thrownBy stencilService.add(stencil.id, List(stencil))
   }
 
   "Stencil Service" should "get the stencil" in {
-    StencilService.get(stencil.id).get.toString shouldEqual stencil.toString
+    stencilService.get(stencil.id).head.toString shouldEqual stencil.toString
   }
 
   "Stencil Service" should "render the stencil for given ConnektRequest" in {
-    StencilService.render(stencil, payload.getObj[ObjectNode]) shouldEqual EmailRequestData(subjectResult, bodyHtmlResult)
+    stencilService.materialize(stencil, payload.getObj[ObjectNode]) shouldEqual dataResult
   }
 
-
   "Stencil Service" should "add bucket" in {
-    noException should be thrownBy StencilService.addBucket(bucket)
+    noException should be thrownBy stencilService.addBucket(bucket)
   }
 
   "Stencil Service" should "get bucket" in {
-    StencilService.getBucket(bucket.name).get.toString shouldEqual bucket.toString
+    stencilService.getBucket(bucket.name).get.toString shouldEqual bucket.toString
   }
 }

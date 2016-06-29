@@ -17,7 +17,7 @@ import java.util.UUID
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.ServiceFactory
-import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent, PNRequestData, PNRequestInfo}
+import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.apache.commons.lang.StringUtils
@@ -45,7 +45,7 @@ class CallbackServiceTest extends CommonsBaseTest {
     clientId = StringUtils.EMPTY,
     channel = "push",
     sla = "H",
-    templateId = Some(UUID.randomUUID().toString),
+    stencilId = Some(UUID.randomUUID().toString),
     scheduleTs = Some(System.currentTimeMillis()),
     expiryTs = Some(System.currentTimeMillis()),
     channelInfo = PNRequestInfo(platform = callBackEvent.platform,
@@ -63,7 +63,7 @@ class CallbackServiceTest extends CommonsBaseTest {
     pnInfo = pnInfo.copy(id = mid)
 
     val callbackService = ServiceFactory.getCallbackService
-    callbackService.persistCallbackEvent(callBackEvent.messageId, s"${callBackEvent.appName}${callBackEvent.deviceId}", Channel.PUSH, callBackEvent).isSuccess shouldEqual true
+    callbackService.persistCallbackEvents(Channel.PUSH, List(callBackEvent)).isSuccess shouldEqual true
   }
 
   "Callback Service" should "fetchCallbackEvent" in {

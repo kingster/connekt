@@ -19,7 +19,7 @@ import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{ConnektConfig, StencilService}
+import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
@@ -31,6 +31,8 @@ import scala.util.Try
 class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events").map(_.toLowerCase)
+
+  lazy implicit val stencilService = ServiceFactory.getStencilService
 
   val route =
     authenticate {
@@ -51,16 +53,18 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       //Skip all messages which are either read/dismissed or passed in skipIds
                       val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_._1.asInstanceOf[PNCallbackEvent]).filter(e => seenEventTypes.contains(e.eventType.toLowerCase)).map(_.messageId)).get.toSet
                       val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
-                        val messageIds:List[String] = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
-                        val filteredMessageIds:List[String] = messageIds.filterNot(skipMessageIds.contains)
-                        val fetchedMessages:Try[List[ConnektRequest]] = messageService.getRequestInfo(filteredMessageIds)
+                        val messageIds: List[String] = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
+                        val filteredMessageIds: List[String] = messageIds.filterNot(skipMessageIds.contains)
+                        val fetchedMessages: Try[List[ConnektRequest]] = messageService.getRequestInfo(filteredMessageIds)
                         fetchedMessages.map(_.filter(_.expiryTs.map(_ >= System.currentTimeMillis).getOrElse(true))).getOrElse(List.empty[ConnektRequest])
                       })
 
-                      val pushRequests = messages.get.map(r => {
-                        val channelRequestData = r.templateId.flatMap(StencilService.get(_)).map(StencilService.render(_, r.channelDataModel)).getOrElse(r.channelData)
-                        r.id -> channelRequestData
-                      }).toMap
+                      val pushRequests = messages.get.map(r =>
+                        r.id -> (Option(r.channelData) match {
+                          case Some(cD) => cD
+                          case None => r.getComputedChannelData
+                        })
+                      ).toMap
 
                       val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
 

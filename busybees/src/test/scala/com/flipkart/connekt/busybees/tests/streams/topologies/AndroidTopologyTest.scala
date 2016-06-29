@@ -39,7 +39,7 @@ class AndroidTopologyTest extends TopologyUTSpec {
                      |{
                      |	"channel": "PN",
                      |	"sla": "H",
-                     |	"templateId": "retail-app-base-0x23",
+                     |	"stencilId": "retail-app-base-0x23",
                      |	"scheduleTs": 12312312321,
                      |	"channelData": {
                      |		"type": "PN",

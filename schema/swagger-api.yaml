@@ -243,6 +243,8 @@ paths:
       responses:
         '201':
           description:  PN Created
+        '404':
+          description:  No valid devices found for given userId
         default:
           description: Unexpected error
           schema:
@@ -787,9 +789,9 @@ definitions:
           - L
           - M
           - H
-      templateId:
+      stencilId:
         type: string
-        description: Optional TemplateId
+        description: Optional StencilId
       contextId:
         type: string
         description: Optional contextId for tracking
@@ -823,7 +825,7 @@ definitions:
         description:  Channel Payload, incase channelDataModel is not provided.
       channelDataModel:
         type: object
-        description:  Data Model to be rendered incase templateId is provided
+        description:  Data Model to be rendered incase stencilId is provided
 
   Error:
     type: object

@@ -14,7 +14,7 @@ package com.flipkart.connekt.receptors.tests.routes.Stencils
 
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.commons.entities.{Stencil, StencilEngine}
+import com.flipkart.connekt.commons.entities.{Stencil, StencilsEnsemble, StencilEngine}
 import com.flipkart.connekt.commons.iomodels.Response
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -33,23 +33,35 @@ class StencilsRouteTest extends BaseRouteTest {
       |import com.fasterxml.jackson.databind.node.JsonNodeFactory;
       |import com.fasterxml.jackson.databind.node.ObjectNode;
       |
-      |public class ConnektSampleAppGroovy extends PNPlatformGroovyFabric {
-      |     public String getData(String id, ObjectNode context) {
+      |public class FlipkartRetailAppGroovy implements GroovyFabric {
+      |     public Object compute(String id, ObjectNode context) {
       |		return context.toString();
-      |    }
-      |    public String getTopic(String id, ObjectNode context) {
-      |                 return null;
       |    }
       |}
       | """.stripMargin
+
+  val stencilComponents =
+    s"""
+      |{
+      |	"name" : "PN${StringUtils.generateRandomStr(4)}" ,
+      |	"components" :  "data"
+      |}
+    """.stripMargin
+
+  val stencilComponentsUpdated =
+    s"""
+      |{
+      |	"name" : "PN-Updated${StringUtils.generateRandomStr(4)}" ,
+      |	"components" :  "data"
+      |}
+    """.stripMargin
+
 
   val updateEngine = StencilEngine.VELOCITY
 
   val updateEngineFabric =
     """{
-      |	"cType": "EMAIL",
-      |	"subjectVtl": "Order for $product, $booleanValue, $integerValue",
-      |	"bodyHtmlVtl": "Hello $name, Price for $product is $price"
+      |"message" : "$message" , "title" : "$title" , "id" : "$id" , "triggerSound" : "$triggerSound" , "notificationType" : "$notificationType"
       |}""".stripMargin
   val escapedUpdateEngineFabric = StringEscapeUtils.escapeJava(updateEngineFabric)
 
@@ -60,7 +72,6 @@ class StencilsRouteTest extends BaseRouteTest {
   val title = StringUtils.generateRandomStr(10)
   val bucket = "GLOBAL"
 
-
   val payload =
     s"""{
        |"message" : "$message",
@@ -68,31 +79,40 @@ class StencilsRouteTest extends BaseRouteTest {
        |"triggerSound" : $triggerSound,
        |"notificationType" : "$notificationType",
        |"title": "$title"
-       |}
-    """.stripMargin
+       |}""".stripMargin
 
   val escapedEngineFabric = StringEscapeUtils.escapeJava(engineFabric)
   var stencil: Stencil = null
 
+
   val input =
     s"""
        |{
-       |   "engine" : "$engine",
-       |   "engineFabric" : "$escapedEngineFabric",
-       |   "bucket" : "$bucket"
+       |	"name": "Android-PN-1",
+       |	"components": [{
+       |	    "component" : "data",
+       |		"engine": "VELOCITY",
+       |		"engineFabric": "{\\"message\\" : \\"$message\\" , \\"title\\" : \\"$title\\" , \\"id\\" : \\"$id\\" , \\"triggerSound\\" : \\"$triggerSound\\" , \\"notificationType\\" : \\"$notificationType\\" }"
+       |	}],
+       |	"bucket": "GLOBAL"
        |}
-    """.stripMargin
+       |""".stripMargin
 
   val update =
     s"""
-       |{
-       |   "engine" : "$updateEngine",
-       |   "engineFabric" : "$escapedUpdateEngineFabric",
-       |   "bucket" : "$bucket"
-       |}
+        |{
+        |	"name": "Android-PN-Updated",
+        |	"components": [{
+        |	    "component" : "data",
+        |		"engine": "VELOCITY",
+        |		"engineFabric": "{\\"message\\" : \\"$message\\" , \\"title\\" : \\"$title\\" , \\"id\\" : \\"$id\\" , \\"triggerSound\\" : \\"$triggerSound\\" , \\"notificationType\\" : \\"$notificationType\\" }"
+        |	}],
+        |	"bucket": "GLOBAL"
+        |}
      """.stripMargin
 
   var stencilId = ""
+  var stencilComponentsId = ""
 
   val bucketName = StringUtils.generateRandomStr(6)
 
@@ -167,4 +187,32 @@ class StencilsRouteTest extends BaseRouteTest {
         status shouldEqual StatusCodes.OK
       }
   }
+
+  "Stencil test" should "return Ok for stencil components create" in {
+    Post("/v1/stencils/components/registry", HttpEntity(MediaTypes.`application/json`, stencilComponents)).addHeader(header) ~>
+      stencilRoute ~>
+      check {
+        val responseString = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
+        val responseData = responseString.getObj[ObjectNode].get("response").asInstanceOf[ObjectNode].put("type", "RESPONSE").getJson.getObj[Response]
+        stencilComponentsId = StringUtils.getDetail(responseData.data, "StencilComponents").get.asInstanceOf[Map[String, AnyRef]].getJson.getObj[StencilsEnsemble].id
+        status shouldEqual StatusCodes.Created
+      }
+  }
+
+  "Stencil test" should "return Ok for stencil components get" in {
+    Get(s"/v1/stencils/components/registry/$stencilComponentsId").addHeader(header) ~>
+      stencilRoute ~>
+      check {
+        status shouldEqual StatusCodes.OK
+      }
+  }
+
+  "Stencil test" should "return Ok for stencil components update" in {
+    Put(s"/v1/stencils/components/registry/$stencilComponentsId", HttpEntity(MediaTypes.`application/json`, stencilComponentsUpdated)).addHeader(header) ~>
+      stencilRoute ~>
+      check {
+        status shouldEqual StatusCodes.OK
+      }
+  }
+
 }

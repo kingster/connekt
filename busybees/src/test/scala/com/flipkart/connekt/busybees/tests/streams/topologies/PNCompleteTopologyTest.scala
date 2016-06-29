@@ -61,7 +61,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
         |	"id": "REQUEST-VM6DODCT7BEOO0LGMH1Q399O96LPMRYE",
         |	"channel": "PN",
         |	"sla": "H",
-        |	"templateId": "retail-app-base-0x23",
+        |	"stencilId": "retail-app-base-0x23",
         |	"scheduleTs": 12312312321,
         |	"expiryTs": 3243243224,
         |	"channelData": {
@@ -90,7 +90,7 @@ class PNCompleteTopologyTest extends TopologyUTSpec {
         |	"id": "REQUEST-EUS6K7VPSR0J26GHOUTA7SJ6OB7SXZ97",
         |	"channel": "PN",
         |	"sla": "H",
-        |	"templateId": "retail-app-base-0x23",
+        |	"stencilId": "retail-app-base-0x23",
         |	"scheduleTs": 12312312321,
         |	"expiryTs": 3243243224,
         |	"channelData": {

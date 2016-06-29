@@ -15,18 +15,20 @@ package com.flipkart.connekt.busybees.streams.flows.formaters
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.helpers.ConnektRequestHelper._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.iomodels._
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, PNPlatformStencilService, StencilService}
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
 class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecutor) extends NIOFlow[ConnektRequest, WNSPayloadEnvelope](parallelism)(ec) {
+
+  lazy val stencilService = ServiceFactory.getStencilService
 
   override def map: (ConnektRequest) => List[WNSPayloadEnvelope] = message => {
 
@@ -40,6 +42,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       val invalidDeviceIds = pnInfo.deviceIds.diff(devicesInfo.map(_.deviceId).toSet)
 
       invalidDeviceIds.map(PNCallbackEvent(message.id, message.clientId, _, InternalStatus.MissingDeviceInfo, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
+      ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.MissingDeviceInfo, invalidDeviceIds.size)
 
       val (validDevices, invalidTokenDevices) = devicesInfo.partition(_.token.isValidUrl)
 
@@ -47,11 +50,11 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         .map(d => PNCallbackEvent(message.id, message.clientId, d.deviceId, InternalStatus.InvalidToken, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty))
         .persist
 
-      val windowsStencil = StencilService.get(s"ckt-${pnInfo.appName.toLowerCase}-windows").get
+      val windowsStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-windows").head
       val ttlInSeconds = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hours.toSeconds)
 
       val wnsRequestEnvelopes = validDevices.map(d => {
-        val wnsPayload = WNSToastPayload(PNPlatformStencilService.getPNData(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data))
+        val wnsPayload = WNSToastPayload(stencilService.materialize(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String])
         WNSPayloadEnvelope(message.id, message.clientId, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, wnsPayload, message.meta)
       })
 
@@ -66,6 +69,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         }
       } else if (wnsRequestEnvelopes.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"WindowsChannelFormatter dropping ttl-expired message: ${message.id}")
+        ServiceFactory.getReportingService.recordPushStatsDelta(message.clientId, message.contextId, message.meta.get("stencilId").map(_.toString), Option(message.platform), message.appName, InternalStatus.TTLExpired, devicesInfo.size)
         wnsRequestEnvelopes.map(w => PNCallbackEvent(w.messageId, message.clientId, w.deviceId, InternalStatus.TTLExpired, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty)).persist
         List.empty[WNSPayloadEnvelope]
       } else

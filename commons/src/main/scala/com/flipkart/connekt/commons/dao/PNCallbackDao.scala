@@ -23,6 +23,7 @@ class PNCallbackDao(tableName: String, hTableFactory: THTableFactory) extends Ca
 
     Map[String, Array[Byte]](
       "messageId" -> pnCallbackEvent.messageId.getUtf8Bytes,
+      "eventId" -> pnCallbackEvent.eventId.getUtf8Bytes,
       "clientId" -> pnCallbackEvent.clientId.getUtf8Bytes,
       "deviceId" -> pnCallbackEvent.deviceId.getUtf8Bytes,
       "eventType" -> pnCallbackEvent.eventType.getUtf8Bytes,
@@ -37,6 +38,7 @@ class PNCallbackDao(tableName: String, hTableFactory: THTableFactory) extends Ca
   override def mapToChannelEvent(channelEventPropsMap: Map[String, Array[Byte]]): CallbackEvent = {
     PNCallbackEvent(
       messageId = channelEventPropsMap.getS("messageId"),
+      eventId = channelEventPropsMap.getS("eventId"),
       deviceId = channelEventPropsMap.getS("deviceId"),
       eventType = channelEventPropsMap.getS("eventType"),
       platform = channelEventPropsMap.getS("platform"),
