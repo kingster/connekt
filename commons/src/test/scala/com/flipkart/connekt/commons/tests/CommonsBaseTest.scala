@@ -31,6 +31,8 @@ class CommonsBaseTest extends ConnektUTSpec {
     bootstrapReceptors()
   }
 
+  def getKafkaConsumerConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").get
+
   def getKafkaConsumerHelper = kafkaConsumerHelper.getOrElse({
     val kafkaConsumerConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
     val kafkaConsumerPoolConf = ConnektConfig.getConfig("connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
