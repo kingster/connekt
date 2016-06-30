@@ -255,7 +255,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
   private def processConnectionDraining() = {
     ConnektLogger(LogFile.CLIENTS).error("Received ConnectionDraining!!:", appId)
     XmppConnectionHelper.archivedConnections.add(connection)
-    createConnection(googleCredential.projectId, googleCredential.apiKey)
+    createConnection(googleCredential)
   }
 
   private def processConnectionClosed(connClosed:ConnectionClosed) = {
@@ -275,7 +275,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
         ConnektLogger(LogFile.CLIENTS).error("CONNECTION ERROR sending message to GCM, will be retried. jsonRequest : " + xmppPayloadString, ex)
         //what to do with accumulated pending ack
         connection.disconnect()
-        createConnection(googleCredential.projectId, googleCredential.apiKey)
+        createConnection(googleCredential)
       case ex: Exception =>
         ConnektLogger(LogFile.CLIENTS).error("ERROR sending message to GCM, will be retried. jsonRequest : " + xmppPayloadString, ex)
     }
