@@ -35,9 +35,11 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
   implicit val ec = am.executionContext
 
   def evaluator(data: CallbackEvent): Boolean = {
-    ServiceFactory.getStencilService.get(subscription.eventFilter).find(_.component == "eventFilter") match {
-      case Some(stencil) => ServiceFactory.getStencilService.materialize(stencil, data.getJson.getObj[ObjectNode]).asInstanceOf[Boolean]
-      case None => true
+    Option(subscription.eventFilter).forall { stencilId =>
+      ServiceFactory.getStencilService.get(stencilId).find(_.component == "eventFilter") match {
+        case Some(stencil) => ServiceFactory.getStencilService.materialize(stencil, data.getJson.getObj[ObjectNode]).asInstanceOf[Boolean]
+        case None => true
+      }
     }
   }
 
@@ -55,14 +57,17 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
   }
 
   def transform(event: CallbackEvent): SubscriptionEvent = {
-    val stencilService = ServiceFactory.getStencilService
 
-    SubscriptionEvent(header = stencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
-      case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
-      case None => null
-    }, payload = stencilService.get(subscription.eventTransformer.payload).find(_.component == "payload") match {
-      case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
-      case None => event
-    })
+    Option(subscription.eventTransformer).map { transformer =>
+      val stencilService = ServiceFactory.getStencilService
+      SubscriptionEvent(header = stencilService.get(transformer.header).find(_.component == "header") match {
+        case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
+        case None => null
+      }, payload = stencilService.get(transformer.payload).find(_.component == "payload") match {
+        case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
+        case None => event
+      })
+    }.getOrElse(SubscriptionEvent(null, event))
+
   }
 }
