@@ -23,7 +23,7 @@ class GCMXmppDispatcherPrepare extends MapFlowStage[GCMPayloadEnvelope, (GcmXmpp
       KeyChainManager.getGoogleCredential(message.appName).map { credential =>
         val xmppRequest:GcmXmppRequest = GcmXmppRequest(message.gcmPayload.asInstanceOf[GCMXmppPNPayload], credential)
         val requestTrace = GCMRequestTracker(message.messageId, message.clientId, message.deviceId, message.appName, message.contextId, message.meta)
-        List((xmppRequest, requestTrace))
+        List(xmppRequest -> requestTrace)
       }.getOrElse(List.empty[(GcmXmppRequest, GCMRequestTracker)])
     } catch {
       case e: Throwable =>

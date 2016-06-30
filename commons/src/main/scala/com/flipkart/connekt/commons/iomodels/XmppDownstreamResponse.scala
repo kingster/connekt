@@ -26,6 +26,6 @@ import com.fasterxml.jackson.annotation.{JsonProperty, JsonSubTypes, JsonTypeInf
   new Type(value = classOf[XmppReceipt], name = "receipt"),
   new Type(value = classOf[XmppControl], name = "control")
 ))
-abstract class XmppResponse {
+abstract class XmppDownstreamResponse {
   def responseType(): String
 }

@@ -54,7 +54,7 @@ abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionC
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 
       if (devicesInfo.nonEmpty && ttl > 0) {
-        formPayload(message, devicesInfo, pnInfo, appDataWithId, ttl, dryRun)
+        createPayload(message, devicesInfo, appDataWithId)
       } else if (devicesInfo.nonEmpty) {
         ConnektLogger(LogFile.PROCESSORS).warn(s"AndroidChannelFormatter dropping ttl-expired message: ${message.id}")
         devicesInfo.map(d => PNCallbackEvent(message.id, message.clientId, d.deviceId, InternalStatus.TTLExpired, MobilePlatform.ANDROID, d.appName, message.contextId.orEmpty)).persist
@@ -69,10 +69,7 @@ abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionC
     }
   }
 
-  def formPayload(message:ConnektRequest,
+  def createPayload(message:ConnektRequest,
                   devices:Seq[DeviceDetails],
-                  pnInfo:PNRequestInfo,
-                  appDataWithId:Any,
-                  timeToLive:Long,
-                  dryRun:Option[Boolean]):List[GCMPayloadEnvelope]
+                  appDataWithId:Any):List[GCMPayloadEnvelope]
 }

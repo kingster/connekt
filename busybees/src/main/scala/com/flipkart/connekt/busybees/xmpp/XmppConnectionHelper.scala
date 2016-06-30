@@ -15,7 +15,6 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection
  * Created by subir.dey on 28/06/16.
  */
 object XmppConnectionHelper {
-  implicit val system = ActorSystem("xmpp-connection-system")
   case object InitXmpp
   case object ReConnect
   case object ConnectionDraining

@@ -6,20 +6,20 @@ import com.flipkart.connekt.commons.entities.DeviceDetails
 
 import scala.concurrent.ExecutionContextExecutor
 import com.flipkart.connekt.commons.utils.StringUtils._
+import scala.concurrent.duration._
 
-/**
- * Created by subir.dey on 21/06/16.
- */
 class AndroidXmppChannelFormatter (parallelism: Int)(implicit ec: ExecutionContextExecutor) extends AndroidChannelFormatter(parallelism)(ec) {
 
   val  deliveryReceiptRequired = Some(true)
 
-  override def formPayload(message: ConnektRequest,
+  override def createPayload(message: ConnektRequest,
                            devicesInfo:Seq[DeviceDetails],
-                           pnInfo: PNRequestInfo,
-                           appDataWithId: Any,
-                           timeToLive: Long,
-                           dryRun: Option[Boolean]): List[GCMPayloadEnvelope] = {
+                           appDataWithId: Any): List[GCMPayloadEnvelope] = {
+
+    val pnInfo = message.channelInfo.asInstanceOf[PNRequestInfo]
+    val timeToLive = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
+    val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
+
     devicesInfo.map{ device => {
       val messageId = XmppMessageIdHelper.generateMessageId(message, device)
       val payload = GCMXmppPNPayload(device.token, messageId, Option(pnInfo.delayWhileIdle), appDataWithId, Some(timeToLive), deliveryReceiptRequired, dryRun)

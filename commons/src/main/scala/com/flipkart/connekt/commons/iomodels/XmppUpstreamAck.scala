@@ -1,7 +1,7 @@
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.flipkart.connekt.commons.iomodels.XmppResponse
+import com.flipkart.connekt.commons.iomodels.XmppDownstreamResponse
 
 /**
  * Created by subir.dey on 24/06/16.

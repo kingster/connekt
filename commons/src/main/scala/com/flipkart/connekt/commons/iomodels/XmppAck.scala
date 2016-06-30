@@ -19,19 +19,19 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 
 case class XmppAck(
               @JsonProperty("message_id") messageId: String,
-              @JsonProperty(required = false) from: String) extends XmppResponse {
+              @JsonProperty(required = false) from: String) extends XmppDownstreamResponse {
   override def responseType(): String = "ack"
 }
 
-/**
- * Sample from GCM
-<message id="">
-  <gcm xmlns="google:mobile:data">
-  {
-      "from":"REGID",
-      "message_id":"m-1366082849205"
-      "message_type":"ack"
-  }
-  </gcm>
-</message>
-*/
+/** Sample from GCM
+  *
+  * <message id="">
+  * <gcm xmlns="google:mobile:data">
+  *   {
+  *   "from":"REGID",
+  *   "message_id":"m-1366082849205"
+  *   "message_type":"ack"
+  *   }
+  *   </gcm>
+  *   </message>
+  */

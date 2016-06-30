@@ -5,7 +5,7 @@ import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.xmpp.XmppNackException
 import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ServiceFactory, LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.iomodels.{XmppResponse, PNCallbackEvent}
+import com.flipkart.connekt.commons.iomodels.{XmppDownstreamResponse, PNCallbackEvent}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
@@ -18,16 +18,15 @@ import scala.util.Try
 /**
  * Created by subir.dey on 25/06/16.
  */
-class XmppDownstreamHandler (implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[XmppResponse], GCMRequestTracker)](96) with Instrumented {
+class XmppDownstreamHandler (implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[XmppDownstreamResponse], GCMRequestTracker)](96) with Instrumented {
 
   val badRegistrationError = "BAD_REGISTRATION"
   val invalidJson = "INVALID_JSON"
   val rateExceededError = "DEVICE_MESSAGE_RATE_EXCEEDED"
 
-  override val map: ((Try[XmppResponse], GCMRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => Future(profile("map") {
+  override val map: ((Try[XmppDownstreamResponse], GCMRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => Future(profile("map") {
 
-    val xmppResponse = responseTrackerPair._1
-    val requestTracker = responseTrackerPair._2
+    val (xmppResponse,requestTracker) = responseTrackerPair
 
     val messageId = requestTracker.messageId
     val appName = requestTracker.appName

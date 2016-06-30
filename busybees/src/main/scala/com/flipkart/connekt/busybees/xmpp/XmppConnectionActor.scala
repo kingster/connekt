@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.google.common.cache._
 import com.typesafe.config.Config
+import org.jivesoftware.smack.SmackException.NotConnectedException
 import org.jivesoftware.smack.filter.StanzaFilter
 import org.jivesoftware.smack.packet.Stanza
 import org.jivesoftware.smack.provider.{ProviderManager, ExtensionElementProvider}
@@ -133,7 +134,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
   private def createConnection(credential: GoogleCredential): Unit = {
     googleCredential = credential
-    createConnection(googleCredential.projectId, googleCredential.apiKey)
+    createConnection(googleCredential.projectId + "@gcm.googleapis.com", googleCredential.apiKey)
   }
 
   private def createConnection(username:String, apiKey:String) = {
@@ -178,23 +179,21 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
   private def processSendRequest(parent:ActorRef, xmppRequest:(GcmXmppRequest, GCMRequestTracker)) = {
     pendingAckCount = pendingAckCount + 1
-    val xmppPayload:GCMXmppPNPayload = xmppRequest._1.pnPayload
-    val xmppPayloadString:String = StringUtils.objMapper.writeValueAsString(xmppPayload)
-    val packet = new GcmXmppPacketExtension(xmppPayloadString)
-    val stanza:Stanza = new Stanza() {
-      override def toXML():CharSequence = packet.toXML()
-    }
-    //TODO handle send failure
-    connection.sendStanza(stanza)
-    messageDataCache.put(xmppPayload.message_id,xmppRequest._2)
+    val (xmppPayload,requestTracker) = xmppRequest
 
-    if ( pendingAckCount >= maxPendingAckCount ) {
-      become(busy)
-      ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionActor for $appId turned busy")
-    } else {
-      dispatcher.getMoreCallback.invoke(appId)
-      parent ! FreeConnectionAvailable
+    if ( sendXmppStanza(xmppPayload.pnPayload) ) {
+      messageDataCache.put(xmppPayload.pnPayload.message_id, xmppRequest._2)
+
+      if (pendingAckCount >= maxPendingAckCount) {
+        become(busy)
+        ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionActor for $appId turned busy")
+      } else {
+        dispatcher.getMoreCallback.invoke(appId)
+        parent ! FreeConnectionAvailable
+      }
     }
+    else
+      dispatcher.retryCallback.invoke(xmppRequest)
   }
 
   private def processAck(parent:ActorRef, ack:XmppAck) = {
@@ -242,14 +241,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
   private def sendUpstreamAck(to: String, messageId: String) = {
     val ackMsg = XmppUpstreamAck(messageId, "ack", to)
-    val xmppPayloadString:String = StringUtils.objMapper.writeValueAsString(ackMsg)
-    val packet = new GcmXmppPacketExtension(xmppPayloadString)
-    val stanza:Stanza = new Stanza() {
-      override def toXML():CharSequence = packet.toXML()
-    }
-
-    //TODO handle send failure
-    connection.sendStanza(stanza)
+    sendXmppStanza(ackMsg)
   }
 
   private def processDeliveryReceipt(receipt:XmppReceipt) = {
@@ -269,5 +261,24 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
   private def processConnectionClosed(connClosed:ConnectionClosed) = {
     ConnektLogger(LogFile.CLIENTS).error("Received Connectionclosed!!:", appId)
     XmppConnectionHelper.archivedConnections.remove(connection)
+  }
+
+  private def sendXmppStanza(payload:Any):Boolean = {
+    val xmppPayloadString:String = StringUtils.objMapper.writeValueAsString(payload)
+    val stanza = new GcmXmppPacketExtension(xmppPayloadString)
+
+    try {
+      connection.sendStanza(stanza)
+      true
+    } catch {
+      case ex: NotConnectedException =>
+        ConnektLogger(LogFile.CLIENTS).error("CONNECTION ERROR sending message to GCM, will be retried. jsonRequest : " + xmppPayloadString, ex)
+        //what to do with accumulated pending ack
+        connection.disconnect()
+        createConnection(googleCredential.projectId, googleCredential.apiKey)
+      case ex: Exception =>
+        ConnektLogger(LogFile.CLIENTS).error("ERROR sending message to GCM, will be retried. jsonRequest : " + xmppPayloadString, ex)
+    }
+    false
   }
 }
