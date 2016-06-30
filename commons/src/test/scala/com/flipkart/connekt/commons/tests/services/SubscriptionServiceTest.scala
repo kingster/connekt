@@ -47,7 +47,6 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   "update Test" should "return success" in {
     subscription.eventFilter = "updatedEventFilter"
     assert(SubscriptionService.update(subscription).isSuccess)
-
   }
 
   "update Test" should "return failure" in {

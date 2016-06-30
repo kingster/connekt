@@ -161,5 +161,4 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
       status shouldEqual StatusCodes.BadRequest
     }
   }
-
 }

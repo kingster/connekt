@@ -46,7 +46,6 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
     }
   }
 
-
   def writeMessages(topic: String, message: String*) = {
     val producer = kafkaProducerPool.borrowObject()
     try {
