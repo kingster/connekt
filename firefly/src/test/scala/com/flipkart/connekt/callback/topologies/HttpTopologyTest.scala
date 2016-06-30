@@ -34,7 +34,7 @@ class HttpTopologyTest extends TopologyUTSpec with Instrumented {
     subscription.id = "e7fe4e8b-ea16-402a-b0b6-7568eadc0bf6"
     subscription.shutdownThreshold = 3
     subscription.createdBy = "connekt-genesis"
-    subscription.sink = new HTTPEventSink("POST", "http://requestb.in/vbvsmavb")
+    subscription.sink = new HTTPEventSink("POST", "http://requestb.in/1i0oin41")
     subscription.eventFilter = "testEventFilter"
     subscription.eventTransformer = new Transformers("testHeader", "testPayload")
 
@@ -57,7 +57,7 @@ class HttpTopologyTest extends TopologyUTSpec with Instrumented {
     println(" time taken = " + (time2 - time1))
 
 
-    Thread.sleep(1000000)
+    Thread.sleep(100000)
 
     SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List("stop", subscription.getJson)))
 
