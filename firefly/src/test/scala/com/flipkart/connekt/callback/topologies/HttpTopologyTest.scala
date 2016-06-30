@@ -13,7 +13,7 @@
 package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
-import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, Transformers}
+import com.flipkart.connekt.commons.entities.{DeviceDetails, HTTPEventSink, Subscription, Transformers}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.ConnektConfig
@@ -44,14 +44,14 @@ class HttpTopologyTest extends TopologyUTSpec with Instrumented {
     val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
     val kafkaProducerHelper = KafkaProducerHelper.init(kafkaProducerConnConf, kafkaProducerPoolConf)
 
-    val msg =s"""
-             {"type":"PN","messageId":"9c75d26e-f82a-42e9-8896-41fcbab27369","clientId":"connekt-insomnia","deviceId":"6aebb89b060c442764f7b940a16e109c","eventType":"gcm_received","platform":"android","appName":"retailapp","contextId":"","cargo":"0:1466498004107001%c7d00653f9fd7ecd","timestamp":1466498004226}
-      """
+    val msg = DeviceDetails("random", "random", "random", "random", "random", "random", "random", "random", "random", "random")
+    println(msg.toCallbackEvent.getJson)
 
     val time1 = System.currentTimeMillis()
     for( a <- 1 to 1000) {
-      kafkaProducerHelper.writeMessages("active_events", msg)
+      kafkaProducerHelper.writeMessages("active_events", msg.toCallbackEvent.getJson)
     }
+
     val time2 =  System.currentTimeMillis()
 
     println(" time taken = " + (time2 - time1))
