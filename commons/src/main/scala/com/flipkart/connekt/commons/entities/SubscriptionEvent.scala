@@ -10,8 +10,6 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-
 package com.flipkart.connekt.commons.entities
 
-case class SubscriptionEvent(var header: Map[String,String] = null,
-                             var payload: AnyRef = null)
+case class SubscriptionEvent(header: Map[String,String] = null, payload: AnyRef = null)

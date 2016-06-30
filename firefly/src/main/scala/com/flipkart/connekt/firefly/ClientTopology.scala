@@ -17,13 +17,13 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.sources.CallbackKafkaSource
-import com.flipkart.connekt.firefly.sinks.http.HttpSink
-import com.flipkart.connekt.firefly.sinks.kafka.KafkaSink
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
-import com.typesafe.config.Config
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.firefly.sinks.http.HttpSink
+import com.flipkart.connekt.firefly.sinks.kafka.KafkaSink
+import com.typesafe.config.Config
 import collection.JavaConverters._
 
 import scala.concurrent.Promise
@@ -44,29 +44,24 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
 
     val topologyShutdownTrigger = Promise[String]()
     kafkaCallbackSource = new CallbackKafkaSource[CallbackEvent](topic, subscription.id, kafkaConsumerConnConf)(topologyShutdownTrigger.future)
-    val source = Source.fromGraph(kafkaCallbackSource).filter(evaluator).map(transform)
+    val source = Source.fromGraph(kafkaCallbackSource).filter(evaluator).map(transform).filter(null != _.payload)
     subscription.sink match {
       case http: HTTPEventSink => source.runWith(new HttpSink(subscription, retryLimit, topologyShutdownTrigger).getHttpSink)
       case kafka: KafkaEventSink => source.runWith(new KafkaSink(kafka.topic, kafka.broker).getKafkaSink)
     }
+
     topologyShutdownTrigger
   }
 
   def transform(event: CallbackEvent): SubscriptionEvent = {
     val stencilService = ServiceFactory.getStencilService
-    val subscriptionEvent = new SubscriptionEvent()
 
-    subscriptionEvent.header = stencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
+    SubscriptionEvent(header = stencilService.get(subscription.eventTransformer.header).find(_.component == "header") match {
       case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode]).asInstanceOf[java.util.HashMap[String, String]].asScala.toMap
       case None => null
-    }
-
-    subscriptionEvent.payload = ServiceFactory.getStencilService.get(subscription.eventTransformer.payload).find(_.component == "payload") match {
+    }, payload = stencilService.get(subscription.eventTransformer.payload).find(_.component == "payload") match {
       case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
       case None => event
-    }
-
-    subscriptionEvent
+    })
   }
-
 }
