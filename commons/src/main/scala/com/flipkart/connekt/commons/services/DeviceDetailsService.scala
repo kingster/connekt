@@ -20,11 +20,12 @@ import com.flipkart.connekt.commons.cache.{DistributedCacheManager, DistributedC
 import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.metrics.Timed
 import com.roundeights.hasher.Implicits._
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 import scala.reflect.runtime.universe._
@@ -41,6 +42,7 @@ object DeviceDetailsService extends Instrumented {
     DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).put[DeviceDetails](cacheKey(deviceDetails.appName, deviceDetails.deviceId), deviceDetails)
     if (deviceDetails.userId != null)
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
+    ServiceFactory.getCallbackService.enqueueCallbackEvents(List(deviceDetails.toCallbackEvent)).get
     BigfootService.ingest(deviceDetails.toBigfootFormat).get
   }
 
@@ -61,6 +63,7 @@ object DeviceDetailsService extends Instrumented {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           if (deviceDetails.userId != null)
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
+          ServiceFactory.getCallbackService.enqueueCallbackEvents(List(deviceDetails.toCallbackEvent)).get
           BigfootService.ingest(deviceDetails.toBigfootFormat).get
         }
       case None =>
@@ -87,6 +90,7 @@ object DeviceDetailsService extends Instrumented {
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
+          ServiceFactory.getCallbackService.enqueueCallbackEvents(List(device.toCallbackEvent)).get
           BigfootService.ingest(device.copy(active = false).toBigfootFormat)
         }
       case None =>

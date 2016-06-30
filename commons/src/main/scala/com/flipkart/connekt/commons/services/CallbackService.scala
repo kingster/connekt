@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
+import com.flipkart.connekt.commons.core.Wrappers._
 
 import scala.util.Try
 
@@ -27,6 +28,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
 
   lazy val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))
   lazy val CALLBACK_QUEUE_NAME = ConnektConfig.get("receptors.callback.queuename").getOrElse("active_events")
+
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
     case Channel.EMAIL => emailEventsDao
@@ -41,14 +43,14 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   override def persistCallbackEvents(channel: Channel.Value, events: List[CallbackEvent]): Try[List[String]] = {
     Try {
       val rowKeys = channelEventsDao(channel).asyncSaveCallbackEvents(events)
-      enqueueCallbackEvent(events)
+      enqueueCallbackEvents(events).get
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved with rowKeys $rowKeys")
       rowKeys
     }
   }
 
   @Timed("enqueueCallbackEvent")
-  private def enqueueCallbackEvent(events: List[CallbackEvent]): Unit ={
+  def enqueueCallbackEvents(events: List[CallbackEvent]): Try[Unit] = Try_ {
     queueProducerHelper.writeMessages(CALLBACK_QUEUE_NAME, events.map(_.getJson) : _*)
   }
 
