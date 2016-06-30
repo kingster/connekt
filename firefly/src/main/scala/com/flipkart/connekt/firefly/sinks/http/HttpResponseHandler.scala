@@ -18,17 +18,18 @@ import akka.http.scaladsl.model._
 import akka.stream._
 import akka.stream.scaladsl.Sink
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 
 import scala.concurrent.{ExecutionContext, Promise}
 import scala.util.{Failure, Success, Try}
 
-class ResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownTrigger: Promise[String])(implicit mat:ActorMaterializer,  ec: ExecutionContext)
-  extends GraphStage[UniformFanOutShape[(Try[HttpResponse], HttpCallbackTracker),(HttpRequest,HttpCallbackTracker)]] {
+class HttpResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownTrigger: Promise[String])(implicit mat:ActorMaterializer,  ec: ExecutionContext)
+  extends GraphStage[UniformFanOutShape[(Try[HttpResponse], HttpRequestTracker),(HttpRequest,HttpRequestTracker)]] {
 
-  val in = Inlet[(Try[HttpResponse], HttpCallbackTracker)]("input")
-  val retryOnErrorOut = Outlet[(HttpRequest, HttpCallbackTracker)]("retryOnError.out")
-  val successOut = Outlet[(HttpRequest, HttpCallbackTracker)]("success.out")
-  val discardOut = Outlet[(HttpRequest, HttpCallbackTracker)]("discard.out")
+  val in = Inlet[(Try[HttpResponse], HttpRequestTracker)]("input")
+  val retryOnErrorOut = Outlet[(HttpRequest, HttpRequestTracker)]("retryOnError.out")
+  val successOut = Outlet[(HttpRequest, HttpRequestTracker)]("success.out")
+  val discardOut = Outlet[(HttpRequest, HttpRequestTracker)]("discard.out")
 
   override def shape = new UniformFanOutShape(in, Array(retryOnErrorOut, successOut, discardOut))
 
@@ -48,17 +49,21 @@ class ResponseHandler(retryLimit: Int, shutdownThreshold: Int, topologyShutdownT
               case s if s/100 == 2 =>
                 consecutiveSendFailures.set(0)
                 push(successOut, (httpCallbackTracker.httpRequest, httpCallbackTracker))
-              case _ =>
+              case e =>
+                ConnektLogger(LogFile.SERVICE).error(s"Callback event relay non-200 code: $e")
                 consecutiveSendFailures.incrementAndGet()
                 push(if(httpCallbackTracker.failureCount > retryLimit) discardOut else retryOnErrorOut, (httpCallbackTracker.httpRequest, httpCallbackTracker.copy(failureCount = 1 + httpCallbackTracker.failureCount)))
             }
           case Failure(e) =>
+            ConnektLogger(LogFile.SERVICE).error(s"Callback event relay failure", e)
             consecutiveSendFailures.incrementAndGet()
             push(if(httpCallbackTracker.failureCount > retryLimit) discardOut else retryOnErrorOut, (httpCallbackTracker.httpRequest, httpCallbackTracker.copy(failureCount = 1 + httpCallbackTracker.failureCount)))
         }
         
-        if(consecutiveSendFailures.get() > shutdownThreshold)
+        if(consecutiveSendFailures.get() > shutdownThreshold) {
+          ConnektLogger(LogFile.SERVICE).info("Client callback topology shutdown trigger executed on threshold failures")
           topologyShutdownTrigger.complete(Success("Client callback topology shutdown trigger executed on threshold failures"))
+        }
       }
     })
 

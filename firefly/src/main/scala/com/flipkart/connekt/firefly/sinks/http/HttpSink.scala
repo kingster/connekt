@@ -29,23 +29,23 @@ import scala.concurrent.{ExecutionContext, Promise}
 
 class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrigger: Promise[String])(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
 
-  val httpCachedClient = Http().superPool[HttpCallbackTracker]()
+  val httpCachedClient = Http().superPool[HttpRequestTracker]()
 
   def getHttpSink: Sink[SubscriptionEvent, NotUsed] = {
 
     Sink.fromGraph(GraphDSL.create() { implicit b =>
-      val httpResponseHandler = b.add(new ResponseHandler(retryLimit, subscription.shutdownThreshold, topologyShutdownTrigger))
+      val httpResponseHandler = b.add(new HttpResponseHandler(retryLimit, subscription.shutdownThreshold, topologyShutdownTrigger))
       val event2HttpRequestMapper = b.add(Flow[SubscriptionEvent].map(httpPrepare))
-      val httpRequestMergePref = b.add(MergePreferred[(HttpRequest, HttpCallbackTracker)](1))
+      val httpRequestMergePref = b.add(MergePreferred[(HttpRequest, HttpRequestTracker)](1))
 
       event2HttpRequestMapper ~> httpRequestMergePref.in(0)
       httpRequestMergePref.out ~> httpCachedClient ~> httpResponseHandler.in
       httpResponseHandler.out(0) ~> httpRequestMergePref.preferred
-      httpResponseHandler.out(1) ~> Sink.foreach[(HttpRequest, HttpCallbackTracker)] { event =>
+      httpResponseHandler.out(1) ~> Sink.foreach[(HttpRequest, HttpRequestTracker)] { event =>
         ConnektLogger(LogFile.SERVICE).debug(s"HttpSink message delivered: $event")
       }
 
-      httpResponseHandler.out(2) ~> Sink.foreach[(HttpRequest, HttpCallbackTracker)] { event =>
+      httpResponseHandler.out(2) ~> Sink.foreach[(HttpRequest, HttpRequestTracker)] { event =>
         ConnektLogger(LogFile.SERVICE).warn(s"HttpSink message discarded: $event")
       }
 
@@ -53,7 +53,7 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
     })
   }
 
-  private def httpPrepare(event: SubscriptionEvent): (HttpRequest, HttpCallbackTracker) = {
+  private def httpPrepare(event: SubscriptionEvent): (HttpRequest, HttpRequestTracker) = {
 
     val sink = subscription.sink.asInstanceOf[HTTPEventSink]
 
@@ -64,9 +64,9 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
         headers = immutable.Seq[HttpHeader]( event.header.map { case (key, value) => RawHeader(key, value) }.toArray: _ *))
     }
 
-    val callbackTracker = HttpCallbackTracker(httpRequest)
+    val requestTracker = HttpRequestTracker(httpRequest)
 
-    httpRequest -> callbackTracker
+    httpRequest -> requestTracker
   }
 
 }

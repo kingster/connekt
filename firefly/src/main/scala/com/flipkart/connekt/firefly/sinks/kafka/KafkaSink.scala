@@ -12,8 +12,6 @@
  */
 package com.flipkart.connekt.firefly.sinks.kafka
 
-import akka.stream.scaladsl.Sink
-
 class KafkaSink(brokers:String, topic:String) {
-  def getKafkaSink = Sink.foreach(println)
+  def getKafkaSink = throw new RuntimeException(s"`${classOf[KafkaSink].getSimpleName}` is not implemented.")
 }
