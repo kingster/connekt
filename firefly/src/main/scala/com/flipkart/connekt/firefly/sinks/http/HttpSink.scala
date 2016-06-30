@@ -34,7 +34,7 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
   def getHttpSink: Sink[SubscriptionEvent, NotUsed] = {
 
     Sink.fromGraph(GraphDSL.create() { implicit b =>
-      val httpResponseHandler = b.add(new HttpResponseHandler(retryLimit, subscription.shutdownThreshold, topologyShutdownTrigger))
+      val httpResponseHandler = b.add(new HttpResponseHandler(retryLimit, subscription.shutdownThreshold, subscription.id, topologyShutdownTrigger))
       val event2HttpRequestMapper = b.add(Flow[SubscriptionEvent].map(httpPrepare))
       val httpRequestMergePref = b.add(MergePreferred[(HttpRequest, HttpRequestTracker)](1))
 
