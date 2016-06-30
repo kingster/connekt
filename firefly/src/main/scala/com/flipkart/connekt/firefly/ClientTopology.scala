@@ -16,7 +16,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.flipkart.connekt.busybees.streams.sources.CallbackKafkaSource
+import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.entities._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
@@ -24,13 +24,13 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.firefly.sinks.http.HttpSink
 import com.flipkart.connekt.firefly.sinks.kafka.KafkaSink
 import com.typesafe.config.Config
-import collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 
 class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Config, subscription: Subscription)(implicit am: ActorMaterializer, sys: ActorSystem) {
 
-  var kafkaCallbackSource: CallbackKafkaSource[CallbackEvent] = _
+  var kafkaCallbackSource: KafkaSource[CallbackEvent] = _
   implicit val ec = am.executionContext
 
   def evaluator(data: CallbackEvent): Boolean = {
@@ -43,7 +43,7 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
   def start(): Promise[String] = {
 
     val topologyShutdownTrigger = Promise[String]()
-    kafkaCallbackSource = new CallbackKafkaSource[CallbackEvent](topic, subscription.id, kafkaConsumerConnConf)(topologyShutdownTrigger.future)
+    kafkaCallbackSource = new KafkaSource[CallbackEvent](kafkaConsumerConnConf, topic, subscription.id)(topologyShutdownTrigger.future)
     val source = Source.fromGraph(kafkaCallbackSource).filter(evaluator).map(transform).filter(null != _.payload)
     subscription.sink match {
       case http: HTTPEventSink => source.runWith(new HttpSink(subscription, retryLimit, topologyShutdownTrigger).getHttpSink)

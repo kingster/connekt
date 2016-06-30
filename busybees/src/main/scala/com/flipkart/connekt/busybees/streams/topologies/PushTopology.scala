@@ -29,18 +29,18 @@ import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
-import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.typesafe.config.Config
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
 
 
-class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCallbackEvent] with SyncDelegate {
+class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallbackEvent] with SyncDelegate {
 
   SyncManager.get().addObserver(this, List(SyncType.CLIENT_QUEUE_CREATE))
 
@@ -55,6 +55,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
   override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
+    val groupId = kafkaConsumerConfig.getString("group.id")
 
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
@@ -63,7 +64,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     for (portNum <- 0 until merge.n) {
       val p = Promise[String]()
-      new KafkaSource[ConnektRequest](consumer, topic = topics(portNum))(p.future) ~> merge.in(portNum)
+      new KafkaSource[ConnektRequest](kafkaConsumerConfig, topic = topics(portNum), groupId)(p.future) ~> merge.in(portNum)
       handles += p
     }
 

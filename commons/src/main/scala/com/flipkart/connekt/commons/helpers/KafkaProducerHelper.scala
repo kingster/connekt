@@ -28,8 +28,6 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
 
   validatePoolProps("kafka producer pool", globalContextConf)
 
-  override def zkPath(): String = producerFactoryConf.getString("zookeeper.connect")
-
   val kafkaProducerPool: GenericObjectPool[Producer[String, String]] = {
     try {
       createKafkaProducerPool(producerFactoryConf,

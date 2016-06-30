@@ -19,16 +19,17 @@ import com.flipkart.connekt.commons.dao.{TRequestDao, TUserConfiguration}
 import com.flipkart.connekt.commons.entities.Channel.Channel
 import com.flipkart.connekt.commons.entities.{AppUser, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.{KafkaConnectionHelper, KafkaConsumerHelper, KafkaProducerHelper}
+import com.flipkart.connekt.commons.helpers.{KafkaConnectionHelper, KafkaProducerHelper}
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.roundeights.hasher.Implicits._
+import com.typesafe.config.Config
 import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 
 import scala.util.{Failure, Success, Try}
 
-class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumerHelper) extends TMessageService {
+class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, kafkaConsumerConf: Config) extends TMessageService with KafkaConnectionHelper {
 
   private val messageDao: TRequestDao = requestDao
   private val queueProducer: KafkaProducerHelper = queueProducerHelper
@@ -84,8 +85,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
 
   //# ADMIN ACTIONS
   override def addClientTopic(topicName: String, numPartitions: Int, replicationFactor: Int = 1): Try[Unit] = Try_ {
-    val kafkaConnH: KafkaConnectionHelper = Option(queueProducerHelper).getOrElse(queueConsumerHelper)
-    val zkClient = new ZkClient(kafkaConnH.zkPath(), 5000, 5000, ZKStringSerializer)
+    val zkClient = new ZkClient(zkPath(kafkaConsumerConf), 5000, 5000, ZKStringSerializer)
     kafka.admin.AdminUtils.createTopic(zkClient, topicName, numPartitions, replicationFactor, new Properties())
     ConnektLogger(LogFile.SERVICE).info(s"Created topic $topicName with $numPartitions, replicationFactor $replicationFactor")
   }
@@ -101,8 +101,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
   override def assignClientChannelTopic(channel: Channel, clientUserId: String): String = s"${channel}_${clientUserId.md5.hash.hex}"
 
   override def getKafkaTopicNames(channel: Channel): Try[Seq[String]] = Try_ {
-    val kafkaConnH: KafkaConnectionHelper = Option(queueProducerHelper).getOrElse(queueConsumerHelper)
-    val allTopics = ZkUtils.getAllTopics(new ZkClient(kafkaConnH.zkPath(), 5000, 5000, ZKStringSerializer))
+    val allTopics = ZkUtils.getAllTopics(new ZkClient(zkPath(kafkaConsumerConf), 5000, 5000, ZKStringSerializer))
     allTopics.filter(_.startsWith(channel.toString))
   }
 }

@@ -33,6 +33,8 @@ object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
 
+  def bootstrap() = dao.get("ConnectSampleApp", StringUtils.generateRandomStr(15))
+
   @Timed("add")
   def add(deviceDetails: DeviceDetails): Try[Boolean] = Try_#(message = "DeviceDetailsService.add Failed") {
     dao.add(deviceDetails.appName, deviceDetails)

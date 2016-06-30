@@ -17,15 +17,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler, TimerGraphStageLogic}
 import akka.stream.{Attributes, Outlet, SourceShape}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
+import com.flipkart.connekt.commons.helpers.KafkaConnectionHelper
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
+import com.typesafe.config.Config
 import kafka.consumer.{ConsumerConnector, ConsumerTimeoutException}
 import kafka.message.MessageAndMetadata
 import kafka.serializer.{Decoder, DefaultDecoder}
-import kafka.utils.ZKStringSerializer
-import org.I0Itec.zkclient.ZkClient
 
 import scala.collection.Iterator
 import scala.concurrent.duration._
@@ -33,15 +32,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.Try
 
-class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: String)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with Instrumented{
+class KafkaSource[V: ClassTag](kafkaConsumerConf: Config, topic: String, groupId: String)(shutdownTrigger: Future[String])(implicit val ec: ExecutionContext) extends GraphStage[SourceShape[V]] with KafkaConnectionHelper with Instrumented {
 
   val out: Outlet[V] = Outlet("KafkaMessageSource.Out")
 
   def commitOffset(o: Long) = {}
 
   override def shape: SourceShape[V] = SourceShape(out)
-
-  lazy val zk = new ZkClient(kafkaConsumerHelper.zkPath(), 5000, 5000, ZKStringSerializer)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new TimerGraphStageLogic(shape) {
 
@@ -87,16 +84,16 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
       } catch {
         case e: Exception =>
           ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource iteration error: ${e.getMessage}", e)
-          kafkaConsumerHelper.returnConnector(kafkaConsumerConnector)
-          createKafkaConsumer()
-        /*failStage(e)*/
+          kafkaConsumerConnector.shutdown()
+          ConnektLogger(LogFile.PROCESSORS).info(s"Shutting down kafka consumer connector post iteration error.")
+          initKafkaConsumer()
       }
     })
 
 
     override def preStart(): Unit = {
-      createKafkaConsumer()
-      val startOffset = kafkaConsumerHelper.offsets(topic)
+      initKafkaConsumer()
+      val startOffset = offsets(topic, groupId, zkPath(kafkaConsumerConf))
       ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Start for topic $topic are: ${startOffset.toString()}")
 
       val handle = getAsyncCallback[String] { (r: String) => completeStage()}
@@ -104,7 +101,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
       shutdownTrigger onComplete { t =>
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
         handle.invoke(t.getOrElse("_external topology shutdown signal_"))
-        val stopOffsets = kafkaConsumerHelper.offsets(topic)
+        val stopOffsets = offsets(topic, groupId, zkPath(kafkaConsumerConf))
         ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
 
       }
@@ -133,10 +130,10 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
     }
   }
 
-  private def createKafkaConsumer(): Unit = {
+  private def initKafkaConsumer(): Unit = {
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource create kafka consumer")
 
-    kafkaConsumerConnector = kafkaConsumerHelper.getConnector
+    kafkaConsumerConnector = createKafkaConsumer(groupId, kafkaConsumerConf)
     iterator = initIterator(kafkaConsumerConnector)
     ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource init iterator complete")
   }
