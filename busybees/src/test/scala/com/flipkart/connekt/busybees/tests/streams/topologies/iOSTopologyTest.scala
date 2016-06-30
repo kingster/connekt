@@ -61,10 +61,11 @@ class iOSTopologyTest extends TopologyUTSpec {
                      |      "appName" : "RetailApp",
                      |      "deviceIds" : ["$deviceId"]
                      |	},
-                     |	"meta": {}
+                     |	"meta": {},
+                     |  "clientId" : "random",
+                     |  "id" : "12345678980"
                      |}
                    """.stripMargin.getObj[ConnektRequest]
-
 
     lazy val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
 
