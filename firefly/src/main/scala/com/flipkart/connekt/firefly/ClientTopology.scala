@@ -27,6 +27,7 @@ import com.typesafe.config.Config
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
+import com.roundeights.hasher.Implicits._
 
 class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Config, subscription: Subscription)(implicit am: ActorMaterializer, sys: ActorSystem) {
 
@@ -43,7 +44,7 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
   def start(): Promise[String] = {
 
     val topologyShutdownTrigger = Promise[String]()
-    kafkaCallbackSource = new KafkaSource[CallbackEvent](kafkaConsumerConnConf, topic, subscription.id)(topologyShutdownTrigger.future)
+    kafkaCallbackSource = new KafkaSource[CallbackEvent](kafkaConsumerConnConf, topic, subscription.id.crc32.hash.hex)(topologyShutdownTrigger.future)
     val source = Source.fromGraph(kafkaCallbackSource).filter(evaluator).map(transform).filter(null != _.payload)
     subscription.sink match {
       case http: HTTPEventSink => source.runWith(new HttpSink(subscription, retryLimit, topologyShutdownTrigger).getHttpSink)
