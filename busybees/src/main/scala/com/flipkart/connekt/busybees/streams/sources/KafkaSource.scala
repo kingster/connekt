@@ -103,7 +103,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerConf: Config, topic: String, groupId
         handle.invoke(t.getOrElse("_external topology shutdown signal_"))
         val stopOffsets = offsets(topic, groupId, zkPath(kafkaConsumerConf))
         ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
-
+        kafkaConsumerConnector.shutdown()
       }
 
       super.preStart()
