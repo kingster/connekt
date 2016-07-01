@@ -194,7 +194,7 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
       fmtAndroid ~> gcmXmppPrepare ~> gcmXmppPoolFlow.in
                                 gcmXmppPoolFlow.out0 ~> downstreamHandler ~> merger.in(0)
-                                gcmXmppPoolFlow.out1 ~> upstreamHandler ~> merger.in(0)
+                                gcmXmppPoolFlow.out1 ~> upstreamHandler ~> merger.in(1)
       FlowShape(fmtAndroid.in, merger.out)
   }
 

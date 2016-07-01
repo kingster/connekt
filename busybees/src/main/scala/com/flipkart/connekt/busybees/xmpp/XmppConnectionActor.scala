@@ -42,7 +42,7 @@ import scala.util.{Failure, Success}
  */
 
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends Actor {
-  val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(100)
+  val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(2)
   var googleCredential:GoogleCredential = null
 
   private val removalListener: RemovalListener[String, GCMRequestTracker] =

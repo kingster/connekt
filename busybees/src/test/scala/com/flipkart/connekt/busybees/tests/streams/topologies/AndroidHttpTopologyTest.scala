@@ -17,7 +17,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GCMHttpDispatcherPrepare
-import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
+import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidHttpChannelFormatter, AndroidChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.GCMResponseHandler
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
@@ -27,9 +27,9 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class AndroidTopologyTest extends TopologyUTSpec {
+class AndroidHttpTopologyTest extends TopologyUTSpec {
 
-  "AndroidTopology Test" should "run" in {
+  "AndroidHttpTopology Test" should "run" in {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
@@ -67,7 +67,7 @@ class AndroidTopologyTest extends TopologyUTSpec {
 
     val result = Source.repeat(cRequest)
       .via(new RenderFlow().flow)
-      .via(new AndroidChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
+      .via(new AndroidHttpChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
       .via(new GCMHttpDispatcherPrepare().flow)
       .via(poolClientFlow)
       .via(new GCMResponseHandler().flow)

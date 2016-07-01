@@ -27,7 +27,7 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, appId:String) extends
   val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] = collection.mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]()
 
   //TODO will be changed with zookeeper
-  val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(100)
+  val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(1)
   val freeXmppActors = collection.mutable.Queue[ActorRef]()
 
   var router:Router = {
