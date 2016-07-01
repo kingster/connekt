@@ -1,7 +1,19 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor.ActorRef
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionActor.{ReConnect, ConnectionClosed}
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ReConnect, ConnectionClosed}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.{XMPPConnection, ConnectionListener}

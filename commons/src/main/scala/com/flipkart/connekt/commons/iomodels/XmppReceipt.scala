@@ -13,11 +13,29 @@
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.flipkart.connekt.commons.entities.DeviceDetails
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 
-case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = true) override val messageId: String,
-                          @JsonProperty(required = true) override val from: String,
-                          @JsonProperty(required = true) override val category: String,
-                          @JsonProperty(required = true) data: XmppReceiptData) extends XmppUpstreamResponse(messageId, from, category)
+case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = true) messageId: String,
+                          @JsonProperty(required = true) from: String,
+                          @JsonProperty(required = true) category: String,
+                          @JsonProperty(required = true) data: XmppReceiptData) extends XmppUpstreamResponse(messageId, from, category){
+
+  def getPnCallbackEvent():List[PNCallbackEvent] = {
+    val (originalMsgId, context) = com.flipkart.connekt.commons.helpers.XmppMessageIdHelper.parseMessageIdTo(data.originalMessageId)
+    val deviceDetails:DeviceDetails = DeviceDetailsService.getByTokenId(category, data.deviceRegistrationId).getOrElse(None).getOrElse(null)
+    List(PNCallbackEvent(messageId = originalMsgId,
+      clientId = from,
+      deviceId = if (deviceDetails == null ) "" else deviceDetails.deviceId,
+      eventType = "receipt",
+      platform = "android",
+      appName = category,
+      contextId = context,
+      cargo = "",
+      timestamp = System.currentTimeMillis
+    ))
+  }
+}
 
 case class XmppReceiptData(@JsonProperty("message_status") messageStatus: String,
                                    @JsonProperty("original_message_id") originalMessageId: String,

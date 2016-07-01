@@ -1,17 +1,24 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.xmpp
 
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLSocketFactory
 
-import akka.actor.{ActorRef, Actor, ActorSystem}
-import akka.dispatch.{UnboundedPriorityMailbox, PriorityGenerator}
-import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
+import akka.actor.{ActorRef, Actor}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionActor._
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper._
 import com.flipkart.connekt.commons.entities.{GoogleCredential, Credential}
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
@@ -19,7 +26,6 @@ import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.google.common.cache._
-import com.typesafe.config.Config
 import org.jivesoftware.smack.SmackException.NotConnectedException
 import org.jivesoftware.smack.filter.StanzaFilter
 import org.jivesoftware.smack.packet.Stanza
@@ -171,7 +177,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
       connection.login(username, apiKey)
     }
     catch {
-      case ex:SmackException | IOException | XMPPException =>
+      case ex:Exception =>
         //TODO how to handle
         ConnektLogger(LogFile.CLIENTS).error("Unable to connect:", ex)
     }
@@ -273,11 +279,6 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     } catch {
       case ex: NotConnectedException =>
         ConnektLogger(LogFile.CLIENTS).error("CONNECTION ERROR sending message to GCM, will be retried. jsonRequest : " + xmppPayloadString, ex)
-        //what to do with accumulated pending ack
-        connection.disconnect()
-        createConnection(googleCredential)
-      case ex: Exception =>
-        ConnektLogger(LogFile.CLIENTS).error("ERROR sending message to GCM, will be retried. jsonRequest : " + xmppPayloadString, ex)
     }
     false
   }

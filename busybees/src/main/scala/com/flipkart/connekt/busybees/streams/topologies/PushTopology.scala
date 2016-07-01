@@ -115,17 +115,6 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
 
     platformPartition.out(0) ~> fmtIOS ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle ~> merger.in(0)
 
-    /**
-     * Android Topology
-     */
-    val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
-    val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-    val gcmHttpPrepare = b.add(new GCMHttpDispatcherPrepare().flow)
-
-    val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
-
-    val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
-
     platformPartition.out(1) ~> androidTopology ~> merger.in(1)
 
     /**
@@ -197,16 +186,13 @@ class PushTopology(consumer: KafkaConsumerHelper) extends ConnektTopology[PNCall
     implicit b ⇒
       val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
       val fmtAndroid = b.add(new AndroidXmppChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-
+      val gcmXmppPrepare = b.add(new GCMXmppDispatcherPrepare().flow)
       val gcmXmppPoolFlow = b.add(new GcmXmppDispatcher)
-
       val downstreamHandler = b.add(new XmppDownstreamHandler()(ioMat, ioDispatcher).flow)
-
       val upstreamHandler = b.add(new XmppUpstreamHandler()(ioMat, ioDispatcher).flow)
-
       val merger = b.add(Merge[PNCallbackEvent](2))
 
-      fmtAndroid ~> gcmXmppPoolFlow.in
+      fmtAndroid ~> gcmXmppPrepare ~> gcmXmppPoolFlow.in
                                 gcmXmppPoolFlow.out0 ~> downstreamHandler ~> merger.in(0)
                                 gcmXmppPoolFlow.out1 ~> upstreamHandler ~> merger.in(0)
       FlowShape(fmtAndroid.in, merger.out)

@@ -1,3 +1,15 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
@@ -12,7 +24,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 @JsonSubTypes(Array(
   new Type(value = classOf[XmppReceipt], name = "receipt")
 ))
-abstract case class XmppUpstreamResponse (
+abstract class XmppUpstreamResponse (
                               @JsonProperty("message_id")@JsonProperty(required = true) messageId: String,
                               @JsonProperty(required = true) from: String,
-                              @JsonProperty(required = true) category: String)
+                              @JsonProperty(required = true) category: String) {
+  def getPnCallbackEvent():List[PNCallbackEvent]
+}

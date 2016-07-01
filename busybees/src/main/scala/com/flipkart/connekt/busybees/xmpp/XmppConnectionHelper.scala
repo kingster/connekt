@@ -1,12 +1,22 @@
+/*
+ *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
+ *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
+ *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
+ *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
+ *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
+ *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
+ *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
+ *        ``˚¬ ⌐              ˚˚⌐´
+ *
+ *      Copyright © 2016 Flipkart.com
+ */
 package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor.ActorSystem
 import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.iomodels.{ConnektRequest, XmppNack}
+import com.flipkart.connekt.commons.iomodels.XmppNack
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.commons.utils.StringUtils
 import com.typesafe.config.Config
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
@@ -48,18 +58,3 @@ class XmppConnectionPriorityMailbox(settings: ActorSystem.Settings, config: Conf
     case _ => 6
   }
 )
-
-import com.flipkart.connekt.commons.utils.StringUtils._
-
-object XmppMessageIdHelper {
-  def generateMessageId(message: ConnektRequest, device:DeviceDetails):String = message.id + ":" + device.deviceId + ":" + message.contextId.orEmpty
-
-  def parseMessageIdTo(messageStr:String):(String,String) = {
-    val splitString = messageStr.split(':')
-    val originalMessageId = if (StringUtils.isNullOrEmpty(messageStr)) "" else splitString(0)
-    val context = if ( splitString.length >= 3) splitString(2) else ""
-    (originalMessageId,context)
-  }
-}
-
-
