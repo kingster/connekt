@@ -48,7 +48,7 @@ object FireflyBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"Callback service logging using: $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-receptors"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
@@ -62,6 +62,17 @@ object FireflyBoot extends BaseApp {
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
 
       ClientTopologyManager(kafkaConnConf, ConnektConfig.getString("callbacks.kafka.source.topic").get, ConnektConfig.getInt("callbacks.retry.limit").get)
+
+      ConnektLogger(LogFile.SERVICE).info("Started `Firefly` app")
+    }
+  }
+
+  def terminate() = {
+    ConnektLogger(LogFile.SERVICE).info("BusyBees shutting down")
+    if (initialized.get()) {
+      DaoFactory.shutdownHTableDaoFactory()
+      Option(ClientTopologyManager.instance).foreach(_.stopAllTopologies())
+      ConnektLogger.shutdown()
     }
   }
 
