@@ -27,7 +27,7 @@ import scala.util.Try
 class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao,  queueProducerHelper: KafkaProducerHelper) extends TCallbackService with Instrumented {
 
   lazy val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))
-  lazy val CALLBACK_QUEUE_NAME = ConnektConfig.get("firefly.callback.queue-name").getOrElse("active_events")
+  lazy val CALLBACK_QUEUE_NAME = ConnektConfig.get("firefly.kafka.topic").getOrElse("ckt_callback_events")
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao

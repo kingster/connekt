@@ -61,7 +61,7 @@ object FireflyBoot extends BaseApp {
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
 
-      ClientTopologyManager(kafkaConnConf, ConnektConfig.getString("callbacks.kafka.source.topic").get, ConnektConfig.getInt("callbacks.retry.limit").get)
+      ClientTopologyManager(kafkaConnConf, ConnektConfig.getString("firefly.kafka.topic").get, ConnektConfig.getInt("callbacks.retry.limit").get)
 
       ConnektLogger(LogFile.SERVICE).info("Started `Firefly` app")
     }
