@@ -30,7 +30,7 @@ object FireflyBoot extends BaseApp {
 
   private val initialized = new AtomicBoolean(false)
 
-  private implicit val system = ActorSystem("callback-system")
+  private implicit val system = ActorSystem("firefly")
 
   val settings = ActorMaterializerSettings(system)
     .withAutoFusing(enable = false)
@@ -41,11 +41,11 @@ object FireflyBoot extends BaseApp {
 
   def start() {
     if (!initialized.getAndSet(true)) {
-      ConnektLogger(LogFile.SERVICE).info("Callback service initializing.")
+      ConnektLogger(LogFile.SERVICE).info("Firefly initializing.")
 
       val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-firefly.xml")
 
-      ConnektLogger(LogFile.SERVICE).info(s"Callback service logging using: $configFile")
+      ConnektLogger(LogFile.SERVICE).info(s"Firefly logging using: $configFile")
       ConnektLogger.init(configFile)
 
       ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly"))
@@ -68,7 +68,7 @@ object FireflyBoot extends BaseApp {
   }
 
   def terminate() = {
-    ConnektLogger(LogFile.SERVICE).info("BusyBees shutting down")
+    ConnektLogger(LogFile.SERVICE).info("Firefly shutting down")
     if (initialized.get()) {
       DaoFactory.shutdownHTableDaoFactory()
       Option(ClientTopologyManager.instance).foreach(_.stopAllTopologies())

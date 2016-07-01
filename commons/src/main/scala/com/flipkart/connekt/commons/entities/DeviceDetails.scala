@@ -59,9 +59,9 @@ sealed case class DeviceCallbackEvent(deviceId: String, userId: String, osName: 
                                       appName: String, appVersion: String, brand: String, model: String,
                                       state: String, ts: Long, active: Boolean) extends CallbackEvent {
 
-  override def contactId: String = throw new RuntimeException(s"`contactId` undefined for ${classOf[DeviceCallbackEvent].getSimpleName}")
+  override def contactId: String = throw new RuntimeException(s"`contactId` undefined for DeviceCallbackEvent")
 
-  override def messageId: String = throw new RuntimeException(s"`messageId` undefined for ${classOf[DeviceCallbackEvent].getSimpleName}")
+  override def messageId: String = throw new RuntimeException(s"`messageId` undefined for DeviceCallbackEvent")
 
-  override def eventId: String = throw new RuntimeException(s"`eventId` undefined for ${classOf[DeviceCallbackEvent].getSimpleName}")
+  override def eventId: String = throw new RuntimeException(s"`eventId` undefined for DeviceCallbackEvent")
 }
