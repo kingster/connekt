@@ -37,3 +37,16 @@ CREATE TABLE `DATA_STORE` (
   `lastUpdatedTS` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `SUBSCRIPTIONS` (
+ `id` varchar(100) NOT NULL DEFAULT '',
+ `name` varchar(100) NOT NULL DEFAULT '',
+ `sink` varchar(5000) NOT NULL DEFAULT '',
+ `createdBy` varchar(100) NOT NULL,
+ `createdTS` date DEFAULT NULL,
+ `lastUpdatedTS` date DEFAULT NULL,
+ `eventFilter` varchar(100) DEFAULT NULL,
+ `shutdownThreshold` int(11) NOT NULL,
+ `eventTransformer` varchar(60000) DEFAULT NULL,
+ PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
