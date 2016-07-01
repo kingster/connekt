@@ -66,7 +66,6 @@ class KafkaSource[V: ClassTag](kafkaConsumerHelper: KafkaConsumerHelper, topic: 
 
         n.message() match {
           case Some(m) =>
-            ConnektLogger(LogFile.PROCESSORS).info(s"message from topic:${n.topic}, partition: ${n.partition} and offset: ${n.offset}")
             commitOffset(n.offset)
             push(out, m)
           case None =>
