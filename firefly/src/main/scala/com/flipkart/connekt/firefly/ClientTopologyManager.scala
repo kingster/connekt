@@ -16,12 +16,14 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.Subscription
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.typesafe.config.Config
 
 import scala.concurrent.Promise
+import scala.util.{Failure, Success}
 
 class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, eventRelayRetryLimit: Int)(implicit am: ActorMaterializer, sys: ActorSystem) extends SyncDelegate {
 
@@ -35,8 +37,16 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
 
   private def startTopology(subscription: Subscription): Unit = {
     val promise = new ClientTopology(spoutTopic, eventRelayRetryLimit, kafkaConsumerConnConf, subscription).start()
+    subscription.state = true
+    SubscriptionService.update(subscription)
     triggers += subscription.id -> promise
-    promise.future.onComplete(t => triggers -= subscription.id )(am.executionContext)
+    promise.future.onComplete( t => {
+      triggers -= subscription.id
+      if( t.get != s"Stopping client topology ${subscription.id} on firefly shutdown.") {
+        subscription.state = false
+        SubscriptionService.update(subscription)
+      }
+    })(am.executionContext)
   }
 
   override def onUpdate(syncType: SyncType, args: List[AnyRef]): Any = {
@@ -56,7 +66,14 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
         }
     }
   }
-  
+
+  def restoreState() ={
+    SubscriptionService.getAll() match {
+      case Success(subscriptions) => subscriptions.foreach((sub: Subscription) => if(sub.state) startTopology(sub))
+      case Failure(e) => ConnektLogger(LogFile.SERVICE).error(e)
+    }
+  }
+
   def stopAllTopologies() = {
     ConnektLogger(LogFile.SERVICE).info("Shutting down `firefly`")
     triggers.keySet.foreach(s => {
@@ -73,6 +90,7 @@ object ClientTopologyManager {
     if (null == instance)
       this.synchronized {
         instance = new ClientTopologyManager(kafkaConsumerConnConf, spoutTopic, eventRelayRetryLimit)(am, sys)
+        instance.restoreState()
       }
     instance
   }

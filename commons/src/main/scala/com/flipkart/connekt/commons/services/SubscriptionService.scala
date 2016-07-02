@@ -32,6 +32,10 @@ object SubscriptionService {
     subscription.id
   }
 
+  def getAll(): Try[List[Subscription]] = Try_#(message = "SubscriptionService.getAll failed") {
+    dao.getAll()
+  }
+
   def get(id: String): Try[Option[Subscription]] = Try_#(message = "SubscriptionService.get failed") {
     LocalCacheManager.getCache(LocalCacheType.Subscription).get[Subscription](id).orElse {
       val subscription = dao.get(id)
