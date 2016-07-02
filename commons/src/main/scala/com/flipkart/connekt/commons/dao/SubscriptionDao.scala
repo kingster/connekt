@@ -23,8 +23,8 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
   override def add(subscription: Subscription): Unit = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
-      val sql = s"INSERT INTO $subscriptionTable (id, name, sink, createdBy, createdTS, lastUpdatedTS, eventFilter, eventTransformer, shutdownThreshold, state) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-      update(sql, subscription.id, subscription.name, subscription.sink.getJson, subscription.createdBy, subscription.createdTS, subscription.lastUpdatedTS, subscription.eventFilter, subscription.eventTransformer.getJson, subscription.shutdownThreshold, subscription.state)
+      val sql = s"INSERT INTO $subscriptionTable (id, name, sink, createdBy, createdTS, lastUpdatedTS, eventFilter, eventTransformer, shutdownThreshold, active) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      update(sql, subscription.id, subscription.name, subscription.sink.getJson, subscription.createdBy, subscription.createdTS, subscription.lastUpdatedTS, subscription.eventFilter, subscription.eventTransformer.getJson, subscription.shutdownThreshold, subscription.active)
        } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error writing subscription [${subscription.id}] ${e.getMessage}", e)
@@ -35,8 +35,8 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
   override def update(subscription: Subscription): Unit = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
-      val sql = s"UPDATE $subscriptionTable SET name = ?, sink = ?, lastUpdatedTS = ?, eventFilter = ?, eventTransformer = ?, shutdownThreshold = ?, state = ? WHERE id = ?"
-      update(sql, subscription.name, subscription.sink.getJson, subscription.lastUpdatedTS, subscription.eventFilter, subscription.eventTransformer.getJson, subscription.shutdownThreshold, subscription.state, subscription.id)
+      val sql = s"UPDATE $subscriptionTable SET name = ?, sink = ?, lastUpdatedTS = ?, eventFilter = ?, eventTransformer = ?, shutdownThreshold = ?, active= ? WHERE id = ?"
+      update(sql, subscription.name, subscription.sink.getJson, subscription.lastUpdatedTS, subscription.eventFilter, subscription.eventTransformer.getJson, subscription.shutdownThreshold, subscription.active, subscription.id)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error updating subscription [${subscription.id}] ${e.getMessage}", e)
