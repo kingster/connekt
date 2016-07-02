@@ -53,9 +53,9 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
           case "stop" if isTopologyActive(subscription.id) =>
             ConnektLogger(LogFile.SERVICE).info(s"Stopping client topology ${subscription.id}")
             getTrigger(subscription.id).success("User initiated topology shutdown")
-          case _ =>
-            ConnektLogger(LogFile.SERVICE).warn(s"Unhandled client topology state $action")
+          case _ => ConnektLogger(LogFile.SERVICE).warn(s"Unhandled client topology state $action")
         }
+      case _ => ConnektLogger(LogFile.SERVICE).warn("Unwanted onUpdate type")
     }
   }
 
