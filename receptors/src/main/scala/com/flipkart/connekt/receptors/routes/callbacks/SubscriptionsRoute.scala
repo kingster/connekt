@@ -86,8 +86,13 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
           } ~
           delete {
             authorize(user, "SUBSCRIPTION_DELETE") {
+              SubscriptionService.get(subscriptionId) match {
+                case Success(sub) => SyncManager.get().publish (SyncMessage (topic = SyncType.SUBSCRIPTION, List ("stop", sub.get.getJson)))
+                case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
+              }
               SubscriptionService.remove(subscriptionId) match {
-                case Success(code) => complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
+                case Success(code) =>
+                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
                 case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
                 case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
 

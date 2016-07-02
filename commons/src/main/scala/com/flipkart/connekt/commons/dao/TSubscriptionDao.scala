@@ -19,5 +19,6 @@ trait TSubscriptionDao {
   def add(subscription: Subscription) : Unit
   def update(subscription: Subscription) : Unit
   def get(sId: String) : Option[Subscription]
+  def getAll() : List[Subscription]
   def delete(sId: String): Unit
 }
