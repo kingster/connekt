@@ -37,16 +37,8 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
 
   private def startTopology(subscription: Subscription): Unit = {
     val promise = new ClientTopology(spoutTopic, eventRelayRetryLimit, kafkaConsumerConnConf, subscription).start()
-    subscription.state = true
-    SubscriptionService.update(subscription)
     triggers += subscription.id -> promise
-    promise.future.onComplete( t => {
-      triggers -= subscription.id
-      if( t.get != s"Stopping client topology ${subscription.id} on firefly shutdown.") {
-        subscription.state = false
-        SubscriptionService.update(subscription)
-      }
-    })(am.executionContext)
+    promise.future.onComplete( t => triggers -= subscription.id)(am.executionContext)
   }
 
   override def onUpdate(syncType: SyncType, args: List[AnyRef]): Any = {
