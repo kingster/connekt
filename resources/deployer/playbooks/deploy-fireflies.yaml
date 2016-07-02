@@ -4,7 +4,7 @@
   tasks:
   - name: Set Service
     set_fact:
-      app: fireflies
+      app: firefly
   - include: tasks/update-sources.yaml
   - include: tasks/install-connekt-deb.yaml
   - include: tasks/start-service.yaml
