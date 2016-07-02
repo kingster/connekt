@@ -19,7 +19,7 @@ import scala.util.Try
 
 trait TCallbackService extends TService {
 
-  def persistCallbackEvent(requestId: String, forContact: String, channel: Channel.Value, callbackEvent: CallbackEvent): Try[String]
+  def persistCallbackEvents(channel: Channel.Value, events: List[CallbackEvent]): Try[List[String]]
 
   def fetchCallbackEvent(requestId: String, contactId: String, channel: Channel.Value): Try[List[(CallbackEvent, Long)]]
 
