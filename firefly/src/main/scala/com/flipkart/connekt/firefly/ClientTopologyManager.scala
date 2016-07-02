@@ -69,7 +69,7 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
 
   def restoreState() ={
     SubscriptionService.getAll() match {
-      case Success(subscriptions) => subscriptions.foreach((sub: Subscription) => if(sub.state) startTopology(sub))
+      case Success(subscriptions) => subscriptions.filter(_.state).foreach(startTopology)
       case Failure(e) => ConnektLogger(LogFile.SERVICE).error(e)
     }
   }
