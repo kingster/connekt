@@ -56,12 +56,12 @@ object SubscriptionService {
     }
   }
 
-  def remove(id: String): Try[Boolean] = {
+  def remove(id: String): Try[Subscription] = {
     get(id).flatMap {
       case Some(subscription) => Try_#(message = "SubscriptionService.delete failed") {
         dao.delete(id)
         LocalCacheManager.getCache(LocalCacheType.Subscription).remove(id)
-        true
+        subscription
       }
       case None => Failure(new Throwable(s"No Subscription found for id: [$id] to delete."))
     }

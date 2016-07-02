@@ -48,6 +48,6 @@ CREATE TABLE `SUBSCRIPTIONS` (
   `eventFilter` varchar(100) DEFAULT NULL,
   `shutdownThreshold` int(11) NOT NULL,
   `eventTransformer` varchar(60000) DEFAULT NULL,
-  `state` tinyint(1) NOT NULL DEFAULT '0',
+  `active` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

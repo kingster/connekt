@@ -72,11 +72,19 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
                 case Success(sub) =>
                   sub match {
                     case Some(subscription) =>
-                      action match {
-                        case "start" | "stop"  =>
+                      action.toLowerCase match {
+                        case "start"  =>
+                          subscription.active = true
+                          SubscriptionService.update(subscription)
                           SyncManager.get ().publish (SyncMessage (topic = SyncType.SUBSCRIPTION, List (action, subscription.getJson) ) )
                           complete (GenericResponse (StatusCodes.OK.intValue, null, Response (s"Subscription $action successful", subscription) ) )
-                        case _ => complete (GenericResponse (StatusCodes.NotFound.intValue, null, Response ("Invalid request",null) ) )
+                        case "stop" =>
+                          subscription.active = false
+                          SubscriptionService.update(subscription)
+                          SyncManager.get ().publish (SyncMessage (topic = SyncType.SUBSCRIPTION, List (action, subscription.getJson) ) )
+                          complete (GenericResponse (StatusCodes.OK.intValue, null, Response (s"Subscription $action successful", subscription) ) )
+                        case _ =>
+                          complete (GenericResponse (StatusCodes.NotFound.intValue, null, Response ("Invalid request",null) ) )
                       }
                     case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Subscription $action failed: No such subscription found", null)))
                   }
@@ -86,15 +94,14 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
           } ~
           delete {
             authorize(user, "SUBSCRIPTION_DELETE") {
-              SubscriptionService.get(subscriptionId) match {
-                case Success(sub) => SyncManager.get().publish (SyncMessage (topic = SyncType.SUBSCRIPTION, List ("stop", sub.get.getJson)))
-                case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
-              }
               SubscriptionService.remove(subscriptionId) match {
-                case Success(code) =>
+                case Success(subscription) =>
+                  SyncManager.get().publish (SyncMessage (topic = SyncType.SUBSCRIPTION, List ("stop", subscription.getJson)))
                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
-                case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
-                case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
+                case Failure(e) if e.getMessage.contains("No Subscription found") =>
+                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
+                case Failure(e) =>
+                  complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
 
               }
             }
