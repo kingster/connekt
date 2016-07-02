@@ -89,6 +89,12 @@ class KafkaSource[V: ClassTag](kafkaConsumerConf: Config, topic: String, groupId
       }
     })
 
+    override def postStop(): Unit = {
+      val stopOffsets = offsets(topic, groupId, zkPath(kafkaConsumerConf))
+      ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
+      kafkaConsumerConnector.shutdown()
+      super.postStop()
+    }
 
     override def preStart(): Unit = {
       initKafkaConsumer()
@@ -100,9 +106,6 @@ class KafkaSource[V: ClassTag](kafkaConsumerConf: Config, topic: String, groupId
       shutdownTrigger onComplete { t =>
         ConnektLogger(LogFile.PROCESSORS).info(s"KafkaSource $topic async shutdown trigger invoked.")
         handle.invoke(t.getOrElse("_external topology shutdown signal_"))
-        val stopOffsets = offsets(topic, groupId, zkPath(kafkaConsumerConf))
-        ConnektLogger(LogFile.PROCESSORS).info(s"kafkaOffsets and owner on Stop for topic $topic are: ${stopOffsets.toString()}")
-        kafkaConsumerConnector.shutdown()
       }
 
       super.preStart()

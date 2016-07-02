@@ -49,8 +49,8 @@ class Subscription {
   @Column(name = "shutdownThreshold")
   var shutdownThreshold : Int = _
 
-  @Column(name = "state")
-  var state : Boolean = false
+  @Column(name = "active")
+  var active : Boolean = false
 
   def this(sId: String, sName: String, endpoint: EventSink, createdBy: String,
            eventFilter:String, eventTransformer:Transformers, shutdownThreshold: Int) = {

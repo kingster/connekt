@@ -38,7 +38,7 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
   private def startTopology(subscription: Subscription): Unit = {
     val promise = new ClientTopology(spoutTopic, eventRelayRetryLimit, kafkaConsumerConnConf, subscription).start()
     triggers += subscription.id -> promise
-    promise.future.onComplete( t => triggers -= subscription.id)(am.executionContext)
+    promise.future.onComplete( t =>  triggers -= subscription.id)(am.executionContext)
   }
 
   override def onUpdate(syncType: SyncType, args: List[AnyRef]): Any = {
@@ -61,7 +61,7 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
 
   def restoreState() ={
     SubscriptionService.getAll() match {
-      case Success(subscriptions) => subscriptions.foreach((sub: Subscription) => if(sub.state) startTopology(sub))
+      case Success(subscriptions) => subscriptions.filter(_.active).foreach(startTopology)
       case Failure(e) => ConnektLogger(LogFile.SERVICE).error(e)
     }
   }

@@ -42,65 +42,68 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
             }
           }
         }
-      }~
-      pathPrefix(Segment) {
-        (subscriptionId: String) =>
-          post {
-            authorize(user, "SUBSCRIPTION_UPDATE") {
-              entity(as[Subscription]) { subscription =>
-                subscription.createdBy = user.userId
-                subscription.id = subscriptionId
-                SubscriptionService.update(subscription) match {
-                  case Success(result) =>
-                    SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List("stop", subscription.getJson)))
-                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription updated and stopped", subscription)))
-                  case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription updation failed: " + e, null)))
-                  case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription updation failed: " + e, null)))
+      } ~
+        pathPrefix(Segment) {
+          (subscriptionId: String) =>
+            post {
+              authorize(user, "SUBSCRIPTION_UPDATE") {
+                entity(as[Subscription]) { subscription =>
+                  subscription.createdBy = user.userId
+                  subscription.id = subscriptionId
+                  SubscriptionService.update(subscription) match {
+                    case Success(result) =>
+                      SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List("stop", subscription.getJson)))
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription updated and stopped", subscription)))
+                    case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription updation failed: " + e, null)))
+                    case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription updation failed: " + e, null)))
+                  }
                 }
               }
-            }
-          } ~
-          get {
-            pathEndOrSingleSlash {
-              SubscriptionService.get(subscriptionId) match {
-                case Success(subscription) =>
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription fetched", subscription)))
-                case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription fetching failed: " + e, null)))
-              }
-            }~ path(Segment) { action =>
-              SubscriptionService.get(subscriptionId) match {
-                case Success(sub) =>
-                  sub match {
-                    case Some(subscription) =>
-                      action match {
-                        case "start" | "stop"  =>
-                          subscription.state = if (action == "start") true else false
-                          SubscriptionService.update(subscription)
-                          SyncManager.get().publish (SyncMessage (topic = SyncType.SUBSCRIPTION, List (action, subscription.getJson) ) )
-                          complete (GenericResponse (StatusCodes.OK.intValue, null, Response (s"Subscription $action successful", subscription) ) )
-                        case _ => complete (GenericResponse (StatusCodes.NotFound.intValue, null, Response ("Invalid request",null) ) )
-                      }
-                    case None => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Subscription $action failed: No such subscription found", null)))
+            } ~
+              get {
+                pathEndOrSingleSlash {
+                  SubscriptionService.get(subscriptionId) match {
+                    case Success(subscription) =>
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription fetched", subscription)))
+                    case Failure(e) => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription fetching failed: " + e, null)))
                   }
-                case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Subscription $action failed: " + e, null)))
-              }
-            }
-          } ~
-          delete {
-            authorize(user, "SUBSCRIPTION_DELETE") {
-              SubscriptionService.remove(subscriptionId) match {
-                case Success(code) =>
-                  val subscription = new Subscription()
-                  subscription.id = subscriptionId
-                  SyncManager.get().publish (SyncMessage (topic = SyncType.SUBSCRIPTION, List ("stop", subscription.getJson)))
-                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
-                case Failure(e) if e.getMessage.contains("No Subscription found") => complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
-                case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
+                } ~ path(Segment) { action =>
+                  SubscriptionService.get(subscriptionId) match {
+                    case Success(Some(subscription)) => action.toLowerCase match {
+                      case "start" =>
+                        subscription.active = true
+                        SubscriptionService.update(subscription)
+                        SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(action, subscription.getJson)))
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Subscription $action successful", subscription)))
+                      case "stop" =>
+                        subscription.active = false
+                        SubscriptionService.update(subscription)
+                        SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(action, subscription.getJson)))
+                        complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Subscription $action successful", subscription)))
+                      case _ =>
+                        complete(GenericResponse(StatusCodes.NotFound.intValue, null, Response("Invalid request", null)))
+                    }
+                    case Success(None) =>
+                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Subscription $action failed: No such subscription found", null)))
+                    case Failure(e) => complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response(s"Subscription $action failed: " + e, null)))
+                  }
+                }
+              } ~
+              delete {
+                authorize(user, "SUBSCRIPTION_DELETE") {
+                  SubscriptionService.remove(subscriptionId) match {
+                    case Success(subscription) =>
+                      SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List("stop", subscription.getJson)))
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Subscription deleted successfully", null)))
+                    case Failure(e) if e.getMessage.contains("No Subscription found") =>
+                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Subscription deletion failed: " + e, null)))
+                    case Failure(e) =>
+                      complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Subscription deletion failed: " + e, null)))
 
+                  }
+                }
               }
-            }
-          }
-      }
+        }
     }
   }
 }
