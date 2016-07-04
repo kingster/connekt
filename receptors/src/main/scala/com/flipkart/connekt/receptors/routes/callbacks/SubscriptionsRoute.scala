@@ -69,7 +69,7 @@ class SubscriptionsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler
               SubscriptionService.get(subscriptionId) match {
                 case Success(Some(subscription)) => action.toLowerCase match {
                   case "start" | "stop" =>
-                    subscription.active = if(action == "stop") true else false
+                    subscription.active = action.toLowerCase == "start"
                     SubscriptionService.update(subscription)
                     SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List(action, subscription.getJson)))
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Subscription $action successful", subscription)))
