@@ -59,8 +59,8 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
   override def getAll(): List[Subscription] = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
-      val sql = s"SELECT * FROM $subscriptionTable "
-      queryForList(sql)
+      val sql = s"SELECT * FROM $subscriptionTable"
+      queryForList[Subscription](sql)
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.DAO).error(s"Error fetching all subscriptions ${e.getMessage}", e)
