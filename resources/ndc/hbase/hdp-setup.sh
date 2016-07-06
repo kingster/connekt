@@ -68,3 +68,14 @@ echo "libc6 libraries/restart-without-asking boolean true" | sudo -E debconf-set
 
 # Install HDP setup helper scripts.
 apt-get install --yes --allow-unauthenticated fdp-infra-hdp-scripts
+
+
+#nagios
+reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-commons --appkey connekt > /etc/apt/sources.list.d/fk-connekt-commons.list
+apt-get update
+
+echo 'team_name="Connekt"' > /etc/default/nsca_wrapper
+echo 'nagios_server_ip="10.47.2.198"' >> /etc/default/nsca_wrapper
+
+sudo apt-get install --yes --allow-unauthenticated fk-nagios-common --reinstall || true
+
