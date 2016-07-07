@@ -44,7 +44,7 @@ class CallbackRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           val event = e.copy(messageId = Option(e.messageId).orEmpty, eventId = RandomStringUtils.randomAlphabetic(10), clientId = user.userId, contextId = Option(e.contextId).orEmpty, platform = appPlatform.toString, appName = appName, deviceId = deviceId,  eventType = Option(e.eventType).map(_.toLowerCase).orNull)
                           event.validate()
                           event.persist
-                          ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, Some(event.contextId), None, Some(event.platform), event.appName, event.eventType)
+                          ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, Option(e.contextId), None, Some(event.platform), event.appName, event.eventType)
                           ConnektLogger(LogFile.SERVICE).debug(s"Received callback event ${event.toString}")
                           complete(GenericResponse(StatusCodes.OK.intValue, null, Response("PN callback saved successfully.", null)))
                         }
