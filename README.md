@@ -5,11 +5,13 @@ Communications Platform
 
 Tech Stack 
 ---------------------
-* [Scala] - Scala 2.11!
-* [Akka] - Akka 2.4.4!
+* [Scala] - Scala 2.11
+* [Akka] - Akka 2.4.4
+* [ChronosQ] - ChronosQ 1.1
 
 [Scala]:http://www.scala-lang.org
 [Akka]:http://doc.akka.io/docs/akka/2.4.4/scala.html
+[ChronosQ]:https://github.com/flipkart-incubator/chronosq
 
 API Docs
 ---------------------

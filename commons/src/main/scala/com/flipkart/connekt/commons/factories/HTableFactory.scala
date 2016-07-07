@@ -34,7 +34,7 @@ class HTableFactory(hConnConfig: Config, connProvider: TConnectionProvider) exte
     hConfig
   }
 
-  var hConnection: Connection = connProvider.createHbaseConnection(hConnectionConfig)
+  private var hConnection: Connection = connProvider.createHbaseConnection(hConnectionConfig)
 
   private def reconnect() = {
     this.synchronized {
@@ -70,4 +70,6 @@ class HTableFactory(hConnConfig: Config, connProvider: TConnectionProvider) exte
   }
 
   override def releaseMutator(mutatorInterface: BufferedMutator): Unit = mutatorInterface.close()
+
+  override def getConnection: Connection = hConnection
 }

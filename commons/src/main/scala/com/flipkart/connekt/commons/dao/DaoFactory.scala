@@ -44,6 +44,8 @@ object DaoFactory {
     daoMap += DaoType.CALLBACK_PN -> PNCallbackDao("fk-connekt-events", hTableFactory)
   }
 
+  def getHTableFactory = hTableFactory
+
   def shutdownHTableDaoFactory() = {
     daoMap.values.foreach(_.close())
     Option(hTableFactory).foreach(_.shutdown())

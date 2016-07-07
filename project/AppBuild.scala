@@ -115,7 +115,7 @@ object AppBuild extends Build  {
         sonarRunnerOptions := Seq("-e")
       ): _*)
       .enablePlugins(AutomateHeaderPlugin)
-      .dependsOn(receptors, busybees, commons)
+      .dependsOn(receptors, busybees, commons, barklice)
 
   lazy val commons = Project("commons", file("commons"), settings = _commonSettings ++ buildInfoSettings ++
     buildInfoGenerator ++ bareResourceGenerators)
@@ -130,6 +130,9 @@ object AppBuild extends Build  {
     .enablePlugins(AutomateHeaderPlugin)
     .dependsOn(commons % "test->test;compile->compile")
 
+  lazy val barklice =  Project("barklice", file("barklice"), settings = _commonSettings)
+    .enablePlugins(AutomateHeaderPlugin)
+    .dependsOn(commons % "test->test;compile->compile")
 
   val mergeStrategy: String => sbtassembly.MergeStrategy = {
     case PathList(ps@_*) if ps.last endsWith ".html" => MergeStrategy.first

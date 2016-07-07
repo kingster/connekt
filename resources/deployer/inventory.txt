@@ -16,3 +16,7 @@ fk-connekt-bolt-0002.nm.flipkart.com
 fk-connekt-bolt-0003.nm.flipkart.com
 fk-connekt-bolt-0004.nm.flipkart.com
 fk-connekt-bolt-0005.nm.flipkart.com
+
+[barklice]
+10.33.49.216
+10.33.33.236
