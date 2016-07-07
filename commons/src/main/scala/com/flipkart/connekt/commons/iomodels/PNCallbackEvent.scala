@@ -34,6 +34,7 @@ case class PNCallbackEvent(messageId: String,
 
   def validate() = {
     require(contextId == null || contextId.hasOnlyAllowedChars, "`contextId` field can only contain [A-Za-z0-9_\\.\\-\\:\\|] allowed chars.")
+    require(contextId == null || !contextId.isUUID, "`contextId` cannot be a UUID")
     require(eventType.isDefined, "`eventType` field cannot be empty or null.")
   }
 
