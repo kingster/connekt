@@ -44,16 +44,14 @@ object ServiceFactory {
     serviceCache += ServiceType.STATS_REPORTING -> instance
   }
 
-<<<<<<< HEAD
   def initSchedulerService(hConnection: Connection): Unit ={
     val instance = new SchedulerService(hConnection)
     serviceCache += ServiceType.SCHEDULER -> instance
   }
 
-  def getSchedulerService = serviceCache(ServiceType.SCHEDULER).asInstanceOf[SchedulerService]
-=======
   def initStencilService(dao: TStencilDao) = serviceCache += ServiceType.STENCIL -> new StencilService(dao)
->>>>>>> streams
+
+  def getSchedulerService = serviceCache(ServiceType.SCHEDULER).asInstanceOf[SchedulerService]
 
   def getPNMessageService = serviceCache(ServiceType.PN_MESSAGE).asInstanceOf[TMessageService]
 
