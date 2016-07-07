@@ -873,7 +873,7 @@ definitions:
       scheduleTs:
         type: number
         format: long
-        description: ScheduledTS (Not Available, Currently Ignored)
+        description: ScheduledTS in Millis (Min 2 mins ahead of request time, granularity of 5 minutes)
       channelInfo:
         type: object
         description:  PN Channel Info
