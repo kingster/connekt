@@ -59,7 +59,6 @@ object Boot extends App {
     }
   }
 
-
   private def usage: String = {
     """
       |Invalid Command. See Usage

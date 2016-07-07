@@ -24,6 +24,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.ConfigUtils
+import com.flipkart.connekt.firefly.dispatcher.HttpDispatcher
 import com.typesafe.config.ConfigFactory
 
 object FireflyBoot extends BaseApp {
@@ -48,7 +49,7 @@ object FireflyBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"Firefly logging using: $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly", "fk-connekt-busybees-akka"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
@@ -60,6 +61,8 @@ object FireflyBoot extends BaseApp {
       ServiceFactory.initStencilService(DaoFactory.getStencilDao)
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
+
+      HttpDispatcher.apply(ConnektConfig.getConfig("react").get)
 
       ClientTopologyManager(kafkaConnConf, ConnektConfig.getString("firefly.kafka.topic").get, ConnektConfig.getInt("firefly.retry.limit").get)
 

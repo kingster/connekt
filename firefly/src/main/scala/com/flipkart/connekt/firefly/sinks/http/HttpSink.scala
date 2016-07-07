@@ -14,7 +14,6 @@ package com.flipkart.connekt.firefly.sinks.http
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.GraphDSL.Implicits._
@@ -23,13 +22,14 @@ import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, SubscriptionEvent}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.firefly.dispatcher.HttpDispatcher
 
 import scala.collection._
 import scala.concurrent.{ExecutionContext, Promise}
 
 class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrigger: Promise[String])(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
 
-  val httpCachedClient = Http().superPool[HttpRequestTracker]()
+  val httpCachedClient = HttpDispatcher.httpFlow
 
   def getHttpSink: Sink[SubscriptionEvent, NotUsed] = {
 
