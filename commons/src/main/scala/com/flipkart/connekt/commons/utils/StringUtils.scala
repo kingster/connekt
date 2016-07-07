@@ -48,8 +48,6 @@ object StringUtils {
 
     def hasOnlyAllowedChars = s.forall(allowedCharsSet.contains)
 
-    def isUUID:Boolean = s.matches(uuidFormat)
-
     def isDefined = null != s && s.nonEmpty
 
     def isValidUrl = urlValidator.isValid(s)
@@ -209,6 +207,5 @@ object StringUtils {
     Some(myObj)
   }
 
-  val uuidFormat = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
   val allowedCharsSet = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Set('_', '-', ':', '.', '|')).toSet
 }
