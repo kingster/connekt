@@ -15,6 +15,7 @@ package com.flipkart.connekt.boot
 import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.firefly.FireflyBoot
 import com.flipkart.connekt.receptors.ReceptorsBoot
+import com.flipkart.connekt.barklice.BarkLiceBoot
 import com.flipkart.utils.NetworkUtils
 
 object Boot extends App {
@@ -48,6 +49,10 @@ object Boot extends App {
       case "firefly" =>
         sys.addShutdownHook(FireflyBoot.terminate())
         FireflyBoot.start()
+
+      case "barklice" =>
+        sys.addShutdownHook(BarkLiceBoot.terminate())
+        BarkLiceBoot.start
 
       case _ =>
         println(usage)
