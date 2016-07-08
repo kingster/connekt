@@ -65,9 +65,9 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
         case None => null
       }, payload = stencilService.get(transformer.payload).find(_.component == "payload") match {
         case Some(stencil) => stencilService.materialize(stencil, event.getJson.getObj[ObjectNode])
-        case None => event
+        case None => event.getJson
       })
-    }.getOrElse(SubscriptionEvent(null, event))
+    }.getOrElse(SubscriptionEvent(null, event.getJson))
 
   }
 }
