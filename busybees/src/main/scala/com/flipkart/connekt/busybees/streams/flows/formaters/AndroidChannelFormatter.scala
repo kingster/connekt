@@ -48,7 +48,9 @@ class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       val tokens = devicesInfo.map(_.token)
       val androidStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-android").head
-      val appDataWithId = stencilService.materialize(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String].getObj[ObjectNode].put("messageId", message.id)
+      val appDataWithId = stencilService.materialize(androidStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String].getObj[ObjectNode]
+        .put("messageId", message.id)
+        .put("contextId", message.contextId.orEmpty)
 
       val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
