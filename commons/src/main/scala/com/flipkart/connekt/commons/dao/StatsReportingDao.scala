@@ -19,13 +19,16 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import rx.lang.scala.Observable
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.DurationInt
 
 
 class StatsReportingDao(bucket: Bucket) extends Dao {
 
+  val ttl = 15.days.toSeconds.toInt
+
   def put(kv: List[(String, Long)]) =
     Observable.from(kv).flatMap(kv => {
-      rx.lang.scala.JavaConversions.toScalaObservable(bucket.async().upsert(StringDocument.create(kv._1, kv._2.toString)))
+      rx.lang.scala.JavaConversions.toScalaObservable(bucket.async().upsert(StringDocument.create(kv._1, ttl, kv._2.toString)))
     }).last.toBlocking.single
 
 
@@ -37,7 +40,7 @@ class StatsReportingDao(bucket: Bucket) extends Dao {
 
   def counter(kvList: List[(String, Long)]) = {
     Observable.from(kvList).flatMap(kv => {
-      rx.lang.scala.JavaConversions.toScalaObservable(bucket.async().counter(kv._1, kv._2, kv._2))
+      rx.lang.scala.JavaConversions.toScalaObservable(bucket.async().counter(kv._1, kv._2, kv._2, ttl))
     }).last.toBlocking.single
   }
 

@@ -29,7 +29,7 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -74,10 +74,15 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                             Future {
                               val request = new HttpPost(varadhiUri)
                               request.setHeader("X_EVENT_TYPE", "REGISTRATION")
-                              request.setHeader("X_RESTBUS_MESSAGE_ID", d.deviceId)
-                              request.setEntity(new StringEntity(d.copy(token = null).getJson))
+                              request.setHeader("X_RESTBUS_MESSAGE_ID", newDeviceDetails.deviceId)
+                              request.setEntity(new StringEntity(newDeviceDetails.copy(token = null).getJson))
 
-                              client.doExecute(request)
+                              client.doExecute(request) match {
+                                case Success(r) =>
+                                  ConnektLogger(LogFile.SERVICE).info(s"DeviceDetails relayed for ${newDeviceDetails.deviceId}: ${r.getStatusLine.getStatusCode} ${r.getEntity.getContent.getString.replaceAll("\n", "")}")
+                                case Failure(t) =>
+                                  ConnektLogger(LogFile.SERVICE).error(s"DeviceDetails relay failure for ${newDeviceDetails.deviceId}", t)
+                              }
                             }(executor = ExecutionContext.global)
                           }
                           /* , shall be removed like it never existed */

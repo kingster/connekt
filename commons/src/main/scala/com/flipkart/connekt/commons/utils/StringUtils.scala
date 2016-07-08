@@ -12,6 +12,7 @@
  */
 package com.flipkart.connekt.commons.utils
 
+import java.io.InputStream
 import java.lang.reflect.{ParameterizedType, Type => JType}
 import java.math.BigInteger
 import java.security.SecureRandom
@@ -51,6 +52,10 @@ object StringUtils {
     def isDefined = null != s && s.nonEmpty
 
     def isValidUrl = urlValidator.isValid(s)
+  }
+
+  implicit class InputStreamHandyFunctions(val is: InputStream) {
+    def getString = scala.io.Source.fromInputStream(is).mkString
   }
 
   implicit class StringOptionHandyFunctions(val obj: Option[String]) {
