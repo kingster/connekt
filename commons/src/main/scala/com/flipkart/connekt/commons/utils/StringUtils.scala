@@ -52,6 +52,9 @@ object StringUtils {
     def isDefined = null != s && s.nonEmpty
 
     def isValidUrl = urlValidator.isValid(s)
+
+    def stripNewLines = s.replaceAll("\n", "").replaceAll("\r","")
+
   }
 
   implicit class InputStreamHandyFunctions(val is: InputStream) {

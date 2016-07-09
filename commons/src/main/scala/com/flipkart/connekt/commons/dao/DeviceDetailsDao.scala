@@ -135,8 +135,8 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
       val scan = new Scan()
       val filters = new FilterList()
 
-      val appNameFilter = new SingleColumnValueFilter(Bytes.toBytes("p"), Bytes.toBytes("appName"),
-        CompareFilter.CompareOp.EQUAL, new BinaryComparator(Bytes.toBytes(appName)))
+      val appNameFilter = new SingleColumnValueFilter("p".getBytes, "appName".getBytes,
+        CompareFilter.CompareOp.EQUAL, new BinaryComparator(appName.getBytes))
       filters.addFilter(appNameFilter)
       scan.setFilter(filters)
 
