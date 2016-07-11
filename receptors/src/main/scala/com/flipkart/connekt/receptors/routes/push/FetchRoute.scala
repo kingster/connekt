@@ -56,7 +56,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         val messageIds: List[String] = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
                         val filteredMessageIds: List[String] = messageIds.filterNot(skipMessageIds.contains)
                         val fetchedMessages: Try[List[ConnektRequest]] = messageService.getRequestInfo(filteredMessageIds)
-                        fetchedMessages.map(_.filter(_.expiryTs.map(_ >= System.currentTimeMillis).getOrElse(true))).getOrElse(List.empty[ConnektRequest])
+                        fetchedMessages.map(_.filter(_.expiryTs.forall(_ >= System.currentTimeMillis))).getOrElse(List.empty[ConnektRequest])
                       })
 
                       val pushRequests = messages.get.map(r =>

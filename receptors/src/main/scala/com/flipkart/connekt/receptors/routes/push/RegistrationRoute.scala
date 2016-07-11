@@ -79,7 +79,7 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
 
                               client.doExecute(request) match {
                                 case Success(r) =>
-                                  ConnektLogger(LogFile.SERVICE).info(s"DeviceDetails relayed for ${newDeviceDetails.deviceId}: ${r.getStatusLine.getStatusCode} ${r.getEntity.getContent.getString.replaceAll("\n", "")}")
+                                  ConnektLogger(LogFile.SERVICE).info(s"DeviceDetails relayed for ${newDeviceDetails.deviceId}: ${r.getStatusLine.getStatusCode} ${r.getEntity.getContent.getString.stripNewLines}")
                                 case Failure(t) =>
                                   ConnektLogger(LogFile.SERVICE).error(s"DeviceDetails relay failure for ${newDeviceDetails.deviceId}", t)
                               }
