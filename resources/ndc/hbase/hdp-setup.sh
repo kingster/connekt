@@ -10,6 +10,9 @@ echo "deb http://10.47.2.22:80/repos/infra-cli/3 /" > /etc/apt/sources.list.d/in
 echo "deb http://10.47.2.22:80/repos/fk-config-service-confd/35 /" > /etc/apt/sources.list.d/fdp-infra-base.list
 echo "deb http://10.47.2.22:80/repos/fdp-infra-hdp-repos/9 /" >> /etc/apt/sources.list.d/fdp-infra-base.list
 
+reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-commons --appkey connekt > /etc/apt/sources.list.d/fk-connekt-commons.list
+apt-get update
+
 # Install auth client package so that it doesn't conflict with other packages later
 apt-get install fk-ops-auth-client --yes --allow-unauthenticated
 
@@ -30,6 +33,14 @@ fi
 # Install reposervice CLI
 apt-get update
 apt-get install --yes --allow-unauthenticated infra-cli
+
+#nagios
+echo 'team_name="Connekt"' > /etc/default/nsca_wrapper
+echo 'nagios_server_ip="10.47.2.198"' >> /etc/default/nsca_wrapper
+
+sudo apt-get install --yes --allow-unauthenticated fk-nagios-common --reinstall || true
+
+#hdp
 
 apt-get install fdp-infra-hdp-repos --yes --allow-unauthenticated
 

@@ -98,6 +98,4 @@ class KafkaConnectionHelperTest extends CommonsBaseTest with KafkaConnectionHelp
     Option(kafkaProducerPool).foreach(_.close())
     println("cleanup successful")
   }
-
-  override def zkPath(): String = ""
 }

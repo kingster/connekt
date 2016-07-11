@@ -31,6 +31,8 @@ class CommonsBaseTest extends ConnektUTSpec {
     bootstrapReceptors()
   }
 
+  def getKafkaConsumerConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").get
+
   def getKafkaConsumerHelper = kafkaConsumerHelper.getOrElse({
     val kafkaConsumerConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
     val kafkaConsumerPoolConf = ConnektConfig.getConfig("connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
@@ -67,8 +69,9 @@ class CommonsBaseTest extends ConnektUTSpec {
     val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
     DaoFactory.initSpecterSocket(specterConfig)
 
-    ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null, null)
-    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
+    ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null,null)
+    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null,getKafkaProducerHelper)
+
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
     ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
     ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)

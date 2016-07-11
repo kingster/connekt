@@ -66,7 +66,8 @@ object ReceptorsBoot extends BaseApp {
 
       ServiceFactory.initSchedulerService(DaoFactory.getHTableFactory.getConnection)
       ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, kafkaProducerHelper, null, ServiceFactory.getSchedulerService)
-      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
+      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null,kafkaProducerHelper)
+
       ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
       ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
@@ -75,7 +76,7 @@ object ReceptorsBoot extends BaseApp {
       //Start up the receptors
       ReceptorsServer()
 
-      ConnektLogger(LogFile.SERVICE).info("Receptors initialized.")
+      ConnektLogger(LogFile.SERVICE).info("Started `Receptors` app")
     }
   }
 

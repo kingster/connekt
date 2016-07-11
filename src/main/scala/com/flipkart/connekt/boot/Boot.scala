@@ -13,6 +13,7 @@
 package com.flipkart.connekt.boot
 
 import com.flipkart.connekt.busybees.BusyBeesBoot
+import com.flipkart.connekt.firefly.FireflyBoot
 import com.flipkart.connekt.receptors.ReceptorsBoot
 import com.flipkart.connekt.barklice.BarkLiceBoot
 import com.flipkart.utils.NetworkUtils
@@ -38,26 +39,31 @@ object Boot extends App {
     val command = args.head.toString
     command match {
       case "receptors" =>
-        sys.addShutdownHook(ReceptorsBoot.terminate)
-        ReceptorsBoot.start
+        sys.addShutdownHook(ReceptorsBoot.terminate())
+        ReceptorsBoot.start()
 
       case "busybees" =>
-        sys.addShutdownHook(BusyBeesBoot.terminate)
-        BusyBeesBoot.start
+        sys.addShutdownHook(BusyBeesBoot.terminate())
+        BusyBeesBoot.start()
+
+      case "firefly" =>
+        sys.addShutdownHook(FireflyBoot.terminate())
+        FireflyBoot.start()
+
       case "barklice" =>
-        sys.addShutdownHook(BarkLiceBoot.terminate)
+        sys.addShutdownHook(BarkLiceBoot.terminate())
         BarkLiceBoot.start
+
       case _ =>
         println(usage)
     }
   }
 
-
   private def usage: String = {
     """
       |Invalid Command. See Usage
       |
-      |Usage : AppName (receptors|busybees)
+      |Usage : AppName (receptors | busybees | firefly)
     """.stripMargin
 
   }

@@ -1,0 +1,10 @@
+- hosts: fireflies
+  serial: 5
+  gather_facts: no
+  tasks:
+  - name: Set Service
+    set_fact:
+      app: firefly
+  - include: tasks/update-sources.yaml
+  - include: tasks/install-connekt-deb.yaml
+  - include: tasks/start-service.yaml

@@ -14,6 +14,7 @@ package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+import com.flipkart.connekt.commons.entities.DeviceCallbackEvent
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
@@ -22,7 +23,8 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 )
 @JsonSubTypes(Array(
   new Type(value = classOf[PNCallbackEvent], name = "PN"),
-  new Type(value = classOf[EmailCallbackEvent], name = "EMAIL")
+  new Type(value = classOf[EmailCallbackEvent], name = "EMAIL"),
+  new Type(value = classOf[DeviceCallbackEvent], name = "DEVICE")
 ))
 abstract class CallbackEvent {
   def contactId: String

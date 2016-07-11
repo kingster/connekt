@@ -80,7 +80,7 @@ object APNSDispatcher {
 }
 class APNSDispatcher(parallelism: Int)(implicit ec: ExecutionContextExecutor) {
 
-  import APNSDispatcher._
+  import com.flipkart.connekt.busybees.streams.flows.dispatchers.APNSDispatcher._
 
   def flow = {
 
