@@ -70,7 +70,7 @@ class ClientTopologyManager(kafkaConsumerConnConf: Config, spoutTopic: String, e
     ConnektLogger(LogFile.SERVICE).info("Shutting down `firefly`")
     triggers.keySet.foreach(s => {
       triggers(s).success(s"Stopping client topology $s on firefly shutdown.")
-      ConnektLogger(LogFile.SERVICE).info("Stopping client topology $s on firefly shutdown")
+      ConnektLogger(LogFile.SERVICE).info(s"Stopping client topology $s on firefly shutdown")
     })
   }
 }
