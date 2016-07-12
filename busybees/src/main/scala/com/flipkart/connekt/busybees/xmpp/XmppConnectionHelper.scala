@@ -12,23 +12,20 @@
  */
 package com.flipkart.connekt.busybees.xmpp
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem}
 import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.commons.iomodels.XmppNack
+import com.flipkart.connekt.commons.iomodels.{XmppAck, XmppNack}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.typesafe.config.Config
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 
-/**
- * Created by subir.dey on 28/06/16.
- */
 object XmppConnectionHelper {
-  case object InitXmpp
   case object ReConnect
   case object ConnectionDraining
   case object FreeConnectionAvailable
+  case object ConnectionBusy
   case object XmppRequestAvailable
   case class ConnectionClosed(connection: XMPPTCPConnection)
   case class XmppAckExpired(tracker: GCMRequestTracker)

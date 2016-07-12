@@ -12,7 +12,6 @@
  */
 package com.flipkart.connekt.busybees.xmpp
 
-import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLSocketFactory
 
@@ -20,18 +19,17 @@ import akka.actor.{ActorRef, Actor}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper._
-import com.flipkart.connekt.commons.entities.{GoogleCredential, Credential}
+import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils
 import com.google.common.cache._
-import org.jivesoftware.smack.SmackException.NotConnectedException
 import org.jivesoftware.smack.filter.StanzaFilter
 import org.jivesoftware.smack.packet.Stanza
 import org.jivesoftware.smack.provider.{ProviderManager, ExtensionElementProvider}
 import org.jivesoftware.smack.roster.Roster
-import org.jivesoftware.smack.{SmackException, XMPPException, ConnectionConfiguration, XMPPConnection}
+import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.tcp.{XMPPTCPConnectionConfiguration, XMPPTCPConnection}
 import org.xmlpull.v1.XmlPullParser
 
@@ -42,7 +40,7 @@ import scala.util.{Failure, Success}
  */
 
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends Actor {
-  val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(2)
+  val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(4)
   var googleCredential:GoogleCredential = null
 
   private val removalListener: RemovalListener[String, GCMRequestTracker] =
@@ -50,6 +48,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     def onRemoval(removal: RemovalNotification[String, GCMRequestTracker]) {
       if (removal.getCause != RemovalCause.EXPLICIT) {
         val messageData:GCMRequestTracker = removal.getValue
+        ConnektLogger(LogFile.CLIENTS).error(s"RemoveListener:Cache timed out with tracker id ${removal.getKey}")
         self ! XmppAckExpired(messageData)
       }
     }
@@ -61,16 +60,13 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     .maximumSize(4096)
     .build()
 
+
   var pendingAckCount:Int = 0
   var connection: XMPPTCPConnection = null
 
   import context._
   //message processing in the beginning
   def receive:Actor.Receive = {
-    case InitXmpp =>
-      //create pull demand in flow
-      dispatcher.getMoreCallback.invoke(appId)
-      parent ! FreeConnectionAvailable
 
     case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
       //first request----create connection and process request
@@ -184,22 +180,24 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
   }
 
   private def processSendRequest(parent:ActorRef, xmppRequest:(GcmXmppRequest, GCMRequestTracker)) = {
-    pendingAckCount = pendingAckCount + 1
     val (xmppPayload,requestTracker) = xmppRequest
 
     if ( sendXmppStanza(xmppPayload.pnPayload) ) {
       messageDataCache.put(xmppPayload.pnPayload.message_id, xmppRequest._2)
+      pendingAckCount = pendingAckCount + 1
 
       if (pendingAckCount >= maxPendingAckCount) {
         become(busy)
+        parent ! ConnectionBusy
         ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionActor for $appId turned busy")
       } else {
-        dispatcher.getMoreCallback.invoke(appId)
         parent ! FreeConnectionAvailable
       }
     }
-    else
+    else {
+      parent ! FreeConnectionAvailable
       dispatcher.retryCallback.invoke(xmppRequest)
+    }
   }
 
   private def processAck(parent:ActorRef, ack:XmppAck) = {
@@ -211,8 +209,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
       if ( pendingAckCount < maxPendingAckCount ) {
         become(free)
-        dispatcher.getMoreCallback.invoke(appId)
-        sender ! FreeConnectionAvailable
+        parent ! FreeConnectionAvailable
       }
     }
   }
@@ -226,8 +223,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
       if ( pendingAckCount < maxPendingAckCount ) {
         become(free)
-        dispatcher.getMoreCallback.invoke(appId)
-        sender ! FreeConnectionAvailable
+        parent ! FreeConnectionAvailable
       }
     }
   }
@@ -239,8 +235,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
       if ( pendingAckCount < maxPendingAckCount ) {
         become(free)
-        dispatcher.getMoreCallback.invoke(appId)
-        sender ! FreeConnectionAvailable
+        parent ! FreeConnectionAvailable
       }
     }
   }
@@ -277,9 +272,9 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
       connection.sendStanza(stanza)
       true
     } catch {
-      case ex: NotConnectedException =>
+      case ex: Throwable =>
         ConnektLogger(LogFile.CLIENTS).error("CONNECTION ERROR sending message to GCM, will be retried. jsonRequest : " + xmppPayloadString, ex)
+        false
     }
-    false
   }
 }
