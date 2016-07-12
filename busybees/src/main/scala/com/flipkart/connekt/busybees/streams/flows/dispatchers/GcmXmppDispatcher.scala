@@ -17,6 +17,7 @@ import akka.stream.{Inlet, Outlet, FanOutShape2}
 import akka.stream.stage.{AsyncCallback, GraphStage}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.xmpp.XmppGatewayCache
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
 import akka.stream._
 import akka.stream.stage._
@@ -35,7 +36,7 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
   val outUpstream = Outlet[XmppUpstreamResponse]("GcmXmppDispatcher.outUpstream")
   override def shape = new FanOutShape2[(GcmXmppRequest,GCMRequestTracker), (Try[XmppDownstreamResponse], GCMRequestTracker), XmppUpstreamResponse](in, outDownstream, outUpstream)
 
-  //to ask for more from in
+  //to ask for more from inq
   var getMoreCallback: AsyncCallback[String] = null
 
   //to push downstream
@@ -46,15 +47,19 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
 
   var retryCallback: AsyncCallback[(GcmXmppRequest,GCMRequestTracker)] = null
 
+  val xmppState = new XmppGatewayCache(this)
+
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-  val xmppState = new XmppGatewayCache
 
     override def preStart(): Unit = {
       getMoreCallback = getAsyncCallback[String] {
         appId => {
+          ConnektLogger(LogFile.CLIENTS).trace("Received pull request:" + appId)
           xmppState.incrementConnectionFreeCount(appId)
-          if ( !hasBeenPulled(in) )
+          if ( !hasBeenPulled(in) ) {
             pull(in)
+            ConnektLogger(LogFile.CLIENTS).trace("Pulled in:" + appId)
+          }
         }
       }
 
@@ -82,6 +87,8 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
           }
         }
       }
+
+      pull(in)
     }
 
     val inhandler = new InHandler {
