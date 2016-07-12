@@ -12,10 +12,11 @@
  */
 package com.flipkart.connekt.commons.iomodels
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = true) messageId: String,
                           @JsonProperty(required = true) from: String,
                           @JsonProperty(required = true) category: String,
@@ -37,9 +38,10 @@ case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = tr
   }
 }
 
-case class XmppReceiptData(@JsonProperty("message_status") messageStatus: String,
-                                   @JsonProperty("original_message_id") originalMessageId: String,
-                                   @JsonProperty("device_registration_id") deviceRegistrationId: String)
+@JsonIgnoreProperties(ignoreUnknown = true)
+case class XmppReceiptData(@JsonProperty("message_status") @JsonProperty(required = true) messageStatus: String,
+                                   @JsonProperty("original_message_id") @JsonProperty(required = true) originalMessageId: String,
+                                   @JsonProperty("device_registration_id") @JsonProperty(required = true) deviceRegistrationId: String)
 
 
 /** sample data from GCM
