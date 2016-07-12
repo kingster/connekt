@@ -33,7 +33,7 @@ class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Co
 
   validatePoolProps("kafka consumer pool", globalContextConf)
 
-  override def zkPath(): String = consumerFactoryConf.getString("zookeeper.connect")
+  def zkPath(): String = consumerFactoryConf.getString("zookeeper.connect")
 
   def groupId(): String = consumerFactoryConf.getString("group.id")
 

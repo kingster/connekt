@@ -13,19 +13,21 @@
 package com.flipkart.connekt.commons.factories
 
 import com.flipkart.connekt.commons.dao._
-import com.flipkart.connekt.commons.helpers.{KafkaConsumerHelper, KafkaProducerHelper}
+import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.{KeyChainService, _}
+import com.typesafe.config.Config
+import org.apache.hadoop.hbase.client.Connection
 
 object ServiceFactory {
 
   var serviceCache = Map[ServiceType.Value, TService]()
 
-  def initPNMessageService(requestDao: PNRequestDao, userConfiguration: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, queueConsumerHelper: KafkaConsumerHelper) = {
-    serviceCache += ServiceType.PN_MESSAGE -> new MessageService(requestDao, userConfiguration, queueProducerHelper, queueConsumerHelper)
+  def initPNMessageService(requestDao: PNRequestDao, userConfiguration: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, kafkaConsumerConfig: Config, schedulerService: SchedulerService) = {
+    serviceCache += ServiceType.PN_MESSAGE -> new MessageService(requestDao, userConfiguration, queueProducerHelper, kafkaConsumerConfig, schedulerService)
   }
 
-  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao) = {
-    serviceCache += ServiceType.CALLBACK -> new CallbackService(pnCallbackDao, emailCallbackDao, requestInfoDao, emailRequestDao)
+  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao, queueProducerHelper: KafkaProducerHelper) = {
+    serviceCache += ServiceType.CALLBACK -> new CallbackService(pnCallbackDao, emailCallbackDao, requestInfoDao, emailRequestDao,queueProducerHelper)
   }
 
   def initAuthorisationService(priv: PrivDao, userInfo: TUserInfo) = {
@@ -43,7 +45,14 @@ object ServiceFactory {
     serviceCache += ServiceType.STATS_REPORTING -> instance
   }
 
+  def initSchedulerService(hConnection: Connection): Unit ={
+    val instance = new SchedulerService(hConnection)
+    serviceCache += ServiceType.SCHEDULER -> instance
+  }
+
   def initStencilService(dao: TStencilDao) = serviceCache += ServiceType.STENCIL -> new StencilService(dao)
+
+  def getSchedulerService = serviceCache(ServiceType.SCHEDULER).asInstanceOf[SchedulerService]
 
   def getPNMessageService = serviceCache(ServiceType.PN_MESSAGE).asInstanceOf[TMessageService]
 
@@ -62,5 +71,5 @@ object ServiceFactory {
 }
 
 object ServiceType extends Enumeration {
-  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING, STENCIL = Value
+  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING, SCHEDULER , STENCIL = Value
 }

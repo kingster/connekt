@@ -122,6 +122,14 @@ parameters:
     required: true
     type: string
     format: string
+  StencilsEnsembleId:
+    name: StencilsEnsembleId
+    in: path
+    description: StencilsEnsembleId.
+    required: true
+    type: string
+    format: string
+  
 paths:
   /registration/push/{MPlatform}/{appName}/{deviceId}:
     put:
@@ -636,6 +644,69 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /stencil/components/registry:
+    post:
+      summary: creating stencil ENSEMBLE
+      description: |
+        creating stencil
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - name: createStencil
+          in: body
+          description: createStencil.
+          required: true
+          schema:
+            $ref: '#/definitions/StencilsEnsemble'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  stencil Ensemble Create
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /stencil/components/registry/{StencilsEnsembleId}:
+    put:
+      summary: update stencil ENSEMBLE
+      description: |
+        creating stencil
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/StencilsEnsembleId'
+        - name: updateStencil
+          in: body
+          description: updateStencil.
+          required: true
+          schema:
+            $ref: '#/definitions/StencilsEnsemble'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  stencil Ensemble Updated
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: get stencil ENSEMBLE
+      description: |
+        get stencil ENSEMBLE
+      parameters:
+        - $ref: '#/parameters/api-key'
+        - $ref: '#/parameters/StencilsEnsembleId'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  Original Request
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+                     
   /stencil:
     post:
       summary: creating stencil
@@ -802,7 +873,7 @@ definitions:
       scheduleTs:
         type: number
         format: long
-        description: ScheduledTS (Not Available, Currently Ignored)
+        description: ScheduledTS in Millis (Min 2 mins ahead of request time, granularity of 5 minutes)
       channelInfo:
         type: object
         description:  PN Channel Info
@@ -877,6 +948,20 @@ definitions:
   Stencil:
     type: object
     properties:
+      name:
+        type: string
+        description: stencil id
+      bucket:
+        type: string
+        description: stencil id
+      components:
+        type: array
+        items:
+          $ref: '#/definitions/StencilComponent'
+
+  StencilComponent:
+    type: object
+    properties:
       id:
         type: string
         description: stencil id
@@ -889,5 +974,15 @@ definitions:
       engineFabric:
         type: string
         description: VELOCITY/GROOVY script
+  StencilsEnsemble:
+    type: object
+    properties:
+      name:
+        type: string
+        description: ensemble name
+      components:
+        type: string
+        description: ensemble components
+
 
 

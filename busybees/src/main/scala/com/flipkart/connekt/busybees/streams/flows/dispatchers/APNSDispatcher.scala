@@ -20,6 +20,7 @@ import com.flipkart.connekt.busybees.models.APNSRequestTracker
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.FutureUtils._
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.{ApnsClient, ClientNotConnectedException, PushNotificationResponse}
@@ -38,7 +39,7 @@ object APNSDispatcher {
     ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher starting $appName apns-client")
     val credential = KeyChainManager.getAppleCredentials(appName).get
     //TODO: shutdown this eventloop when client is closed.
-    val eventLoop = new NioEventLoopGroup(4, new ThreadFactoryBuilder().setNameFormat(s"apns-nio-$appName-%s").build())
+    val eventLoop = new NioEventLoopGroup(4, new ThreadFactoryBuilder().setNameFormat(s"apns-nio-$appName-${StringUtils.generateRandomStr(4)}-%s").build())
     val client = new ApnsClient[SimpleApnsPushNotification](credential.getCertificateFile, credential.passkey,eventLoop)
     client.connect(ApnsClient.PRODUCTION_APNS_HOST).await(120, TimeUnit.SECONDS)
     if (!client.isConnected)
@@ -79,7 +80,7 @@ object APNSDispatcher {
 }
 class APNSDispatcher(parallelism: Int)(implicit ec: ExecutionContextExecutor) {
 
-  import APNSDispatcher._
+  import com.flipkart.connekt.busybees.streams.flows.dispatchers.APNSDispatcher._
 
   def flow = {
 

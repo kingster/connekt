@@ -15,15 +15,19 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.connekt.commons.dao._
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.metrics.Timed
+import com.flipkart.connekt.commons.core.Wrappers._
 
 import scala.util.Try
 
-class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao) extends TCallbackService with Instrumented {
+class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao,  queueProducerHelper: KafkaProducerHelper) extends TCallbackService with Instrumented {
 
   lazy val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))
+  lazy val CALLBACK_QUEUE_NAME = ConnektConfig.get("firefly.kafka.topic").getOrElse("ckt_callback_events")
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
@@ -39,9 +43,15 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   override def persistCallbackEvents(channel: Channel.Value, events: List[CallbackEvent]): Try[List[String]] = {
     Try {
       val rowKeys = channelEventsDao(channel).asyncSaveCallbackEvents(events)
+      enqueueCallbackEvents(events).get
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved with rowKeys $rowKeys")
       rowKeys
     }
+  }
+
+  @Timed("enqueueCallbackEvent")
+  def enqueueCallbackEvents(events: List[CallbackEvent]): Try[Unit] = Try_ {
+    queueProducerHelper.writeMessages(CALLBACK_QUEUE_NAME, events.map(_.getJson) : _*)
   }
 
   @Timed("fetchCallbackEvent")

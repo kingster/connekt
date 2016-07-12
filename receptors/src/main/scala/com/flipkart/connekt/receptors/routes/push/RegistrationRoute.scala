@@ -29,18 +29,18 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  @deprecated
-  val isVaradhiRelayEnabled = ConnektConfig.getBoolean("flags.varadhi.enabled").get
+  @deprecated("delete after callback gets live", "bigbang")
+  lazy val isVaradhiRelayEnabled = ConnektConfig.getBoolean("flags.varadhi.enabled").get
 
-  @deprecated
-  val varadhiUri = s"http://${ConnektConfig.getString("connections.varadhi.host").get}/topics/${ConnektConfig.getString("connections.varadhi.topic").get}/messages"
+  @deprecated("delete after callback gets live", "bigbang")
+  lazy val varadhiUri = s"http://${ConnektConfig.getString("connections.varadhi.host").get}/topics/${ConnektConfig.getString("connections.varadhi.topic").get}/messages"
 
-  @deprecated
-  val client = new HttpClient(
+  @deprecated("delete after callback gets live", "bigbang")
+  lazy val client = new HttpClient(
     name = "varadhi-relay-client",
     ttlInMillis = ConnektConfig.getInt("http.apache.ttlInMillis").getOrElse(60000).toLong,
     maxConnections = ConnektConfig.getInt("http.apache.maxConnections").getOrElse(50),
@@ -74,10 +74,15 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                             Future {
                               val request = new HttpPost(varadhiUri)
                               request.setHeader("X_EVENT_TYPE", "REGISTRATION")
-                              request.setHeader("X_RESTBUS_MESSAGE_ID", d.deviceId)
-                              request.setEntity(new StringEntity(d.copy(token = null).getJson))
+                              request.setHeader("X_RESTBUS_MESSAGE_ID", newDeviceDetails.deviceId)
+                              request.setEntity(new StringEntity(newDeviceDetails.copy(token = null).getJson))
 
-                              client.doExecute(request)
+                              client.doExecute(request) match {
+                                case Success(r) =>
+                                  ConnektLogger(LogFile.SERVICE).info(s"DeviceDetails relayed for ${newDeviceDetails.deviceId}: ${r.getStatusLine.getStatusCode} ${r.getEntity.getContent.getString.stripNewLines}")
+                                case Failure(t) =>
+                                  ConnektLogger(LogFile.SERVICE).error(s"DeviceDetails relay failure for ${newDeviceDetails.deviceId}", t)
+                              }
                             }(executor = ExecutionContext.global)
                           }
                           /* , shall be removed like it never existed */
@@ -150,5 +155,3 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
         }
     }
 }
-
-

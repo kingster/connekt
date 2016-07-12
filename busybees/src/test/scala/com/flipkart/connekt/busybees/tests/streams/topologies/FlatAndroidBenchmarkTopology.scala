@@ -30,7 +30,6 @@ import com.flipkart.connekt.commons.iomodels.ConnektRequest
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
-import org.scalatest.Ignore
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
@@ -51,7 +50,7 @@ class FlatAndroidBenchmarkTopology extends TopologyUTSpec with Instrumented {
     val prevTime = new AtomicLong(System.currentTimeMillis())
 
     val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.head
-    val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic)(Promise[String]().future))
+    val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerConf, topic, getKafkaConsumerConf.getString("group.id"))(Promise[String]().future))
     val repeatSource = Source.repeat {
       """
         |{

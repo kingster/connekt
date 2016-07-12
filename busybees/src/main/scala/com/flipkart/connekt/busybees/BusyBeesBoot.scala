@@ -23,10 +23,10 @@ import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
-import com.flipkart.connekt.commons.helpers.KafkaConsumerHelper
+import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
 import com.flipkart.connekt.commons.sync.SyncManager
-import com.flipkart.connekt.commons.utils.{ConfigUtils, StringUtils}
+import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
 
 object BusyBeesBoot extends BaseApp {
@@ -76,23 +76,27 @@ object BusyBeesBoot extends BaseApp {
       DaoFactory.initSpecterSocket(specterConfig)
 
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
-      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null)
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())
-      val kafkaConsumerPoolConf = ConnektConfig.getConfig("connections.kafka.consumerPool").getOrElse(ConfigFactory.empty())
       ConnektLogger(LogFile.SERVICE).info(s"Kafka Conf: ${kafkaConnConf.toString}")
-      val kafkaHelper = KafkaConsumerHelper(kafkaConnConf, kafkaConsumerPoolConf)
 
-      ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaHelper)
+      val kafkaProducerConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
+      val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
+      val kafkaProducerHelper = KafkaProducerHelper.init(kafkaProducerConnConf, kafkaProducerPoolConf)
+      ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null,kafkaProducerHelper)
+
+      ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, null, kafkaConnConf, null)
+
       ServiceFactory.initStatsReportingService(DaoFactory.getStatsReportingDao)
       ServiceFactory.initStencilService(DaoFactory.getStencilDao)
 
-      //TODO : Fix this, this is for bootstraping hbase connection.
-      println(DeviceDetailsService.get("ConnectSampleApp",  StringUtils.generateRandomStr(15)))
+      DeviceDetailsService.bootstrap()
 
       HttpDispatcher.init(ConnektConfig.getConfig("react").get)
-      pushTopology = new PushTopology(kafkaHelper)
+      pushTopology = new PushTopology(kafkaConnConf)
       pushTopology.run
+
+      ConnektLogger(LogFile.SERVICE).info("Started `Busybees` app")
     }
   }
 
