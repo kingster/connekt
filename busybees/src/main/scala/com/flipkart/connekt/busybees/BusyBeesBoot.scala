@@ -94,7 +94,7 @@ object BusyBeesBoot extends BaseApp {
 
       HttpDispatcher.init(ConnektConfig.getConfig("react").get)
       pushTopology = new PushTopology(kafkaConnConf)
-      pushTopology.run
+      pushTopology.runGraphs
 
       ConnektLogger(LogFile.SERVICE).info("Started `Busybees` app")
     }
