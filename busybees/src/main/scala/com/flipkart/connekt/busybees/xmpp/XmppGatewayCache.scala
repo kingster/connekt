@@ -14,8 +14,10 @@ package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor.{ActorSystem, Props, ActorRef}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.InitXmpp
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.services.ConnektConfig
 
 import scala.collection.mutable
 import scala.util.Try
@@ -27,7 +29,7 @@ import scala.util.Try
  * Since GraphStageLogic is synchronised, we don't need any synchronisation
  */
 
-class XmppGatewayCache(implicit actorSystem:ActorSystem) {
+class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSystem) {
 
   var connectionAvailable = 0
   val xmppRequestRouters:mutable.Map[String, ActorRef] = mutable.Map[String, ActorRef]()
@@ -36,17 +38,22 @@ class XmppGatewayCache(implicit actorSystem:ActorSystem) {
   val responsesDownStream:mutable.Queue[(Try[XmppDownstreamResponse], GCMRequestTracker)] = collection.mutable.Queue[(Try[XmppDownstreamResponse], GCMRequestTracker)]()
   val responsesUpStream:mutable.Queue[(ActorRef,XmppUpstreamResponse)] = collection.mutable.Queue[(ActorRef,XmppUpstreamResponse)]()
 
+  private def initBuffer(appId:String) = {
+    //TODO will be changed with zookeeper
+    val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(1)
+    val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter], parent, appId))
+    xmppRequestRouters.put(appId, xmppRequestRouter)
+    requestBuffer.put(appId,new mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]())
+    connectionFreeCount.put(appId,connectionPoolSize)
+    connectionAvailable = connectionAvailable + connectionPoolSize
+  }
 
   def xmppRequestRouter(appId:String):ActorRef = {
     xmppRequestRouters.get(appId) match {
       case Some(actorRef:ActorRef) => actorRef
       case None => {
-        val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter], this, appId))
-        xmppRequestRouters.put(appId, xmppRequestRouter)
-        requestBuffer.put(appId,new mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]())
-        connectionFreeCount.put(appId,0)
-        xmppRequestRouter ! InitXmpp
-        xmppRequestRouter
+        initBuffer(appId)
+        xmppRequestRouters.get(appId).get
       }
     }
   }
@@ -59,13 +66,20 @@ class XmppGatewayCache(implicit actorSystem:ActorSystem) {
         freeCount = freeCount - 1
         xmppRequestRouter(appId) ! requests.dequeue()
       }
+      ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count ${connectionAvailable}")
       connectionFreeCount.put(appId, freeCount)
     }
   }
 
   def addIncomingRequest(requestPair:(GcmXmppRequest, GCMRequestTracker)) = {
-    val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] = requestBuffer.get(requestPair._2.appName).get
+    val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] =
+      requestBuffer.get(requestPair._2.appName).getOrElse({
+        val appId = requestPair._2.appName
+        initBuffer(appId)
+        requestBuffer.get(appId).get
+      })
     requests.enqueue(requestPair)
+    ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count ${connectionAvailable}")
     requestBuffer.put(requestPair._2.appName, requests)
   }
 
