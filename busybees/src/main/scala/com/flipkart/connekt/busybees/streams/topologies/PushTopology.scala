@@ -51,7 +51,7 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
 
   val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
 
-  var sourceSwitches: scala.collection.mutable.ListBuffer[Promise[String]] = _
+  val sourceSwitches: scala.collection.mutable.ListBuffer[Promise[String]] = ListBuffer()
 
   override def source(checkpointGroup: CheckPointGroup): Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
@@ -60,16 +60,13 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
-    val handles = ListBuffer[Promise[String]]()
 
     for (portNum <- 0 until merge.n) {
       val p = Promise[String]()
       val consumerGroup = s"${groupId}_$checkpointGroup"
       new KafkaSource[ConnektRequest](kafkaConsumerConfig, topic = topics(portNum), consumerGroup)(p.future) ~> merge.in(portNum)
-      handles += p
+      sourceSwitches += p
     }
-
-    sourceSwitches ++= handles.toList
 
     SourceShape(merge.out)
   })

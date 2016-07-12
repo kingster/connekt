@@ -22,26 +22,26 @@ trait ConnektTopology[E <: CallbackEvent] {
 
   type CheckPointGroup = String
 
-  def source(checkpointGroup: CheckPointGroup): Source[ConnektRequest, NotUsed]
+  def source(group: CheckPointGroup): Source[ConnektRequest, NotUsed]
 
   def transformers: Map[CheckPointGroup, Flow[ConnektRequest, E, NotUsed]]
 
   def sink: Sink[E, NotUsed]
 
   def graphs(): List[RunnableGraph[NotUsed]] = {
-    transformers.map(kv => {
-      source(kv._1).withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(kv._2).to(sink)
+    transformers.map { case (group, flow) =>
+      source(group).withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(flow).to(sink)
         .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
-    }).toList
+    }.toList
   }
 
-  def runGraphs(implicit mat: Materializer) = graphs().foreach(_.run())
+  def run(implicit mat: Materializer) = graphs().foreach(_.run())
 
   def shutdown()
 
   def restart(implicit mat: Materializer): Unit = {
     shutdown()
     Thread.sleep(30 * 1000)
-    runGraphs(mat)
+    run(mat)
   }
 }
