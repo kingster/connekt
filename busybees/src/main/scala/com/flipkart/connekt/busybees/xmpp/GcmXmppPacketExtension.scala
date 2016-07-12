@@ -24,7 +24,7 @@ class GcmXmppPacketExtension (val json:String) extends Stanza with ExtensionElem
   override def getElementName:String = XmppConnectionHelper.GCM_ELEMENT_NAME
 
   override def toXML(): String = {
-    String.format("<%s xmlns=\"%s\">%s</%s>", getElementName, getNamespace, json,
+    String.format("<message><%s xmlns=\"%s\">%s</%s></message>", getElementName, getNamespace, json,
       getElementName)
   }
 }
