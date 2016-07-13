@@ -29,7 +29,7 @@ import com.flipkart.connekt.busybees.streams.flows.reponsehandlers._
 import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.core.Wrappers._
-import com.flipkart.connekt.commons.entities.Channel
+import com.flipkart.connekt.commons.entities.{MobilePlatform, Channel}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
@@ -56,81 +56,90 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
 
   val ioDispatcher = system.dispatchers.lookup("akka.actor.io-dispatcher")
 
-  var sourceSwitches: List[Promise[String]] = _
+  val sourceSwitches: scala.collection.mutable.ListBuffer[Promise[String]] = ListBuffer()
 
-  override def source: Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
+  override def source(checkpointGroup: CheckPointGroup): Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
     val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
     val groupId = kafkaConsumerConfig.getString("group.id")
 
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
-    val handles = ListBuffer[Promise[String]]()
 
     for (portNum <- 0 until merge.n) {
       val p = Promise[String]()
-      new KafkaSource[ConnektRequest](kafkaConsumerConfig, topic = topics(portNum), groupId)(p.future) ~> merge.in(portNum)
-      handles += p
+      val consumerGroup = s"${groupId}_$checkpointGroup"
+      new KafkaSource[ConnektRequest](kafkaConsumerConfig, topic = topics(portNum), consumerGroup)(p.future) ~> merge.in(portNum)
+      sourceSwitches += p
     }
-
-    sourceSwitches = handles.toList
 
     SourceShape(merge.out)
   })
 
-  override def transform = Flow.fromGraph(GraphDSL.create() { implicit b =>
-
-    val render = b.add(new RenderFlow().flow)
-    val merger = b.add(Merge[PNCallbackEvent](4))
-
-    val platformPartition = b.add(new Partition[ConnektRequest](4, {
-      case ios if "ios".equals(ios.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"routing ios message: ${ios.id}")
-        0
-      case android if "android".equals(android.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"routing android message: ${android.id}")
-        1
-      case windows if "windows".equals(windows.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"routing windows message: ${windows.id}")
-        2
-      case openweb if "openweb".equals(openweb.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase) =>
-        ConnektLogger(LogFile.PROCESSORS).debug(s"routing openweb message: ${openweb.id}")
-        3
-    }))
-
-    render.out ~> platformPartition.in
-
+  def androidTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
 
     /**
-     * Apple Topology
-     *
-     * iosRequest ~> iosFormatter ~> apnsDispatcher
+     * Android Topology
+     *                      +---------------+     +----------------+      +-------------------+      +-----------------+     +--------------------+      +--..
+     *  ConnektRequest ---> | AndroidFilter | --> |AndroidFormatter| ---> | GCMRequestPrepare |  --> |  GCMDispatcher  | --> | GCMResponseHandler | ---> |Merger
+     *                      +---------------+     +----------------+      +-------------------+      +-----------------+     +--------------------+      +-----
      */
 
+    val render = b.add(new RenderFlow().flow)
+    val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
+    val androidFilter = b.add(Flow[ConnektRequest].filter(m => MobilePlatform.ANDROID.toString.equalsIgnoreCase(m.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase)))
+    val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
+    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare().flow)
+    val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
+    val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
+
+    render.out ~> androidFilter ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle
+
+    FlowShape(render.in, gcmResponseHandle.out)
+  })
+
+  def iosTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
+
+    /**
+     * IOS Topology
+     *                      +---------------+     +----------------+      +------------------+      +-----------------+     +-------------------+      +--..
+     *  ConnektRequest ---> |   IOSFilter   | --> |  IOSFormatter  | ---> |APNSRequestPrepare|  --> | APNSDispatcher  | --> |APNSResponseHandler| ---> |Merger
+     *                      +---------------+     +----------------+      +------------------+      +-----------------+     +-------------------+      +-------
+     */
+
+    val render = b.add(new RenderFlow().flow)
     val fmtIOSParallelism = ConnektConfig.getInt("topology.push.iosFormatter.parallelism").get
     val apnsDispatcherParallelism = ConnektConfig.getInt("topology.push.apnsDispatcher.parallelism").getOrElse(1024)
+    val iosFilter = b.add(Flow[ConnektRequest].filter(m => MobilePlatform.IOS.toString.equalsIgnoreCase(m.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase)))
     val fmtIOS = b.add(new IOSChannelFormatter(fmtIOSParallelism)(ioDispatcher).flow)
     val apnsPrepare = b.add(new APNSDispatcherPrepare().flow)
     val apnsDispatcher = b.add(new APNSDispatcher(apnsDispatcherParallelism)(ioDispatcher).flow.timedAs("apnsRTT"))
     val apnsResponseHandle = b.add(new APNSResponseHandler().flow)
 
+<<<<<<< HEAD
     platformPartition.out(0) ~> fmtIOS ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle ~> merger.in(0)
 
     platformPartition.out(1) ~> androidTopology ~> merger.in(1)
+=======
+    render.out ~> iosFilter ~> fmtIOS ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle
+
+    FlowShape(render.in, apnsResponseHandle.out)
+  })
+
+  def windowsTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
+>>>>>>> adc2f0941e59c0d41c04dfdd76152ea90ec1c49a
 
     /**
      * Windows Topology
      *
-     *                                          |----------|                                      |-----------|     |-----------|
-     *                                          |          |                                      |   WNS     | ~>  |   Retry   | ~>  out-merger
-     * windows request -> windows-formatter  -> |    wns   |  ~> wnsHttpPrepare ~> wnsPoolFlow ~> |  RESPONSE |     | Partition |
-     *                                          | Payload  |                                      |  HANDLER  |     |           |
-     *                                      |~~>|   Merge  |                                      |           |     |           |~~>|
-     *                                      |   |----------|                                      |-----------|     |-----------|   |
-     *                                      |                                                                                       |
-     *                                      |~~~~~~~~~~~~~~~~~~~~~~~~~~~  wnsRetryMapper <~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
+     *                      +---------------+     +----------------+       +----------+     +-----------------+      +-----------------+     +------------------+     +-------------------------+          +--..
+     *  ConnektRequest ---> | WindowsFilter | --> |WindowsFormatter|-+---> |  Merger  | --> |WNSRequestPrepare|  --> |  WNSDispatcher  | --> |WNSResponseHandler| --> |Response / Error Splitter| --+----> |Merger
+     *                      +---------------+     +----------------+ |     +----------+     +-----------------+      +-----------------+     +------------------+     +-------------------------+   |      +-----
+     *                                                               +------------------------------------------------------------------------------------------------------------------------------+
      */
 
+    val render = b.add(new RenderFlow().flow)
+    val windowsFilter = b.add(Flow[ConnektRequest].filter(m => MobilePlatform.WINDOWS.toString.equalsIgnoreCase(m.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase)))
     val wnsHttpPrepare = b.add(new WNSDispatcherPrepare().flow)
     val wnsPoolFlow = b.add(HttpDispatcher.wnsPoolClientFlow.timedAs("wnsRTT"))
 
@@ -147,14 +156,26 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
       case Left(_) => 1
     }))
 
-    platformPartition.out(2) ~>  fmtWindows ~>  wnsPayloadMerge
-                                                wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler ~> wnsRetryPartition.in
-                                                                                                                        wnsRetryPartition.out(0).map(_.right.get) ~> merger.in(2)
-                                                wnsPayloadMerge.preferred <~ wnsRetryMapper <~ wnsRetryPartition.out(1).map(_.left.get).outlet
+    render.out ~> windowsFilter ~>  fmtWindows ~>  wnsPayloadMerge
+    wnsPayloadMerge.out ~> wnsHttpPrepare  ~> wnsPoolFlow ~> wnsRHandler ~> wnsRetryPartition.in
+    wnsPayloadMerge.preferred <~ wnsRetryMapper <~ wnsRetryPartition.out(1).map(_.left.get).outlet
+
+    FlowShape(render.in, wnsRetryPartition.out(0).map(_.right.get).outlet)
+  })
+
+  def openWebTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
+
     /**
      * OpenWeb Topology
+     *
+     *                      +---------------+     +----------------+      +---------------------+      +-------------------+     +----------------------+      +--..
+     *  ConnektRequest ---> | OpenWebFilter | --> |OpenWebFormatter| ---> |OpenWebRequestPrepare|  --> | OpenWebDispatcher | --> |OpenWebResponseHandler| ---> |Merger
+     *                      +---------------+     +----------------+      +---------------------+      +-------------------+     +----------------------+      +-----
      */
+
+    val render = b.add(new RenderFlow().flow)
     val fmtOpenWebParallelism = ConnektConfig.getInt("topology.push.openwebFormatter.parallelism").get
+    val openWebFilter = b.add(Flow[ConnektRequest].filter(m => MobilePlatform.OPENWEB.toString.equalsIgnoreCase(m.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase)))
     val fmtOpenWeb = b.add(new OpenWebChannelFormatter(fmtOpenWebParallelism)(ioDispatcher).flow)
 
     //providers [standard]
@@ -162,9 +183,9 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
     val openWebPoolFlow = b.add(HttpDispatcher.openWebPoolClientFlow.timedAs("openWebRTT"))
     val openWebResponseHandle = b.add(new OpenWebResponseHandler().flow)
 
-    platformPartition.out(3) ~> fmtOpenWeb ~> openWebHttpPrepare ~> openWebPoolFlow ~> openWebResponseHandle ~> merger.in(3)
+    render.out ~> openWebFilter ~> fmtOpenWeb ~> openWebHttpPrepare ~> openWebPoolFlow ~> openWebResponseHandle
 
-    FlowShape(render.in, merger.out)
+    FlowShape(render.in, openWebResponseHandle.out)
   })
 
   val androidTopology = if ( xmppShare == 100) xmppOnlyTopology else if ( xmppShare == 0 ) httpOnlyTopology else combinedTopology
@@ -222,6 +243,14 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
 
   override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create() { implicit b =>
 
+    /**
+     * Sink Topology
+     *
+     *                        +---------------------+     +-----------------+          ...-----+
+     *   PNCallbackEvent ---> | BigfootEventCreator | --> | MetricsRecorder | --->  IgnoreSink |
+     *                        +---------------------+     +-----------------+      +-----------+
+     */
+
     val evtCreator = b.add(new PNBigfootEventCreator)
     val metrics = b.add(new FlowMetrics[fkint.mp.connekt.PNCallbackEvent](Channel.PUSH).flow)
     evtCreator.out ~> metrics ~> Sink.ignore
@@ -242,5 +271,13 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
       }
       case _ =>
     }
+  }
+
+  override def transformers: Map[CheckPointGroup, Flow[ConnektRequest, PNCallbackEvent, NotUsed]] = {
+    Map(MobilePlatform.IOS.toString -> iosTransformFlow,
+      MobilePlatform.ANDROID.toString -> androidTransformFlow,
+      MobilePlatform.WINDOWS.toString -> windowsTransformFlow,
+      MobilePlatform.OPENWEB.toString -> openWebTransformFlow
+    )
   }
 }

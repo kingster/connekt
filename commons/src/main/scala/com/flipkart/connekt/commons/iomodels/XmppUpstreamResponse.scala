@@ -28,7 +28,7 @@ abstract class XmppUpstreamResponse (
                               @JsonProperty("message_id")@JsonProperty(required = true) messageId: String,
                               @JsonProperty(required = true) from: String,
                               @JsonProperty(required = true) category: String) {
-  def getPnCallbackEvent():List[PNCallbackEvent]
+  def getPnCallbackEvent():Option[PNCallbackEvent]
 }
 
 /**

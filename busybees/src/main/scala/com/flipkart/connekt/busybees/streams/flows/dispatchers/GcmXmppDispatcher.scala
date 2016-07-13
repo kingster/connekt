@@ -125,9 +125,9 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
     val upstreamUphandler = new OutHandler {
       override def onPull(): Unit = {
         if (xmppState.responsesUpStream.nonEmpty) {
-          val upstreamResponse = xmppState.responsesUpStream.dequeue()
-          upstreamResponse._1 ! upstreamResponse._2
-          push(outUpstream, upstreamResponse._2)
+          val (upstreamActor, upstreamResponse) = xmppState.responsesUpStream.dequeue()
+          upstreamActor ! upstreamResponse
+          push(outUpstream, upstreamResponse)
         }
         if (xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 && !hasBeenPulled(in))
           pull(in)

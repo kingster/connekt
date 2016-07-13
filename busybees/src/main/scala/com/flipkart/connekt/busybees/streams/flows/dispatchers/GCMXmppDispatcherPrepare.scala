@@ -22,9 +22,6 @@ import com.flipkart.connekt.commons.iomodels.MessageStatus.InternalStatus
 import com.flipkart.connekt.commons.services.KeyChainManager
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-/**
- * Created by subir.dey on 28/06/16.
- */
 class GCMXmppDispatcherPrepare extends MapFlowStage[GCMPayloadEnvelope, (GcmXmppRequest, GCMRequestTracker)] {
 
   override implicit val map: GCMPayloadEnvelope => List[(GcmXmppRequest, GCMRequestTracker)] = message => {

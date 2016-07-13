@@ -22,10 +22,10 @@ case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = tr
                           @JsonProperty(required = true) category: String,
                           @JsonProperty(required = true) data: XmppReceiptData) extends XmppUpstreamResponse(messageId, from, category){
 
-  def getPnCallbackEvent():List[PNCallbackEvent] = {
+  override def getPnCallbackEvent():Option[PNCallbackEvent] = {
     val (originalMsgId, context) = com.flipkart.connekt.commons.helpers.XmppMessageIdHelper.parseMessageIdTo(data.originalMessageId)
     val deviceDetails:DeviceDetails = DeviceDetailsService.getByTokenId(category, data.deviceRegistrationId).getOrElse(None).getOrElse(null)
-    List(PNCallbackEvent(messageId = originalMsgId,
+    Some(PNCallbackEvent(messageId = originalMsgId,
       clientId = from,
       deviceId = if (deviceDetails == null ) "" else deviceDetails.deviceId,
       eventType = "receipt",

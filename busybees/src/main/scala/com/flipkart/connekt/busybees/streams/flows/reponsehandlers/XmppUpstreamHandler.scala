@@ -19,11 +19,16 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.metrics.Instrumented
 import scala.concurrent.{Future, ExecutionContext}
 
-class XmppUpstreamHandler (implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[XmppUpstreamResponse](96) with Instrumented {
+class XmppUpstreamHandler (implicit m: Materializer) extends PNProviderResponseHandler[XmppUpstreamResponse](96) with Instrumented {
 
   override val map: (XmppUpstreamResponse) => Future[List[PNCallbackEvent]] = upstreamResponse => Future(profile("map") {
-    val events = upstreamResponse.getPnCallbackEvent()
-    events.persist
-    events
+    upstreamResponse.getPnCallbackEvent() match {
+      case Some(event) =>
+        val events = List(event)
+        events.persist
+        events
+      case None =>
+        List()
+    }
   })(m.executionContext)
 }

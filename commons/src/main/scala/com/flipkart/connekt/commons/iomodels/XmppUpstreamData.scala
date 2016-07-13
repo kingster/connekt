@@ -23,11 +23,11 @@ case class XmppUpstreamData (
                               @JsonProperty(required = true) category: String,
                               @JsonProperty(required = true) data: ObjectNode) extends XmppUpstreamResponse(messageId, from, category) {
 
-  def getPnCallbackEvent():List[PNCallbackEvent] = {
+  override def getPnCallbackEvent():Option[PNCallbackEvent] = {
     val eventType: JsonNode = data.get("eventType")
     if (eventType != null) {
 
-      List(PNCallbackEvent(messageId = messageId,
+      Some(PNCallbackEvent(messageId = messageId,
         clientId = category,
         deviceId = Option(data.get("deviceId")).map(_.asText()).getOrElse("Unknown"),
         eventType = eventType.asText(),
@@ -37,7 +37,7 @@ case class XmppUpstreamData (
         cargo = Option(data.get("cargo")).map(_.asText()).getOrElse(""),
         timestamp = Option(data.get("timestamp").asText()).map(_.toLong).getOrElse(System.currentTimeMillis)
       ))
-    } else List()
+    } else None
   }
 }
 
