@@ -34,22 +34,15 @@ class ConnektStanzaListener(connectionActor:ActorRef, dispatcher:GcmXmppDispatch
     val packetExtension:GcmXmppPacketExtension = packet.getExtension(XmppConnectionHelper.GCM_NAMESPACE).asInstanceOf[GcmXmppPacketExtension]
     ConnektLogger(LogFile.CLIENTS).debug("Response from GCM:" + packetExtension.json)
 
-    Try (packetExtension.json.getObj[XmppDownstreamResponse]) match {
-      case Success(downStreamMsg:XmppDownstreamResponse) => {
+    Try (packetExtension.json.getObj[XmppResponse]) match {
+      case Success(downStreamMsg:XmppDownstreamResponse) =>
         ConnektLogger(LogFile.CLIENTS).debug("De Serialised to downstreamobject:" + downStreamMsg)
         connectionActor ! downStreamMsg
-      }
-      case Failure(thrown) => {
-        Try (packetExtension.json.getObj[XmppUpstreamResponse]) match {
-          case Success(upstream) =>
-            ConnektLogger(LogFile.CLIENTS).debug("De Serialised to upstream:" + upstream)
-            dispatcher.upStreamRecvdCallback.invoke(connectionActor -> upstream)
-          case Failure(ex) =>
-            ConnektLogger(LogFile.CLIENTS).error("Failed to down/upstream:" + packetExtension.json)
-        }
-
-
-      }
+      case Success(upstream:XmppUpstreamResponse) =>
+        ConnektLogger(LogFile.CLIENTS).debug("De Serialised to upstream:" + upstream)
+        dispatcher.upStreamRecvdCallback.invoke(connectionActor -> upstream)
+      case Failure(thrown) =>
+        ConnektLogger(LogFile.CLIENTS).error("Failed to down/upstream:" + packetExtension.json)
     }
   }
 }
