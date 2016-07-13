@@ -30,6 +30,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
+
+import scala.collection.immutable
 object DeviceDetailsService extends Instrumented {
 
   lazy val dao = DaoFactory.getDeviceDetailsDao
@@ -148,7 +150,7 @@ object DeviceDetailsService extends Instrumented {
    * @param appName (CaseSensitive)
    * @return
    */
-  def getAll(appName: String): Try[Iterator[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getAll Failed") {
+  def getAll(appName: String): Try[immutable.Iterable[DeviceDetails]] = Try_#(message = "DeviceDetailsService.getAll Failed") {
     dao.getAll(appName)
   }
 

@@ -13,6 +13,7 @@
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.flipkart.connekt.commons.entities.DeviceDetails
@@ -28,8 +29,10 @@ import com.flipkart.utils.http.HttpClient
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 
+import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import scala.concurrent.duration._
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -140,12 +143,38 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                   meteredResource(s"getAllRegistrations.$appName") {
                     authorize(user, "REGISTRATION_DOWNLOAD", s"REGISTRATION_DOWNLOAD_$appName") {
                       ConnektLogger(LogFile.SERVICE).info(s"REGISTRATION_DOWNLOAD for $appName started by ${user.userId}")
-                      val dataStream = DeviceDetailsService.getAll(appName).get
-                      def chunks = Source.fromIterator(() => dataStream)
-                        .grouped(100)
-                        .map(d => d.map(_.getJson).mkString(scala.compat.Platform.EOL))
+                      val startedAt = System.currentTimeMillis()
+                      val dataStream = DeviceDetailsService.getAll(appName).get//.map(_.getJson)
+
+                      val downloadMessage =
+                        s"""
+                          |####################################################################
+                          |## This download was initiated at $startedAt
+                          |## by ${user.userId}. This process may take time depending on
+                          |## the size of your user base.
+                          |####################################################################
+                        """.stripMargin
+                      def header = Source.single(downloadMessage + scala.compat.Platform.EOL).map(HttpEntity.ChunkStreamPart.apply)
+
+                      def foo = Source.fromIterator(() => Iterator.continually("hello")).keepAlive(10.seconds, () => {
+                        println("emit garbage")
+                        scala.compat.Platform.EOL
+                      })
                         .map(HttpEntity.ChunkStreamPart.apply)
-                      val response = HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunks))
+
+                      def chunks = Source(dataStream)
+//                        .grouped(100)
+//                        .map(_.mkString(scala.compat.Platform.EOL))
+                        .keepAlive(10.seconds, () => {
+                          println("emit garbage")
+                          scala.compat.Platform.EOL
+                        })
+                        .map(d => HttpEntity.ChunkStreamPart.apply(d.toString))
+
+                      val response = HttpResponse(
+                        entity = HttpEntity.Chunked(MediaTypes.`application/octet-stream`,  chunks ),
+                        headers = immutable.Seq(RawHeader("Started-At", startedAt.toString ))
+                      )
                       complete(response)
                     }
                   }

@@ -129,7 +129,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
   }
 
   @Timed("getAll")
-  def getAll(appName: String): Iterator[DeviceDetails] = {
+  def getAll(appName: String): Stream[DeviceDetails] = {
     implicit val hTableInterface = hTableConnFactory.getTableInterface(hTableName)
     try {
       val scan = new Scan()
@@ -142,7 +142,7 @@ class DeviceDetailsDao(tableName: String, hTableFactory: THTableFactory) extends
 
       val resultScanner = hTableInterface.getScanner(scan)
 
-      resultScanner.iterator().toIterator.flatMap( rI => {
+      resultScanner.iterator().toStream.flatMap( rI => {
         val resultMap: RowData = getRowData(rI, dataColFamilies)
         extractDeviceDetails(resultMap)
       })
