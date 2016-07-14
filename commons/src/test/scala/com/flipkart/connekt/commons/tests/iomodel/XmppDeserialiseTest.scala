@@ -1,8 +1,7 @@
 package com.flipkart.connekt.commons.tests.iomodel
 
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.iomodels.{XmppDownstreamResponse, XmppUpstreamData, XmppReceipt, XmppResponse}
-import com.flipkart.connekt.commons.tests.ConnektUTSpec
+import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.scalatest.FlatSpec
 
