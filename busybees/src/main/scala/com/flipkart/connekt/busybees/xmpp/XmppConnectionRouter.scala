@@ -17,14 +17,12 @@ import akka.routing.{ActorRefRoutee, Router, RoundRobinRoutingLogic}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, XmppRequestAvailable, FreeConnectionAvailable}
+import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels.GcmXmppRequest
 import com.flipkart.connekt.commons.services.ConnektConfig
 import scala.collection.mutable
-/**
- * Created by subir.dey on 22/06/16.
- */
-class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, appId:String) extends Actor {
+class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
   val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] = collection.mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]()
 
   //TODO will be changed with zookeeper
@@ -33,7 +31,7 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, appId:String) extends
 
   var router:Router = {
     val routees = Vector.fill(connectionPoolSize) {
-      val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, appId)
+      val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId)
         .withMailbox("akka.actor.xmpp-connection-priority-mailbox"))
       context watch aRoutee
       freeXmppActors.add(aRoutee)
@@ -45,7 +43,7 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, appId:String) extends
   def receive = {
     case Terminated(a) =>
       router = router.removeRoutee(a)
-      val newRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, appId))
+      val newRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId))
       context watch newRoutee
       router = router.addRoutee(newRoutee)
 

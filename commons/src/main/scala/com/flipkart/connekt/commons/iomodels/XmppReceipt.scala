@@ -15,34 +15,34 @@ package com.flipkart.connekt.commons.iomodels
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.helpers.XmppMessageIdHelper
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = true) messageId: String,
                           @JsonProperty(required = true) from: String,
                           @JsonProperty(required = true) category: String,
-                          @JsonProperty(required = true) data: XmppReceiptData) extends XmppUpstreamResponse(messageId, from, category){
+                          @JsonProperty(required = true) data: XmppReceiptData) extends XmppUpstreamResponse(messageId, from, category) {
 
-  override def getPnCallbackEvent():Option[PNCallbackEvent] = {
-    val (originalMsgId, context) = com.flipkart.connekt.commons.helpers.XmppMessageIdHelper.parseMessageIdTo(data.originalMessageId)
-    val deviceDetails:DeviceDetails = DeviceDetailsService.getByTokenId(category, data.deviceRegistrationId).getOrElse(None).getOrElse(null)
-    Some(PNCallbackEvent(messageId = originalMsgId,
-      clientId = from,
-      deviceId = if (deviceDetails == null ) "" else deviceDetails.deviceId,
+  override def getPnCallbackEvent(): Option[PNCallbackEvent] = {
+    val parsedMessageIdMap:Map[String,String] = XmppMessageIdHelper.parseMessageId(data.originalMessageId)
+    val deviceDetails: Option[DeviceDetails] = DeviceDetailsService.getByTokenId(category, data.deviceRegistrationId).getOrElse(None)
+    Some(PNCallbackEvent(messageId = parsedMessageIdMap.get(XmppMessageIdHelper.messageIdText).get,
+      clientId = parsedMessageIdMap.get(XmppMessageIdHelper.clientIdText).get,
+      deviceId = deviceDetails.map(_.deviceId).getOrElse(""),
       eventType = "receipt",
       platform = "android",
-      appName = category,
-      contextId = context,
-      cargo = "",
+      appName = deviceDetails.map(_.appName).getOrElse(""),
+      contextId = parsedMessageIdMap.get(XmppMessageIdHelper.contextIdText).get,
+      cargo = null,
       timestamp = System.currentTimeMillis
     ))
   }
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-case class XmppReceiptData(@JsonProperty("message_status") @JsonProperty(required = true) messageStatus: String,
+case class XmppReceiptData (@JsonProperty("message_status") @JsonProperty(required = true) messageStatus: String,
                                    @JsonProperty("original_message_id") @JsonProperty(required = true) originalMessageId: String,
                                    @JsonProperty("device_registration_id") @JsonProperty(required = true) deviceRegistrationId: String)
-
 
 /** sample data from GCM
   * <message id="">

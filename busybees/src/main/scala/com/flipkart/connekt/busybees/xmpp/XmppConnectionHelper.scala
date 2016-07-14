@@ -35,8 +35,8 @@ object XmppConnectionHelper {
 
   val archivedConnections: java.util.Set[XMPPConnection] = new java.util.HashSet[XMPPConnection]()
 
-  lazy val xmppHost: String = ConnektConfig.get("gcm.ccs.gcmServer").getOrElse("fcm-xmpp.googleapis.com")
-  lazy val xmppPort: Int = ConnektConfig.get("gcm.ccs.gcmPort").getOrElse("5235").toInt
+  lazy val xmppHost: String = ConnektConfig.get("fcm.ccs.fcmServer").getOrElse("fcm-xmpp.googleapis.com")
+  lazy val xmppPort: Int = ConnektConfig.get("fcm.ccs.fcmPort").getOrElse("5235").toInt
 }
 
 class XmppNeverAckException(message: String) extends Exception(message)

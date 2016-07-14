@@ -15,6 +15,7 @@ package com.flipkart.connekt.commons.iomodels
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 case class XmppUpstreamData (
@@ -33,8 +34,8 @@ case class XmppUpstreamData (
         eventType = eventType.asText(),
         platform = "android",
         appName = Option(data.get("appName")).map(_.asText()).getOrElse("NA"),
-        contextId = Option(data.get("contextId")).map(_.asText()).getOrElse(""),
-        cargo = Option(data.get("cargo")).map(_.asText()).getOrElse(""),
+        contextId = Option(data.get("contextId")).map(_.asText()).orEmpty,
+        cargo = Option(data.get("cargo")).map(_.asText()).orNull,
         timestamp = Option(data.get("timestamp").asText()).map(_.toLong).getOrElse(System.currentTimeMillis)
       ))
     } else None

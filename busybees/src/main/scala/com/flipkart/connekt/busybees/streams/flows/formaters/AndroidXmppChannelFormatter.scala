@@ -33,7 +33,7 @@ class AndroidXmppChannelFormatter (parallelism: Int)(implicit ec: ExecutionConte
     val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
 
     devicesInfo.map{ device => {
-      val messageId = XmppMessageIdHelper.generateMessageId(message, device)
+      val messageId = XmppMessageIdHelper.generateMessageId(message, device.deviceId)
       val payload = GCMXmppPNPayload(device.token, messageId, Option(pnInfo.delayWhileIdle), appDataWithId, Some(timeToLive), deliveryReceiptRequired, dryRun)
       GCMPayloadEnvelope(message.id, message.clientId, Seq(device.deviceId), pnInfo.appName, message.contextId.orEmpty, payload, message.meta)
     }}.toList

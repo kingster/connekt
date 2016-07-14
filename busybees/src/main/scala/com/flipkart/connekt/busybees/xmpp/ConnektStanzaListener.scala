@@ -12,8 +12,6 @@
  */
 package com.flipkart.connekt.busybees.xmpp
 
-import java.util.concurrent.ConcurrentLinkedQueue
-
 import akka.actor.ActorRef
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
@@ -24,9 +22,6 @@ import org.jivesoftware.smack.packet.Stanza
 
 import scala.util.{Try, Success, Failure}
 
-/**
- * Created by subir.dey on 22/06/16.
- */
 class ConnektStanzaListener(connectionActor:ActorRef, dispatcher:GcmXmppDispatcher) extends StanzaListener() {
 
   override def processPacket(packet: Stanza)  {

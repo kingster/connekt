@@ -13,7 +13,7 @@
 package com.flipkart.connekt.busybees.xmpp
 
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.{SSLContext, SSLSocket, SSLSocketFactory}
 
 import akka.actor.{ActorRef, Actor}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
@@ -23,7 +23,6 @@ import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.commons.utils.StringUtils
 import com.google.common.cache._
 import org.jivesoftware.smack.filter.StanzaFilter
 import org.jivesoftware.smack.packet.Stanza
@@ -32,6 +31,7 @@ import org.jivesoftware.smack.roster.Roster
 import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.tcp.{XMPPTCPConnectionConfiguration, XMPPTCPConnection}
 import org.xmlpull.v1.XmlPullParser
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.{Failure, Success}
 
@@ -39,9 +39,8 @@ import scala.util.{Failure, Success}
  * Created by subir.dey on 22/06/16.
  */
 
-class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends Actor {
+class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
   val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(4)
-  var googleCredential:GoogleCredential = null
 
   private val removalListener: RemovalListener[String, GCMRequestTracker] =
     new RemovalListener[String, GCMRequestTracker]() {
@@ -70,7 +69,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
 
     case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
       //first request----create connection and process request
-      createConnection(xmppRequest._1.credential)
+      createConnection()
       become(free)
       self ! xmppRequest
 
@@ -134,8 +133,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
       prcoessAckExpired(parent, ackExpired)
   }
 
-  private def createConnection(credential: GoogleCredential): Unit = {
-    googleCredential = credential
+  private def createConnection(): Unit = {
     createConnection(googleCredential.projectId + "@gcm.googleapis.com", googleCredential.apiKey)
   }
 
@@ -143,10 +141,11 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     connection = new XMPPTCPConnection(XMPPTCPConnectionConfiguration.builder()
                         .setHost(xmppHost)
                         .setPort(xmppPort)
-                        .setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
+                        .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                         .setSocketFactory(SSLSocketFactory.getDefault())
                         .setServiceName(appId)
                         .setSendPresence(false)
+                        .setDebuggerEnabled(true)
                         .build())
 
     ConnektLogger(LogFile.CLIENTS).debug(s"Configuring XMPPConnection")
@@ -163,7 +162,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     )
 
     val stanzaFilter = new StanzaFilter() {
-      override def accept(stanza:Stanza):Boolean = if (stanza.hasExtension(GCM_ELEMENT_NAME, GCM_NAMESPACE)) true else false
+      override def accept(stanza:Stanza):Boolean = stanza.hasExtension(GCM_ELEMENT_NAME, GCM_NAMESPACE)
     }
     val stanzaListener = new ConnektStanzaListener(self, dispatcher)
     connection.addAsyncStanzaListener(stanzaListener, stanzaFilter)
@@ -183,7 +182,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     val (xmppPayload,requestTracker) = xmppRequest
 
     if ( sendXmppStanza(xmppPayload.pnPayload) ) {
-      messageDataCache.put(xmppPayload.pnPayload.message_id, xmppRequest._2)
+      messageDataCache.put(xmppPayload.pnPayload.message_id, requestTracker)
       pendingAckCount = pendingAckCount + 1
 
       if (pendingAckCount >= maxPendingAckCount) {
@@ -219,7 +218,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     if ( xmppRequestTracker != null ) {
       messageDataCache.invalidate(ack.messageId)
       pendingAckCount = pendingAckCount - 1
-      dispatcher.ackRecvdCallback.invoke((Failure(new XmppNackException(ack)), xmppRequestTracker))
+      dispatcher.ackRecvdCallback.invoke(Failure(new XmppNackException(ack)) -> xmppRequestTracker)
 
       if ( pendingAckCount < maxPendingAckCount ) {
         become(free)
@@ -256,7 +255,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
   private def processConnectionDraining() = {
     ConnektLogger(LogFile.CLIENTS).error("Received ConnectionDraining!!:", appId)
     XmppConnectionHelper.archivedConnections.add(connection)
-    createConnection(googleCredential)
+    createConnection()
   }
 
   private def processConnectionClosed(connClosed:ConnectionClosed) = {
@@ -264,8 +263,9 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, appId:String) extends A
     XmppConnectionHelper.archivedConnections.remove(connection)
   }
 
-  private def sendXmppStanza(payload:Any):Boolean = {
-    val xmppPayloadString:String = StringUtils.objMapper.writeValueAsString(payload)
+
+  private def sendXmppStanza(payload:AnyRef):Boolean = {
+    val xmppPayloadString = payload.getJson
     val stanza = new GcmXmppPacketExtension(xmppPayloadString)
 
     try {

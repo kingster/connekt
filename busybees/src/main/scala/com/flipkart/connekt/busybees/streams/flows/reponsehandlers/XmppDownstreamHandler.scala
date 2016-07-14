@@ -25,7 +25,7 @@ import com.flipkart.connekt.commons.iomodels.MessageStatus.GCMResponseStatus
 import com.flipkart.connekt.commons.metrics.Instrumented
 
 import scala.concurrent.{Future, ExecutionContext}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
  * Created by subir.dey on 25/06/16.
@@ -46,26 +46,42 @@ class XmppDownstreamHandler (implicit m: Materializer, ec: ExecutionContext) ext
 
     val eventTS = System.currentTimeMillis()
 
-    xmppResponse map {
-      response =>
+    xmppResponse match {
+      case Success(response) =>
         ConnektLogger(LogFile.PROCESSORS).info(s"XmppDownstreamHandler received xmpp response for: $messageId")
-        ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString), requestTracker.appName, GCMResponseStatus.Received)
-    } recover {
-      case e:XmppNackException =>
-        val status = if ( e.response.error.equalsIgnoreCase(badRegistrationError) ) {
-          DeviceDetailsService.delete(appName, deviceId)
+        ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId,
+          Option(requestTracker.contextId),
+          requestTracker.meta.get("stencilId").map(_.toString),
+          Option(MobilePlatform.ANDROID.toString),
+          requestTracker.appName,
+          GCMResponseStatus.Received)
+
+      case Failure(e: XmppNackException) =>
+        val status = if (e.response.error.equalsIgnoreCase(badRegistrationError)) {
+          DeviceDetailsService.get(appName, deviceId).foreach {
+            _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
+              ConnektLogger(LogFile.PROCESSORS).info(s"XmppDownstreamHandler token invalid  deleting details of device: ${requestTracker.deviceId}.")
+              DeviceDetailsService.delete(appName, deviceId)
+            })
+          }
           GCMResponseStatus.InvalidDevice
-        } else if ( e.response.error.equalsIgnoreCase(invalidJson) ) GCMResponseStatus.InvalidJsonError
-        else GCMResponseStatus.Error
+        } else if (e.response.error.equalsIgnoreCase(invalidJson))
+          GCMResponseStatus.InvalidJsonError
+        else
+          GCMResponseStatus.Error
 
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.response.errorDescription}")
-        ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString), requestTracker.appName, status)
+        ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId,
+          Option(requestTracker.contextId),
+          requestTracker.meta.get("stencilId").map(_.toString),
+          Option(MobilePlatform.ANDROID.toString),
+          requestTracker.appName,
+          status)
 
-      case e:Exception =>
+      case Failure(e: Exception) =>
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.getMessage}")
         ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString), requestTracker.appName, GCMResponseStatus.Error)
     }
-
     val events = List(PNCallbackEvent(messageId, requestTracker.clientId, deviceId, GCMResponseStatus.Received, MobilePlatform.ANDROID, appName, requestTracker.contextId, messageId, eventTS))
     events.persist
     events

@@ -29,7 +29,7 @@ import scala.util.{Success, Try}
  */
 class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[FanOutShape2[(GcmXmppRequest,GCMRequestTracker), (Try[XmppDownstreamResponse], GCMRequestTracker), XmppUpstreamResponse]] {
 
-  val maxPendingUpstreamCount = ConnektConfig.get("gcm.xmpp.appIds.maximumUpstreamCount").getOrElse("10").toInt
+  val maxPendingUpstreamCount = ConnektConfig.get("fcm.xmpp.maximumUpstreamCount").getOrElse("10").toInt
 
   val in = Inlet[(GcmXmppRequest,GCMRequestTracker)]("GcmXmppDispatcher.In")
   val outDownstream = Outlet[(Try[XmppDownstreamResponse], GCMRequestTracker)]("GcmXmppDispatcher.outDownstream")
