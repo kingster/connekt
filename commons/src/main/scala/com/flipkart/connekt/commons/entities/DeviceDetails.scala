@@ -51,7 +51,8 @@ case class DeviceDetails(deviceId: String,
   def validate() = {
     require(Try(MobilePlatform.withName(osName)).map(!_.equals(MobilePlatform.UNKNOWN)).getOrElse(false), "a device's platform cannot be unknown")
     require(token.isDefined, "device detail's token cannot be null/empty")
-    require(appName.isDefined, "device detail's app name cannot be null/empty")
+    require(userId != deviceId, "`userId` cannot be equal to `deviceId`")
+    require(appName.isDefined, "device detail's `appName` cannot be null/empty")
   }
 }
 
