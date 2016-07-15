@@ -25,13 +25,12 @@ case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = tr
 
   override def getPnCallbackEvent(): Option[PNCallbackEvent] = {
     val parsedMessageIdMap:Map[String,String] = XmppMessageIdHelper.parseMessageId(data.originalMessageId)
-    val deviceDetails: Option[DeviceDetails] = DeviceDetailsService.getByTokenId(category, data.deviceRegistrationId).getOrElse(None)
     Some(PNCallbackEvent(messageId = parsedMessageIdMap.get(XmppMessageIdHelper.messageIdText).get,
       clientId = parsedMessageIdMap.get(XmppMessageIdHelper.clientIdText).get,
-      deviceId = deviceDetails.map(_.deviceId).getOrElse(""),
+      deviceId = parsedMessageIdMap.get(XmppMessageIdHelper.deviceIdText).get,
       eventType = "receipt",
       platform = "android",
-      appName = deviceDetails.map(_.appName).getOrElse(""),
+      appName = parsedMessageIdMap.get(XmppMessageIdHelper.appIdText).get,
       contextId = parsedMessageIdMap.get(XmppMessageIdHelper.contextIdText).get,
       cargo = null,
       timestamp = System.currentTimeMillis

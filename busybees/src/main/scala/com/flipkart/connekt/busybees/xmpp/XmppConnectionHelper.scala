@@ -21,7 +21,7 @@ import com.typesafe.config.Config
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 
-object XmppConnectionHelper {
+private object XmppConnectionHelper {
   case object ReConnect
   case object ConnectionDraining
   case object FreeConnectionAvailable

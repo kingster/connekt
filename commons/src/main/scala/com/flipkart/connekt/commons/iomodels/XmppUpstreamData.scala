@@ -30,7 +30,7 @@ case class XmppUpstreamData (
 
       Some(PNCallbackEvent(messageId = messageId,
         clientId = category,
-        deviceId = Option(data.get("deviceId")).map(_.asText()).getOrElse("Unknown"),
+        deviceId = Option(data.get("deviceId")).map(_.asText()).getOrElse(from),
         eventType = eventType.asText(),
         platform = "android",
         appName = Option(data.get("appName")).map(_.asText()).getOrElse("NA"),
