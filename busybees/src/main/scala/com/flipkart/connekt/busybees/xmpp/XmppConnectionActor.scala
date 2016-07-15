@@ -13,7 +13,8 @@
 package com.flipkart.connekt.busybees.xmpp
 
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.{SSLContext, SSLSocket, SSLSocketFactory}
+import java.util.concurrent.atomic.AtomicInteger
+import javax.net.ssl.SSLSocketFactory
 
 import akka.actor.{ActorRef, Actor}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
@@ -34,10 +35,6 @@ import org.xmlpull.v1.XmlPullParser
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.{Failure, Success}
-
-/**
- * Created by subir.dey on 22/06/16.
- */
 
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
   val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(4)
@@ -60,7 +57,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     .build()
 
 
-  var pendingAckCount:Int = 0
+  val pendingAckCount = new AtomicInteger(0)
   var connection: XMPPTCPConnection = null
 
   import context._
@@ -142,7 +139,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
                         .setHost(xmppHost)
                         .setPort(xmppPort)
                         .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
-                        .setSocketFactory(SSLSocketFactory.getDefault())
+                        .setSocketFactory(SSLSocketFactory.getDefault)
                         .setServiceName(appId)
                         .setSendPresence(false)
                         .setDebuggerEnabled(true)
@@ -183,9 +180,9 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
 
     if ( sendXmppStanza(xmppPayload.pnPayload) ) {
       messageDataCache.put(xmppPayload.pnPayload.message_id, requestTracker)
-      pendingAckCount = pendingAckCount + 1
+      pendingAckCount.incrementAndGet()
 
-      if (pendingAckCount >= maxPendingAckCount) {
+      if (pendingAckCount.get() >= maxPendingAckCount) {
         become(busy)
         parent ! ConnectionBusy
         ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionActor for $appId turned busy")
@@ -203,10 +200,10 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     val xmppRequestTracker = messageDataCache.getIfPresent(ack.messageId)
     if ( xmppRequestTracker != null ) {
       messageDataCache.invalidate(ack.messageId)
-      pendingAckCount = pendingAckCount - 1
+      pendingAckCount.decrementAndGet()
       dispatcher.ackRecvdCallback.invoke((Success(ack), xmppRequestTracker))
 
-      if ( pendingAckCount < maxPendingAckCount ) {
+      if ( pendingAckCount.get() < maxPendingAckCount ) {
         become(free)
         parent ! FreeConnectionAvailable
       }
@@ -217,10 +214,10 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     val xmppRequestTracker = messageDataCache.getIfPresent(ack.messageId)
     if ( xmppRequestTracker != null ) {
       messageDataCache.invalidate(ack.messageId)
-      pendingAckCount = pendingAckCount - 1
+      pendingAckCount.decrementAndGet()
       dispatcher.ackRecvdCallback.invoke(Failure(new XmppNackException(ack)) -> xmppRequestTracker)
 
-      if ( pendingAckCount < maxPendingAckCount ) {
+      if ( pendingAckCount.get() < maxPendingAckCount ) {
         become(free)
         parent ! FreeConnectionAvailable
       }
@@ -229,10 +226,10 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
 
   private def prcoessAckExpired(parent:ActorRef, ackExpired:XmppAckExpired) = {
     if ( ackExpired.tracker != null ) {
-      pendingAckCount = pendingAckCount - 1
+      pendingAckCount.decrementAndGet()
       dispatcher.ackRecvdCallback.invoke((Failure(new XmppNeverAckException("Ack never received. Cache timed out")), ackExpired.tracker))
 
-      if ( pendingAckCount < maxPendingAckCount ) {
+      if ( pendingAckCount.get() < maxPendingAckCount ) {
         become(free)
         parent ! FreeConnectionAvailable
       }

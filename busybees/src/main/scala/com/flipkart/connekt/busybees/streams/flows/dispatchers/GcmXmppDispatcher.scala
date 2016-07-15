@@ -24,9 +24,6 @@ import akka.stream.stage._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import scala.util.{Success, Try}
 
-/**
- * Created by subir.dey on 22/06/16.
- */
 class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[FanOutShape2[(GcmXmppRequest,GCMRequestTracker), (Try[XmppDownstreamResponse], GCMRequestTracker), XmppUpstreamResponse]] {
 
   val maxPendingUpstreamCount = ConnektConfig.get("fcm.xmpp.maximumUpstreamCount").getOrElse("10").toInt
