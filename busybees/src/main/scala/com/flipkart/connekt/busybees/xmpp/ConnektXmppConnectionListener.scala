@@ -18,9 +18,6 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.{XMPPConnection, ConnectionListener}
 
-/**
- * Created by subir.dey on 24/06/16.
- */
 class ConnektXmppConnectionListener(conn:XMPPTCPConnection, actorRef: ActorRef) extends ConnectionListener {
   override def connected(connection: XMPPConnection): Unit = {
     ConnektLogger(LogFile.CLIENTS).debug(s"XMPPConnectionListener -> connected: ${conn.getStreamId} s")
