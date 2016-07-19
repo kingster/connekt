@@ -1,9 +1,9 @@
 package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
-import com.flipkart.connekt.commons.iomodels.{CallbackEvent, PNCallbackEvent}
+import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.{ConnektConfig, SubscriptionService}
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
@@ -35,10 +35,9 @@ class SpecterTopologyTest extends TopologyUTSpec with Instrumented {
                                      platform = StringUtils.generateRandomStr(8),
                                      appName = StringUtils.generateRandomStr(8),
                                      contextId = StringUtils.generateRandomStr(8))
-    val x = pncallback.getJson.getObj[CallbackEvent].getJson
     val time1 = System.currentTimeMillis()
     for( a <- 1 to 1000) {
-      kafkaProducerHelper.writeMessages("ckt_callback_events", x)
+      kafkaProducerHelper.writeMessages("ckt_callback_events", pncallback.getJson)
     }
 
     val time2 =  System.currentTimeMillis()
