@@ -34,9 +34,7 @@ class SpecterTopologyTest extends TopologyUTSpec with Instrumented {
                                      platform = StringUtils.generateRandomStr(8),
                                      appName = StringUtils.generateRandomStr(8),
                                      contextId = StringUtils.generateRandomStr(8))
-//    println(pncallback.getJson)
     val x = pncallback.getJson.getObj[CallbackEvent].getJson
-//    println("X = " + x)
     val time1 = System.currentTimeMillis()
     for( a <- 1 to 1000) {
       kafkaProducerHelper.writeMessages("ckt_callback_events", x)
