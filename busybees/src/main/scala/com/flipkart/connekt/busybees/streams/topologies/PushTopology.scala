@@ -76,6 +76,7 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
     SourceShape(merge.out)
   })
 
+  /**
   def androidTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
 
     /**
@@ -88,15 +89,15 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
     val render = b.add(new RenderFlow().flow)
     val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
     val androidFilter = b.add(Flow[ConnektRequest].filter(m => MobilePlatform.ANDROID.toString.equalsIgnoreCase(m.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase)))
-    val fmtAndroid = b.add(new AndroidChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-    val gcmHttpPrepare = b.add(new GCMDispatcherPrepare().flow)
+    val fmtAndroid = b.add(new AndroidHttpChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
+    val gcmHttpPrepare = b.add(new GCMHttpDispatcherPrepare().flow)
     val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
     val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
 
     render.out ~> androidFilter ~> fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle
 
     FlowShape(render.in, gcmResponseHandle.out)
-  })
+  })**/
 
   def iosTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
 
@@ -115,19 +116,12 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
     val apnsPrepare = b.add(new APNSDispatcherPrepare().flow)
     val apnsDispatcher = b.add(new APNSDispatcher(apnsDispatcherParallelism)(ioDispatcher).flow.timedAs("apnsRTT"))
     val apnsResponseHandle = b.add(new APNSResponseHandler().flow)
-
-<<<<<<< HEAD
-    platformPartition.out(0) ~> fmtIOS ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle ~> merger.in(0)
-
-    platformPartition.out(1) ~> androidTopology ~> merger.in(1)
-=======
     render.out ~> iosFilter ~> fmtIOS ~> apnsPrepare ~> apnsDispatcher ~> apnsResponseHandle
 
     FlowShape(render.in, apnsResponseHandle.out)
   })
 
   def windowsTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
->>>>>>> adc2f0941e59c0d41c04dfdd76152ea90ec1c49a
 
     /**
      * Windows Topology
@@ -188,58 +182,64 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
     FlowShape(render.in, openWebResponseHandle.out)
   })
 
-  val androidTopology = if ( xmppShare == 100) xmppOnlyTopology else if ( xmppShare == 0 ) httpOnlyTopology else combinedTopology
-
-  lazy val httpOnlyTopology = GraphDSL.create() {
-    implicit b ⇒
-      val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
-      val fmtAndroid = b.add(new AndroidHttpChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-      val gcmHttpPrepare = b.add(new GCMHttpDispatcherPrepare().flow)
-
-      val gcmPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
-
-      val gcmResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
-
-      fmtAndroid ~> gcmHttpPrepare ~> gcmPoolFlow ~> gcmResponseHandle
-      FlowShape(fmtAndroid.in, gcmResponseHandle.out)
-  }
-
-  lazy val xmppOnlyTopology = GraphDSL.create() {
-    implicit b ⇒
-      val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
-      val fmtAndroid = b.add(new AndroidXmppChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
-      val gcmXmppPrepare = b.add(new GCMXmppDispatcherPrepare().flow)
-      val gcmXmppPoolFlow = b.add(new GcmXmppDispatcher)
-      val downstreamHandler = b.add(new XmppDownstreamHandler()(ioMat, ioDispatcher).flow)
-      val upstreamHandler = b.add(new XmppUpstreamHandler()(ioMat, ioDispatcher).flow)
-      val merger = b.add(Merge[PNCallbackEvent](2))
-
-      fmtAndroid ~> gcmXmppPrepare ~> gcmXmppPoolFlow.in
-                                gcmXmppPoolFlow.out0 ~> downstreamHandler ~> merger.in(0)
-                                gcmXmppPoolFlow.out1 ~> upstreamHandler ~> merger.in(1)
-      FlowShape(fmtAndroid.in, merger.out)
-  }
-
   lazy val xmppShare:Float = ConnektConfig.get("android.protocol.xmppshare").getOrElse("100").toFloat
+  lazy val randomGenerator = new Random()
 
   def chooseProtocol = if ( randomGenerator.nextInt(100) < xmppShare ) AndroidProtocols.xmpp else AndroidProtocols.http
 
-  lazy val randomGenerator = new Random()
+  def androidTransformFlow = Flow.fromGraph(GraphDSL.create() {
+    /**
+     * Android Topology
+     *                                                        +--------------------+   +---------------------+   +-----------------+   +----------------------+   +--..
+     *                                                     -->|AndroidHttpFormatter|-->|GCMHttpRequestPrepare|-->|GCMHttpDispatcher|-->|GCMHttpResponseHandler|-->|Merger
+     *                                                    |   +--------------------+   +---------------------+   +-----------------+   +----------------------+   +-----
+     *                   +-------------+   +----------+   |
+     *  ConnektRequest-->|AndroidFilter|-->|xmppORhttp|---|                                                                               +---------------------+   +--
+     *                   +-------------+   +----------+   |                                                                            -->|XmppDownstreamHandler|-->|Merger
+     *                                                    |  +--------------------+   +---------------------+   +-----------------+   |   +---------------------+   +--
+     *                                                    -->|AndroidXmppFormatter|-->|GCMXmppRequestPrepare|-->|GCMXmppDispatcher|-->
+     *                                                       +--------------------+   +---------------------+   +-----------------+   |   +---------------------+   +--
+     *                                                                                                                                 -->|XmppDownstreamHandler|-->|Merger
+     *                                                                                                                                    +---------------------+   +--
+     *
+     */
 
-  lazy val combinedTopology = GraphDSL.create() {
     implicit b ⇒
-      val platformPartition = b.add(new Partition[ConnektRequest](2, { _ =>
+      val render = b.add(new RenderFlow().flow)
+      val androidFilter = b.add(Flow[ConnektRequest].filter(m => MobilePlatform.ANDROID.toString.equalsIgnoreCase(m.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase)))
+
+      val xmppOrHttpPartition = b.add(new Partition[ConnektRequest](2, { _ =>
         chooseProtocol match {
-          case AndroidProtocols.xmpp => 0
-          case AndroidProtocols.http => 1
+          case AndroidProtocols.http => 0
+          case AndroidProtocols.xmpp => 1
         }
       }))
-      val merger = b.add(Merge[PNCallbackEvent](2))
-      platformPartition.out(0) ~> xmppOnlyTopology ~> merger.in(0)
-      platformPartition.out(1) ~> httpOnlyTopology ~> merger.in(1)
 
-      FlowShape(platformPartition.in, merger.out)
-  }
+      val fmtAndroidParallelism = ConnektConfig.getInt("topology.push.androidFormatter.parallelism").get
+
+      //xmpp related stages
+      val xmppFmtAndroid = b.add(new AndroidXmppChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
+      val gcmXmppPrepare = b.add(new GCMXmppDispatcherPrepare().flow)
+      val gcmXmppPoolFlow = b.add(new GcmXmppDispatcher)
+      val xmppDownstreamHandler = b.add(new XmppDownstreamHandler()(ioMat, ioDispatcher).flow)
+      val xmppUpstreamHandler = b.add(new XmppUpstreamHandler()(ioMat).flow)
+
+      //http related stages
+      val httpFmtAndroid = b.add(new AndroidHttpChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)
+      val gcmHttpPrepare = b.add(new GCMHttpDispatcherPrepare().flow)
+      val gcmHttpPoolFlow = b.add(HttpDispatcher.gcmPoolClientFlow.timedAs("gcmRTT"))
+      val gcmHttpResponseHandle = b.add(new GCMResponseHandler()(ioMat, ioDispatcher).flow)
+
+      val merger = b.add(Merge[PNCallbackEvent](3))
+
+      render.out ~> androidFilter ~> xmppOrHttpPartition.in
+                                      xmppOrHttpPartition.out(0) ~> httpFmtAndroid ~> gcmHttpPrepare ~> gcmHttpPoolFlow ~> gcmHttpResponseHandle ~> merger.in(0)
+                                      xmppOrHttpPartition.out(1) ~> xmppFmtAndroid ~> gcmXmppPrepare ~> gcmXmppPoolFlow.in
+                                                                                                      gcmXmppPoolFlow.out0 ~> xmppDownstreamHandler ~> merger.in(1)
+                                                                                                      gcmXmppPoolFlow.out1 ~> xmppUpstreamHandler ~> merger.in(2)
+
+      FlowShape(render.in, merger.out)
+  })
 
   override def sink: Sink[PNCallbackEvent, NotUsed] = Sink.fromGraph(GraphDSL.create() { implicit b =>
 

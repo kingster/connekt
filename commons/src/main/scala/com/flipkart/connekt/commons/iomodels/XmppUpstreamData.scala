@@ -27,9 +27,8 @@ case class XmppUpstreamData (
   override def getPnCallbackEvent():Option[PNCallbackEvent] = {
     val eventType: JsonNode = data.get("eventType")
     if (eventType != null) {
-
       Some(PNCallbackEvent(messageId = messageId,
-        clientId = category,
+        clientId = { val path = category.split('.'); path(path.length-1)},
         deviceId = Option(data.get("deviceId")).map(_.asText()).getOrElse(from),
         eventType = eventType.asText(),
         platform = "android",

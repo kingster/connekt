@@ -23,6 +23,7 @@ import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper._
 import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.google.common.cache._
 import org.jivesoftware.smack.filter.StanzaFilter
@@ -36,21 +37,21 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 
 import scala.util.{Failure, Success}
 
-class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
+class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor with Instrumented {
   val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(4)
 
-  private val removalListener: RemovalListener[String, GCMRequestTracker] =
-    new RemovalListener[String, GCMRequestTracker]() {
-    def onRemoval(removal: RemovalNotification[String, GCMRequestTracker]) {
+  private val removalListener: RemovalListener[String, (GCMRequestTracker,Long)] =
+    new RemovalListener[String, (GCMRequestTracker,Long)]() {
+    def onRemoval(removal: RemovalNotification[String, (GCMRequestTracker,Long)]) {
       if (removal.getCause != RemovalCause.EXPLICIT) {
-        val messageData:GCMRequestTracker = removal.getValue
+        val messageData:GCMRequestTracker = removal.getValue._1
         ConnektLogger(LogFile.CLIENTS).error(s"RemoveListener:Cache timed out with tracker id ${removal.getKey}")
         self ! XmppAckExpired(messageData)
       }
     }
   }
 
-  private val messageDataCache: Cache[String, GCMRequestTracker] = CacheBuilder.newBuilder()
+  private val messageDataCache: Cache[String, (GCMRequestTracker,Long)] = CacheBuilder.newBuilder()
     .expireAfterWrite(2, TimeUnit.MINUTES)
     .removalListener(removalListener)
     .maximumSize(4096)
@@ -179,7 +180,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     val (xmppPayload,requestTracker) = xmppRequest
 
     if ( sendXmppStanza(xmppPayload.pnPayload) ) {
-      messageDataCache.put(xmppPayload.pnPayload.message_id, requestTracker)
+      messageDataCache.put(xmppPayload.pnPayload.message_id, (requestTracker, System.currentTimeMillis()))
       pendingAckCount.incrementAndGet()
 
       if (pendingAckCount.get() >= maxPendingAckCount) {
@@ -197,11 +198,12 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
   }
 
   private def processAck(parent:ActorRef, ack:XmppAck) = {
-    val xmppRequestTracker = messageDataCache.getIfPresent(ack.messageId)
+    val (xmppRequestTracker,sentTime) = messageDataCache.getIfPresent(ack.messageId)
     if ( xmppRequestTracker != null ) {
       messageDataCache.invalidate(ack.messageId)
       pendingAckCount.decrementAndGet()
       dispatcher.ackRecvdCallback.invoke((Success(ack), xmppRequestTracker))
+      registry.timer(getMetricName(appId)).update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
 
       if ( pendingAckCount.get() < maxPendingAckCount ) {
         become(free)
@@ -211,11 +213,12 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
   }
 
   private def processNack(parent:ActorRef, ack:XmppNack) = {
-    val xmppRequestTracker = messageDataCache.getIfPresent(ack.messageId)
+    val (xmppRequestTracker,sentTime) = messageDataCache.getIfPresent(ack.messageId)
     if ( xmppRequestTracker != null ) {
       messageDataCache.invalidate(ack.messageId)
       pendingAckCount.decrementAndGet()
       dispatcher.ackRecvdCallback.invoke(Failure(new XmppNackException(ack)) -> xmppRequestTracker)
+      registry.timer(getMetricName(appId)).update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
 
       if ( pendingAckCount.get() < maxPendingAckCount ) {
         become(free)
