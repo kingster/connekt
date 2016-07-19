@@ -9,7 +9,6 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 class SpecterSink {
   def sink = {
     Sink.foreach[SubscriptionEvent](e => {
-    println(e)
       BigfootService.ingest((e.payload match {
         case str: String => str
         case _ => e.payload.getJson
