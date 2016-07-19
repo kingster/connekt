@@ -14,7 +14,7 @@ package com.flipkart.connekt.commons.tests.services
 
 import java.util.UUID
 
-import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, Transformers}
+import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.services.SubscriptionService
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
@@ -26,8 +26,7 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
   subscription.sink = new HTTPEventSink("POST", "http://requestb.in/wis41kwi")
-  subscription.eventFilter = "testEventFilter"
-  subscription.eventTransformer = new Transformers("testHeader","testPayload")
+  subscription.stencilId = "testEventFilter"
 
   "add Test" should "return success" in {
     val id = SubscriptionService.add(subscription)
@@ -45,7 +44,7 @@ class SubscriptionServiceTest extends CommonsBaseTest {
   }
 
   "update Test" should "return success" in {
-    subscription.eventFilter = "updatedEventFilter"
+    subscription.stencilId = "updatedEventFilter"
     assert(SubscriptionService.update(subscription).isSuccess)
   }
 
