@@ -23,7 +23,7 @@ class SubscriptionDao(subscriptionTable:String, jdbcHelper: TMySQLFactory) exten
   override def add(subscription: Subscription): Unit = {
     implicit val j = mySQLHelper.getJDBCInterface
     try {
-      val sql = s"INSERT INTO $subscriptionTable (id, name, sink, createdBy, createdTS, lastUpdatedTS, stencilId, eventTransformer, shutdownThreshold, active) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      val sql = s"INSERT INTO $subscriptionTable (id, name, sink, createdBy, createdTS, lastUpdatedTS, stencilId, shutdownThreshold, active) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
       update(sql, subscription.id, subscription.name, subscription.sink.getJson, subscription.createdBy, subscription.createdTS, subscription.lastUpdatedTS, subscription.stencilId, subscription.shutdownThreshold, subscription.active)
        } catch {
       case e: Exception =>
