@@ -1,6 +1,7 @@
 package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.iomodels.{CallbackEvent, PNCallbackEvent}
 import com.flipkart.connekt.commons.metrics.Instrumented
@@ -42,7 +43,7 @@ class SpecterTopologyTest extends TopologyUTSpec with Instrumented {
 
     val time2 =  System.currentTimeMillis()
 
-    println(" time taken = " + (time2 - time1))
+    ConnektLogger(LogFile.CALLBACKS).info(s"time taken = ${time2 - time1}")
 
 
     Thread.sleep(100000)
