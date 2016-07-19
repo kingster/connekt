@@ -143,8 +143,10 @@ trait HbaseDao extends Instrumented {
   @Timed("mget")
   def fetchMultiRows(rowKeys: List[String], colFamilies: List[String])(implicit hTable: Table): Map[String, RowData] = {
 
-    rowKeys.grouped(getBatchSize).map( groupedRowKeys => {
-      val gets:List[Get] = groupedRowKeys.map((rowKey:String) => {
+    rowKeys
+      .filter(rowKey => rowKey != null && rowKey.nonEmpty)
+      .grouped(getBatchSize).map( groupedRowKeys => {
+      val gets:List[Get] = groupedRowKeys.map(rowKey => {
         val get = new Get(rowKey.getBytes(CharEncoding.UTF_8))
         colFamilies.foreach(cF => get.addFamily(cF.getBytes(CharEncoding.UTF_8)))
         get
