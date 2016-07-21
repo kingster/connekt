@@ -12,17 +12,16 @@
  */
 package com.flipkart.connekt.commons.iomodels
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+import com.fasterxml.jackson.annotation.JsonProperty
 
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "type"
-)
-@JsonSubTypes(Array(
-  new Type(value = classOf[PNRequestInfo], name = "PN"),
-  new Type(value = classOf[PullRequestInfo], name = "PULL"),
-  new Type(value = classOf[CardsRequestInfo], name = "CARD")
-))
-abstract class ChannelRequestInfo
+case class PullRequestInfo(@JsonProperty(required = false) platform: String,
+                           @JsonProperty(required = false) appName: String,
+                           @JsonProperty(required = false) userIds: Set[String] = Set.empty[String],
+                           @JsonProperty(required = false) topic: Option[String] = None,
+                           ackRequired: Boolean,
+                           delayWhileIdle: Boolean) extends ChannelRequestInfo {
+  def this() {
+    this(null, null, Set.empty[String], None, false, false)
+  }
+
+}

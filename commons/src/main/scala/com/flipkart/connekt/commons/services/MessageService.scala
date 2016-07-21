@@ -58,6 +58,19 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
     }
   }
 
+  override def saveRequestToHbase(request: ConnektRequest): Try[String] = {
+    try {
+      val reqWithId = request.copy(id = generateId)
+      messageDao.saveRequest(reqWithId.id, reqWithId)
+      ConnektLogger(LogFile.SERVICE).info(s"Request ${reqWithId.id} persisted")
+      Success(reqWithId.id)
+    } catch {
+      case e: Exception =>
+        ConnektLogger(LogFile.SERVICE).error(s"Failed to save request ${e.getMessage}", e)
+        Failure(e)
+    }
+  }
+
   override def enqueueRequest(request: ConnektRequest, requestBucket: String): Unit = {
     queueProducer.writeMessages(requestBucket, request.getJson)
     ConnektLogger(LogFile.SERVICE).info(s"EnQueued request ${request.id} in bucket $requestBucket")

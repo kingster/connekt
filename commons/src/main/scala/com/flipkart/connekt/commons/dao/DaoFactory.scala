@@ -41,7 +41,9 @@ object DaoFactory {
 
     daoMap += DaoType.DEVICE_DETAILS -> DeviceDetailsDao("connekt-registry", hTableFactory)
     daoMap += DaoType.PN_REQUEST_INFO -> PNRequestDao(tableName = "fk-connekt-pn-info", hTableFactory = hTableFactory)
+    daoMap += DaoType.PULL_REQUEST_INFO -> PullRequestDao(tableName = "fk-connekt-pull-info", hTableFactory = hTableFactory)
     daoMap += DaoType.CALLBACK_PN -> PNCallbackDao("fk-connekt-events", hTableFactory)
+    daoMap += DaoType.CALLBACK_PULL -> PullCallbackDao("fk-connekt-pull-events", hTableFactory)
   }
 
   def getHTableFactory = hTableFactory
@@ -103,7 +105,11 @@ object DaoFactory {
 
   def getPNRequestDao: PNRequestDao = daoMap(DaoType.PN_REQUEST_INFO).asInstanceOf[PNRequestDao]
 
+  def getPullRequestDao: PullRequestDao = daoMap(DaoType.PULL_REQUEST_INFO).asInstanceOf[PullRequestDao]
+
   def getPNCallbackDao: PNCallbackDao = daoMap(DaoType.CALLBACK_PN).asInstanceOf[PNCallbackDao]
+
+  def getPullCallbackDao: PullCallbackDao = daoMap(DaoType.CALLBACK_PULL).asInstanceOf[PullCallbackDao]
 
   def getEmailCallbackDao: EmailCallbackDao = daoMap(DaoType.CALLBACK_EMAIL).asInstanceOf[EmailCallbackDao]
 
@@ -128,11 +134,13 @@ object DaoType extends Enumeration {
   PN_REQUEST_INFO,
   CALLBACK_EMAIL,
   CALLBACK_PN,
+  CALLBACK_PULL,
   PRIVILEGE,
   USER_INFO,
   USER_CONFIG,
   STENCIL,
   STATS_REPORTING,
   SUBSCRIPTION,
-  KEY_CHAIN = Value
+  KEY_CHAIN,
+  PULL_REQUEST_INFO = Value
 }

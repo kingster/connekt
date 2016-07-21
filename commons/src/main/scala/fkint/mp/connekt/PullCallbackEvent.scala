@@ -10,19 +10,12 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.commons.iomodels
+package fkint.mp.connekt
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+import com.flipkart.connekt.commons.entities.bigfoot.EventBaseSchema
 
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "type"
-)
-@JsonSubTypes(Array(
-  new Type(value = classOf[PNRequestInfo], name = "PN"),
-  new Type(value = classOf[PullRequestInfo], name = "PULL"),
-  new Type(value = classOf[CardsRequestInfo], name = "CARD")
-))
-abstract class ChannelRequestInfo
+case class PullCallbackEvent(messageId: String, appName: String, contextId: String, eventType: String, cargo: String, userId: String, timestamp: String) extends EventBaseSchema {
+  override def validate(): Unit = {}
+
+  override def getSchemaVersion: String = "1.0"
+}

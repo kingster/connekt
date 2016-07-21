@@ -29,6 +29,10 @@ disable 'fk-connekt-events'
 alter 'fk-connekt-events', {NAME => 'e', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
 enable 'fk-connekt-events'
 
+disable 'fk-connekt-pull-events'
+alter 'fk-connekt-pull-events', {NAME => 'e', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
+enable 'fk-connekt-pull-events'
+
 create 'connekt-scheduled-requests', {NAME => 'd', VERSIONS => '1', TTL => '1296000',  COMPRESSION => 'SNAPPY'}
 create 'connekt-schedule-checkpoints', {NAME => 'd', VERSIONS => '1', COMPRESSION => 'SNAPPY'}
 

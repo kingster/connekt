@@ -22,6 +22,7 @@ property = "type"
 )
 @JsonSubTypes(Array(
 new Type(value = classOf[PNRequestData], name = "PN"),
+new Type(value = classOf[PullRequestData], name = "Pull"),
 new Type(value = classOf[GCardRequestData], name = "GCard"),
 new Type(value = classOf[EmailRequestData], name="Email")
 ))

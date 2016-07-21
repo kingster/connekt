@@ -70,7 +70,7 @@ class CommonsBaseTest extends ConnektUTSpec {
     DaoFactory.initSpecterSocket(specterConfig)
 
     ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, null,null)
-    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null,getKafkaProducerHelper)
+    ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, null, null, DaoFactory.getPNRequestDao, null,getKafkaProducerHelper)
 
     ServiceFactory.initAuthorisationService(DaoFactory.getPrivDao, DaoFactory.getUserInfoDao)
     ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)

@@ -24,18 +24,20 @@ import com.flipkart.connekt.commons.core.Wrappers._
 
 import scala.util.Try
 
-class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, emailRequestDao: EmailRequestDao,  queueProducerHelper: KafkaProducerHelper) extends TCallbackService with Instrumented {
+class CallbackService(pnEventsDao: PNCallbackDao, pullEventsDao: PullCallbackDao, emailEventsDao: EmailCallbackDao, pnRequestDao: PNRequestDao, pullRequestDao: PullRequestDao, emailRequestDao: EmailRequestDao,  queueProducerHelper: KafkaProducerHelper) extends TCallbackService with Instrumented {
 
   lazy val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))
   lazy val CALLBACK_QUEUE_NAME = ConnektConfig.get("firefly.kafka.topic").getOrElse("ckt_callback_events")
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
+    case Channel.PULL => pullEventsDao
     case Channel.EMAIL => emailEventsDao
   }
 
   private def requestDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnRequestDao
+    case Channel.PULL => pullRequestDao
     case Channel.EMAIL => emailRequestDao
   }
 

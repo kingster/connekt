@@ -26,8 +26,12 @@ object ServiceFactory {
     serviceCache += ServiceType.PN_MESSAGE -> new MessageService(requestDao, userConfiguration, queueProducerHelper, kafkaConsumerConfig, schedulerService)
   }
 
-  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao, queueProducerHelper: KafkaProducerHelper) = {
-    serviceCache += ServiceType.CALLBACK -> new CallbackService(pnCallbackDao, emailCallbackDao, requestInfoDao, emailRequestDao,queueProducerHelper)
+  def initCallbackService(emailCallbackDao: EmailCallbackDao, pnCallbackDao: PNCallbackDao, pullCallbackDao: PullCallbackDao, pullRequestDao: PullRequestDao, requestInfoDao: PNRequestDao, emailRequestDao: EmailRequestDao, queueProducerHelper: KafkaProducerHelper) = {
+    serviceCache += ServiceType.CALLBACK -> new CallbackService(pnCallbackDao, pullCallbackDao, emailCallbackDao, requestInfoDao, pullRequestDao,  emailRequestDao, queueProducerHelper)
+  }
+
+  def initPullMessageService(requestDao: PullRequestDao, userConfiguration: TUserConfiguration) = {
+    serviceCache += ServiceType.PULL_MESSAGE -> new MessageService(requestDao, userConfiguration, null, null, null)
   }
 
   def initAuthorisationService(priv: PrivDao, userInfo: TUserInfo) = {
@@ -56,6 +60,8 @@ object ServiceFactory {
 
   def getPNMessageService = serviceCache(ServiceType.PN_MESSAGE).asInstanceOf[TMessageService]
 
+  def getPullMessageService = serviceCache(ServiceType.PULL_MESSAGE).asInstanceOf[TMessageService]
+
   def getCallbackService = serviceCache(ServiceType.CALLBACK).asInstanceOf[TCallbackService]
 
   def getAuthorisationService = serviceCache(ServiceType.AUTHORISATION).asInstanceOf[TAuthorisationService]
@@ -71,5 +77,5 @@ object ServiceFactory {
 }
 
 object ServiceType extends Enumeration {
-  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING, SCHEDULER , STENCIL = Value
+  val PN_MESSAGE, TEMPLATE, CALLBACK, USER_INFO, AUTHORISATION, KEY_CHAIN, STATS_REPORTING, STENCIL, SCHEDULER, PULL_MESSAGE = Value
 }

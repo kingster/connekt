@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer,
 object Channel extends Enumeration {
   type Channel = Value
   val PUSH = Value("push")
+  val PULL = Value("pull")
   val EMAIL = Value("email")
   val SMS = Value("sms")
   val CARDS = Value("cards")

@@ -24,7 +24,8 @@ import com.flipkart.connekt.commons.entities.DeviceCallbackEvent
 @JsonSubTypes(Array(
   new Type(value = classOf[PNCallbackEvent], name = "PN"),
   new Type(value = classOf[EmailCallbackEvent], name = "EMAIL"),
-  new Type(value = classOf[DeviceCallbackEvent], name = "DEVICE")
+  new Type(value = classOf[DeviceCallbackEvent], name = "DEVICE"),
+  new Type(value = classOf[PullCallbackEvent], name = "PULL")
 ))
 abstract class CallbackEvent {
   def contactId: String

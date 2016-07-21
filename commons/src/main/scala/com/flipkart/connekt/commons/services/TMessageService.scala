@@ -26,6 +26,8 @@ trait TMessageService extends TService {
 
   def saveRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean = true): Try[String]
 
+  def saveRequestToHbase(request: ConnektRequest): Try[String]
+
   def getRequestBucket(request: ConnektRequest, client: AppUser): String
 
   def assignClientChannelTopic(channel: Channel, clientUserId: String): String
