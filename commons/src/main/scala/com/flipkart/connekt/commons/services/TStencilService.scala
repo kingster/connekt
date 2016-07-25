@@ -43,4 +43,6 @@ trait TStencilService extends TService {
   def getStencilsEnsembleByName(name: String): Option[StencilsEnsemble]
 
   def addStencilComponents(stencilComponents: StencilsEnsemble): Try[Unit]
+
+  def getAllEnsemble(): List[StencilsEnsemble]
 }

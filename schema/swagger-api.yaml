@@ -666,6 +666,22 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+    get:
+      summary: get all stencil ENSEMBLE
+      description: |
+        get all stencil ENSEMBLE
+      parameters:
+        - $ref: '#/parameters/api-key'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  Original Request
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 
   /stencil/components/registry/{StencilsEnsembleId}:
     put:
