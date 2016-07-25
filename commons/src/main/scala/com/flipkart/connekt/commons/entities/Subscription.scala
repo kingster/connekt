@@ -16,9 +16,7 @@ import java.util.Date
 import javax.persistence.Column
 
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.connekt.commons.dao.JSONField
 
-case class Transformers (header: String, payload: String) extends JSONField
 
 class Subscription {
 
@@ -40,11 +38,8 @@ class Subscription {
   @Column(name = "lastUpdatedTS")
   var lastUpdatedTS: Date = new Date(System.currentTimeMillis())
 
-  @Column(name = "eventFilter")
-  var eventFilter : String = _
-
-  @Column(name = "eventTransformer")
-  var eventTransformer: Transformers = _
+  @Column(name = "stencilId")
+  var stencilId : String = _
 
   @Column(name = "shutdownThreshold")
   var shutdownThreshold : Int = _
@@ -53,17 +48,16 @@ class Subscription {
   var active : Boolean = false
 
   def this(sId: String, sName: String, endpoint: EventSink, createdBy: String,
-           eventFilter:String, eventTransformer:Transformers, shutdownThreshold: Int) = {
+           stencilId:String, shutdownThreshold: Int) = {
     this
     this.id = sId
     this.name = sName
     this.sink = endpoint
     this.createdBy = createdBy
-    this.eventFilter = eventFilter
-    this.eventTransformer = eventTransformer
+    this.stencilId = stencilId
     this.shutdownThreshold = shutdownThreshold
   }
 
   override def toString =
-    s"Subscription($id, $name, ${sink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $eventFilter, ${eventTransformer.getJson}, $shutdownThreshold)"
+    s"Subscription($id, $name, ${sink.getJson}, $createdBy, ${createdTS.toString}, ${lastUpdatedTS.toString}, $stencilId, $shutdownThreshold)"
 }

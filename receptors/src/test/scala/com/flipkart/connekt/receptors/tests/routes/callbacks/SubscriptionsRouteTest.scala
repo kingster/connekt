@@ -2,15 +2,14 @@ package com.flipkart.connekt.receptors.tests.routes.callbacks
 
 import java.util.UUID
 
-import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.Subscription
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.routes.callbacks.SubscriptionsRoute
 import com.flipkart.connekt.receptors.tests.routes.BaseRouteTest
-import org.apache.commons.lang.StringEscapeUtils
-import com.flipkart.connekt.commons.utils.StringUtils._
 
 class SubscriptionsRouteTest() extends BaseRouteTest {
 
@@ -29,12 +28,7 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
        |        "method" : "POST",
        |        "url" : "http://requestb.in/wis41kwi"
        |    },
-       |	"eventFilter": "testEventFilter",
-       |  "eventTransformer":
-       |    {
-       |        "header" : "testHeader",
-       |        "payload" : "testPayload"
-       |    },
+       |	"stencilId": "testEventFilter",
        |	"shutdownThreshold" : "4"
        |}
       """.stripMargin
@@ -50,12 +44,7 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
        |        "method" : "POST",
        |        "url" : "http://requestb.in/wis41kwi"
        |    },
-       |	"eventFilter": "testEventFilter",
-       |  "eventTransformer":
-       |    {
-       |        "header" : "testHeader",
-       |        "payload" : "testPayload"
-       |    },
+       |	"stencilId": "testEventFilter",
        |	"shutdownThreshold" : "4"
        |}
       """.stripMargin
@@ -71,12 +60,7 @@ class SubscriptionsRouteTest() extends BaseRouteTest {
        |        "method" : "PUT",
        |        "url" : "http://requestb.in/wis41kwi"
        |    },
-       |	"eventFilter": "updatedEventFilter",
-       |  "eventTransformer":
-       |    {
-       |        "header" : "updatedHeader",
-       |        "payload" : "updatedPayload"
-       |    },
+       |	"stencilId": "updatedEventFilter",
        |	"shutdownThreshold" : "6"
        |}
       """.stripMargin
