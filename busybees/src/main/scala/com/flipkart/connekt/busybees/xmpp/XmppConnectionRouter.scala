@@ -12,22 +12,27 @@
  */
 package com.flipkart.connekt.busybees.xmpp
 
-import akka.actor.{ActorRef, Terminated, Props, Actor}
+import akka.actor._
 import akka.routing.{ActorRefRoutee, Router, RoundRobinRoutingLogic}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, XmppRequestAvailable, FreeConnectionAvailable}
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, XmppRequestAvailable, FreeConnectionAvailable, Shutdown, StartShuttingDown}
 import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
 import com.flipkart.connekt.commons.iomodels.GcmXmppRequest
 import com.flipkart.connekt.commons.services.ConnektConfig
 import scala.collection.mutable
+
 class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
   val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] = collection.mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]()
 
   //TODO will be changed with zookeeper
   val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(3)
   val freeXmppActors = collection.mutable.LinkedHashSet[ActorRef]()
+
+  override def postStop = {
+    ConnektLogger(LogFile.CLIENTS).info("ConnectionRouter:In poststop")
+  }
 
   var router:Router = {
     val routees = Vector.fill(connectionPoolSize) {
@@ -40,8 +45,11 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: Goo
     Router(RoundRobinRoutingLogic(), routees)
   }
 
+  import context._
+
   def receive = {
     case Terminated(a) =>
+      ConnektLogger(LogFile.CLIENTS).trace(s"Worker terminated $a")
       router = router.removeRoutee(a)
       val newRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId))
       context watch newRoutee
@@ -74,5 +82,20 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: Goo
           router.routees.foreach(r => r.send(XmppRequestAvailable, self))
       }
       ConnektLogger(LogFile.CLIENTS).trace(s"xmppRequest:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+
+    case Shutdown =>
+      ConnektLogger(LogFile.CLIENTS).info(s"Shutdown received size ${requests.size} and free worker size ${freeXmppActors.size}")
+      router.routees.foreach(r => r.send(Shutdown, self))
+      become(shuttingDown)
+  }
+
+  def shuttingDown:Actor.Receive = {
+    case Terminated(a) =>
+      ConnektLogger(LogFile.CLIENTS).info(s"ShuttingDown:Worker terminated $a")
+      router = router.removeRoutee(a)
+      if ( router.routees.size == 0 ) {
+        ConnektLogger(LogFile.CLIENTS).info("ShuttingDown:All Worker terminated")
+        context stop self
+      }
   }
 }

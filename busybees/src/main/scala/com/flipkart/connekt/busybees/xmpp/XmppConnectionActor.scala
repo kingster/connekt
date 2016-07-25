@@ -30,10 +30,11 @@ import org.jivesoftware.smack.filter.StanzaFilter
 import org.jivesoftware.smack.packet.Stanza
 import org.jivesoftware.smack.provider.{ProviderManager, ExtensionElementProvider}
 import org.jivesoftware.smack.roster.Roster
-import org.jivesoftware.smack.ConnectionConfiguration
+import org.jivesoftware.smack.{XMPPConnection, ConnectionConfiguration}
 import org.jivesoftware.smack.tcp.{XMPPTCPConnectionConfiguration, XMPPTCPConnection}
 import org.xmlpull.v1.XmlPullParser
 import com.flipkart.connekt.commons.utils.StringUtils._
+import collection.JavaConverters._
 
 import scala.util.{Failure, Success}
 
@@ -61,6 +62,16 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
   val pendingAckCount = new AtomicInteger(0)
   var connection: XMPPTCPConnection = null
 
+  override def postStop = {
+    ConnektLogger(LogFile.CLIENTS).info("ConnectionActor:In poststop")
+    if ( connection!= null && connection.isConnected) {
+      connection.disconnect
+      connection.instantShutdown
+    }
+    archivedConnections.foreach(conn => {conn.disconnect; conn.instantShutdown})
+    messageDataCache.asMap().asScala.foreach(entry => ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor:PostStop:Never received GCM acknowledgement for tracker id ${entry._1}"))
+  }
+
   import context._
   //message processing in the beginning
   def receive:Actor.Receive = {
@@ -70,6 +81,10 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
       createConnection()
       become(free)
       self ! xmppRequest
+
+    case Shutdown =>
+      become(shuttingDown)
+      self ! StartShuttingDown
 
     case other:Any =>
       ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $other in init state s")
@@ -103,6 +118,13 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
 
     case ackExpired:XmppAckExpired =>
       prcoessAckExpired(parent, ackExpired)
+
+    case Shutdown =>
+      become(shuttingDown)
+      self ! StartShuttingDown
+
+    case other:Any =>
+      ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $other in free state s")
   }
 
   //message processing when pendingack has reached max
@@ -129,6 +151,60 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
 
     case ackExpired:XmppAckExpired =>
       prcoessAckExpired(parent, ackExpired)
+
+    case Shutdown =>
+      become(shuttingDown)
+      self ! StartShuttingDown
+
+    case other:Any =>
+      ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $other in busy state s")
+  }
+
+  def shuttingDown:Actor.Receive = {
+    case StartShuttingDown =>
+      ConnektLogger(LogFile.CLIENTS).info("XmppConnectionActor:Preparing to shut down")
+      shutdownIfPossible()
+
+    case ack:XmppAck =>
+      processAck(parent,ack,false)
+      shutdownIfPossible()
+
+    case nack:XmppNack =>
+      processNack(parent,nack,false)
+      shutdownIfPossible()
+
+    case ConnectionDraining =>
+      processConnectionDraining(false)
+      shutdownIfPossible()
+
+    case connClosed:ConnectionClosed =>
+      processConnectionClosed(connClosed)
+      shutdownIfPossible()
+
+    case ackExpired:XmppAckExpired =>
+      prcoessAckExpired(parent, ackExpired, false)
+      shutdownIfPossible()
+
+    case receipt:XmppReceipt =>
+      //don't do anything. When app reestablishes connection, GCM will resend
+      ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $receipt in busy shutting s")
+      shutdownIfPossible()
+
+    case upstreamMsg:XmppUpstreamData =>
+      //don't do anything. When app reestablishes connection, GCM will resend
+      ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $upstreamMsg in shutting state s")
+      shutdownIfPossible()
+
+    case other:Any =>
+      ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $other in shutting down states")
+      shutdownIfPossible()
+  }
+
+  private def shutdownIfPossible(): Unit = {
+    if ( pendingAckCount.get() == 0 ) {
+      ConnektLogger(LogFile.CLIENTS).info("XmppConnectionActor:There is no pending ACK, shutting down")
+      context stop self
+    }
   }
 
   private def createConnection(): Unit = {
@@ -197,42 +273,42 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     }
   }
 
-  private def processAck(parent:ActorRef, ack:XmppAck) = {
+  private def processAck(parent:ActorRef, ack:XmppAck, continue:Boolean = true) = {
     val (xmppRequestTracker,sentTime) = messageDataCache.getIfPresent(ack.messageId)
     if ( xmppRequestTracker != null ) {
       messageDataCache.invalidate(ack.messageId)
       pendingAckCount.decrementAndGet()
-      dispatcher.ackRecvdCallback.invoke((Success(ack), xmppRequestTracker))
+      dispatcher.enqueueDownstream((Success(ack), xmppRequestTracker))
       registry.timer(getMetricName(appId)).update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
 
-      if ( pendingAckCount.get() < maxPendingAckCount ) {
+      if ( pendingAckCount.get() < maxPendingAckCount && continue) {
         become(free)
         parent ! FreeConnectionAvailable
       }
     }
   }
 
-  private def processNack(parent:ActorRef, ack:XmppNack) = {
+  private def processNack(parent:ActorRef, ack:XmppNack, continue:Boolean = true) = {
     val (xmppRequestTracker,sentTime) = messageDataCache.getIfPresent(ack.messageId)
     if ( xmppRequestTracker != null ) {
       messageDataCache.invalidate(ack.messageId)
       pendingAckCount.decrementAndGet()
-      dispatcher.ackRecvdCallback.invoke(Failure(new XmppNackException(ack)) -> xmppRequestTracker)
+      dispatcher.enqueueDownstream(Failure(new XmppNackException(ack)) -> xmppRequestTracker)
       registry.timer(getMetricName(appId)).update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
 
-      if ( pendingAckCount.get() < maxPendingAckCount ) {
+      if ( pendingAckCount.get() < maxPendingAckCount && continue ) {
         become(free)
         parent ! FreeConnectionAvailable
       }
     }
   }
 
-  private def prcoessAckExpired(parent:ActorRef, ackExpired:XmppAckExpired) = {
+  private def prcoessAckExpired(parent:ActorRef, ackExpired:XmppAckExpired, continue:Boolean = true) = {
     if ( ackExpired.tracker != null ) {
       pendingAckCount.decrementAndGet()
-      dispatcher.ackRecvdCallback.invoke((Failure(new XmppNeverAckException("Ack never received. Cache timed out")), ackExpired.tracker))
+      dispatcher.enqueueDownstream((Failure(new XmppNeverAckException("Ack never received. Cache timed out")), ackExpired.tracker))
 
-      if ( pendingAckCount.get() < maxPendingAckCount ) {
+      if ( pendingAckCount.get() < maxPendingAckCount && continue ) {
         become(free)
         parent ! FreeConnectionAvailable
       }
@@ -252,10 +328,11 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     sendUpstreamAck(upstreamMsg.from, upstreamMsg.messageId)
   }
 
-  private def processConnectionDraining() = {
+  private def processConnectionDraining(continue:Boolean = true) = {
     ConnektLogger(LogFile.CLIENTS).error("Received ConnectionDraining!!:", appId)
     XmppConnectionHelper.archivedConnections.add(connection)
-    createConnection()
+    if ( continue )
+      createConnection()
   }
 
   private def processConnectionClosed(connClosed:ConnectionClosed) = {

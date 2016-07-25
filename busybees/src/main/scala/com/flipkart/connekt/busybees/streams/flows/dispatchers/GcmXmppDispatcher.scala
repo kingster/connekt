@@ -23,6 +23,8 @@ import akka.stream._
 import akka.stream.stage._
 import com.flipkart.connekt.commons.services.ConnektConfig
 import scala.util.{Success, Try}
+import scala.collection.JavaConverters._
+
 
 class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[FanOutShape2[(GcmXmppRequest,GCMRequestTracker), (Try[XmppDownstreamResponse], GCMRequestTracker), XmppUpstreamResponse]] {
 
@@ -36,17 +38,27 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
   //to ask for more from inq
   var getMoreCallback: AsyncCallback[String] = null
 
-  //to push downstream
-  var ackRecvdCallback: AsyncCallback[(Try[XmppDownstreamResponse], GCMRequestTracker)] = null
 
   //to push upstream data
   var upStreamRecvdCallback: AsyncCallback[(ActorRef,XmppUpstreamResponse)] = null
 
   var retryCallback: AsyncCallback[(GcmXmppRequest,GCMRequestTracker)] = null
 
-  val xmppState = new XmppGatewayCache(this)
+  private val xmppState = new XmppGatewayCache(this)
+
+  //to push downstream
+  private var ackRecvdCallback: AsyncCallback[(Try[XmppDownstreamResponse], GCMRequestTracker)] = null
+
+  def enqueueDownstream(downstreamResponse: (Try[XmppDownstreamResponse], GCMRequestTracker)) = {
+    xmppState.enqueueDownstream(downstreamResponse)
+    ackRecvdCallback.invoke(downstreamResponse)
+  }
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
+
+    override def postStop(): Unit = {
+      ConnektLogger(LogFile.CLIENTS).trace("XmppDispatcher:in posstop")
+    }
 
     override def preStart(): Unit = {
       getMoreCallback = getAsyncCallback[String] {
@@ -68,9 +80,9 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
 
       ackRecvdCallback = getAsyncCallback[(Try[XmppDownstreamResponse], GCMRequestTracker)] {
         downstreamResponse => {
-          xmppState.enqueueDownstream(downstreamResponse)
-          if ( isAvailable(outDownstream))
-            push(outDownstream, xmppState.dequeueDownstream)
+          val element = xmppState.dequeueDownstream
+          if ( isAvailable(outDownstream) && element != null)
+            push(outDownstream, element)
         }
       }
 
@@ -104,15 +116,26 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
       override def onUpstreamFinish(): Unit = {
         //TODO NEED ALERT HERE
         //("INPUT STREAM IS CLOSED")
+        ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:upstream finished:shutting down")
+        xmppState.prepareShutdown
+
+        ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:upstream finished:downstreamcount:" + xmppState.responsesDownStream.size())
+        emitMultiple[(Try[XmppDownstreamResponse], GCMRequestTracker)](outDownstream, xmppState.responsesDownStream.iterator.asScala, () => {
+          ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:emitted all:" + xmppState.responsesDownStream.size())
+        })
+
+        xmppState.reset
+        completeStage()
+        ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:shutdown complete")
       }
     }
     setHandler(in, inhandler)
 
     val downstreamOutHandler = new OutHandler {
       override def onPull(): Unit = {
-        if ( xmppState.responsesDownStream.nonEmpty )
-          push(outDownstream, xmppState.responsesDownStream.dequeue())
-
+        if ( !xmppState.responsesDownStream.isEmpty ) {
+          push(outDownstream, xmppState.dequeueDownstream)
+        }
         if ( xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 && !hasBeenPulled(in))
           pull(in)
       }

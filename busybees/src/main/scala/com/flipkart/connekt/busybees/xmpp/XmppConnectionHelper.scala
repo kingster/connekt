@@ -26,6 +26,8 @@ private object XmppConnectionHelper {
   case object ConnectionDraining
   case object FreeConnectionAvailable
   case object ConnectionBusy
+  case object Shutdown
+  case object StartShuttingDown
   case object XmppRequestAvailable
   case class ConnectionClosed(connection: XMPPTCPConnection)
   case class XmppAckExpired(tracker: GCMRequestTracker)
@@ -33,7 +35,7 @@ private object XmppConnectionHelper {
   val GCM_NAMESPACE:String = "google:mobile:data"
   val GCM_ELEMENT_NAME:String = "gcm"
 
-  val archivedConnections: java.util.Set[XMPPConnection] = new java.util.HashSet[XMPPConnection]()
+  val archivedConnections = new scala.collection.mutable.HashSet[XMPPTCPConnection]()
 
   lazy val xmppHost: String = ConnektConfig.get("fcm.ccs.fcmServer").getOrElse("fcm-xmpp.googleapis.com")
   lazy val xmppPort: Int = ConnektConfig.get("fcm.ccs.fcmPort").getOrElse("5235").toInt

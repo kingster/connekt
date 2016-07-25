@@ -12,6 +12,7 @@
  */
 package com.flipkart.connekt.busybees.xmpp
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{ActorSystem, Props, ActorRef}
@@ -23,6 +24,7 @@ import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
 
 import scala.collection.mutable
+import scala.concurrent.{Await, Future}
 import scala.util.Try
 
 /**
@@ -37,7 +39,7 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
   val xmppRequestRouters:mutable.Map[String, ActorRef] = mutable.Map[String, ActorRef]()
   val requestBuffer:collection.mutable.Map[String,mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]] = collection.mutable.Map()
   val connectionFreeCount:collection.mutable.Map[String,AtomicInteger] = collection.mutable.Map()
-  val responsesDownStream:mutable.Queue[(Try[XmppDownstreamResponse], GCMRequestTracker)] = collection.mutable.Queue[(Try[XmppDownstreamResponse], GCMRequestTracker)]()
+  val responsesDownStream:ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)] = new ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)]()
   val responsesUpStream:mutable.Queue[(ActorRef,XmppUpstreamResponse)] = collection.mutable.Queue[(ActorRef,XmppUpstreamResponse)]()
 
   private def initBuffer(appId:String, credential:GoogleCredential) = {
@@ -79,11 +81,11 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
   }
 
   def enqueueDownstream(downstreamResponse:(Try[XmppDownstreamResponse], GCMRequestTracker)) = {
-    responsesDownStream.enqueue(downstreamResponse)
+    responsesDownStream.add(downstreamResponse)
   }
 
   def dequeueDownstream:(Try[XmppDownstreamResponse], GCMRequestTracker) = {
-    responsesDownStream.dequeue()
+    responsesDownStream.poll()
   }
 
   def enqueueUpstream(upstreamResponse:(ActorRef,XmppUpstreamResponse)) = {
@@ -92,5 +94,35 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
 
   def dequeueUpstream:(ActorRef,XmppUpstreamResponse) = {
     responsesUpStream.dequeue()
+  }
+
+  import akka.pattern.gracefulStop
+  import scala.concurrent.duration._
+
+  def prepareShutdown = {
+    implicit val ec = actorSystem.dispatcher
+    try {
+      val futures: mutable.Map[String, Future[Boolean]] = xmppRequestRouters.map {
+        case (appId, xmppRouter) =>
+          appId -> gracefulStop(xmppRouter, 10 second, com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.Shutdown)
+      }
+      Await.result(Future.sequence(futures.values), 15 second)
+    } catch {
+      case e:Throwable =>
+        ConnektLogger(LogFile.CLIENTS).error("Timeout for gracefully shutting down xmpp actors. Forcing")
+        xmppRequestRouters.foreach {
+          case (appId, xmppRouter) =>
+            actorSystem stop xmppRouter
+        }
+    }
+  }
+
+  def reset:Unit = {
+    connectionAvailable = 0
+    xmppRequestRouters.clear
+    requestBuffer.clear
+    connectionFreeCount.clear
+    responsesDownStream.clear
+    responsesUpStream.clear
   }
 }
