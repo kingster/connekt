@@ -605,7 +605,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /stencil/bucket/{bucketName}:
+  /stencils/bucket/{bucketName}:
     post:
       summary: creating bucket
       description: |
@@ -644,7 +644,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /stencil/components/registry:
+  /stencils/components/registry:
     post:
       summary: creating stencil ENSEMBLE
       description: |
@@ -666,8 +666,24 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+    get:
+      summary: get all stencil ENSEMBLE
+      description: |
+        get all stencil ENSEMBLE
+      parameters:
+        - $ref: '#/parameters/api-key'
+      tags:
+        - "Stencil"
+      responses:
+        '200':
+          description:  Original Request
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
-  /stencil/components/registry/{StencilsEnsembleId}:
+
+  /stencils/components/registry/{StencilsEnsembleId}:
     put:
       summary: update stencil ENSEMBLE
       description: |
@@ -729,7 +745,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /stencil/{stencilName}:
+  /stencils/{stencilName}:
     get:
       summary: get stencil data
       description: |
@@ -768,7 +784,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /stencil/{stencilName}/preview:
+  /stencils/{stencilName}/preview:
     post:
       summary: previewing stencil
       description: |
@@ -791,7 +807,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /stencil/{stencilName}/{stencilVersion}/preview:
+  /stencils/{stencilName}/{stencilVersion}/preview:
     post:
       summary: previewing stencil
       description: |
