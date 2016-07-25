@@ -27,8 +27,7 @@ class SubscriptionDaoTest extends CommonsBaseTest {
   subscription.shutdownThreshold = 4
   subscription.createdBy = "connekt-insomnia"
   subscription.sink = new HTTPEventSink("POST","http://requestb.in/wis41kwi")
-  subscription.eventFilter = "testEventFilter"
-  subscription.eventTransformer = new Transformers("testHeader","testPayload")
+  subscription.stencilId = "testEventFilter"
 
   "add test" should "not throw exception" in {
     noException should be thrownBy DaoFactory.getSubscriptionDao.add(subscription)
@@ -37,8 +36,7 @@ class SubscriptionDaoTest extends CommonsBaseTest {
   "update test" should "not throw exception" in {
     subscription.name = "UpdatedSubscriptionName"
     subscription.shutdownThreshold = 2
-    subscription.eventFilter = "updatedEventFilter"
-    subscription.eventTransformer = new Transformers("updatedTestHeader", "updatedTestPayload")
+    subscription.stencilId = "updatedEventFilter"
     noException should be thrownBy DaoFactory.getSubscriptionDao.update(subscription)
   }
 

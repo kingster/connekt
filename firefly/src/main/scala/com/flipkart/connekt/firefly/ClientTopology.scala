@@ -18,24 +18,29 @@ import akka.stream.scaladsl.Source
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.entities._
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger, ServiceFactory}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.firefly.sinks.http.HttpSink
 import com.flipkart.connekt.firefly.sinks.kafka.KafkaSink
+import com.flipkart.connekt.firefly.sinks.specter.SpecterSink
+import com.roundeights.hasher.Implicits._
 import com.typesafe.config.Config
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
-import com.roundeights.hasher.Implicits._
 
 class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Config, subscription: Subscription)(implicit am: ActorMaterializer, sys: ActorSystem) {
 
   implicit val ec = am.executionContext
 
-  lazy val eventFilterStencil = Option(subscription.eventFilter).flatMap(stencilId => ServiceFactory.getStencilService.get(stencilId).find(_.component == "eventFilter"))
-  lazy val eventHeaderTransformer = Option(subscription.eventTransformer.header).flatMap(stencilId => ServiceFactory.getStencilService.get(stencilId).find(_.component == "header"))
-  lazy val eventPayloadTransformer = Option(subscription.eventTransformer.payload).flatMap(stencilId => ServiceFactory.getStencilService.get(stencilId).find(_.component == "payload"))
+  val stencilService = ServiceFactory.getStencilService
+
+  lazy val stencil = Option(subscription.stencilId).map(stencilService.get(_)).getOrElse(List.empty)
+
+  lazy val eventFilterStencil = stencil.find(_.component == "eventFilter")
+  lazy val eventHeaderTransformer = stencil.find(_.component == "header")
+  lazy val eventPayloadTransformer = stencil.find(_.component == "payload")
 
   def start(): Promise[String] = {
 
@@ -46,6 +51,8 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
     subscription.sink match {
       case http: HTTPEventSink => source.runWith(new HttpSink(subscription, retryLimit, topologyShutdownTrigger).getHttpSink)
       case kafka: KafkaEventSink => source.runWith(new KafkaSink(kafka.topic, kafka.broker).getKafkaSink)
+      case specter: SpecterEventSink =>
+        source.runWith(new SpecterSink().sink)
     }
 
     ConnektLogger(LogFile.SERVICE).info(s"Started client topology ${subscription.name}, id: ${subscription.id}")
@@ -56,13 +63,11 @@ class ClientTopology(topic: String, retryLimit: Int, kafkaConsumerConnConf: Conf
 
     eventFilterStencil match {
       case None => true
-      case Some(stencil) => ServiceFactory.getStencilService.materialize(stencil, data.getJson.getObj[ObjectNode]).asInstanceOf[Boolean]
+      case Some(stencil) => stencilService.materialize(stencil, data.getJson.getObj[ObjectNode]).asInstanceOf[Boolean]
     }
   }
 
   def transform(event: CallbackEvent): SubscriptionEvent = {
-
-    val stencilService = ServiceFactory.getStencilService
 
     SubscriptionEvent(header = eventHeaderTransformer match {
       case None => null

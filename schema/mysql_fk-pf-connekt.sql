@@ -45,9 +45,8 @@ CREATE TABLE `SUBSCRIPTIONS` (
   `createdBy` varchar(100) NOT NULL,
   `createdTS` date DEFAULT NULL,
   `lastUpdatedTS` date DEFAULT NULL,
-  `eventFilter` varchar(100) DEFAULT NULL,
+  `stencilId` varchar(100) DEFAULT NULL,
   `shutdownThreshold` int(11) NOT NULL,
-  `eventTransformer` varchar(60000) DEFAULT NULL,
   `active` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

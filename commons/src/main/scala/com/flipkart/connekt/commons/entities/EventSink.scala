@@ -23,8 +23,10 @@ import com.flipkart.connekt.commons.dao.JSONField
 )
 @JsonSubTypes(Array(
   new Type(value = classOf[HTTPEventSink], name = "HTTP"),
-  new Type(value = classOf[KafkaEventSink], name = "KAFKA")
+  new Type(value = classOf[KafkaEventSink], name = "KAFKA"),
+  new Type(value = classOf[SpecterEventSink], name = "SPECTER")
 ))
 abstract class EventSink extends JSONField
 case class HTTPEventSink(method:String, url: String) extends EventSink
 case class KafkaEventSink(topic: String, broker: String) extends EventSink
+case class SpecterEventSink() extends EventSink

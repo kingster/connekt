@@ -13,7 +13,7 @@
 package com.flipkart.connekt.callback.topologies
 
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
-import com.flipkart.connekt.commons.entities.{DeviceDetails, HTTPEventSink, Subscription, Transformers}
+import com.flipkart.connekt.commons.entities.{DeviceDetails, HTTPEventSink, Subscription}
 import com.flipkart.connekt.commons.helpers.KafkaProducerHelper
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.ConnektConfig
@@ -35,8 +35,7 @@ class HttpTopologyTest extends TopologyUTSpec with Instrumented {
     subscription.shutdownThreshold = 3
     subscription.createdBy = "connekt-genesis"
     subscription.sink = new HTTPEventSink("POST", "http://requestb.in/1i0oin41")
-    subscription.eventFilter = "testEventFilter"
-    subscription.eventTransformer = new Transformers("testHeader", "testPayload")
+    subscription.stencilId = "testEventFilter"
 
     SyncManager.get().publish(SyncMessage(topic = SyncType.SUBSCRIPTION, List("start", subscription.getJson)))
 
