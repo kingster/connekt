@@ -215,4 +215,12 @@ class StencilsRouteTest extends BaseRouteTest {
       }
   }
 
+  "Stencil test" should "return all ensemble" in {
+    Get("/v1/stencils/components/registry").addHeader(header) ~>
+      stencilRoute ~>
+      check {
+        val responseString = Await.result(response.entity.toStrict(10.seconds).map(_.data.decodeString("UTF-8")), 10.seconds)
+        status shouldEqual StatusCodes.OK
+      }
+  }
 }

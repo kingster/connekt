@@ -100,6 +100,12 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       }
                     }
                   }
+                } ~ get {
+                  meteredResource("getAllStencilComponents") {
+                    authorize(user, "ADMIN_BUCKET") {
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"All Ensembles fetched", stencilService.getAllEnsemble().map(ensemble => ensemble.name -> ensemble.components.split(",")).toMap)))
+                    }
+                  }
                 }
               } ~ path(Segment) {
                 (id: String) =>

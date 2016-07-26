@@ -13,7 +13,7 @@
 package com.flipkart.connekt.commons.tests.dao
 
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine}
+import com.flipkart.connekt.commons.entities.{Bucket, StencilEngine, Stencil}
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 import com.flipkart.connekt.commons.utils.StringUtils
 
@@ -61,5 +61,10 @@ class StencilDaoTest extends CommonsBaseTest {
   "Fetch bucket" should "return bucket " in {
     val buc = DaoFactory.getStencilDao.getBucket(bucket.name)
     assert(buc.isDefined)
+  }
+
+  "get all ENSEMBLE " should "return all " in {
+    val ensembles = DaoFactory.getStencilDao.getAllEnsemble()
+    ensembles.size should not be 0
   }
 }

@@ -35,5 +35,7 @@ trait TStencilDao extends Dao {
   def getStencilsEnsemble(id: String): Option[StencilsEnsemble]
 
   def writeStencilsEnsemble(stencilComponents: StencilsEnsemble): Unit
+
+  def getAllEnsemble(): List[StencilsEnsemble]
 }
 

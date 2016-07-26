@@ -210,6 +210,15 @@ class StencilDao(tableName: String, historyTableName: String, stencilComponentsT
         throw e
     }
   }
+
+  override def getAllEnsemble(): List[StencilsEnsemble] = {
+    implicit val j = mysqlHelper.getJDBCInterface
+    val q =
+      s"""
+         |SELECT * from STENCILS_ENSEMBLE
+       """.stripMargin
+    queryForList[StencilsEnsemble](q)
+  }
 }
 
 object StencilDao {
