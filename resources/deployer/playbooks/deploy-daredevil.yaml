@@ -1,0 +1,11 @@
+- hosts: daredevil
+  serial: 5
+  gather_facts: no
+  tasks:
+  - name: Set Service
+    set_fact:
+      app: daredevil
+  - include: tasks/update-daredevil-soures.yaml
+  - include: tasks/install-connekt-daredevil.yaml
+
+
