@@ -113,7 +113,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
   override def getTopicNames(channel: Channel, platform: Option[String]): Try[Seq[String]] = Try_ {
     val appUserConfigs = userConfigurationDao.getAllUserConfiguration(channel)
     (platform match {
-      case Some(p) => appUserConfigs.filter(u => u.platforms.contains(p))
+      case Some(p) => appUserConfigs.filter(u => Option(u.platforms).exists(_.contains(p)))
       case None => appUserConfigs
     }).map(_.queueName).intersect(getKafkaTopicNames(channel).get)
   }

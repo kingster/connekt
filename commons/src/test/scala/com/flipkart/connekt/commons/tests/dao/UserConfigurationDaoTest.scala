@@ -21,12 +21,7 @@ import com.flipkart.connekt.commons.tests.CommonsBaseTest
 class UserConfigurationDaoTest extends CommonsBaseTest {
 
   val id = UUID.randomUUID().toString.substring(20)
-  val userConfig = new AppUserConfiguration(
-    id,
-    Channel.PUSH,
-    s"connekt-pn-$id",
-    1000
-  )
+  val userConfig = new AppUserConfiguration(userId = id, channel = Channel.PUSH, queueName = s"connekt-ut-push-$id", platforms = "android,ios,windows,openweb", maxRate = 1000)
 
   lazy val dao = DaoFactory.getUserConfigurationDao
 
