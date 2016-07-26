@@ -29,6 +29,9 @@ class AppUserConfiguration {
   @Column(name = "channel")
   var channel: Channel = _
 
+  @Column(name = "platforms")
+  var platforms: String = _
+
   @Column(name = "queueName")
   var queueName: String = _
 
@@ -44,12 +47,14 @@ class AppUserConfiguration {
   def this(userId: String,
            channel: Channel,
            queueName: String,
+           platforms: String,
            maxRate: Int) {
     this()
     this.userId = userId
     this.channel = channel
     this.queueName = queueName
     this.maxRate = maxRate
+    this.platforms = platforms
   }
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[AppUserConfiguration]
@@ -60,13 +65,14 @@ class AppUserConfiguration {
         userId == that.userId &&
         channel == that.channel &&
         queueName == that.queueName &&
+        platforms == this.platforms &&
         maxRate == that.maxRate &&
         errorThresholdRate == that.errorThresholdRate
     case _ => false
   }
 
   override def hashCode(): Int = {
-    val state = Seq(userId, channel, queueName, maxRate, errorThresholdRate)
+    val state = Seq(userId, channel, platforms, queueName, maxRate, errorThresholdRate)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 

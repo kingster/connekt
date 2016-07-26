@@ -43,8 +43,8 @@ class UserConfigurationDao(table: String, mysqlFactory: TMySQLFactory) extends T
     implicit val j = mysqlHelper.getJDBCInterface
     val q =
       s"""
-         |INSERT INTO $table(userId, channel, queueName, maxRate, errorThresholdRate) VALUES(?, ?, ?, ? , ?)
-         |ON DUPLICATE KEY UPDATE  maxRate = ?, errorThresholdRate = ?
+         |INSERT INTO $table(userId, channel, platforms, queueName, maxRate, errorThresholdRate) VALUES(?, ?, ?, ?, ? , ?)
+         |ON DUPLICATE KEY UPDATE  maxRate = ?, errorThresholdRate = ?, platforms = ?
       """.stripMargin
 
     try {

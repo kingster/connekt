@@ -16,7 +16,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.UserType.UserType
 import com.flipkart.connekt.commons.entities.{AppUser, AppUserConfiguration, Channel, UserType, _}
-import com.flipkart.connekt.commons.factories.ServiceFactory
+import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.commons.services.UserConfigurationService
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncMessage, SyncType}
@@ -60,7 +60,7 @@ class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   }
                 } ~ path(Segment / "configuration") {
                   (clientName: String) =>
-                    post {
+                    put {
                       entity(as[AppUserConfiguration]) { userConfig =>
                         userConfig.userId = clientName
                         userConfig.validate()
@@ -70,13 +70,24 @@ class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                             complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"User $clientName: does not exist.", null)))
                           case Some(userInfo) =>
                             val mSvc = ServiceFactory.getPNMessageService
-                            val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, userConfig.userId)
-                            userConfig.queueName = clientTopic
-                            UserConfigurationService.add(userConfig).get
-                            mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
-                            SyncManager.get().publish(SyncMessage(topic = SyncType.CLIENT_QUEUE_CREATE, List(clientName,clientTopic)))
 
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added.", userConfig)))
+                            UserConfigurationService.get(userConfig.userId, userConfig.channel).get match {
+                              case Some(uConfig) =>
+                                uConfig.platforms = userConfig.platforms
+                                uConfig.maxRate = userConfig.maxRate
+                                UserConfigurationService.add(uConfig).get
+                                ConnektLogger(LogFile.SERVICE).info(s"AppUserConfig updated for user ${userConfig.userId}")
+
+                              case None =>
+                                val clientTopic = mSvc.assignClientChannelTopic(userConfig.channel, userConfig.userId)
+                                userConfig.queueName = clientTopic
+                                UserConfigurationService.add(userConfig).get
+                                mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
+                                SyncManager.get().publish(SyncMessage(topic = SyncType.CLIENT_QUEUE_CREATE, List(clientName,clientTopic)))
+                                ConnektLogger(LogFile.SERVICE).info(s"AppUserConfig added for user ${userConfig.userId}")
+                            }
+
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added/updated.", userConfig)))
                         }
                       }
                     }

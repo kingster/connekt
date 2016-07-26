@@ -44,5 +44,5 @@ trait TMessageService extends TService {
 
   def getKafkaTopicNames(channel: Channel): Try[Seq[String]]
 
-  def getTopicNames(channel: Channel): Try[Seq[String]]
+  def getTopicNames(channel: Channel, platform: Option[String]): Try[Seq[String]]
 }
