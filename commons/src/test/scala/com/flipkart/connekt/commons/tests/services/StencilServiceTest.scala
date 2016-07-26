@@ -81,4 +81,8 @@ class StencilServiceTest extends CommonsBaseTest {
   "Stencil Service" should "get bucket" in {
     stencilService.getBucket(bucket.name).get.toString shouldEqual bucket.toString
   }
+
+  "Stencil Service" should "get all ensemble" in {
+    stencilService.getAllEnsemble().size should not be 0
+  }
 }

@@ -155,6 +155,12 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
     Success(Unit)
   }
 
+  @Timed("getAllEnsemble")
+  override def getAllEnsemble(): List[StencilsEnsemble] = {
+    stencilDao.getAllEnsemble()
+  }
+
+
   override def onUpdate(syncType: SyncType, args: List[AnyRef]): Unit = {
     syncType match {
       case SyncType.STENCIL_CHANGE => Try_ {
@@ -173,4 +179,5 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
       case _ =>
     }
   }
+
 }
