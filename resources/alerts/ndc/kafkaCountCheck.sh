@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 msgCountWindows=`curl http://10.32.221.147:9000/clusters/ConnektNDCProd/consumers/ckt_windows/topic/push_9cd14ba3079c6ca91ed3d789125777c2 2>&1| awk  '/Total Lag/{getline; print}'| tr -d '  </>' | sed -e 's/td//g'`
 msgCountAndroid=`curl http://10.32.221.147:9000/clusters/ConnektNDCProd/consumers/ckt_android/topic/push_9cd14ba3079c6ca91ed3d789125777c2 2>&1| awk  '/Total Lag/{getline; print}'| tr -d '  </>' | sed -e 's/td//g'`
 msgCountIos=`curl http://10.32.221.147:9000/clusters/ConnektNDCProd/consumers/ckt_ios/topic/push_9cd14ba3079c6ca91ed3d789125777c2 2>&1| awk  '/Total Lag/{getline; print}'| tr -d '  </>' | sed -e 's/td//g'`
