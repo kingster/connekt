@@ -22,15 +22,16 @@ trait ConnektTopology[E <: CallbackEvent] {
 
   type CheckPointGroup = String
 
-  def source(group: CheckPointGroup): Source[ConnektRequest, NotUsed]
+  def sources: Map[CheckPointGroup, Source[ConnektRequest, NotUsed]]
 
   def transformers: Map[CheckPointGroup, Flow[ConnektRequest, E, NotUsed]]
 
   def sink: Sink[E, NotUsed]
 
   def graphs(): List[RunnableGraph[NotUsed]] = {
+    val sourcesMap = sources
     transformers.map { case (group, flow) =>
-      source(group).withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(flow).to(sink)
+      sourcesMap(group).withAttributes(ActorAttributes.dispatcher("akka.actor.default-pinned-dispatcher")).via(flow).to(sink)
         .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.InfoLevel, onFailure = Logging.ErrorLevel))
     }.toList
   }

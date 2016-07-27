@@ -53,10 +53,9 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
 
   val sourceSwitches: scala.collection.mutable.ListBuffer[Promise[String]] = ListBuffer()
 
-  override def source(checkpointGroup: CheckPointGroup): Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
-    val topics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get
-    val groupId = kafkaConsumerConfig.getString("group.id")
+  private def createMergedSource(checkpointGroup: CheckPointGroup, topics: Seq[String]): Source[ConnektRequest, NotUsed] = Source.fromGraph(GraphDSL.create() { implicit b =>
 
+    val groupId = kafkaConsumerConfig.getString("group.id")
     ConnektLogger(LogFile.PROCESSORS).info(s"Creating composite source for topics: ${topics.toString()}")
 
     val merge = b.add(Merge[ConnektRequest](topics.size))
@@ -70,6 +69,13 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
 
     SourceShape(merge.out)
   })
+
+  override def sources: Map[CheckPointGroup, Source[ConnektRequest, NotUsed]] = {
+    List(MobilePlatform.ANDROID, MobilePlatform.IOS, MobilePlatform.WINDOWS, MobilePlatform.OPENWEB).map {platform =>
+      val platformTopics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH, Option(platform)).get
+      platform.toString -> createMergedSource(platform, platformTopics)
+    }.toMap
+  }
 
   def androidTransformFlow = Flow.fromGraph(GraphDSL.create() { implicit b =>
 

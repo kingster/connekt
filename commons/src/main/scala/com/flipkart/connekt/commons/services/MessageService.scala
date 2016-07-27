@@ -27,8 +27,9 @@ import com.roundeights.hasher.Implicits._
 import com.typesafe.config.Config
 import kafka.utils.{ZKStringSerializer, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
-import scala.util.{Failure, Success, Try}
+
 import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, kafkaConsumerConf: Config, schedulerService: SchedulerService) extends TMessageService with KafkaConnectionHelper {
 
@@ -102,14 +103,18 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
     ConnektConfig.getInt("admin.partitionsPer5k").getOrElse(1) * Math.max(qpsBound / 5000, 1)
   }
 
-  override def getTopicNames(channel: Channel): Try[Seq[String]] = Try_ {
-    userConfigurationDao.getAllUserConfiguration(channel).map(_.queueName).intersect(getKafkaTopicNames(channel).get)
-  }
-
   override def assignClientChannelTopic(channel: Channel, clientUserId: String): String = s"${channel}_${clientUserId.md5.hash.hex}"
 
   override def getKafkaTopicNames(channel: Channel): Try[Seq[String]] = Try_ {
     val allTopics = ZkUtils.getAllTopics(new ZkClient(zkPath(kafkaConsumerConf), 5000, 5000, ZKStringSerializer))
     allTopics.filter(_.startsWith(channel.toString))
+  }
+
+  override def getTopicNames(channel: Channel, platform: Option[String]): Try[Seq[String]] = Try_ {
+    val appUserConfigs = userConfigurationDao.getAllUserConfiguration(channel)
+    (platform match {
+      case Some(p) => appUserConfigs.filter(u => Option(u.platforms).exists(_.contains(p)))
+      case None => appUserConfigs
+    }).map(_.queueName).intersect(getKafkaTopicNames(channel).get)
   }
 }
