@@ -10,33 +10,30 @@ echo "Count: $msgCount"
 if [ $msgCountWindows -gt 100000 ]
   then
      echo "CRITICAL: QueueSize: $msgCountWindows for windows"
-     echo "Job execution failed"
      failure=1
 fi
 
 if [ $msgCountAndroid -gt 100000 ]
   then
      echo "CRITICAL: QueueSize: $msgCountAndroid for android"
-     echo "Job execution failed"
      failure=1
 fi
 
 if [ $msgCountIos -gt 100000 ]
   then
      echo "CRITICAL: QueueSize: $msgCountIos for ios"
-     echo "Job execution failed"
      failure=1
 fi
 
 if [ $msgCountOpenWeb -gt 100000 ]
   then
      echo "CRITICAL: QueueSize: $msgCountOpenWeb for openweb"
-     echo "Job execution failed"
      failure=1
 fi
 
 if [ $failure -eq 1 ]
   then
+    echo "Job execution failed"
     exit 1
   else
     echo "Job executed successfully"
