@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 CMD="$1"
 
 echo "POST RM - $CMD";
