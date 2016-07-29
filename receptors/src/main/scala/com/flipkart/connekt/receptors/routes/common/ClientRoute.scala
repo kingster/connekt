@@ -76,6 +76,7 @@ class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 uConfig.platforms = userConfig.platforms
                                 uConfig.maxRate = userConfig.maxRate
                                 UserConfigurationService.add(uConfig).get
+                                userConfig.queueName = uConfig.queueName
                                 ConnektLogger(LogFile.SERVICE).info(s"AppUserConfig updated for user ${userConfig.userId}")
 
                               case None =>
