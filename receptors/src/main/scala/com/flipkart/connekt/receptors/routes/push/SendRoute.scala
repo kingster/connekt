@@ -90,8 +90,10 @@ class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                     ServiceFactory.getReportingService.recordPushStatsDelta(user.userId, request.contextId, request.stencilId, Option(p.platform), appName, InternalStatus.Rejected, deviceIds.size)
                                 }
                               }
+                              complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN Send Request Received", success.toMap, failure.toList)))
+                            } else {
+                              complete(GenericResponse(StatusCodes.BadRequest.intValue, null, SendResponse("No valid devices found",  success.toMap, failure.toList)))
                             }
-                            complete(GenericResponse(StatusCodes.Created.intValue, null, SendResponse("PN Send Request Received", success.toMap, failure.toList)))
                           } else {
                             ConnektLogger(LogFile.SERVICE).error(s"Request Validation Failed, $request ")
                             complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Request Validation Failed, Please ensure mandatory field values.", null)))
