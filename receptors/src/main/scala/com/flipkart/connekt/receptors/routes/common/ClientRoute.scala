@@ -84,9 +84,10 @@ class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 userConfig.queueName = clientTopic
                                 UserConfigurationService.add(userConfig).get
                                 mSvc.addClientTopic(clientTopic, mSvc.partitionEstimate(userConfig.maxRate)).get
-                                SyncManager.get().publish(SyncMessage(topic = SyncType.CLIENT_QUEUE_CREATE, List(clientName,clientTopic)))
                                 ConnektLogger(LogFile.SERVICE).info(s"AppUserConfig added for user ${userConfig.userId}")
                             }
+
+                            SyncManager.get().publish(SyncMessage(topic = SyncType.CLIENT_QUEUE_CREATE, List(clientName,userConfig.queueName)))
 
                             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Client ${userConfig.userId} has been added/updated.", userConfig)))
                         }
