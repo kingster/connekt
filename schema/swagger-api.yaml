@@ -511,7 +511,7 @@ paths:
         200:
           description: "client created and assigned group, api-key."
   /client/create/{clientName}/configuration:
-    post:
+    put:
       tags:
       - "Admin"
       operationId: "configureClientSla"
@@ -531,7 +531,7 @@ paths:
       responses:
         200:
           description: "client created and assigned group, api-key."
-  /grant/{userType}/{userId}:
+  /client/grant/{userType}/{userId}:
     post:
       tags:
       - "Admin"
@@ -558,7 +558,7 @@ paths:
         400:
           description: "while user does not existed for user level access"
 
-  /revoke/{userType}/{userId}:
+  /client/revoke/{userType}/{userId}:
    post:
     tags:
       - "Admin"
@@ -954,7 +954,9 @@ definitions:
         type: integer
         format: int32
         description: max-rate for channel
-
+      platforms:
+        type: string
+        description: sending platforms (android / ios / windows / openweb)
   ResourcePriv:
     type: object
     properties:
