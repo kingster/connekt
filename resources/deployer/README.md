@@ -24,3 +24,20 @@ Busybees
   ansible-playbook -i inventory.txt playbooks/deploy-busybees.yaml
   ```
 
+Fireflies
+---------
+- Deployment
+
+  ```bash
+  ansible-playbook -i inventory.txt playbooks/deploy-firflies.yaml
+  ```
+
+Barklice
+---------
+- Deployment
+
+  ```bash
+  ansible-playbook -i inventory.txt playbooks/deploy-barklice.yaml
+  ```
+
+
