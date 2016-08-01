@@ -29,7 +29,7 @@ Fireflies
 - Deployment
 
   ```bash
-  ansible-playbook -i inventory.txt playbooks/deploy-firflies.yaml
+  ansible-playbook -i inventory.txt playbooks/deploy-fireflies.yaml
   ```
 
 Barklice
