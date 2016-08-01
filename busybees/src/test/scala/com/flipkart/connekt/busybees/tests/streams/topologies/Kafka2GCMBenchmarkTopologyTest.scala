@@ -47,7 +47,7 @@ class Kafka2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrumented {
 
   "Kafka2GCMBenchmarkTopologyTest" should "log gcm dispatch rates for a vanilla graph" in {
 
-    val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.head
+    val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH , Some("android")).get.head
     val kSource = Source.fromGraph(new KafkaSource[ConnektRequest](getKafkaConsumerConf, topic, getKafkaConsumerConf.getString("group.id"))(Promise[String]().future))
     val qps = meter("android.send")
 

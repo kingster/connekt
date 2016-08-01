@@ -50,12 +50,20 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
         .map(d => PNCallbackEvent(message.id, message.clientId, d.deviceId, InternalStatus.InvalidToken, MobilePlatform.WINDOWS, pnInfo.appName, message.contextId.orEmpty))
         .persist
 
-      val windowsStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-windows").head
       val ttlInSeconds = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hours.toSeconds)
 
       val wnsRequestEnvelopes = validDevices.map(d => {
-        val wnsPayload = WNSToastPayload(stencilService.materialize(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String])
+        val pRD = message.channelData.asInstanceOf[PNRequestData]
+        val wnsPayload = WindowsNotificationType.withName(Option(pRD.pushType).getOrElse(WindowsNotificationType.toast)) match {
+          case WindowsNotificationType.badge =>
+            val windowsStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-windows-badge").head
+            WNSBadgePayload(stencilService.materialize(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String])
+          case _ =>
+            val windowsStencil = stencilService.getStencilsByName(s"ckt-${pnInfo.appName.toLowerCase}-windows-toast").head
+            WNSToastPayload(stencilService.materialize(windowsStencil, message.channelData.asInstanceOf[PNRequestData].data).asInstanceOf[String])
+        }
         WNSPayloadEnvelope(message.id, message.clientId, d.token, message.channelInfo.asInstanceOf[PNRequestInfo].appName, d.deviceId, ttlInSeconds, message.contextId.orEmpty, wnsPayload, message.meta)
+
       })
 
       if (wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0) {
