@@ -46,7 +46,7 @@ class StencilBenchmarkTest extends TopologyUTSpec with Instrumented {
 
   "StencilBenchmarkTest" should "log stencil rendering rates for a vanilla graph Groovy" in {
 
-    val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH).get.head
+    val topic = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH , Some("android")).get.head
     //    val kSource = new KafkaSource[ConnektRequest](getKafkaConsumerHelper, topic)(Promise[String]().future)
     val qps = meter("android.send")
 

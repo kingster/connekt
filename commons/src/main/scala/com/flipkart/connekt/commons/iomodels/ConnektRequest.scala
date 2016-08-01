@@ -49,7 +49,7 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
     stencilId.map(stencilService.get(_)).map { stencil =>
       Channel.withName(channel) match {
         case Channel.PUSH =>
-           PNRequestData(stencilService.materialize(stencil.head, channelDataModel).asInstanceOf[String].getObj[ObjectNode])
+          PNRequestData(pushType = channelData.asInstanceOf[PNRequestData].pushType, data = stencilService.materialize(stencil.head, channelDataModel).asInstanceOf[String].getObj[ObjectNode])
         case unsupportedChannel =>
           throw new Exception(s"`channelData` compute undefined for $unsupportedChannel")
       }
