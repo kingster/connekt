@@ -12,16 +12,52 @@
  */
 package com.flipkart.connekt.commons.iomodels
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
+import com.flipkart.connekt.commons.entities.DeviceDetails
+import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.helpers.XmppMessageIdHelper
 
-case class XmppReceipt(@JsonProperty("message_type") messageType: String,
-                          @JsonProperty("message_id")@JsonProperty(required = false) messageId: String,
-                          @JsonProperty(required = false) from: String,
-                          @JsonProperty(required = false) category: String,
-                          data: XmppReceiptData) extends XmppResponse {
-  override def responseType(): String = messageType
+@JsonIgnoreProperties(ignoreUnknown = true)
+case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = true) messageId: String,
+                          @JsonProperty(required = true) from: String,
+                          @JsonProperty(required = true) category: String,
+                          @JsonProperty(required = true) data: XmppReceiptData) extends XmppUpstreamResponse(messageId, from, category) {
+
+  override def getPnCallbackEvent(): Option[PNCallbackEvent] = {
+    val parsedMessageIdMap:Map[String,String] = XmppMessageIdHelper.parseMessageId(data.originalMessageId)
+    Some(PNCallbackEvent(messageId = parsedMessageIdMap.get(XmppMessageIdHelper.messageIdText).get,
+      clientId = parsedMessageIdMap.get(XmppMessageIdHelper.clientIdText).get,
+      deviceId = parsedMessageIdMap.get(XmppMessageIdHelper.deviceIdText).get,
+      eventType = "receipt",
+      platform = "android",
+      appName = parsedMessageIdMap.get(XmppMessageIdHelper.appIdText).get,
+      contextId = parsedMessageIdMap.get(XmppMessageIdHelper.contextIdText).get,
+      cargo = null,
+      timestamp = System.currentTimeMillis
+    ))
+  }
 }
 
-case class XmppReceiptData(@JsonProperty("message_status") messageStatus: String,
-                                   @JsonProperty("original_message_id") originalMessageId: String,
-                                   @JsonProperty("device_registration_id") deviceRegistrationId: String)
+@JsonIgnoreProperties(ignoreUnknown = true)
+case class XmppReceiptData (@JsonProperty("message_status") @JsonProperty(required = true) messageStatus: String,
+                                   @JsonProperty("original_message_id") @JsonProperty(required = true) originalMessageId: String,
+                                   @JsonProperty("device_registration_id") @JsonProperty(required = true) deviceRegistrationId: String)
+
+/** sample data from GCM
+  * <message id="">
+  *   <gcm xmlns="google:mobile:data">
+  *     {
+  *     "category":"com.example.yourapp", // to know which app sent it
+  *     "data":
+  *     {
+  *     “message_status":"MESSAGE_SENT_TO_DEVICE",
+  *     “original_message_id”:”m-1366082849205”
+  *     “device_registration_id”: “REGISTRATION_ID”
+  *     },
+  *     "message_id":"dr2:m-1366082849205",
+  *     "message_type":"receipt",
+  *     "from":"gcm.googleapis.com"
+  *     }
+  *     </gcm>
+  *     </message>
+  */
