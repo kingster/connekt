@@ -4,8 +4,6 @@ set -x
 
 CMD="$1"
 
-echo "POST RM - $CMD";
-
 PAC=_PACKAGE_
 FK_USER=_USER_
 FK_GROUP=_GROUP_
