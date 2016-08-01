@@ -48,7 +48,9 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
       }).filter(_._2 > 0).toList
       reportManagerDao.counter(tagStats)
       mapCounter.retain((key, counterValue) => counterValue.get() > 0L)
-      reportManagerDao.put(mapLastSeenTime.toList)
+      val lastSeenSnapshot = mapLastSeenTime.toList
+      reportManagerDao.put(lastSeenSnapshot)
+      mapLastSeenTime.retain((key, _) => !lastSeenSnapshot.map(_._1).contains(key))
     }
   }
 
