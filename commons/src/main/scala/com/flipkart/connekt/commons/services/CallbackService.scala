@@ -42,7 +42,7 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
   @Timed("persistCallbackEvent")
   override def persistCallbackEvents(channel: Channel.Value, events: List[CallbackEvent]): Try[List[String]] = {
     Try {
-      val rowKeys = channelEventsDao(channel).asyncSaveCallbackEvents(events)
+      val rowKeys = channelEventsDao(channel).saveCallbackEvents(events)
       enqueueCallbackEvents(events).get
       ConnektLogger(LogFile.SERVICE).debug(s"Event saved with rowKeys $rowKeys")
       rowKeys
