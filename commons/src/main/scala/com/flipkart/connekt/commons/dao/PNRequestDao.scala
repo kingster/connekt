@@ -42,18 +42,17 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     delayWhileIdle = reqInfoProps.getB("delayWhileIdle")
   )
 
-
-
   override protected def channelRequestDataMap(channelRequestData: ChannelRequestData): Map[String, Array[Byte]] = {
     Option(channelRequestData).map(d => {
       val pnRequestData = d.asInstanceOf[PNRequestData]
-      Option(pnRequestData.data).map(m => Map[String, Array[Byte]]("data" -> m.toString.getUtf8Bytes)).orNull
+      Option(pnRequestData.data).map(m => "data" -> m.toString.getUtf8Bytes).toMap ++ Option(pnRequestData.pushType).map(m => "pushType" -> m.getUtf8Bytes).toMap
     }).orNull
   }
 
-  override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
-    Option(reqDataProps.getKV("data")).map(PNRequestData).orNull
-  }
+  override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = PNRequestData(
+    pushType = reqDataProps.getS("pushType"),
+    data = reqDataProps.getKV("data")
+  )
 
   def fetchPNRequestInfo(id: String): Option[PNRequestInfo] = {
     fetchRequestInfo(id).map(_.asInstanceOf[PNRequestInfo])
