@@ -27,7 +27,7 @@ import com.flipkart.connekt.busybees.streams.flows.reponsehandlers._
 import com.flipkart.connekt.busybees.streams.flows.{FlowMetrics, RenderFlow}
 import com.flipkart.connekt.busybees.streams.sources.KafkaSource
 import com.flipkart.connekt.commons.core.Wrappers._
-import com.flipkart.connekt.commons.entities.{MobilePlatform, Channel}
+import com.flipkart.connekt.commons.entities.{Channel, MobilePlatform}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
@@ -71,9 +71,11 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
   })
 
   override def sources: Map[CheckPointGroup, Source[ConnektRequest, NotUsed]] = {
-    List(MobilePlatform.ANDROID, MobilePlatform.IOS, MobilePlatform.WINDOWS, MobilePlatform.OPENWEB).map {platform =>
-      val platformTopics = ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH, Option(platform)).get
-      platform.toString -> createMergedSource(platform, platformTopics)
+    List(MobilePlatform.ANDROID, MobilePlatform.IOS, MobilePlatform.WINDOWS, MobilePlatform.OPENWEB).flatMap {platform =>
+      ServiceFactory.getPNMessageService.getTopicNames(Channel.PUSH, Option(platform)).get match {
+        case platformTopics if platformTopics.nonEmpty => Option(platform.toString -> createMergedSource(platform, platformTopics))
+        case _ => None
+      }
     }.toMap
   }
 
