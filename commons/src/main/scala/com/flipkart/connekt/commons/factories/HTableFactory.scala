@@ -15,7 +15,7 @@ package com.flipkart.connekt.commons.factories
 import com.flipkart.connekt.commons.connections.TConnectionProvider
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, Table, TableConfiguration}
+import org.apache.hadoop.hbase.client.{ConnectionConfiguration, BufferedMutator, Connection, Table}
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 
 import scala.util.Try
@@ -29,7 +29,7 @@ class HTableFactory(hConnConfig: Config, connProvider: TConnectionProvider) exte
     hConfig.set(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, HConstants.DEFAULT_HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD.toString)
     hConfig.set(HConstants.HBASE_RPC_TIMEOUT_KEY, HConstants.DEFAULT_HBASE_RPC_TIMEOUT.toString)
     hConfig.set(HConstants.ZOOKEEPER_ZNODE_PARENT, hConnConfig.getString(HConstants.ZOOKEEPER_ZNODE_PARENT))
-    hConfig.set(TableConfiguration.WRITE_BUFFER_SIZE_KEY, hConnConfig.getString(TableConfiguration.WRITE_BUFFER_SIZE_KEY))
+    hConfig.set(ConnectionConfiguration.WRITE_BUFFER_SIZE_KEY, hConnConfig.getString(ConnectionConfiguration.WRITE_BUFFER_SIZE_KEY))
     hConfig.set("hbase.zookeeper.watcher.sync.connected.wait", "5000")
     hConfig
   }

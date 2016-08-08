@@ -316,11 +316,11 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           case Success(sten) =>
                             complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: $stencilId", Map("id" -> stencilId))))
                           case Failure(e) =>
-                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $stencilId, e: ${e.getMessage}", null)))
+                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil.", e.getMessage)))
                         }
                       } catch {
                         case e: Throwable =>
-                          complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $stencilId, e: ${e.getMessage}", null)))
+                          complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil.", e.getMessage)))
                       }
                     }
                   }
