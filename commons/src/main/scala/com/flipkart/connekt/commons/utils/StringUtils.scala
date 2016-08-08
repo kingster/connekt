@@ -79,7 +79,7 @@ object StringUtils {
   }
 
   implicit class ObjectHandyFunction (val obj:AnyRef){
-    def toMap: Map[String, Any] = {
+    def asMap: Map[String, Any] = {
       val fieldsAsPairs = for (field <- obj.getClass.getDeclaredFields) yield {
         field.setAccessible(true)
         (field.getName, field.get(obj))

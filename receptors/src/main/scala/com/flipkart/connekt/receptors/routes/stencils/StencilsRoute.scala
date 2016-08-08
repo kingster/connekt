@@ -278,7 +278,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       stencilService.get(id) match {
                         case stencils if stencils.nonEmpty =>
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_GET_" + _): _*) {
-                            val result = stencils.head.toMap.filterKeys(!List("component", "engineFabric", "engine").contains(_)) ++ Map("components" -> stencils)
+                            val result = stencils.head.asMap.filterKeys(!List("component", "engineFabric", "engine").contains(_)) ++ Map("components" -> stencils)
                             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", result)))
                           }
                         case _ =>
