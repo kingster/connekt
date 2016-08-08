@@ -80,6 +80,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   meteredResource("addStencilComponents") {
                     authorize(user, "ADMIN_BUCKET") {
                       entity(as[StencilsEnsemble]) { obj =>
+                        obj.validate()
                         val id = StringUtils.generateRandomStr(4)
                         val stencilComponents = new StencilsEnsemble()
                         stencilComponents.id = id
@@ -277,7 +278,8 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       stencilService.get(id) match {
                         case stencils if stencils.nonEmpty =>
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_GET_" + _): _*) {
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencils))))
+                            val result = stencils.head.toMap.filterKeys(!List("component", "engineFabric", "engine").contains(_)) ++ Map("components" -> stencils)
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", result)))
                           }
                         case _ =>
                           complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for id: $id", null)))
@@ -291,6 +293,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   entity(as[ObjectNode]) { obj =>
                     var stencils = List[Stencil]()
                     val stencilName = obj.get("name").asText()
+                    val stencilType = obj.get("type").asText()
                     val stencilId = "STNC" + StringUtils.generateRandomStr(4)
                     val components = obj.get("components").asInstanceOf[ArrayNode].elements()
                     val bucket = obj.get("bucket").asText()
@@ -302,6 +305,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           val stencil = components.next().toString.getObj[Stencil]
                           stencil.bucket = bucketIds.mkString(",")
                           stencil.id = stencilId
+                          stencil.`type` = stencilType
                           stencil.createdBy = user.userId
                           stencil.updatedBy = user.userId
                           stencil.version = 1
