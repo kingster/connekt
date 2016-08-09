@@ -14,19 +14,18 @@ package com.flipkart.connekt.receptors.routes.common
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
-import com.flipkart.connekt.commons.entities.SimpleCredential
+import com.flipkart.connekt.commons.entities.{OAuthToken, SimpleCredential}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.service.{AuthenticationService, TokenService}
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
-sealed case class OAuthToken(token: String)
 
 class UserAuthRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val route =
     pathPrefix("v1") {
-      path("auth") {
+      pathPrefix("auth") {
         path("ldap") {
           post {
             meteredResource("ldapAuthenticate") {
@@ -59,7 +58,7 @@ class UserAuthRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Unable to generate token", null)))
                     }
                   case None =>
-                    complete(GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Unauthorised, Invalid token", null)))
+                    complete(GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Unauthorised OR Invalid token", null)))
                 }
             }
           }

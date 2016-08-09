@@ -21,6 +21,8 @@ import org.apache.commons.lang.{StringUtils => ApacheStringUtils}
 
 abstract class Credential extends Serializable
 
+case class OAuthToken(token: String) extends Credential
+
 case class SimpleCredential(username: String, password: String) extends Credential {
 
   def isEmpty: Boolean = {
