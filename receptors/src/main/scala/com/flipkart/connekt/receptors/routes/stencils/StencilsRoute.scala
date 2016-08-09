@@ -239,7 +239,6 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                   stencil.id = id
                                   stencil.createdBy = stencils.head.createdBy
                                   stencil.updatedBy = user.userId
-                                  stencil.version = stencil.version + 1
                                   stencil.`type` = stencilType
                                   stencil.name = stencilName
                                   stencil.creationTS = stencils.head.creationTS
