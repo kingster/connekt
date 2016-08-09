@@ -31,7 +31,7 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
   implicit val routeTestTimeout = RouteTestTimeout(FiniteDuration.apply(30, TimeUnit.SECONDS))
   var stencilRoute: server.Route = null
   var registrationRoute: server.Route = null
-  var unicastRoute: server.Route = null
+  var sendRoute: server.Route = null
   var clientRoute: server.Route = null
 
   implicit val am = system
@@ -43,7 +43,7 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
     user = new AppUser("test", "test", "", "")
     stencilRoute = new StencilsRoute().route
     registrationRoute = new RegistrationRoute().route
-    unicastRoute = new SendRoute().route
+    sendRoute = new SendRoute().route
     clientRoute = new ClientRoute().route
   }
 }

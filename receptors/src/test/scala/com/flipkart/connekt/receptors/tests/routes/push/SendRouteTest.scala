@@ -59,7 +59,7 @@ class SendRouteTest extends BaseRouteTest {
          |}        """.stripMargin
 
     Post(s"/v1/send/push/$unknownPlatfrom/$appName", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
-      unicastRoute ~>
+      sendRoute ~>
       check {
         status shouldEqual StatusCodes.Created
       }
@@ -94,7 +94,7 @@ class SendRouteTest extends BaseRouteTest {
          |}        """.stripMargin
 
     Post(s"/v1/send/push/$platform/$appName/users/$accountId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
-      unicastRoute ~>
+      sendRoute ~>
       check {
         status shouldEqual StatusCodes.NotFound
       }
@@ -102,7 +102,7 @@ class SendRouteTest extends BaseRouteTest {
     DeviceDetailsService.add(device)
 
     Post(s"/v1/send/push/$platform/$appName/users/$accountId", HttpEntity(MediaTypes.`application/json`, payload)).addHeader(header) ~>
-      unicastRoute ~>
+      sendRoute ~>
       check {
         status shouldEqual StatusCodes.Created
       }
