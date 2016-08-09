@@ -50,10 +50,10 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
         "channel" -> request.channel.getUtf8Bytes,
         "sla" -> request.sla.getUtf8Bytes,
         "clientId" -> request.clientId.getUtf8Bytes,
-        "stencilId" -> request.stencilId.getOrElse("").getUtf8Bytes,
         "meta" -> KryoSerializer.serialize(request.meta)
       )
 
+      request.stencilId.foreach(requestProps += "stencilId" -> _.getBytes)
       request.expiryTs.foreach(requestProps += "expiryTs" -> _.getBytes)
       request.scheduleTs.foreach(requestProps += "scheduleTs" -> _.getBytes)
       request.contextId.foreach(requestProps += "contextId" -> _.getBytes)
