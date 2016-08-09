@@ -141,11 +141,13 @@ class ClientRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                   complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"User $id: does not exist.", null)))
                                 case Some(userInfo) =>
                                   ServiceFactory.getAuthorisationService.removeAuthorization(id, UserType.USER, resourceList)
+                                  SyncManager.get().publish(new SyncMessage(SyncType.AUTH_CHANGE, List(id, userType.toString)))
                                   complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission revoked for $id.", Map("user" -> id, "permissions" -> resourceList))))
                               }
                             case _ =>
                               val resourceList = resourcePriv.resources.split(",").map(_.trim).map(_.toUpperCase).toList
                               ServiceFactory.getAuthorisationService.removeAuthorization(id, userType, resourceList)
+                              SyncManager.get().publish(new SyncMessage(SyncType.AUTH_CHANGE, List(id, userType.toString)))
                               complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Permission revoked for $id", Map("id" -> id, "permissions" -> resourceList))))
                           }
                         }

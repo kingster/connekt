@@ -60,11 +60,11 @@ class APNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extend
                 })
               }
               ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.IOS, APNSResponseStatus.TokenExpired)
-              events += PNCallbackEvent(requestTracker.messageId, requestTracker.clientId, requestTracker.deviceId, APNSResponseStatus.TokenExpired, MobilePlatform.IOS.toString, requestTracker.appName, requestTracker.contextId)
+              events += PNCallbackEvent(requestTracker.messageId, requestTracker.clientId, requestTracker.deviceId, APNSResponseStatus.TokenExpired, MobilePlatform.IOS.toString, requestTracker.appName, requestTracker.contextId, s"TokenExpiredAt: ${pushNotificationResponse.getTokenInvalidationTimestamp}")
             } else {
-              ConnektLogger(LogFile.PROCESSORS).warn(s"APNSResponseHandler notification rejected by the apns gateway: ${pushNotificationResponse.getRejectionReason} for: ${requestTracker.messageId}")
+              ConnektLogger(LogFile.PROCESSORS).error(s"APNSResponseHandler notification rejected by the apns gateway: ${pushNotificationResponse.getRejectionReason} for: ${requestTracker.messageId}")
               ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.IOS, APNSResponseStatus.Rejected)
-              events += PNCallbackEvent(requestTracker.messageId, requestTracker.clientId, requestTracker.deviceId, APNSResponseStatus.Rejected, MobilePlatform.IOS.toString, requestTracker.appName, requestTracker.contextId)
+              events += PNCallbackEvent(requestTracker.messageId, requestTracker.clientId, requestTracker.deviceId, APNSResponseStatus.Rejected, MobilePlatform.IOS.toString, requestTracker.appName, requestTracker.contextId, pushNotificationResponse.getRejectionReason)
             }
         }
 

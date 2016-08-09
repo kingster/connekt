@@ -43,14 +43,14 @@ libraryDependencies ++= Seq(
   "commons-beanutils" % "commons-beanutils" % "1.8.0",
   "org.ow2.asm" % "asm" % "4.1",
   "com.esotericsoftware" % "kryo-shaded" % "3.0.3",
-  "org.apache.hbase" % "hbase-client" % "1.1.2" excludeAll(
+  "org.apache.hbase" % "hbase-client" % "1.2.1" excludeAll(
     ExclusionRule("io.netty"),
     ExclusionRule("log4j"),
     ExclusionRule(organization = "org.slf4j"),
     ExclusionRule(organization = "asm")
     ),
   "io.netty" % "netty-all" % "4.1.0.Final",
-  "org.apache.hbase" % "hbase-common" % "1.1.2" excludeAll(
+  "org.apache.hbase" % "hbase-common" % "1.2.1" excludeAll(
     ExclusionRule("log4j"),
     ExclusionRule("io.netty"),
     ExclusionRule(organization = "org.slf4j")

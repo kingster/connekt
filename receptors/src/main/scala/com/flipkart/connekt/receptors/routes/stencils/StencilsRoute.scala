@@ -26,6 +26,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
 
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success}
 
 class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
@@ -70,7 +71,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
               (id: String) =>
                 post {
                   meteredResource("stencilTouchBucket") {
-                    SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(id)))
+                    SyncManager.get().publish(SyncMessage(SyncType.STENCIL_BUCKET_CHANGE, List(id)))
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
                   }
                 }
@@ -80,6 +81,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   meteredResource("addStencilComponents") {
                     authorize(user, "ADMIN_BUCKET") {
                       entity(as[StencilsEnsemble]) { obj =>
+                        obj.validate()
                         val id = StringUtils.generateRandomStr(4)
                         val stencilComponents = new StencilsEnsemble()
                         stencilComponents.id = id
@@ -148,7 +150,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
               } ~ path(Segment / "touch") {
                 (id: String) =>
                   post {
-                    SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_COMPONENTS_UPDATE, List(id)))
+                    SyncManager.get().publish(SyncMessage(SyncType.STENCIL_COMPONENTS_UPDATE, List(id)))
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for stencil components: $id", null)))
                   }
               }
@@ -198,8 +200,8 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       (component: String) =>
                         post {
                           meteredResource("stencilTouch") {
-                            SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id, version)))
-                            SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_FABRIC_CHANGE, List(stencilService.fabricCacheKey(id, component, version))))
+                            SyncManager.get().publish(SyncMessage(SyncType.STENCIL_CHANGE, List(id, version)))
+                            SyncManager.get().publish(SyncMessage(SyncType.STENCIL_FABRIC_CHANGE, List(stencilService.fabricCacheKey(id, component, version))))
                             complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Triggered  Change for client: $id", null)))
                           }
                         }
@@ -225,38 +227,39 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_UPDATE_" + _): _*) {
                             entity(as[ObjectNode]) { obj =>
                               val stencilName = obj.get("name").asText()
-                              val components = obj.get("components").asInstanceOf[ArrayNode].elements()
+                              val components = obj.get("components").asInstanceOf[ArrayNode].elements().asScala
                               val bucket = obj.get("bucket").asText()
+                              val stencilType = obj.get("type").asText()
                               val bucketIds = bucket.split(",").map(stencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "")
-                              var stencilsUpdate = List[Stencil]()
                               try {
-                                while (components.hasNext) {
-                                  val c = components.next()
-                                  var stencil = c.toString.getObj[Stencil]
+
+                                val stencilsUpdate = components.map(c => {
+                                  val stencil = c.toString.getObj[Stencil]
                                   stencil.bucket = bucketIds.mkString(",")
                                   stencil.id = id
                                   stencil.createdBy = stencils.head.createdBy
                                   stencil.updatedBy = user.userId
-                                  stencil.version = stencil.version + 1
+                                  stencil.`type` = stencilType
                                   stencil.name = stencilName
                                   stencil.creationTS = stencils.head.creationTS
                                   stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
                                   stencilService.checkStencil(stencil) match {
-                                    case Success(_) => stencilsUpdate ::= stencil
+                                    case Success(_) => stencil
                                     case Failure(e) => throw e
                                   }
-                                }
+                                }).toList
+
                                 // If stencil name is changed, deleting old stencil and creating new
                                 if (stencils.head.name.equals(stencilName)) {
                                   stencilService.update(id, stencilsUpdate) match {
-                                    case Success(sten) =>
+                                    case Success(_) =>
                                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil updated for id: $id", null)))
                                     case _ =>
                                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $id", null)))
                                   }
                                 } else {
                                   stencilService.updateWithIdentity(id, stencils.head.name, stencilsUpdate) match {
-                                    case Success(sten) =>
+                                    case Success(_) =>
                                       complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil updated for id: $id", null)))
                                     case _ =>
                                       complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $id", null)))
@@ -277,7 +280,8 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       stencilService.get(id) match {
                         case stencils if stencils.nonEmpty =>
                           authorize(user, stencils.head.bucket.split(",").map("STENCIL_GET_" + _): _*) {
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", Map[String, Any]("stencils" -> stencils))))
+                            val result = stencils.head.asMap.filterKeys(!List("component", "engineFabric", "engine").contains(_)) ++ Map("components" -> stencils)
+                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencils fetched for id: $id", result)))
                           }
                         case _ =>
                           complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Stencil not found for id: $id", null)))
@@ -289,38 +293,41 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
               post {
                 meteredResource("stencilAdd") {
                   entity(as[ObjectNode]) { obj =>
-                    var stencils = List[Stencil]()
-                    val stencilName = obj.get("name").asText()
-                    val stencilId = "STNC" + StringUtils.generateRandomStr(4)
-                    val components = obj.get("components").asInstanceOf[ArrayNode].elements()
                     val bucket = obj.get("bucket").asText()
                     val bucketIds = bucket.split(",").map(stencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "")
                     val resources = bucketIds.map("STENCIL_UPDATE_" + _)
                     authorize(user, resources: _*) {
+                      val stencilName = obj.get("name").asText()
+                      val stencilType = obj.get("type").asText()
+                      val stencilId = "STNC" + StringUtils.generateRandomStr(4)
+                      val components = obj.get("components").asInstanceOf[ArrayNode].elements().asScala
                       try {
-                        while (components.hasNext) {
-                          val stencil = components.next().toString.getObj[Stencil]
+                        val stencils = components.map(c => {
+                          val stencil = c.toString.getObj[Stencil]
                           stencil.bucket = bucketIds.mkString(",")
                           stencil.id = stencilId
+                          stencil.`type` = stencilType
                           stencil.createdBy = user.userId
                           stencil.updatedBy = user.userId
                           stencil.version = 1
                           stencil.name = stencilName
                           stencil.creationTS = new Date(System.currentTimeMillis())
                           stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
-                          stencilService.checkStencil(stencil)
-                          stencils ::= stencil
-                        }
+                          stencilService.checkStencil(stencil) match {
+                            case Success(_) => stencil
+                            case Failure(e) => throw e
+                          }
+                        }).toList
 
                         stencilService.add(stencilId, stencils) match {
-                          case Success(sten) =>
+                          case Success(_) =>
                             complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: $stencilId", Map("id" -> stencilId))))
                           case Failure(e) =>
-                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $stencilId, e: ${e.getMessage}", null)))
+                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil.", e.getMessage)))
                         }
                       } catch {
                         case e: Throwable =>
-                          complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $stencilId, e: ${e.getMessage}", null)))
+                          complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil.", e.getMessage)))
                       }
                     }
                   }

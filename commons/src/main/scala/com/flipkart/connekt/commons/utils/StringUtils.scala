@@ -78,6 +78,16 @@ object StringUtils {
     }
   }
 
+  implicit class ObjectHandyFunction (val obj:AnyRef){
+    def asMap: Map[String, Any] = {
+      val fieldsAsPairs = for (field <- obj.getClass.getDeclaredFields) yield {
+        field.setAccessible(true)
+        (field.getName, field.get(obj))
+      }
+      Map(fieldsAsPairs: _*)
+    }
+  }
+
   val objMapper = new ObjectMapper() with ScalaObjectMapper
   objMapper.registerModules(Seq(DefaultScalaModule): _*)
   objMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
