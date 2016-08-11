@@ -94,7 +94,8 @@ class StencilsRouteTest extends BaseRouteTest {
        |		"engine": "VELOCITY",
        |		"engineFabric": "{\\"message\\" : \\"$message\\" , \\"title\\" : \\"$title\\" , \\"id\\" : \\"$id\\" , \\"triggerSound\\" : \\"$triggerSound\\" , \\"notificationType\\" : \\"$notificationType\\" }"
        |	}],
-       |	"bucket": "GLOBAL"
+       |	"bucket": "GLOBAL",
+       |  "type" : "PN"
        |}
        |""".stripMargin
 
@@ -107,7 +108,8 @@ class StencilsRouteTest extends BaseRouteTest {
         |		"engine": "VELOCITY",
         |		"engineFabric": "{\\"message\\" : \\"$message\\" , \\"title\\" : \\"$title\\" , \\"id\\" : \\"$id\\" , \\"triggerSound\\" : \\"$triggerSound\\" , \\"notificationType\\" : \\"$notificationType\\" }"
         |	}],
-        |	"bucket": "GLOBAL"
+        |	"bucket": "GLOBAL",
+        | "type" : "PN"
         |}
      """.stripMargin
 

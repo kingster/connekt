@@ -231,43 +231,36 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                               val bucket = obj.get("bucket").asText()
                               val stencilType = obj.get("type").asText()
                               val bucketIds = bucket.split(",").map(stencilService.getBucket(_).map(_.id.toUpperCase).getOrElse("")).filter(_ != "")
-                              try {
 
-                                val stencilsUpdate = components.map(c => {
-                                  val stencil = c.toString.getObj[Stencil]
-                                  stencil.bucket = bucketIds.mkString(",")
-                                  stencil.id = id
-                                  stencil.createdBy = stencils.head.createdBy
-                                  stencil.updatedBy = user.userId
-                                  stencil.`type` = stencilType
-                                  stencil.name = stencilName
-                                  stencil.creationTS = stencils.head.creationTS
-                                  stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
-                                  stencilService.checkStencil(stencil) match {
-                                    case Success(_) => stencil
-                                    case Failure(e) => throw e
-                                  }
-                                }).toList
+                              val stencilsUpdate = components.map(c => {
+                                val stencil = c.toString.getObj[Stencil]
+                                stencil.bucket = bucketIds.mkString(",")
+                                stencil.id = id
+                                stencil.createdBy = stencils.head.createdBy
+                                stencil.updatedBy = user.userId
+                                stencil.`type` = stencilType
+                                stencil.name = stencilName
+                                stencil.creationTS = stencils.head.creationTS
+                                stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
+                                require(stencilService.checkStencil(stencil).getOrElse(false), s"stencil component ${stencil.component} not valid")
+                                stencil
+                              }).toList
 
-                                // If stencil name is changed, deleting old stencil and creating new
-                                if (stencils.head.name.equals(stencilName)) {
-                                  stencilService.update(id, stencilsUpdate) match {
-                                    case Success(_) =>
-                                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil updated for id: $id", null)))
-                                    case _ =>
-                                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $id", null)))
-                                  }
-                                } else {
-                                  stencilService.updateWithIdentity(id, stencils.head.name, stencilsUpdate) match {
-                                    case Success(_) =>
-                                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil updated for id: $id", null)))
-                                    case _ =>
-                                      complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $id", null)))
-                                  }
+                              // If stencil name is changed, deleting old stencil and creating new
+                              if (stencils.head.name.equals(stencilName)) {
+                                stencilService.update(id, stencilsUpdate) match {
+                                  case Success(_) =>
+                                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil updated for id: $id", null)))
+                                  case _ =>
+                                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $id", null)))
                                 }
-                              } catch {
-                                case e: Throwable =>
-                                  complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $id, e: ${e.getMessage}", null)))
+                              } else {
+                                stencilService.updateWithIdentity(id, stencils.head.name, stencilsUpdate) match {
+                                  case Success(_) =>
+                                    complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Stencil updated for id: $id", null)))
+                                  case _ =>
+                                    complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response(s"Error in Stencil for id: $id", null)))
+                                }
                               }
                             }
                           }
@@ -301,32 +294,25 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                       val stencilType = obj.get("type").asText()
                       val stencilId = "STNC" + StringUtils.generateRandomStr(4)
                       val components = obj.get("components").asInstanceOf[ArrayNode].elements().asScala
-                      try {
-                        val stencils = components.map(c => {
-                          val stencil = c.toString.getObj[Stencil]
-                          stencil.bucket = bucketIds.mkString(",")
-                          stencil.id = stencilId
-                          stencil.`type` = stencilType
-                          stencil.createdBy = user.userId
-                          stencil.updatedBy = user.userId
-                          stencil.version = 1
-                          stencil.name = stencilName
-                          stencil.creationTS = new Date(System.currentTimeMillis())
-                          stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
-                          stencilService.checkStencil(stencil) match {
-                            case Success(_) => stencil
-                            case Failure(e) => throw e
-                          }
-                        }).toList
+                      val stencils = components.map(c => {
+                        val stencil = c.toString.getObj[Stencil]
+                        stencil.bucket = bucketIds.mkString(",")
+                        stencil.id = stencilId
+                        stencil.`type` = stencilType
+                        stencil.createdBy = user.userId
+                        stencil.updatedBy = user.userId
+                        stencil.version = 1
+                        stencil.name = stencilName
+                        stencil.creationTS = new Date(System.currentTimeMillis())
+                        stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
+                        require(stencilService.checkStencil(stencil).getOrElse(false), s"stencil component ${stencil.component} not valid")
+                        stencil
+                      }).toList
 
-                        stencilService.add(stencilId, stencils) match {
-                          case Success(_) =>
-                            complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: $stencilId", Map("id" -> stencilId))))
-                          case Failure(e) =>
-                            complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil.", e.getMessage)))
-                        }
-                      } catch {
-                        case e: Throwable =>
+                      stencilService.add(stencilId, stencils) match {
+                        case Success(_) =>
+                          complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"Stencil registered with id: $stencilId", Map("id" -> stencilId))))
+                        case Failure(e) =>
                           complete(GenericResponse(StatusCodes.BadRequest.intValue, null, Response("Error in Stencil.", e.getMessage)))
                       }
                     }
