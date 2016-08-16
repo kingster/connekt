@@ -15,6 +15,7 @@ package com.flipkart.connekt.commons.dao
 import com.flipkart.connekt.commons.dao.HbaseDao._
 import com.flipkart.connekt.commons.factories.THTableFactory
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.utils.StringUtils
 
 class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactory: THTableFactory) extends RequestDao(tableName: String, hTableFactory: THTableFactory) {
 
@@ -49,10 +50,15 @@ class PNRequestDao(tableName: String, pullRequestTableName: String, hTableFactor
     }).orNull
   }
 
-  override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = PNRequestData(
-    pushType = reqDataProps.getS("pushType"),
-    data = reqDataProps.getKV("data")
-  )
+  override protected def getChannelRequestData(reqDataProps: Map[String, Array[Byte]]): ChannelRequestData = {
+    val data = reqDataProps.getKV("data")
+    val pushType = reqDataProps.getS("pushType")
+
+    if(StringUtils.isNullOrEmpty(data) && StringUtils.isNullOrEmpty(pushType) )
+      null
+    else
+      PNRequestData(pushType = pushType, data = data)
+  }
 
   def fetchPNRequestInfo(id: String): Option[PNRequestInfo] = {
     fetchRequestInfo(id).map(_.asInstanceOf[PNRequestInfo])
