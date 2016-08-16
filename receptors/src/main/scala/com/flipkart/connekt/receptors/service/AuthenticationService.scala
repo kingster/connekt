@@ -14,6 +14,7 @@ package com.flipkart.connekt.receptors.service
 
 import java.util
 
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.metrics.Instrumented
@@ -25,6 +26,8 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import org.jboss.aerogear.security.otp.Totp
 import org.jboss.aerogear.security.otp.api.{Base32, Clock}
+
+import scala.util.Success
 
 object AuthenticationService extends Instrumented {
 
@@ -56,13 +59,13 @@ object AuthenticationService extends Instrumented {
 
   @Timed("authenticateGoogleOAuth")
   def authenticateGoogleOAuth(token:String):Option[AppUser] = {
-    val idToken = verifier.verify(token)
-    if (idToken != null) {
-      ConnektLogger(LogFile.ACCESS).info("GoogleOAuth Verified : " + idToken.getPayload)
-      val email = idToken.getPayload.getEmail
-      userService.getUserInfo(email).get
+    Try_(verifier.verify(token)) match {
+      case Success(idToken) if idToken != null =>
+        ConnektLogger(LogFile.ACCESS).info("GoogleOAuth Verified : " + idToken.getPayload)
+        val email = idToken.getPayload.getEmail
+        userService.getUserInfo(email).get
+      case _ => None
     }
-    else None
   }
 
   private val otpClock =  new Clock(60)
@@ -80,3 +83,4 @@ object AuthenticationService extends Instrumented {
   }
 
 }
+
