@@ -67,7 +67,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                             case _ => r.getComputedChannelData
                           }
                           val pnRequestData = channelData.asInstanceOf[PNRequestData]
-                          pnRequestData.copy(data = pnRequestData.data.put("contextId", r.contextId.orEmpty).put("messageId", r.id)).data
+                          pnRequestData.data.put("contextId", r.contextId.orEmpty).put("messageId", r.id)
                         }
                       }).toMap
 
