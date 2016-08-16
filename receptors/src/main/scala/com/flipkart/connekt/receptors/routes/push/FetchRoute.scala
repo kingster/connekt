@@ -24,7 +24,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
-import com.flipkart.connekt.commons.utils.StringUtils._
+
 import scala.collection.immutable.Seq
 import scala.concurrent.duration._
 import scala.util.Try
@@ -67,7 +67,7 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                             case _ => r.getComputedChannelData
                           }
                           val pnRequestData = channelData.asInstanceOf[PNRequestData]
-                          pnRequestData.copy(data = pnRequestData.data.put("contextId", r.contextId.orEmpty).put("messageId", r.id))
+                          pnRequestData.data.put("contextId", r.contextId.orEmpty).put("messageId", r.id)
                         }
                       }).toMap
 
