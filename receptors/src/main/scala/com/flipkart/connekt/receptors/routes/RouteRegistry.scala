@@ -25,7 +25,7 @@ import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
 
   val health = new SystemStatus().route
-  val ldap = new LdapAuthRoute().route
+  val ldap = new UserAuthRoute().route
   val registration = new RegistrationRoute().route
   val send = new SendRoute().route
   val callback = new CallbackRoute().route

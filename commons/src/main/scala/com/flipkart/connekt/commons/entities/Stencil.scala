@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
 import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize}
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
 import com.flipkart.connekt.commons.entities.StencilEngine.StencilEngine
+import com.flipkart.connekt.commons.utils.StringUtils._
 
 class Stencil() {
   @Column(name = "id")
@@ -39,6 +40,9 @@ class Stencil() {
   @Column(name = "name")
   var name: String = _
 
+  @Column(name = "type")
+  var `type`: String = _
+
   @Column(name = "createdBy")
   var createdBy: String = _
 
@@ -58,6 +62,13 @@ class Stencil() {
   var bucket: String = _
 
   override def toString = s"Stencil($id, $name, $component, $engine, $engineFabric)"
+
+  def validate() = {
+    require(bucket.isDefined, "`bucket` must be defined.")
+    require(name.isDefined, "`name` must be defined.")
+    require(`type`.isDefined, "`type` must be defined.")
+  }
+
 }
 
 object StencilEngine extends Enumeration {

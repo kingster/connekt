@@ -13,8 +13,8 @@
 package com.flipkart.connekt.commons.sync
 
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
-import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 import org.apache.curator.framework.recipes.cache._
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -31,10 +31,10 @@ class SyncManager(zkQuorum: String) {
   private val sessionTimeout = 100000
   private val connectionTimeout = 15000
 
-  private val BUCKET_NODE_PATH: String = s"/connekt-sync-${ConfigUtils.getConfEnvironment}"
+  private val BUCKET_NODE_PATH: String = s"/connekt-sync-${ConnektConfig.getString("sync.cluster.name").getOrElse("local")}"
 
   /** CuratorFramework Client */
-  private lazy val client: CuratorFramework = CuratorFrameworkFactory.newClient(zkQuorum, sessionTimeout, connectionTimeout, new RetryForever(1000));
+  private lazy val client: CuratorFramework = CuratorFrameworkFactory.newClient(zkQuorum, sessionTimeout, connectionTimeout, new RetryForever(1000))
 
   /** PathChildrenCache Watcher */
   private lazy val cache: TreeCache = new TreeCache(client, BUCKET_NODE_PATH)

@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFa
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.{APNSResponseStatus, InternalStatus}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.relayrides.pushy.apns.PushNotificationResponse
@@ -29,9 +30,9 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class APNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)] {
+class APNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)] with Instrumented {
 
-  override val map: ((Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => {
+  override val map: ((Try[PushNotificationResponse[SimpleApnsPushNotification]], APNSRequestTracker)) => Future[List[PNCallbackEvent]] = responseTrackerPair => profile("map") {
 
     val tryResponse = responseTrackerPair._1
     val requestTracker = responseTrackerPair._2
