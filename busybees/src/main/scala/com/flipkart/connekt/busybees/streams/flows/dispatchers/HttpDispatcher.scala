@@ -26,7 +26,7 @@ class HttpDispatcher(actorSystemConf: Config) {
   implicit val httpMat: ActorMaterializer = ActorMaterializer()
   implicit val ec: ExecutionContextExecutor = httpSystem.dispatcher
 
-  private val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("android.googleapis.com",443)(httpMat)
+  private val gcmPoolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("fcm.googleapis.com",443)(httpMat)
 
   private val wnsPoolClientFlow = Http().superPool[WNSRequestTracker]()(httpMat)
 

@@ -33,13 +33,12 @@ class AndroidTopologyTest extends TopologyUTSpec {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("android.googleapis.com", 443)
+    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("fcm.googleapis.com", 443)
 
     val cRequest = s"""
-                     |{
+                     |{ "id" : "123456789",
                      |	"channel": "PN",
                      |	"sla": "H",
-                     |	"stencilId": "retail-app-base-0x23",
                      |	"scheduleTs": 12312312321,
                      |	"channelData": {
                      |		"type": "PN",
@@ -49,7 +48,6 @@ class AndroidTopologyTest extends TopologyUTSpec {
                      |			"id": "${System.currentTimeMillis()}",
                      |			"triggerSound": true,
                      |			"notificationType": "Text"
-                     |
                      |		}
                      |	},
                      |	"channelInfo" : {
@@ -58,14 +56,15 @@ class AndroidTopologyTest extends TopologyUTSpec {
                      |    	"delayWhileIdle": true,
                      |     "platform" :  "android",
                      |     "appName" : "RetailApp",
-                     |     "deviceIds" : ["fdb4d2071b8f53ad8f877774f0c38d07"]
+                     |     "deviceIds" : ["81adb899c58c9c8275e2b1ffa2d03861"]
                      |	},
+                     |  "clientId" : "123456",
                      |	"meta": {}
                      |}
                    """.stripMargin.getObj[ConnektRequest]
 
 
-    val result = Source.repeat(cRequest)
+    val result = Source.single(cRequest)
       .via(new RenderFlow().flow)
       .via(new AndroidChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
       .via(new GCMDispatcherPrepare().flow)
