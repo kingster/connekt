@@ -34,7 +34,8 @@ object AuthenticationService extends Instrumented {
 
   private lazy val userService: UserInfoService = ServiceFactory.getUserInfoService
 
-  private final val GOOGLE_OAUTH_CLIENT_ID = ConnektConfig.getString("auth.google.clientId").get
+  private lazy final val GOOGLE_OAUTH_CLIENT_ID = ConnektConfig.getString("auth.google.clientId").get
+  private lazy final val ALLOWED_DOMAINS = ConnektConfig.getList[String]("auth.google.allowedDomains").toList
   private lazy val verifier = new GoogleIdTokenVerifier.Builder(GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance)
     .setAudience(util.Arrays.asList(GOOGLE_OAUTH_CLIENT_ID))
     .setIssuer("accounts.google.com")
@@ -53,11 +54,16 @@ object AuthenticationService extends Instrumented {
 
         val email = idToken.getPayload.getEmail
         val domainGroup = email.split("@")(1)
-        val groups = userService.getUserInfo(email).getOrElse(None).map(_.getUserGroups.+:(domainGroup)).getOrElse(List.empty).distinct.mkString(",")
-        val transientUser = new AppUser(email, generateTransientApiKey, groups, email)
-        setTransientUser(transientUser).map {
-          case true => Option(transientUser)
-          case false => throw new RuntimeException("Failed to generate / persist transient-user.")
+        ALLOWED_DOMAINS.contains(domainGroup) match {
+          case true =>
+            val groups = (domainGroup :: userService.getUserInfo(email).getOrElse(None).map(_.getUserGroups).getOrElse(List.empty)).distinct.mkString(",")
+            val transientUser = new AppUser(email, generateTransientApiKey, groups, email)
+            setTransientUser(transientUser).map {
+              case true => Option(transientUser)
+              case false => throw new RuntimeException("Failed to generate / persist transient-user.")
+            }
+
+          case false => Success(None)
         }
 
       case Success(idToken) => Success(None)

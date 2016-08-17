@@ -36,7 +36,7 @@ class UserAuthRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                   case Success(appUser) if appUser.isDefined =>
                     complete(GenericResponse(StatusCodes.OK.intValue, null, Response("Logged in successfully. Please note your tokenId.", Map("tokenId" -> appUser.get.apiKey, "userId" -> appUser.get.userId))))
                   case Success(appUser) if appUser.isEmpty =>
-                    complete(GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Invalid google credentials, authentication failed", null)))
+                    complete(GenericResponse(StatusCodes.Unauthorized.intValue, null, Response("Invalid google credentials / dis-allowed domain, authentication failed", null)))
                   case Failure(t) =>
                     complete(GenericResponse(StatusCodes.InternalServerError.intValue, null, Response("Unable to generate token", null)))
                 }
