@@ -71,9 +71,14 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         }
                       }).toMap
 
+                      val transformedRequests = stencilService.getStencilsByName(s"ckt-${appName.toLowerCase}-fetch").headOption match {
+                        case None => pushRequests
+                        case Some(stencil) => stencilService.materialize(stencil, pushRequests.getJsonNode)
+                      }
+
                       val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
 
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", transformedRequests))
                         .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs"))))
                     }
                   }
