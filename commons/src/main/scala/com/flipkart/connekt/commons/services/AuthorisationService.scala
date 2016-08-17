@@ -67,17 +67,20 @@ class AuthorisationService(privDao: PrivDao, userInfoDao: TUserInfo) extends TAu
     read(userName, UserType.USER).map(_.resources.split(',').toList).getOrElse(List())
   }
 
-  def getGroups(userName: String): Option[Array[String]] = {
-    LocalCacheManager.getCache(LocalCacheType.UserGroups).get[Array[String]](userName).orElse {
-      val groups = userInfoDao.getUserInfo(userName).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).getOrElse(Array.empty[String])
-      LocalCacheManager.getCache(LocalCacheType.UserGroups).put(userName, groups)
-      Option(groups)
+  def getGroups(userName: String): Option[List[String]] = {
+    LocalCacheManager.getCache(LocalCacheType.UserGroups).get[List[String]](userName).orElse {
+      val userDomainGroup = if(userName.contains("@")) Some(userName.split("@")(1)) else None
+      val userGroups = userInfoDao.getUserInfo(userName).flatMap(u => Option(u.groups)).map(_.split(',').map(_.trim)).map(_.toList).getOrElse(List.empty[String])
+
+      val userAllGroups = userGroups ::: userDomainGroup.toList
+      LocalCacheManager.getCache(LocalCacheType.UserGroups).put(userName, userAllGroups)
+      Option(userAllGroups.toList)
     }
   }
 
   override def getAllPrivileges(userName: String): List[String] = {
     val userPrivs = getUserPrivileges(userName)
-    val groupPrivs =  getGroups(userName).getOrElse(Array.empty[String]).flatMap(getGroupPrivileges)
+    val groupPrivs =  getGroups(userName).getOrElse(List.empty[String]).flatMap(getGroupPrivileges)
     userPrivs ++ groupPrivs ++ globalPrivileges
   }
 

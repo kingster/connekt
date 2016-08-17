@@ -61,6 +61,8 @@ class AppUser {
     case _ => false
   }
 
+  def getUserGroups = groups.split(",").toList
+
   override def hashCode(): Int = {
     val state = Seq(userId, apiKey, groups, updatedBy)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
