@@ -13,25 +13,8 @@
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
+import com.flipkart.connekt.commons.iomodels.XmppDownstreamResponse
 
-case class XmppAck(
-              @JsonProperty("message_id") messageId: String,
-              @JsonProperty(required = false) from: String) extends XmppDownstreamResponse {
-  override def responseType(): String = "ack"
-}
-
-/** Sample from GCM
-  *
-  * <message id="">
-  * <gcm xmlns="google:mobile:data">
-  *   {
-  *   "from":"REGID",
-  *   "message_id":"m-1366082849205"
-  *   "message_type":"ack"
-  *   }
-  *   </gcm>
-  *   </message>
-  */
+case class XmppUpstreamAck (@JsonProperty("message_id") messageId: String,
+  @JsonProperty("message_type") messageType: String,
+  @JsonProperty(required = true) to: String)
