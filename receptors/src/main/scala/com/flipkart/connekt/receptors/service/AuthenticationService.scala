@@ -45,14 +45,14 @@ object AuthenticationService extends Instrumented {
   def authenticateKey(apiKey: String): Option[AppUser] = {
     userService.getUserByKey(apiKey) match {
       case Success(Some(user)) => Option(user)
-      case r @ (Success(None) | Failure(_)) => getTransientUser(apiKey).getOrElse(None)
+      case _ => getTransientUser(apiKey).getOrElse(None)
     }
   }
 
   @Timed("authenticateGoogleOAuth")
   def authenticateGoogleOAuth(token:String): Try[Option[AppUser]] = {
-    Try_(verifier.verify(token)) match {
-      case Success(idToken) if idToken != null =>
+    Try_(verifier.verify(token)) map {
+      case idToken if idToken != null =>
         ConnektLogger(LogFile.ACCESS).info("GoogleOAuth verified : " + idToken.getPayload)
 
         val email = idToken.getPayload.getEmail
@@ -61,18 +61,15 @@ object AuthenticationService extends Instrumented {
           case true =>
             val groups = (domainGroup :: userService.getUserInfo(email).getOrElse(None).map(_.getUserGroups).getOrElse(List.empty)).distinct.mkString(",")
             val transientUser = new AppUser(email, generateTransientApiKey, groups, email)
-            setTransientUser(transientUser).map {
+            addTransientUser(transientUser).map {
               case true => Option(transientUser)
               case false => throw new RuntimeException("Failed to generate / persist transient-user.")
-            }
+            }.get
 
-          case false => Success(None)
+          case false => None
         }
 
-      case Success(idToken) => Success(None)
-      case Failure(t) =>
-        ConnektLogger(LogFile.ACCESS).error("GoogleOAuth verification failed", t)
-        Failure(t)
+      case idToken => None
     }
   }
 
@@ -88,7 +85,7 @@ object AuthenticationService extends Instrumented {
     totp.now()
   }
 
-  private def setTransientUser(user: AppUser) = Try_ {
+  private def addTransientUser(user: AppUser) = Try_ {
     DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).put[AppUser](user.apiKey, user)
   }
 
