@@ -43,7 +43,10 @@ object AuthenticationService extends Instrumented {
 
   @Timed("authenticateKey")
   def authenticateKey(apiKey: String): Option[AppUser] = {
-    userService.getUserByKey(apiKey).orElse(getTransientUser(apiKey)).getOrElse(None)
+    userService.getUserByKey(apiKey) match {
+      case Success(Some(user)) => Option(user)
+      case r @ (Success(None) | Failure(_)) => getTransientUser(apiKey).getOrElse(None)
+    }
   }
 
   @Timed("authenticateGoogleOAuth")
