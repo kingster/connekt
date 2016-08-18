@@ -16,6 +16,7 @@ import java.util.UUID
 
 import com.flipkart.connekt.commons.cache._
 import com.flipkart.connekt.commons.dao.DaoFactory
+import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.tests.CommonsBaseTest
 
 import scala.concurrent.duration.DurationInt
@@ -54,21 +55,20 @@ class CacheTest extends CommonsBaseTest {
     cache.get[String]("k2").get shouldEqual data
   }
 
-
   "DistributedCacheManager" should "get" in {
     DistributedCacheManager.getCache(DistributedCacheType.Default).get[String](keyName).get shouldEqual data
   }
 
   "DistributedCacheManager" should "write different" in {
-    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[String](keyName, "i-dont-care") shouldEqual true
+    DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).put[AppUser](keyName, new AppUser("userId", "apiKey", "groups", "contact")) shouldEqual true
   }
 
   "DistributedCacheManager" should "write different type" in {
-    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[Int]("int",1) shouldEqual true
+    DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).put[Int]("int", 1) shouldEqual true
   }
 
   "DistributedCacheManager" should "get different type" in {
-    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[Int]("int").get shouldEqual 1
+    DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).get[Int]("int").get shouldEqual 1
   }
 
   "DistributedCacheManager" should "get different" in {
@@ -76,26 +76,26 @@ class CacheTest extends CommonsBaseTest {
   }
 
   "DistributedCacheManager" should "write different list" in {
-    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[List[String]]("list-string", List("a", "b")) shouldEqual true
+    DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).put[List[String]]("list-string", List("a", "b")) shouldEqual true
   }
 
   "DistributedCacheManager" should "get different list" in {
-    val d = DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[List[String]]("list-string").get
+    val d = DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).get[List[String]]("list-string").get
     d shouldEqual List("a", "b")
   }
 
   "Distributed CacheManger" should "write in batch" in {
-    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[String](List("a" -> "a", "b" ->"b")) shouldEqual true
-    val result = DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[String](List("a", "b"))
+    DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).put[String](List("a" -> "a", "b" ->"b")) shouldEqual true
+    val result = DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).get[String](List("a", "b"))
     result.size shouldEqual 2
     result("a") shouldEqual "a"
   }
 
   "Distributed CacheManager" should "delete element" in {
-    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).put[String]("x", "y")
-    DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).remove("x")
+    DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).put[String]("x", "y")
+    DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).remove("x")
 
-    val result = DistributedCacheManager.getCache(DistributedCacheType.AccessTokens).get[String]("x")
+    val result = DistributedCacheManager.getCache(DistributedCacheType.TransientUsers).get[String]("x")
     println("result = " + result)
 
     result shouldEqual None
@@ -109,14 +109,5 @@ class CacheTest extends CommonsBaseTest {
   "LocalCacheManager" should "get" in {
     LocalCacheManager.getCache(LocalCacheType.Default).get[String](keyName).get shouldEqual data
   }
-
-//
-//  "LocalCacheManager" should "insert null" in {
-//    LocalCacheManager.getCache[String](LocalCacheType.Default).put("null", null) shouldEqual true
-//  }
-//
-//  "LocalCacheManager" should "get null" in {
-//    LocalCacheManager.getCache[String](LocalCacheType.Default).get("null").isDefined shouldEqual false
-//  }
 
 }
