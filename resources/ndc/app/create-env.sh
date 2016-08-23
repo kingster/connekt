@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-curl -v -X PUT 'http://repo-svc-app-0001.nm.flipkart.com:8080/env/fk-connekt-app?appkey=connekt'  -d \
+curl -vvv -X PUT 'http://repo-svc-app-0001.nm.flipkart.com:8080/env/fk-connekt-app?appkey=connekt'  -d \
 '[
     {
         "repoName": "fk-pf-connekt",
@@ -14,7 +14,7 @@ curl -v -X PUT 'http://repo-svc-app-0001.nm.flipkart.com:8080/env/fk-connekt-app
     },
     {
         "repoReferenceType": "EXACT",
-        "repoVersion": 62,
+        "repoVersion": 96,
         "repoName": "specter"
     }
 ]'   -H 'Content-Type: application/json'
