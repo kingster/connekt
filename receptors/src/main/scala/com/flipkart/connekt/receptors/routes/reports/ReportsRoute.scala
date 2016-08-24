@@ -46,7 +46,7 @@ class ReportsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                     meteredResource(s"reportsPushContactEvents.$appName") {
                       parameters("startTs" ? 0L) { (startTs) =>
                         val events = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$contactId", Channel.PUSH, startTs, System.currentTimeMillis()).getOrElse(Nil)
-                        val messages = events.map(e => ServiceFactory.getPNMessageService.getRequestInfo(e._1.asInstanceOf[PNCallbackEvent].messageId).getOrElse(None).orNull)
+                        val messages = events.flatMap(e => ServiceFactory.getPNMessageService.getRequestInfo(e._1.asInstanceOf[PNCallbackEvent].messageId).getOrElse(None))
                         val finalTs = events.map(_._2).reduceLeftOption(_ max _).getOrElse(System.currentTimeMillis)
 
                         complete(GenericResponse(StatusCodes.OK.intValue, Map("contactId" -> contactId, "appName" -> appName, "startTs" -> startTs), Response(s"messages fetched for $appName / $contactId", Map("messages" -> messages, "endTs" -> finalTs, "count" -> messages.size))))
