@@ -67,8 +67,7 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
       })
 
       if (wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0) {
-        val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
-        if (!dryRun) {
+        if (!message.isTestRequest) {
           ConnektLogger(LogFile.PROCESSORS).trace(s"WindowsChannelFormatter pushed downstream for: ${message.id}")
           wnsRequestEnvelopes
         } else {
