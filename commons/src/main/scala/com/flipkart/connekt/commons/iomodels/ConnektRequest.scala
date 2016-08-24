@@ -45,6 +45,8 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
     require(channelInfo != null, "`channelInfo` field cannot be null.")
   }
 
+  def isTestRequest : Boolean = meta.get("x-perf-test").exists(v => v.trim.equalsIgnoreCase("true"))
+
   def getComputedChannelData(implicit stencilService: TStencilService): ChannelRequestData =
     stencilId.map(stencilService.get(_)).map { stencil =>
       Channel.withName(channel) match {
