@@ -39,6 +39,7 @@ object AuthenticationService extends Instrumented {
   private lazy val verifier = new GoogleIdTokenVerifier.Builder(GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance)
     .setAudience(util.Arrays.asList(GOOGLE_OAUTH_CLIENT_ID))
     .setIssuer("accounts.google.com")
+    .setPublicCertsEncodedUrl("http://www.googleapis.com:443/oauth2/v1/certs")
     .build()
 
   @Timed("authenticateKey")
