@@ -28,17 +28,19 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import org.jboss.aerogear.security.otp.Totp
 import org.jboss.aerogear.security.otp.api.{Base32, Clock}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 object AuthenticationService extends Instrumented {
 
   private lazy val userService: UserInfoService = ServiceFactory.getUserInfoService
 
+  private lazy final val googlePublicCertsUri = ConnektConfig.getString("auth.google.publicCertsUri").getOrElse("https://www.googleapis.com/oauth2/v1/certs")
   private lazy final val GOOGLE_OAUTH_CLIENT_ID = ConnektConfig.getString("auth.google.clientId").get
   private lazy final val ALLOWED_DOMAINS = ConnektConfig.getList[String]("auth.google.allowedDomains").toList
   private lazy val verifier = new GoogleIdTokenVerifier.Builder(GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance)
     .setAudience(util.Arrays.asList(GOOGLE_OAUTH_CLIENT_ID))
     .setIssuer("accounts.google.com")
+    .setPublicCertsEncodedUrl(googlePublicCertsUri)
     .build()
 
   @Timed("authenticateKey")
