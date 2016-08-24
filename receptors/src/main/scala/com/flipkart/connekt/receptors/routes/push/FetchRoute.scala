@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.entities.MobilePlatform._
 import com.flipkart.connekt.commons.factories.ServiceFactory
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
@@ -59,16 +60,25 @@ class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         fetchedMessages.map(_.filter(_.expiryTs.forall(_ >= System.currentTimeMillis))).getOrElse(List.empty[ConnektRequest])
                       })
 
-                      val pushRequests = messages.get.map(r =>
-                        r.id -> (Option(r.channelData) match {
-                          case Some(cD) => cD
-                          case None => r.getComputedChannelData
-                        })
-                      ).toMap
+                      val pushRequests = messages.get.map(r => {
+                        r.id -> {
+                          val channelData = Option(r.channelData) match {
+                            case Some(PNRequestData(_, pnData)) if pnData != null => r.channelData
+                            case _ => r.getComputedChannelData
+                          }
+                          val pnRequestData = channelData.asInstanceOf[PNRequestData]
+                          pnRequestData.data.put("contextId", r.contextId.orEmpty).put("messageId", r.id)
+                        }
+                      }).toMap
+
+                      val transformedRequests = stencilService.getStencilsByName(s"ckt-${appName.toLowerCase}-fetch").headOption match {
+                        case None => pushRequests
+                        case Some(stencil) => stencilService.materialize(stencil, pushRequests.getJsonNode)
+                      }
 
                       val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
 
-                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", pushRequests))
+                      complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", transformedRequests))
                         .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs"))))
                     }
                   }

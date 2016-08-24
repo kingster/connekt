@@ -21,6 +21,7 @@ import akka.http.scaladsl.model.HttpEntity
 import akka.stream.Materializer
 import akka.util.ByteString
 import com.fasterxml.jackson.core.`type`.TypeReference
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
@@ -94,6 +95,8 @@ object StringUtils {
 
   implicit class JSONMarshallFunctions(val o: AnyRef) {
     def getJson = objMapper.writeValueAsString(o)
+
+    def getJsonNode = objMapper.convertValue(o, classOf[ObjectNode])
   }
 
   implicit class JSONUnMarshallFunctions(val s: String) {
