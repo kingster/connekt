@@ -54,8 +54,7 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       })
 
       if (apnsEnvelopes.nonEmpty && ttlInMillis > System.currentTimeMillis()) {
-        val dryRun = message.meta.get("x-perf-test").exists(_.trim.equalsIgnoreCase("true"))
-        if (!dryRun) {
+        if (!message.isTestRequest) {
           ConnektLogger(LogFile.PROCESSORS).trace(s"IOSChannelFormatter pushed downstream for: ${message.id}")
           apnsEnvelopes
         }

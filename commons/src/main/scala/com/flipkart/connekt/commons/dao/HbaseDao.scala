@@ -140,7 +140,7 @@ trait HbaseDao extends Instrumented {
   }
 
   @throws[IOException]
-  @Timed("mget")
+  @Timed("hmget")
   def fetchMultiRows(rowKeys: List[String], colFamilies: List[String])(implicit hTable: Table): Map[String, RowData] = {
 
     rowKeys
