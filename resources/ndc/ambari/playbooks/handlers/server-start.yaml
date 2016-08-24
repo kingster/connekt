@@ -1,0 +1,2 @@
+  - name: make sure ambari server is running
+    service: name=ambari-server pattern=org.apache.ambari.server.controller.AmbariServer state=started

@@ -1,0 +1,2 @@
+- name: execute ambari agent setup templates
+  command: /usr/share/fdp-infra-hdp-scripts/setup-ambari-agent.sh

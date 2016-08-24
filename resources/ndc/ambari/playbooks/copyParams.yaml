@@ -1,0 +1,4 @@
+- hosts: ac
+  sudo: yes
+  tasks:
+  - include: tasks/copyParams.yaml
