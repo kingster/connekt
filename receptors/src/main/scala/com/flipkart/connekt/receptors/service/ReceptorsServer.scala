@@ -28,15 +28,16 @@ import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.receptors.directives.{AccessLogDirective, CORSDirectives}
 import com.flipkart.connekt.receptors.routes.{BaseJsonHandler, RouteRegistry}
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
+import com.typesafe.config.Config
 import scala.collection.immutable
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 
 object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORSDirectives {
 
-  implicit val system = ActorSystem("ckt-receptors")
-  implicit val mat = ActorMaterializer.create(system)
-  implicit val ec = system.dispatcher
+  implicit var system: ActorSystem = _
+  implicit var mat: ActorMaterializer = _
+  implicit var ec: ExecutionContextExecutor = _
 
   private val bindHost = ConnektConfig.getString("receptors.bindHost").getOrElse("0.0.0.0")
   private val bindPort = ConnektConfig.getInt("receptors.bindPort").getOrElse(28000)
@@ -92,7 +93,11 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
     case false => allRoutes
   }
 
-  def apply() = {
+  def apply(config: Config) = {
+    system = ActorSystem("ckt-receptors", config)
+    mat = ActorMaterializer.create(system)
+    ec = system.dispatcher
+
     httpService = Http().bindAndHandle(routeWithLogging, bindHost, bindPort)
 
     if(enableHttps) {

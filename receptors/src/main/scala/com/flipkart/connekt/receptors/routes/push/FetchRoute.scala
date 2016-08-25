@@ -13,6 +13,8 @@
 package com.flipkart.connekt.receptors.routes.push
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.Channel
 import com.flipkart.connekt.commons.entities.MobilePlatform._
@@ -22,7 +24,7 @@ import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
-
+import com.flipkart.connekt.receptors.wire.ResponseUtils._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
@@ -80,11 +82,9 @@ class FetchRoute(system: ActorSystem)(implicit am: ActorMaterializer) extends Ba
 
                             val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
 
-                          transformedRequests
-/*
-                            complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", transformedRequests))
-                              .respondWithHeaders(Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs"))))
-*/
+                            GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", transformedRequests))
+                              .respondWithHeaders(scala.collection.immutable.Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs")))
+
                         }(ioDispatcher)
                       }
                     }
