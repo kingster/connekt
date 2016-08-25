@@ -84,7 +84,7 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
   }
 
   val allRoutes = cors {
-    new RouteRegistry().allRoutes
+    new RouteRegistry(system).allRoutes
   }
 
   def routeWithLogging = ConnektConfig.getString("http.request.log").getOrElse("true").toBoolean match {

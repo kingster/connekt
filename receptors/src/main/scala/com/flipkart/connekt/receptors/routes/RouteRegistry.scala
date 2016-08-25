@@ -12,6 +12,7 @@
  */
 package com.flipkart.connekt.receptors.routes
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.receptors.directives.AuthenticationDirectives
@@ -22,7 +23,7 @@ import com.flipkart.connekt.receptors.routes.reports.ReportsRoute
 import com.flipkart.connekt.receptors.routes.status.SystemStatus
 import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 
-class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
+class RouteRegistry(system: ActorSystem)(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
 
   val health = new SystemStatus().route
   val ldap = new UserAuthRoute().route
@@ -30,7 +31,7 @@ class RouteRegistry(implicit mat: ActorMaterializer) extends AuthenticationDirec
   val send = new SendRoute().route
   val callback = new CallbackRoute().route
   val report = new ReportsRoute().route
-  val fetch = new FetchRoute().route
+  val fetch = new FetchRoute(system).route
   val stencil = new StencilsRoute().route
   val client = new ClientRoute().route
   val keyChain = new KeyChainRoute().route
