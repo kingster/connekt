@@ -1,0 +1,2 @@
+  - name: make sure Ambari Agent is running
+    service: name=ambari-agent pattern=ambari_agent/main.py state=started

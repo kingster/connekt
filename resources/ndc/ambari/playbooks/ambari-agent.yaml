@@ -1,0 +1,6 @@
+- hosts: ac
+  sudo: yes
+  tasks:
+  - include: common-play.yaml
+  - include: tasks/agent-setup.yaml
+  - include: handlers/agent-start.yaml

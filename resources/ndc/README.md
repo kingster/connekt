@@ -1,0 +1,7 @@
+ 
+#fk-connekt* credentials
+Username: connekt-dev
+Password: c01^1^3!<7
+
+
+export MEGH_API_PASSWORD=$'c01^1^3\x21<7'

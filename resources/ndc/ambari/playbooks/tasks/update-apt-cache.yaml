@@ -1,0 +1,2 @@
+  - name: Update APT Cache
+    command: apt-get update --allow-unauthenticated
