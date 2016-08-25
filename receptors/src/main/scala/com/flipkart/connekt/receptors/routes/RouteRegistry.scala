@@ -28,7 +28,7 @@ class RouteRegistry(system: ActorSystem)(implicit mat: ActorMaterializer) extend
   val health = new SystemStatus().route
   val ldap = new UserAuthRoute().route
   val registration = new RegistrationRoute().route
-  val send = new SendRoute().route
+  val send = new SendRoute(system).route
   val callback = new CallbackRoute().route
   val report = new ReportsRoute().route
   val fetch = new FetchRoute(system).route
