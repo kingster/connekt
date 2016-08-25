@@ -55,7 +55,7 @@ object BusyBeesBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"BusyBees logging using: $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-busybees", "fk-connekt-busybees-akka"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-busybees", "fk-connekt-busybees-akka-nm"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
