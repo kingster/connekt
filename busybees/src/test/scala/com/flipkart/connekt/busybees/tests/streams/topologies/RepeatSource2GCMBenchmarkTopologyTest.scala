@@ -69,13 +69,13 @@ class RepeatSource2GCMBenchmarkTopologyTest extends TopologyUTSpec with Instrume
     })
 
     val qps = meter("android.send")
-    val failure = counter("android.failure")
+
 
     val requestExecutor = HttpDispatcher.gcmPoolClientFlow.map(rT => {
       qps.mark()
-      rT._1.foreach( t => if (t.status.isFailure()) failure.inc())
+      rT._1.foreach(_.entity.getString.getObj[ObjectNode])
       if(0 == (counter.incrementAndGet() % 1000))
-        println(s"RepeatAndroidBenchmarkTopology #Rate: MR[${qps.getMeanRate}}], 1MR[${qps.getOneMinuteRate}}] upto ${counter.get()} messages, Failure ${failure.getCount}")
+        println(s"RepeatAndroidBenchmarkTopology #Rate: MR[${qps.getMeanRate}}], 1MR[${qps.getOneMinuteRate}}] upto ${counter.get()} messages")
     })
 
     //Run the benchmark topology
