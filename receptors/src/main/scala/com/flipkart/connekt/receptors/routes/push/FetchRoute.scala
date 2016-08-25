@@ -31,7 +31,7 @@ class FetchRoute(system: ActorSystem)(implicit am: ActorMaterializer) extends Ba
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events").map(_.toLowerCase)
 
-  implicit val ioDispatcher = system.dispatchers.lookup("route-blocking-dispatcher")
+  implicit val ioDispatcher = system.dispatchers.lookup("akka.actor.route-blocking-dispatcher")
 
   lazy implicit val stencilService = ServiceFactory.getStencilService
 
