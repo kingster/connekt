@@ -84,7 +84,7 @@ object ReceptorsServer extends BaseJsonHandler with AccessLogDirective with CORS
       }
   }
 
-  val allRoutes = cors {
+  lazy val allRoutes = cors {
     new RouteRegistry(system).allRoutes
   }
 
