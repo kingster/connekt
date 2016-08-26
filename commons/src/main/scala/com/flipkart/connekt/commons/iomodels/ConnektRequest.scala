@@ -43,6 +43,7 @@ case class ConnektRequest(@JsonProperty(required = false) id: String,
     require(sla.isDefined, "`sla` field can cannot be null or empty.")
     require(meta != null, "`meta` field cannot be null. It is optional but non-null")
     require(channelInfo != null, "`channelInfo` field cannot be null.")
+    require(contextId.forall(_.length <= 20), "`contextId` can be max 20 characters")
   }
 
   def isTestRequest : Boolean = meta.get("x-perf-test").exists(v => v.trim.equalsIgnoreCase("true"))
