@@ -47,45 +47,47 @@ class FetchRoute(system: ActorSystem)(implicit am: ActorMaterializer) extends Ba
                 get {
                   meteredResource(s"fetch.$platform.$appName") {
                     parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) {(startTs, endTs, skipIds) =>
-                    complete {
-                        Future {
-                            require(startTs < endTs, "startTs must be prior to endTs")
+                      complete {
+                        onSuccess(Future {
+                          require(startTs < endTs, "startTs must be prior to endTs")
 
-                            val safeStartTs = if(startTs < (System.currentTimeMillis - 7.days.toMillis)) System.currentTimeMillis - 1.days.toMillis else startTs
-                            val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, safeStartTs + 1, endTs)
-                            val messageService = ServiceFactory.getPNMessageService
+                          val safeStartTs = if(startTs < (System.currentTimeMillis - 7.days.toMillis)) System.currentTimeMillis - 1.days.toMillis else startTs
+                          val requestEvents = ServiceFactory.getCallbackService.fetchCallbackEventByContactId(s"${appName.toLowerCase}$instanceId", Channel.PUSH, safeStartTs + 1, endTs)
+                          val messageService = ServiceFactory.getPNMessageService
 
-                            //Skip all messages which are either read/dismissed or passed in skipIds
-                            val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_._1.asInstanceOf[PNCallbackEvent]).filter(e => seenEventTypes.contains(e.eventType.toLowerCase)).map(_.messageId)).get.toSet
-                            val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
-                              val messageIds: List[String] = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
-                              val filteredMessageIds: List[String] = messageIds.filterNot(skipMessageIds.contains)
-                              val fetchedMessages: Try[List[ConnektRequest]] = messageService.getRequestInfo(filteredMessageIds)
-                              fetchedMessages.map(_.filter(_.expiryTs.forall(_ >= System.currentTimeMillis)).filterNot(_.isTestRequest)).getOrElse(List.empty[ConnektRequest])
-                            })
+                          //Skip all messages which are either read/dismissed or passed in skipIds
+                          val skipMessageIds: Set[String] = skipIds.toSet ++ requestEvents.map(res => res.map(_._1.asInstanceOf[PNCallbackEvent]).filter(e => seenEventTypes.contains(e.eventType.toLowerCase)).map(_.messageId)).get.toSet
+                          val messages: Try[List[ConnektRequest]] = requestEvents.map(res => {
+                            val messageIds: List[String] = res.map(_._1.asInstanceOf[PNCallbackEvent]).map(_.messageId).distinct
+                            val filteredMessageIds: List[String] = messageIds.filterNot(skipMessageIds.contains)
+                            val fetchedMessages: Try[List[ConnektRequest]] = messageService.getRequestInfo(filteredMessageIds)
+                            fetchedMessages.map(_.filter(_.expiryTs.forall(_ >= System.currentTimeMillis)).filterNot(_.isTestRequest)).getOrElse(List.empty[ConnektRequest])
+                          })
 
-                            val pushRequests = messages.get.map(r => {
-                              r.id -> {
-                                val channelData = Option(r.channelData) match {
-                                  case Some(PNRequestData(_, pnData)) if pnData != null => r.channelData
-                                  case _ => r.getComputedChannelData
-                                }
-                                val pnRequestData = channelData.asInstanceOf[PNRequestData]
-                                pnRequestData.data.put("contextId", r.contextId.orEmpty).put("messageId", r.id)
+                          val pushRequests = messages.get.map(r => {
+                            r.id -> {
+                              val channelData = Option(r.channelData) match {
+                                case Some(PNRequestData(_, pnData)) if pnData != null => r.channelData
+                                case _ => r.getComputedChannelData
                               }
-                            }).toMap
-
-                            val transformedRequests = stencilService.getStencilsByName(s"ckt-${appName.toLowerCase}-fetch").headOption match {
-                              case None => pushRequests
-                              case Some(stencil) => stencilService.materialize(stencil, pushRequests.getJsonNode)
+                              val pnRequestData = channelData.asInstanceOf[PNRequestData]
+                              pnRequestData.data.put("contextId", r.contextId.orEmpty).put("messageId", r.id)
                             }
+                          }).toMap
 
-                            val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
+                          val transformedRequests = stencilService.getStencilsByName(s"ckt-${appName.toLowerCase}-fetch").headOption match {
+                            case None => pushRequests
+                            case Some(stencil) => stencilService.materialize(stencil, pushRequests.getJsonNode)
+                          }
 
-                            GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", transformedRequests))
-                              .respondWithHeaders(scala.collection.immutable.Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs")))
+                          val finalTs = requestEvents.getOrElse(List.empty[(CallbackEvent, Long)]).map(_._2).reduceLeftOption(_ max _).getOrElse(endTs)
 
-                        }(ioDispatcher)
+                          GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", transformedRequests))
+                            .respondWithHeaders(scala.collection.immutable.Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs")))
+
+                        }(ioDispatcher)) { result =>
+                          complete(result)
+                        }
                       }
                     }
                   }
