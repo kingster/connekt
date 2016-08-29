@@ -46,9 +46,10 @@ class FetchRoute(system: ActorSystem)(implicit am: ActorMaterializer) extends Ba
             (platform: MobilePlatform, appName: String, instanceId: String) =>
               authorize(user, "FETCH", s"FETCH_$appName") {
                 get {
-                  meteredResource(s"fetch.$platform.$appName") {
-                    parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) {(startTs, endTs, skipIds) =>
-                      onSuccess(Future {
+                  parameters('startTs.as[Long], 'endTs ? System.currentTimeMillis, 'skipIds.*) {(startTs, endTs, skipIds) =>
+                    onSuccess(Future {
+                      profile(s"fetch.$platform.$appName") {
+
                         require(startTs < endTs, "startTs must be prior to endTs")
 
                         val safeStartTs = if(startTs < (System.currentTimeMillis - 7.days.toMillis)) System.currentTimeMillis - 1.days.toMillis else startTs
@@ -84,10 +85,9 @@ class FetchRoute(system: ActorSystem)(implicit am: ActorMaterializer) extends Ba
 
                         GenericResponse(StatusCodes.OK.intValue, null, Response(s"Fetched result for $instanceId", transformedRequests))
                           .respondWithHeaders(scala.collection.immutable.Seq(RawHeader("endTs", finalTs.toString), RawHeader("Access-Control-Expose-Headers", "endTs")))
-
-                      }(ioDispatcher)) { result =>
-                        complete(result)
                       }
+                    }(ioDispatcher)) { result =>
+                      complete(result)
                     }
                   }
                 }
