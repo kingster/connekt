@@ -5,7 +5,7 @@
   - name: Set Service
     set_fact:
       app: daredevil
-  - include: tasks/update-daredevil-soures.yaml
-  - include: tasks/install-connekt-daredevil.yaml
+  - include: tasks/update-soures.yaml
+  - include: tasks/install-connekt-deb.yaml
 
 
