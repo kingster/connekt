@@ -29,7 +29,7 @@ import com.flipkart.connekt.receptors.wire.ResponseUtils._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
-import akka.helpers.AkkaHelpers._
+import akka.connekt.AkkaHelpers._
 
 
 class FetchRoute()(implicit am: ActorMaterializer) extends BaseJsonHandler {

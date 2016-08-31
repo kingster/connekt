@@ -1,4 +1,4 @@
-package akka.helpers
+package akka.connekt
 
 import akka.stream.ActorMaterializer
 
