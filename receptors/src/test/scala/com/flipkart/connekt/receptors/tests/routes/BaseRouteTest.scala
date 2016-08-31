@@ -42,7 +42,7 @@ abstract class BaseRouteTest extends BaseReceptorsTest with Matchers with Scalat
     user = new AppUser("test", "test", "", "")
     stencilRoute = new StencilsRoute().route
     registrationRoute = new RegistrationRoute().route
-    sendRoute = new SendRoute(system).route
+    sendRoute = new SendRoute().route
     clientRoute = new ClientRoute().route
   }
 }

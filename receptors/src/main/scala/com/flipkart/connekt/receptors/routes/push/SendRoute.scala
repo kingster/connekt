@@ -26,15 +26,15 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
-
+import akka.helpers.AkkaHelpers._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class SendRoute(system: ActorSystem)(implicit am: ActorMaterializer) extends BaseJsonHandler {
+class SendRoute()(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   lazy implicit val stencilService = ServiceFactory.getStencilService
-  implicit val ioDispatcher = system.dispatchers.lookup("akka.actor.route-blocking-dispatcher")
+  implicit val ioDispatcher = am.getSystem.dispatchers.lookup("akka.actor.route-blocking-dispatcher")
 
   val route =
     authenticate {

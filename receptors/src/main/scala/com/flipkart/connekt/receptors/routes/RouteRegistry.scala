@@ -23,15 +23,15 @@ import com.flipkart.connekt.receptors.routes.reports.ReportsRoute
 import com.flipkart.connekt.receptors.routes.status.SystemStatus
 import com.flipkart.connekt.receptors.routes.stencils.StencilsRoute
 
-class RouteRegistry(system: ActorSystem)(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
+class RouteRegistry()(implicit mat: ActorMaterializer) extends AuthenticationDirectives {
 
   val health = new SystemStatus().route
   val ldap = new UserAuthRoute().route
   val registration = new RegistrationRoute().route
-  val send = new SendRoute(system).route
+  val send = new SendRoute().route
   val callback = new CallbackRoute().route
   val report = new ReportsRoute().route
-  val fetch = new FetchRoute(system).route
+  val fetch = new FetchRoute().route
   val stencil = new StencilsRoute().route
   val client = new ClientRoute().route
   val keyChain = new KeyChainRoute().route

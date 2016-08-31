@@ -29,12 +29,14 @@ import com.flipkart.connekt.receptors.wire.ResponseUtils._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
+import akka.helpers.AkkaHelpers._
 
-class FetchRoute(system: ActorSystem)(implicit am: ActorMaterializer) extends BaseJsonHandler {
+
+class FetchRoute()(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events").map(_.toLowerCase)
 
-  implicit val ioDispatcher = system.dispatchers.lookup("akka.actor.route-blocking-dispatcher")
+  implicit val ioDispatcher = am.getSystem.dispatchers.lookup("akka.actor.route-blocking-dispatcher")
 
   lazy implicit val stencilService = ServiceFactory.getStencilService
 
