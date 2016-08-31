@@ -27,6 +27,8 @@ object ResponseUtils extends JsonToEntityMarshaller {
       val toResponseMarshaller = PredefinedToResponseMarshallers.fromToEntityMarshaller[GenericResponse](r.status, headers)(gm)
       ToResponseMarshallable(r)(toResponseMarshaller)
     }
+
+    def respond = ResponseUtils.respond(r)
   }
 
   implicit def respond(r: GenericResponse): ToResponseMarshallable = {
@@ -34,3 +36,4 @@ object ResponseUtils extends JsonToEntityMarshaller {
     ToResponseMarshallable(r)(toResponseMarshaller)
   }
 }
+
