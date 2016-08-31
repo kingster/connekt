@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.receptors.routes.push
 
-import akka.actor.ActorSystem
+import akka.connekt.AkkaHelpers._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
@@ -29,7 +29,6 @@ import com.flipkart.connekt.receptors.wire.ResponseUtils._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
-import akka.connekt.AkkaHelpers._
 
 
 class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
