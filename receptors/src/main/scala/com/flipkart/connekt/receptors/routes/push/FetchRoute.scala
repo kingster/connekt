@@ -32,7 +32,7 @@ import scala.util.Try
 import akka.connekt.AkkaHelpers._
 
 
-class FetchRoute()(implicit am: ActorMaterializer) extends BaseJsonHandler {
+class FetchRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   val seenEventTypes = ConnektConfig.getList[String]("core.pn.seen.events").map(_.toLowerCase)
 

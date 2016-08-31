@@ -31,7 +31,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class SendRoute()(implicit am: ActorMaterializer) extends BaseJsonHandler {
+class SendRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
   lazy implicit val stencilService = ServiceFactory.getStencilService
   implicit val ioDispatcher = am.getSystem.dispatchers.lookup("akka.actor.route-blocking-dispatcher")
