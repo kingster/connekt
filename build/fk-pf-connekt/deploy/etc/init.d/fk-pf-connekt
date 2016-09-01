@@ -49,7 +49,7 @@ start()
 
     MODE="$1"
     echo "Starting Connect App ..."
-    COMMAND="${JAVA} ${JAVA_OPTS} -cp \"${CONNEKT_API_BASE_DIR}/jars/*:${CONNEKT_API_JAR}\" com.flipkart.connekt.boot.Boot ${MODE} >> /var/log/flipkart/pf/fk-pf-connekt/catalina.log 2>&1";
+    COMMAND="taskset -c 1-17 ${JAVA} ${JAVA_OPTS} -cp \"${CONNEKT_API_BASE_DIR}/jars/*:${CONNEKT_API_JAR}\" com.flipkart.connekt.boot.Boot ${MODE} >> /var/log/flipkart/pf/fk-pf-connekt/catalina.log 2>&1";
 
     start-stop-daemon --start --quiet --background --make-pidfile \
         --pidfile ${CONNEKT_API_PID_FILE} \
