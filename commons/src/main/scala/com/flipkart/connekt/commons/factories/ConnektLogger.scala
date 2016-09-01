@@ -25,8 +25,14 @@ object ConnektLogger {
   }
 }
 
-object LogFile extends Enumeration {
-  type LogFile = Value
-
-  val ACCESS, FACTORY, SERVICE, DAO, WORKERS, CLIENTS, PROCESSORS, CALLBACKS = Value
+object LogFile extends {
+  type Value = String
+  final val ACCESS = "ACCESS"
+  final val FACTORY = "FACTORY"
+  final val SERVICE = "SERVICE"
+  final val DAO = "DAO"
+  final val WORKERS = "WORKERS"
+  final val CLIENTS = "CLIENTS"
+  final val PROCESSORS = "PROCESSORS"
+  final val CALLBACKS = "CALLBACKS"
 }
