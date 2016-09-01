@@ -28,7 +28,6 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
 
   lazy val MAX_FETCH_EVENTS = ConnektConfig.get("receptors.callback.events.max-results").orElse(Some(100))
   lazy val CALLBACK_QUEUE_NAME = ConnektConfig.get("firefly.kafka.topic").getOrElse("ckt_callback_events")
-  private val queueProducer = queueProducerHelper.kafkaProducerPool.borrowObject()
 
   private def channelEventsDao(channel: Channel.Value) = channel match {
     case Channel.PUSH => pnEventsDao
@@ -50,10 +49,9 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
     }
   }
 
-
   @Timed("enqueueCallbackEvent")
   def enqueueCallbackEvents(events: List[CallbackEvent]): Try[Unit] = Try_ {
-    queueProducerHelper.writeMessages(queueProducer,CALLBACK_QUEUE_NAME, events.map(_.getJson) : _*)
+    queueProducerHelper.writeMessages(CALLBACK_QUEUE_NAME, events.map(_.getJson) : _*)
   }
 
   @Timed("fetchCallbackEvent")

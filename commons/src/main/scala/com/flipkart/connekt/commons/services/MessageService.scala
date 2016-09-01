@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
 class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, kafkaConsumerConf: Config, schedulerService: SchedulerService) extends TMessageService with KafkaConnectionHelper {
 
   private val messageDao: TRequestDao = requestDao
-  private lazy val queueProducer = queueProducerHelper.kafkaProducerPool.borrowObject()
+  private val queueProducer: KafkaProducerHelper = queueProducerHelper
   private val clientRequestTopics = scala.collection.mutable.Map[String, String]()
 
   override def saveRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean): Try[String] = {
@@ -47,7 +47,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
           schedulerService.client.add(ScheduledRequest(reqWithId, requestBucket), scheduleTime)
           ConnektLogger(LogFile.SERVICE).info(s"Scheduled request ${reqWithId.id} at $scheduleTime to $requestBucket")
         case _ =>
-          queueProducerHelper.writeMessages(queueProducer,requestBucket, reqWithId.getJson)
+          queueProducer.writeMessages(requestBucket, reqWithId.getJson)
           ConnektLogger(LogFile.SERVICE).info(s"Saved request ${reqWithId.id} to $requestBucket")
       }
 
@@ -60,7 +60,7 @@ class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfigu
   }
 
   override def enqueueRequest(request: ConnektRequest, requestBucket: String): Unit = {
-    queueProducerHelper.writeMessages(queueProducer,requestBucket, request.getJson)
+    queueProducer.writeMessages(requestBucket, request.getJson)
     ConnektLogger(LogFile.SERVICE).info(s"EnQueued request ${request.id} in bucket $requestBucket")
   }
 
