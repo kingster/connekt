@@ -59,7 +59,7 @@ object StringUtils {
 
   }
 
-  implicit def supplier(obj: => String): org.apache.logging.log4j.util.Supplier[String] = new org.apache.logging.log4j.util.Supplier[String] {
+  def supplier(obj: => String): org.apache.logging.log4j.util.Supplier[String] = new org.apache.logging.log4j.util.Supplier[String] {
     override def get(): String = obj
   }
 
