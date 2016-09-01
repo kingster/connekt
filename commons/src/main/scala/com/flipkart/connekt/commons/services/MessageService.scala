@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
 class MessageService(requestDao: TRequestDao, userConfigurationDao: TUserConfiguration, queueProducerHelper: KafkaProducerHelper, kafkaConsumerConf: Config, schedulerService: SchedulerService) extends TMessageService with KafkaConnectionHelper {
 
   private val messageDao: TRequestDao = requestDao
-  private val queueProducer = queueProducerHelper.kafkaProducerPool.borrowObject()
+  private lazy val queueProducer = queueProducerHelper.kafkaProducerPool.borrowObject()
   private val clientRequestTopics = scala.collection.mutable.Map[String, String]()
 
   override def saveRequest(request: ConnektRequest, requestBucket: String, isCrucial: Boolean): Try[String] = {
