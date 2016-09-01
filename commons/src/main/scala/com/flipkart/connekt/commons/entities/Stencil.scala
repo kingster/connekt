@@ -18,7 +18,9 @@ import javax.persistence.Column
 import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
 import com.fasterxml.jackson.databind.annotation.{JsonDeserialize, JsonSerialize}
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonSerializer, SerializerProvider}
+import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.entities.StencilEngine.StencilEngine
+import com.flipkart.connekt.commons.entities.fabric.{FabricMaker, GroovyFabric}
 import com.flipkart.connekt.commons.utils.StringUtils._
 
 class Stencil() {
@@ -67,7 +69,21 @@ class Stencil() {
     require(bucket.isDefined, "`bucket` must be defined.")
     require(name.isDefined, "`name` must be defined.")
     require(`type`.isDefined, "`type` must be defined.")
+    require(engineFabric.isDefined, "`engineFabric` must be defined.")
+    require(isValid.getOrElse(false), s"stencil component $component not valid")
+
   }
+
+  def isValid = Try_ {
+    engine match {
+      case StencilEngine.GROOVY =>
+        FabricMaker.create[GroovyFabric](engineFabric)
+      case StencilEngine.VELOCITY =>
+        FabricMaker.createVtlFabric(engineFabric)
+    }
+    true
+  }
+
 
 }
 
