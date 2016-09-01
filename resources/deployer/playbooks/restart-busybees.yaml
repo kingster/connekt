@@ -5,4 +5,5 @@
   - name: Set Service
     set_fact:
       app: busybees
+      env: nm
   - include: tasks/start-service.yaml
