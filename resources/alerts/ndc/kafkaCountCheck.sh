@@ -4,6 +4,7 @@ msgCountAndroid=`curl http://10.32.221.147:9000/clusters/ConnektNDCProd/consumer
 msgCountIos=`curl http://10.32.221.147:9000/clusters/ConnektNDCProd/consumers/ckt_ios/topic/push_9cd14ba3079c6ca91ed3d789125777c2 2>&1| awk  '/Total Lag/{getline; print}'| tr -d '  </>' | sed -e 's/td//g'`
 msgCountOpenWeb=`curl http://10.32.221.147:9000/clusters/ConnektNDCProd/consumers/ckt_openweb/topic/push_9cd14ba3079c6ca91ed3d789125777c2 2>&1| awk  '/Total Lag/{getline; print}'| tr -d '  </>' | sed -e 's/td//g'`
 failure=0
+echo "Count: $msgCount"
 
 if [ $msgCountWindows -gt 100000 ]
   then
