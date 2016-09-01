@@ -1,0 +1,10 @@
+- hosts: receptors
+  serial: 5
+  gather_facts: no
+  tasks:
+  - name: Update
+    command: sudo bash -c "echo 'export DART_CONFIG_SVC_BUCKETS=prod-fdpingestion-specter' > /etc/default/fk-bigfoot-dart.env ; echo 'export SPECTER_CONFIG_SVC_BUCKETS=prod-fdp-specter' >> /etc/default/fk-bigfoot-dart.env"
+  - name: Install
+    command: sudo apt-get --yes --allow-unauthenticated install specter --reinstall
+
+

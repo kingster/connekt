@@ -40,7 +40,7 @@ object ReceptorsBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"Receptors Logging using $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors", "fk-connekt-barklice"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors", "fk-connekt-barklice", "fk-connekt-receptors-akka"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
@@ -74,7 +74,7 @@ object ReceptorsBoot extends BaseApp {
       ServiceFactory.initStencilService(DaoFactory.getStencilDao)
 
       //Start up the receptors
-      ReceptorsServer()
+      ReceptorsServer(ConnektConfig.getConfig("react").get)
 
       ConnektLogger(LogFile.SERVICE).info("Started `Receptors` app")
     }

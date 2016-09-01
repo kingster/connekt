@@ -17,13 +17,13 @@ import com.flipkart.connekt.commons.cache.{LocalCacheManager, LocalCacheType}
 import com.flipkart.connekt.commons.core.Wrappers._
 import com.flipkart.connekt.commons.dao.TStencilDao
 import com.flipkart.connekt.commons.entities.fabric._
-import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilsEnsemble, StencilEngine}
+import com.flipkart.connekt.commons.entities.{Bucket, Stencil, StencilEngine, StencilsEnsemble}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.sync.SyncType._
 import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncMessage, SyncType}
 import com.flipkart.metrics.Timed
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 class StencilService(stencilDao: TStencilDao) extends TStencilService with Instrumented with SyncDelegate {
 
@@ -32,21 +32,6 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
   private def stencilCacheKey(id: String, version: Option[String] = None) = id + version.getOrElse("")
 
   def fabricCacheKey(id: String, component: String, version: String) = id + component + version
-
-  def checkStencil(stencil: Stencil): Try[Boolean] = {
-    try {
-      val fabric = stencil.engine match {
-        case StencilEngine.GROOVY =>
-          FabricMaker.create[GroovyFabric](stencil.engineFabric)
-        case StencilEngine.VELOCITY =>
-          FabricMaker.createVtlFabric(stencil.engineFabric)
-      }
-      Success(true)
-    } catch {
-      case e: Exception =>
-        Failure(e)
-    }
-  }
 
   @Timed("render")
   def materialize(stencil: Stencil, req: ObjectNode): AnyRef = {
@@ -63,32 +48,29 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
   }
 
   @Timed("add")
-  def add(id: String, stencils: List[Stencil]): Try[Unit] = {
+  def add(id: String, stencils: List[Stencil]): Try[Unit] = Try_ {
     stencils.foreach(stencil => {
       stencilDao.writeStencil(stencil)
     })
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id), stencils)
-    Success(Unit)
   }
 
   @Timed("update")
-  def update(id: String, stencils: List[Stencil]): Try[Unit] = {
+  def update(id: String, stencils: List[Stencil]): Try[Unit] = Try_ {
     stencils.foreach(stencil => {
       stencilDao.writeStencil(stencil)
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id), stencils)
-    Success(Unit)
   }
 
   @Timed("update")
-  def updateWithIdentity(id: String, prevName: String, stencils: List[Stencil]): Try[Unit] = {
+  def updateWithIdentity(id: String, prevName: String, stencils: List[Stencil]): Try[Unit] = Try_ {
     stencils.foreach(stencil => {
       stencilDao.updateStencilWithIdentity(prevName, stencil)
     })
     SyncManager.get().publish(new SyncMessage(SyncType.STENCIL_CHANGE, List(id)))
     LocalCacheManager.getCache(LocalCacheType.Stencils).put[List[Stencil]](stencilCacheKey(id), stencils)
-    Success(Unit)
   }
 
   @Timed("get")
@@ -119,13 +101,13 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
   }
 
   @Timed("addBucket")
-  def addBucket(bucket: Bucket): Try[Unit] = {
+  def addBucket(bucket: Bucket): Try[Unit] = Try_ {
     getBucket(bucket.name) match {
       case Some(bck) =>
         Failure(new Exception(s"Bucket already exists for name: ${bucket.name}"))
       case _ =>
+        stencilDao.writeBucket(bucket)
         LocalCacheManager.getCache(LocalCacheType.StencilsBucket).put[Bucket](bucket.name, bucket)
-        Success(stencilDao.writeBucket(bucket))
     }
   }
 
@@ -149,10 +131,9 @@ class StencilService(stencilDao: TStencilDao) extends TStencilService with Instr
 
 
   @Timed("addStencilsEnsemble")
-  def addStencilComponents(stencilComponents: StencilsEnsemble): Try[Unit] = {
+  def addStencilComponents(stencilComponents: StencilsEnsemble): Try[Unit] = Try_ {
     stencilDao.writeStencilsEnsemble(stencilComponents)
     LocalCacheManager.getCache(LocalCacheType.StencilsEnsemble).put[StencilsEnsemble](stencilComponents.id, stencilComponents)
-    Success(Unit)
   }
 
   @Timed("getAllEnsemble")

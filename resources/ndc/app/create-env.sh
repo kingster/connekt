@@ -8,6 +8,11 @@ curl -vvv -X PUT 'http://repo-svc-app-0001.nm.flipkart.com:8080/env/fk-connekt-a
         "repoReferenceType": "HEAD"        
     },
     {
+        "repoName": "openssl102",
+        "repoVersion": 1,
+        "repoReferenceType": "HEAD"        
+    },
+    {
         "repoName": "oracle-java",
         "repoVersion": 4,
         "repoReferenceType": "EXACT"        
