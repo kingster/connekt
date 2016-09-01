@@ -35,6 +35,7 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.reflect.{ClassTag, _}
 
+
 object StringUtils {
 
   val currentMirror = runtimeMirror(getClass.getClassLoader)
@@ -56,6 +57,10 @@ object StringUtils {
 
     def stripNewLines = s.replaceAll("\n", "").replaceAll("\r","")
 
+  }
+
+  implicit def supplier(obj: => String): org.apache.logging.log4j.util.Supplier[String] = new org.apache.logging.log4j.util.Supplier[String] {
+    override def get(): String = obj
   }
 
   implicit class InputStreamHandyFunctions(val is: InputStream) {

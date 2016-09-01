@@ -25,8 +25,8 @@ class RenderFlow extends MapFlowStage[ConnektRequest, ConnektRequest] {
 
   override val map: (ConnektRequest) => List[ConnektRequest] = input => {
     try {
-//      ConnektLogger(LogFile.PROCESSORS).debug(s"RenderFlow received message: ${input.id}")
-//      ConnektLogger(LogFile.PROCESSORS).trace(s"RenderFlow received message: ${input.getJson}")
+      ConnektLogger(LogFile.PROCESSORS).debug("RenderFlow received message: {}", supplier(input.id))
+      ConnektLogger(LogFile.PROCESSORS).trace("RenderFlow received message: {}", supplier(input.getJson))
 
       val mRendered = input.copy(channelData = Option(input.channelData) match {
         case Some(cD) => cD
