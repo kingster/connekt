@@ -59,8 +59,8 @@ object StringUtils {
 
   }
 
-  def supplier(obj: => String): org.apache.logging.log4j.util.Supplier[String] = new org.apache.logging.log4j.util.Supplier[String] {
-    override def get(): String = obj
+  def supplier[T](obj: => T): org.apache.logging.log4j.util.Supplier[T] = new org.apache.logging.log4j.util.Supplier[T] {
+    override def get(): T = obj
   }
 
   implicit class InputStreamHandyFunctions(val is: InputStream) {
