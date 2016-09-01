@@ -54,6 +54,11 @@ class KafkaProducerHelper(producerFactoryConf: Config, globalContextConf: Config
     }
   }
 
+  def writeMessages(producer: Producer[String, String], topic: String, message: String*) = {
+    val keyedMessages = message.map(new KeyedMessage[String, String](topic, _))
+    producer.send(keyedMessages:_*)
+  }
+
   def shutdown() = try {
     kafkaProducerPool.close()
     ConnektLogger(LogFile.FACTORY).info("KafkaProducerHelper shutdown.")

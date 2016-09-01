@@ -49,6 +49,9 @@ class CallbackService(pnEventsDao: PNCallbackDao, emailEventsDao: EmailCallbackD
     }
   }
 
+  lazy val producer = queueProducerHelper.kafkaProducerPool.borrowObject()
+
+
   @Timed("enqueueCallbackEvent")
   def enqueueCallbackEvents(events: List[CallbackEvent]): Try[Unit] = Try_ {
     queueProducerHelper.writeMessages(CALLBACK_QUEUE_NAME, events.map(_.getJson) : _*)
