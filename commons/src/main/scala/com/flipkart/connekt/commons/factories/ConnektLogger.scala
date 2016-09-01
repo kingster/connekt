@@ -20,13 +20,12 @@ object ConnektLogger {
 
   def shutdown() = LoggerFactoryConfigurator.shutdownLog4j2()
 
-  def apply(logFile: LogFile.Value) = {
-    LogManager.getLogger(logFile.toString)
+  def apply(logFile: String) = {
+    LogManager.getLogger(logFile)
   }
 }
 
-object LogFile extends {
-  type Value = String
+object LogFile {
   final val ACCESS = "ACCESS"
   final val FACTORY = "FACTORY"
   final val SERVICE = "SERVICE"
