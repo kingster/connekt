@@ -100,7 +100,7 @@
     <Logger name="CLIENTS" level="debug" additivity="false">
       <AppenderRef ref="CLIENTS"/>
     </Logger>
-    <Logger name="PROCESSORS" level="debug" additivity="false">
+    <Logger name="PROCESSORS" level="INFO" additivity="false">
       <AppenderRef ref="PROCESSORS"/>
     </Logger>
     <Logger name="FACTORY" level="debug" additivity="false">
