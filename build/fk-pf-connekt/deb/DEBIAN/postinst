@@ -37,19 +37,6 @@ if [ "$1" == "configure" ] ; then
 
     chown root:root /etc/logrotate.d/fk-pf-connekt || true
 
-    #config
-    db_input medium fk-pf-connekt/specter-bucket || true
-    db_go  || true
-
-    db_get fk-pf-connekt/specter-bucket
-    BUCKET_NAME="$RET"
-    if [ ! -z "$BUCKET_NAME" ]; then
-        echo "Overwriting Specter Bucket with [$BUCKET_NAME]"
-        echo "export DART_CONFIG_SVC_BUCKETS=$BUCKET_NAME" > /etc/default/fk-bigfoot-dart.env
-    fi
-
-    db_stop || true
-
     ## SetUp Cosmos
     sed -i -e "s/_HOSTNAME_/$HOST/g" /etc/cosmos-jmx/connekt.json
 
