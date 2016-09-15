@@ -20,6 +20,8 @@ trait TStencilService extends TService {
 
   def fabricCacheKey(id: String, component: String, version: String): String
 
+  def checkStencil(stencil: Stencil): Try[Boolean]
+
   def materialize(stencil: Stencil, req: ObjectNode): AnyRef
 
   def add(id: String, stencils: List[Stencil]): Try[Unit]

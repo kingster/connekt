@@ -31,8 +31,8 @@ class GCMDispatcherPrepare(uri: URL = new URL("https", "fcm.googleapis.com", 443
 
   override implicit val map: GCMPayloadEnvelope => List[(HttpRequest, GCMRequestTracker)] = message => {
     try {
-      ConnektLogger(LogFile.PROCESSORS).debug(s"GCMDispatcherPrepare received message: ${message.messageId}")
-      ConnektLogger(LogFile.PROCESSORS).trace(s"GCMDispatcherPrepare received message: ${message.toString}")
+      ConnektLogger(LogFile.PROCESSORS).debug("GCMDispatcherPrepare received message: {}", supplier(message.messageId))
+      ConnektLogger(LogFile.PROCESSORS).trace("GCMDispatcherPrepare received message: {}", supplier(message))
 
       val requestEntity = HttpEntity(ContentTypes.`application/json`, message.gcmPayload.getJson)
       val requestHeaders = scala.collection.immutable.Seq[HttpHeader](RawHeader("Authorization", "key=" + KeyChainManager.getGoogleCredential(message.appName).get.apiKey))

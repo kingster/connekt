@@ -242,7 +242,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                                 stencil.name = stencilName
                                 stencil.creationTS = stencils.head.creationTS
                                 stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
-                                stencil.validate()
+                                require(stencilService.checkStencil(stencil).getOrElse(false), s"stencil component ${stencil.component} not valid")
                                 stencil
                               }).toList
 
@@ -305,7 +305,7 @@ class StencilsRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
                         stencil.name = stencilName
                         stencil.creationTS = new Date(System.currentTimeMillis())
                         stencil.lastUpdatedTS = new Date(System.currentTimeMillis())
-                        stencil.validate()
+                        require(stencilService.checkStencil(stencil).getOrElse(false), s"stencil component ${stencil.component} not valid")
                         stencil
                       }).toList
 
