@@ -21,13 +21,14 @@ import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, SubscriptionEvent}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.firefly.dispatcher.HttpDispatcher
 
 import scala.collection._
 import scala.concurrent.{ExecutionContext, Promise}
 
-class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrigger: Promise[String])(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
+class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrigger: Promise[String])(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends Instrumented {
 
   val httpCachedClient = HttpDispatcher.httpFlow
 
@@ -42,10 +43,12 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
       httpRequestMergePref.out ~> httpCachedClient ~> httpResponseHandler.in
       httpResponseHandler.out(0) ~> httpRequestMergePref.preferred
       httpResponseHandler.out(1) ~> Sink.foreach[(HttpRequest, HttpRequestTracker)] { event =>
+        meter(s"firefly.http.${subscription.name}.success").mark()
         ConnektLogger(LogFile.SERVICE).debug(s"HttpSink message delivered: $event")
       }
 
       httpResponseHandler.out(2) ~> Sink.foreach[(HttpRequest, HttpRequestTracker)] { event =>
+        meter(s"firefly.http.${subscription.name}.failure").mark()
         ConnektLogger(LogFile.SERVICE).warn(s"HttpSink message discarded: $event")
       }
 
@@ -63,6 +66,9 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
       case _ => HttpRequest(method = HttpMethods.getForKey(sink.method.toUpperCase).get, uri = sink.url, entity = httpEntity,
         headers = immutable.Seq[HttpHeader]( event.header.map { case (key, value) => RawHeader(key, value) }.toArray: _ *))
     }
+
+
+    ConnektLogger(LogFile.SERVICE).info(s"Preparing http : ${event.payload}, ${sink.url}, ${httpEntity}")
 
     val requestTracker = HttpRequestTracker(httpRequest)
 

@@ -52,6 +52,7 @@ class HttpResponseHandler(retryLimit: Int, shutdownThreshold: Int, subscriptionI
         result._1 match {
           case Success(response) =>
             response.entity.dataBytes.runWith(Sink.cancelled)
+            ConnektLogger(LogFile.SERVICE).info(s"200 response received ${response.entity}")
             response.status.intValue() match {
               case s if s/100 == 2 =>
                 consecutiveSendFailures.set(0)
