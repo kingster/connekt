@@ -67,9 +67,6 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
         headers = immutable.Seq[HttpHeader]( event.header.map { case (key, value) => RawHeader(key, value) }.toArray: _ *))
     }
 
-
-//    ConnektLogger(LogFile.SERVICE).info(s"Preparing http : ${event.payload}, ${sink.url}, ${httpEntity}")
-
     val requestTracker = HttpRequestTracker(httpRequest)
 
     httpRequest -> requestTracker
