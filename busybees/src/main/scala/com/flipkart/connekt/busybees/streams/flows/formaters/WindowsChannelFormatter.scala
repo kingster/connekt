@@ -68,10 +68,10 @@ class WindowsChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExe
 
       if (wnsRequestEnvelopes.nonEmpty && ttlInSeconds > 0) {
         if (!message.isTestRequest) {
-          ConnektLogger(LogFile.PROCESSORS).trace(s"WindowsChannelFormatter pushed downstream for: ${message.id}")
+//          ConnektLogger(LogFile.PROCESSORS).trace(s"WindowsChannelFormatter pushed downstream for: ${message.id}")
           wnsRequestEnvelopes
         } else {
-          ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter dropping dry-run message: ${message.id}")
+//          ConnektLogger(LogFile.PROCESSORS).debug(s"WindowsChannelFormatter dropping dry-run message: ${message.id}")
           List.empty[WNSPayloadEnvelope]
         }
       } else if (wnsRequestEnvelopes.nonEmpty) {

@@ -93,13 +93,13 @@ class APNSDispatcher(parallelism: Int)(implicit ec: ExecutionContextExecutor) {
         gatewayFuture
           .flatMap(client => client.sendNotification(request).asScala.recoverWith {
               case nce: ClientNotConnectedException =>
-                ConnektLogger(LogFile.PROCESSORS).debug("APNSDispatcher waiting for apns-client to reconnect")
+                ConnektLogger(LogFile.PROCESSORS).info("APNSDispatcher waiting for apns-client to reconnect")
                 client.getReconnectionFuture.awaitUninterruptibly()
-                ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher apns-client reconnected with status [${client.isConnected}]")
+                ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher apns-client reconnected with status [${client.isConnected}]")
                 if(!client.isConnected){
-                  ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher apns-client reconnect error", client.getReconnectionFuture.cause())
+                  ConnektLogger(LogFile.PROCESSORS).warn(s"APNSDispatcher apns-client reconnect error", client.getReconnectionFuture.cause())
                   clientGatewayCache.remove(userContext.appName)
-                  ConnektLogger(LogFile.PROCESSORS).debug(s"APNSDispatcher apns-client destroyed ${userContext.appName}, since reconnect failed.")
+                  ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher apns-client destroyed ${userContext.appName}, since reconnect failed.")
                 }
                 //client.sendNotification(request).asScala //TODO: Observe number of errors and then enable retry if required.
                 FastFuture.failed(nce)
