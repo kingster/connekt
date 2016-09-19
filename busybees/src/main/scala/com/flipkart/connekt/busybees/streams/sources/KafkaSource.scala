@@ -143,7 +143,7 @@ class KafkaSource[V: ClassTag](kafkaConsumerConf: Config, topic: String, groupId
 
 class MessageDecoder[T: ClassTag](implicit tag: ClassTag[T]) extends Decoder[Option[T]] {
   override def fromBytes(bytes: Array[Byte]): Option[T] = try {
-    Option(objMapper.readValue(bytes.getString, tag.runtimeClass).asInstanceOf[T])
+    Option(objMapper.readValue(bytes, tag.runtimeClass).asInstanceOf[T])
   } catch {
     case e: Exception =>
       ConnektLogger(LogFile.PROCESSORS).error(s"KafkaSource de-serialization failure, ${e.getMessage}", e)

@@ -22,9 +22,9 @@
         <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5120 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
-      <DefaultRolloverStrategy max="5"/>
+      <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
     <RollingRandomAccessFile name="WORKERS" fileName="${workersLogFile}" filePattern="${workersLogFile}.%i" immediateFlush="false" bufferSize="1048576">
@@ -32,9 +32,9 @@
         <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5120 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
-      <DefaultRolloverStrategy max="5"/>
+      <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
     <RollingRandomAccessFile name="CLIENTS" fileName="${clientsLogFile}" filePattern="${clientsLogFile}.%i" immediateFlush="false" bufferSize="1048576">
@@ -42,9 +42,9 @@
         <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5120 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
-      <DefaultRolloverStrategy max="5"/>
+      <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
     <RollingRandomAccessFile name="PROCESSORS" fileName="${processorLogFile}" filePattern="${processorLogFile}.%i" immediateFlush="false" bufferSize="1048576">
@@ -52,9 +52,9 @@
         <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5120 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
-      <DefaultRolloverStrategy max="5"/>
+      <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
     <RollingRandomAccessFile name="FACTORY" fileName="${factoryLogFile}" filePattern="${factoryLogFile}.%i" immediateFlush="false" bufferSize="1048576">
@@ -62,9 +62,9 @@
         <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5120 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
-      <DefaultRolloverStrategy max="5"/>
+      <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
     <RollingRandomAccessFile name="DAO" fileName="${daoLogFile}" filePattern="${daoLogFile}.%i" immediateFlush="false" bufferSize="1048576">
@@ -72,9 +72,9 @@
         <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5120 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
-      <DefaultRolloverStrategy max="5"/>
+      <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
     <RollingRandomAccessFile name="SERVICE" fileName="${serviceLogFile}" filePattern="${serviceLogFile}.%i" immediateFlush="false" bufferSize="1048576">
@@ -82,9 +82,9 @@
         <Pattern>%n%d %p %c{1} [%t] %m%n</Pattern>
       </PatternLayout>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5120 MB"/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
       </Policies>
-      <DefaultRolloverStrategy max="5"/>
+      <DefaultRolloverStrategy max="4"/>
     </RollingRandomAccessFile>
 
   </Appenders>
@@ -100,7 +100,7 @@
     <Logger name="CLIENTS" level="debug" additivity="false">
       <AppenderRef ref="CLIENTS"/>
     </Logger>
-    <Logger name="PROCESSORS" level="debug" additivity="false">
+    <Logger name="PROCESSORS" level="INFO" additivity="false">
       <AppenderRef ref="PROCESSORS"/>
     </Logger>
     <Logger name="FACTORY" level="debug" additivity="false">

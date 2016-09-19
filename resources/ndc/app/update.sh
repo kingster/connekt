@@ -5,4 +5,4 @@ sudo apt-get update
 
 sudo apt-get install --yes --allow-unauthenticated fk-pf-connekt
 
-#sudo /etc/init.d/fk-pf-connekt start receptors
+#sudo /etc/init.d/fk-pf-connekt start busybees

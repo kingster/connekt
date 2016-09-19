@@ -27,8 +27,8 @@ class OpenWebDispatcherPrepare extends MapFlowStage[OpenWebStandardPayloadEnvelo
 
   override implicit val map: OpenWebStandardPayloadEnvelope => List[(HttpRequest, OpenWebRequestTracker)] = message => {
     try {
-      ConnektLogger(LogFile.PROCESSORS).debug(s"OpenWebDispatcherPrepare received message: ${message.messageId}")
-      ConnektLogger(LogFile.PROCESSORS).trace(s"OpenWebDispatcherPrepare received message: ${message.toString}")
+//      ConnektLogger(LogFile.PROCESSORS).debug(s"OpenWebDispatcherPrepare received message: ${message.messageId}")
+//      ConnektLogger(LogFile.PROCESSORS).trace(s"OpenWebDispatcherPrepare received message: ${message.toString}")
 
       val requestEntity = HttpEntity(ContentTypes.`application/octet-stream`, message.payload.data)
 
