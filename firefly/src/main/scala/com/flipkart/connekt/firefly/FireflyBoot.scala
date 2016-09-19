@@ -49,7 +49,7 @@ object FireflyBoot extends BaseApp {
       ConnektLogger(LogFile.SERVICE).info(s"Firefly logging using: $configFile")
       ConnektLogger.init(configFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly", "fk-connekt-busybees-akka"))
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly", "fk-connekt-firefly-akka"))
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
