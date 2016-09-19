@@ -42,7 +42,7 @@
       <AppenderRef ref="DEFAULT"/>
     </Logger>
 
-    <Logger name="SERVICE" level="debug" additivity="false">
+    <Logger name="SERVICE" level="info" additivity="false">
       <AppenderRef ref="SERVICE"/>
     </Logger>
 

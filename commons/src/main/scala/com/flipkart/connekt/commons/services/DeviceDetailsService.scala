@@ -90,7 +90,7 @@ object DeviceDetailsService extends Instrumented {
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.userId))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
-          ServiceFactory.getCallbackService.enqueueCallbackEvents(List(device.toCallbackEvent)).get
+          ServiceFactory.getCallbackService.enqueueCallbackEvents(List(device.copy(active = false).toCallbackEvent)).get
           BigfootService.ingest(device.copy(active = false).toBigfootFormat)
         }
       case None =>
