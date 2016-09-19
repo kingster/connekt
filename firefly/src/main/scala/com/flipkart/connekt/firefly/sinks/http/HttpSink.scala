@@ -68,7 +68,7 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
     }
 
 
-    ConnektLogger(LogFile.SERVICE).info(s"Preparing http : ${event.payload}, ${sink.url}, ${httpEntity}")
+//    ConnektLogger(LogFile.SERVICE).info(s"Preparing http : ${event.payload}, ${sink.url}, ${httpEntity}")
 
     val requestTracker = HttpRequestTracker(httpRequest)
 
