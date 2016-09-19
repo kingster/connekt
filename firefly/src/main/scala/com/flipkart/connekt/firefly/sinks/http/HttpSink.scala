@@ -21,13 +21,14 @@ import akka.stream.scaladsl.{Flow, GraphDSL, MergePreferred, Sink}
 import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, SubscriptionEvent}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.firefly.dispatcher.HttpDispatcher
 
 import scala.collection._
 import scala.concurrent.{ExecutionContext, Promise}
 
-class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrigger: Promise[String])(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) {
+class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrigger: Promise[String])(implicit am: ActorMaterializer, sys: ActorSystem, ec: ExecutionContext) extends Instrumented {
 
   val httpCachedClient = HttpDispatcher.httpFlow
 
