@@ -43,12 +43,10 @@ class HttpSink(subscription: Subscription, retryLimit: Int, topologyShutdownTrig
       httpRequestMergePref.out ~> httpCachedClient ~> httpResponseHandler.in
       httpResponseHandler.out(0) ~> httpRequestMergePref.preferred
       httpResponseHandler.out(1) ~> Sink.foreach[(HttpRequest, HttpRequestTracker)] { event =>
-        meter(s"firefly.http.${subscription.name}.success").mark()
         ConnektLogger(LogFile.SERVICE).debug(s"HttpSink message delivered: $event")
       }
 
       httpResponseHandler.out(2) ~> Sink.foreach[(HttpRequest, HttpRequestTracker)] { event =>
-        meter(s"firefly.http.${subscription.name}.failure").mark()
         ConnektLogger(LogFile.SERVICE).warn(s"HttpSink message discarded: $event")
       }
 
