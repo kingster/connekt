@@ -37,7 +37,7 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
 
   var connectionAvailable = 0
   val xmppRequestRouters:mutable.Map[String, ActorRef] = mutable.Map[String, ActorRef]()
-  val requestBuffer:collection.mutable.Map[String,mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]] = collection.mutable.Map()
+  val requestBuffer:collection.mutable.Map[String,mutable.Queue[XmppOutStreamRequest]] = collection.mutable.Map()
   val connectionFreeCount:collection.mutable.Map[String,AtomicInteger] = collection.mutable.Map()
   val responsesDownStream:ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)] = new ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)]()
   val responsesUpStream:mutable.Queue[(ActorRef,XmppUpstreamResponse)] = collection.mutable.Queue[(ActorRef,XmppUpstreamResponse)]()
@@ -47,37 +47,37 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
     val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(1)
     val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter], parent, credential, appId))
     xmppRequestRouters.put(appId, xmppRequestRouter)
-    requestBuffer.put(appId,new mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]())
+    requestBuffer.put(appId,new mutable.Queue[XmppOutStreamRequest]())
     connectionFreeCount.put(appId,new AtomicInteger(connectionPoolSize))
     connectionAvailable = connectionAvailable + connectionPoolSize
   }
 
   def sendRequests() = {
     requestBuffer.foreach{ case (appId, requests) =>
-      val freeCount:AtomicInteger = connectionFreeCount.get(appId).get
+      val freeCount:AtomicInteger = connectionFreeCount(appId)
       while ( requests.nonEmpty && freeCount.get > 0 ) {
         connectionAvailable = connectionAvailable - 1
         freeCount.decrementAndGet()
-        xmppRequestRouters.get(appId).get ! requests.dequeue()
+        xmppRequestRouters(appId) ! requests.dequeue()
       }
       ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count $connectionAvailable")
     }
   }
 
-  def addIncomingRequest(requestPair:(GcmXmppRequest, GCMRequestTracker)) = {
-    val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] =
-      requestBuffer.get(requestPair._2.appName).getOrElse({
-        initBuffer(requestPair._2.appName, requestPair._1.credential)
-        requestBuffer.get(requestPair._2.appName).get
+  def addIncomingRequest(request:XmppOutStreamRequest) = {
+    val requests:mutable.Queue[XmppOutStreamRequest] =
+      requestBuffer.getOrElse(request.tracker.appName, {
+        initBuffer(request.tracker.appName, request.request.credential)
+        requestBuffer(request.tracker.appName)
       })
-    requests.enqueue(requestPair)
+    requests.enqueue(request)
     ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count $connectionAvailable")
-    requestBuffer.put(requestPair._2.appName, requests)
+    requestBuffer.put(request.tracker.appName, requests)
   }
 
   def incrementConnectionFreeCount(appId:String) = {
     connectionAvailable = connectionAvailable + 1
-    connectionFreeCount.get(appId).get.incrementAndGet()
+    connectionFreeCount(appId).incrementAndGet()
   }
 
   def enqueueDownstream(downstreamResponse:(Try[XmppDownstreamResponse], GCMRequestTracker)) = {

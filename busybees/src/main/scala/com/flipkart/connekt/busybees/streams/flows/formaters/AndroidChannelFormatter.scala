@@ -70,7 +70,7 @@ abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionC
     }
   }
 
-  abstract def createPayload(message:ConnektRequest,
+  def createPayload(message:ConnektRequest,
                   devices:Seq[DeviceDetails],
                   appDataWithId:Any):List[GCMPayloadEnvelope]
 }

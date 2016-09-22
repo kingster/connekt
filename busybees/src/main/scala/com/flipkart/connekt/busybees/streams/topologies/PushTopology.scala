@@ -41,7 +41,7 @@ import com.typesafe.config.Config
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
 
-private object AndroidProtocols extends Enumeration {
+protected object AndroidProtocols extends Enumeration {
   val http, xmpp = Value
 }
 
@@ -124,7 +124,7 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
       val gcmXmppPrepare = b.add(new GCMXmppDispatcherPrepare().flow)
       val gcmXmppPoolFlow = b.add(new GcmXmppDispatcher)
       val xmppDownstreamHandler = b.add(new XmppDownstreamHandler()(ioMat, ioDispatcher).flow)
-      val xmppUpstreamHandler = b.add(new XmppUpstreamHandler()(ioMat).flow)
+      val xmppUpstreamHandler = b.add(new XmppUpstreamHandler()(ioMat,ioDispatcher).flow)
 
       //http related stages
       val httpFmtAndroid = b.add(new AndroidHttpChannelFormatter(fmtAndroidParallelism)(ioDispatcher).flow)

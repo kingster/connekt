@@ -12,16 +12,17 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.dispatchers
 
-import akka.actor.{ActorSystem, ActorRef}
-import akka.stream.{Inlet, Outlet, FanOutShape2}
+import akka.actor.{ActorRef, ActorSystem}
+import akka.stream.{FanOutShape2, Inlet, Outlet}
 import akka.stream.stage.{AsyncCallback, GraphStage}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.busybees.xmpp.XmppGatewayCache
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.busybees.xmpp.{XmppGatewayCache, XmppOutStreamRequest}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
 import akka.stream._
 import akka.stream.stage._
 import com.flipkart.connekt.commons.services.ConnektConfig
+
 import scala.util.{Success, Try}
 import scala.collection.JavaConverters._
 
@@ -42,7 +43,7 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
   //to push upstream data
   var upStreamRecvdCallback: AsyncCallback[(ActorRef,XmppUpstreamResponse)] = null
 
-  var retryCallback: AsyncCallback[(GcmXmppRequest,GCMRequestTracker)] = null
+  var retryCallback: AsyncCallback[XmppOutStreamRequest] = null
 
   private val xmppState = new XmppGatewayCache(this)
 
@@ -72,7 +73,7 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
         }
       }
 
-      retryCallback = getAsyncCallback[(GcmXmppRequest,GCMRequestTracker)] {
+      retryCallback = getAsyncCallback[XmppOutStreamRequest] {
         request => {
           xmppState.addIncomingRequest(request)
         }
@@ -103,10 +104,10 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
     val inhandler = new InHandler {
       override def onPush(): Unit = {
         val requestPair:(GcmXmppRequest,GCMRequestTracker) = grab(in)
-        xmppState.addIncomingRequest(requestPair)
+        xmppState.addIncomingRequest(XmppOutStreamRequest(requestPair._1, requestPair._2)) //todo: Use secondary constructor here
 
         //exhaust buffer as long as connections available
-        xmppState.sendRequests
+        xmppState.sendRequests()
 
         //pull more if connections available
         if ( xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 )

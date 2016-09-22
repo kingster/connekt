@@ -64,7 +64,7 @@ class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) exte
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.response.errorDescription}")
         status -> e.response.errorDescription
 
-      case Failure(e: Exception) =>
+      case Failure(e) =>
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.getMessage}")
         GCMResponseStatus.Error -> e.getMessage
     }

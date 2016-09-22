@@ -38,6 +38,9 @@ class ConnektStanzaListener(connectionActor:ActorRef, dispatcher:GcmXmppDispatch
         dispatcher.upStreamRecvdCallback.invoke(connectionActor -> upstream)
       case Failure(thrown) =>
         ConnektLogger(LogFile.CLIENTS).error("Failed to down/upstream:" + packetExtension.json)
+      case _ =>
+        ConnektLogger(LogFile.CLIENTS).error("StanzaListener Unhandled Match:" + packetExtension.json)
+
     }
   }
 }

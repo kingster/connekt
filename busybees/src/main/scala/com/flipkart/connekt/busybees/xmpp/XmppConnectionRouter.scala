@@ -24,21 +24,21 @@ import com.flipkart.connekt.commons.services.ConnektConfig
 import scala.collection.mutable
 
 class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
-  val requests:mutable.Queue[(GcmXmppRequest, GCMRequestTracker)] = collection.mutable.Queue[(GcmXmppRequest, GCMRequestTracker)]()
+  val requests:mutable.Queue[XmppOutStreamRequest] = collection.mutable.Queue[XmppOutStreamRequest]()
 
   //TODO will be changed with zookeeper
-  val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(3)
+  val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(10)
   val freeXmppActors = collection.mutable.LinkedHashSet[ActorRef]()
 
   override def postStop = {
-    ConnektLogger(LogFile.CLIENTS).info("ConnectionRouter:In poststop")
+    ConnektLogger(LogFile.CLIENTS).info("XmppConnectionRouter:In postStop")
   }
 
   var router:Router = {
     val routees = Vector.fill(connectionPoolSize) {
       val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId)
         .withMailbox("akka.actor.xmpp-connection-priority-mailbox"))
-      context watch aRoutee
+      context.watch(aRoutee)
       freeXmppActors.add(aRoutee)
       ActorRefRoutee(aRoutee)
     }
@@ -52,7 +52,7 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: Goo
       ConnektLogger(LogFile.CLIENTS).trace(s"Worker terminated $a")
       router = router.removeRoutee(a)
       val newRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId))
-      context watch newRoutee
+      context.watch(newRoutee)
       router = router.addRoutee(newRoutee)
 
 
@@ -70,7 +70,7 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: Goo
         dispatcher.getMoreCallback.invoke(appId)
       ConnektLogger(LogFile.CLIENTS).trace(s"ConnectionBusy:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
-    case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
+    case xmppRequest:XmppOutStreamRequest =>
       freeXmppActors.headOption match {
         case Some(worker:ActorRef) =>
           freeXmppActors.remove(worker)
@@ -79,13 +79,13 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: Goo
           //this case should never arise because connection actor pulls only when they are free
           ConnektLogger(LogFile.CLIENTS).error(s"Router asking for free worker ${requests.size} should never arise")
           requests.enqueue(xmppRequest)
-          router.routees.foreach(r => r.send(XmppRequestAvailable, self))
+          router.routees.foreach(_.send(XmppRequestAvailable, self))
       }
       ConnektLogger(LogFile.CLIENTS).trace(s"xmppRequest:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
     case Shutdown =>
       ConnektLogger(LogFile.CLIENTS).info(s"Shutdown received size ${requests.size} and free worker size ${freeXmppActors.size}")
-      router.routees.foreach(r => r.send(Shutdown, self))
+      router.routees.foreach(_.send(Shutdown, self))
       become(shuttingDown)
   }
 
@@ -93,9 +93,9 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: Goo
     case Terminated(a) =>
       ConnektLogger(LogFile.CLIENTS).info(s"ShuttingDown:Worker terminated $a")
       router = router.removeRoutee(a)
-      if ( router.routees.size == 0 ) {
+      if ( router.routees.isEmpty ) {
         ConnektLogger(LogFile.CLIENTS).info("ShuttingDown:All Worker terminated")
-        context stop self
+        context.stop(self)
       }
   }
 }

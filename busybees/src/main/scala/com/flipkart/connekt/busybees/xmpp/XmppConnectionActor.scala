@@ -39,10 +39,10 @@ import collection.JavaConverters._
 import scala.util.{Failure, Success}
 
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor with Instrumented {
+
   val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(4)
 
-  private val removalListener: RemovalListener[String, (GCMRequestTracker,Long)] =
-    new RemovalListener[String, (GCMRequestTracker,Long)]() {
+  private val removalListener = new RemovalListener[String, (GCMRequestTracker,Long)]() {
     def onRemoval(removal: RemovalNotification[String, (GCMRequestTracker,Long)]) {
       if (removal.getCause != RemovalCause.EXPLICIT) {
         val messageData:GCMRequestTracker = removal.getValue._1
@@ -52,11 +52,12 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     }
   }
 
-  private val messageDataCache: Cache[String, (GCMRequestTracker,Long)] = CacheBuilder.newBuilder()
+  private val messageDataCache = CacheBuilder.newBuilder()
     .expireAfterWrite(2, TimeUnit.MINUTES)
     .removalListener(removalListener)
     .maximumSize(4096)
     .build()
+    .asInstanceOf[Cache[String, (GCMRequestTracker,Long)]]
 
 
   val pendingAckCount = new AtomicInteger(0)
@@ -65,18 +66,21 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
   override def postStop = {
     ConnektLogger(LogFile.CLIENTS).info("ConnectionActor:In poststop")
     if ( connection!= null && connection.isConnected) {
-      connection.disconnect
-      connection.instantShutdown
+      connection.disconnect()
+      connection.instantShutdown()
     }
-    archivedConnections.foreach(conn => {conn.disconnect; conn.instantShutdown})
+    archivedConnections.foreach(conn => {conn.disconnect(); conn.instantShutdown()})
     messageDataCache.asMap().asScala.foreach(entry => ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor:PostStop:Never received GCM acknowledgement for tracker id ${entry._1}"))
   }
 
+
+
   import context._
+
   //message processing in the beginning
   def receive:Actor.Receive = {
 
-    case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
+    case xmppRequest:XmppOutStreamRequest =>
       //first request----create connection and process request
       createConnection()
       become(free)
@@ -92,7 +96,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
 
   //message processing as long as pending ack is less than max
   def free:Actor.Receive = {
-    case xmppRequest:(GcmXmppRequest, GCMRequestTracker) =>
+    case xmppRequest:XmppOutStreamRequest =>
       processSendRequest(parent, xmppRequest)
 
     case XmppRequestAvailable =>
@@ -252,11 +256,9 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     }
   }
 
-  private def processSendRequest(parent:ActorRef, xmppRequest:(GcmXmppRequest, GCMRequestTracker)) = {
-    val (xmppPayload,requestTracker) = xmppRequest
-
-    if ( sendXmppStanza(xmppPayload.pnPayload) ) {
-      messageDataCache.put(xmppPayload.pnPayload.message_id, (requestTracker, System.currentTimeMillis()))
+  private def processSendRequest(parent:ActorRef, xmppRequest:XmppOutStreamRequest) = {
+    if ( sendXmppStanza(xmppRequest.request.pnPayload) ) {
+      messageDataCache.put(xmppRequest.request.pnPayload.message_id, (xmppRequest.tracker, System.currentTimeMillis()))
       pendingAckCount.incrementAndGet()
 
       if (pendingAckCount.get() >= maxPendingAckCount) {

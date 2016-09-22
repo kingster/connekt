@@ -19,7 +19,7 @@ import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.metrics.Instrumented
 import scala.concurrent.{Future, ExecutionContext}
 
-class XmppUpstreamHandler (implicit m: Materializer) extends PNProviderResponseHandler[XmppUpstreamResponse](4) with Instrumented {
+class XmppUpstreamHandler (implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[XmppUpstreamResponse](4) with Instrumented {
 
   override val map: (XmppUpstreamResponse) => Future[List[PNCallbackEvent]] = upstreamResponse => Future({
     upstreamResponse.getPnCallbackEvent().map { event =>
@@ -27,5 +27,5 @@ class XmppUpstreamHandler (implicit m: Materializer) extends PNProviderResponseH
         events.persist
         events
     }
-  }.getOrElse(List.empty))(m.executionContext)
+  }.getOrElse(List.empty))(ec)
 }
