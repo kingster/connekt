@@ -1,5 +1,5 @@
 #!/bin/bash
-avengers_hosts=(10.33.61.207 10.33.233.22 10.33.157.237 10.33.217.221 10.33.249.23 10.33.201.236 10.33.237.193 10.33.141.224 10.33.253.250 10.33.197.205)
+avengers_hosts=$(curl --silent "http://10.33.65.0:8080/compute/v1/apps/fk-connekt/instances?instanceGroup=avengers&view=summary" | jq "map(.primary_ip)" | tr -td '"[] ,' | sed '/^\s*$/d')
 
 HOME='/usr/share/fk-azkaban-remote-job/scripts'
 tempAvengers='tempConnektAvengersLog'
@@ -11,7 +11,7 @@ status=true
 echo "" > $tempAvengers
 echo "************* Checking Recepters' LOG GROWTH ***************" >> $tempAvengers
 
-for i in ${avengers_hosts[@]}
+echo $avengers_hosts | while read i
 do
    	echo "*************** Host: $i ***************" >> $tempAvengers
 	for (( j=0; j<${#avengers_parameters[@]}; j=j+4 ))

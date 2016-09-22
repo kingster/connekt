@@ -31,3 +31,6 @@ JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8"
 
 ##Remote JMX
 JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.port=28005 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+
+## Log4j2 Settings
+JAVA_OPTS="$JAVA_OPTS -DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector -DAsyncLogger.RingBufferSize=524288"

@@ -5,6 +5,7 @@
   - name: Set Service
     set_fact:
       app: busybees
-  - include: tasks/update-apt-cache.yaml
+      env: nm
+  - include: tasks/update-sources.yaml
   - include: tasks/install-connekt-deb.yaml
   - include: tasks/start-service.yaml

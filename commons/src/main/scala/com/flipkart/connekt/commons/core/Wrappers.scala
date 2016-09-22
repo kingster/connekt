@@ -12,14 +12,13 @@
  */
 package com.flipkart.connekt.commons.core
 
-import com.flipkart.connekt.commons.factories.LogFile.LogFile
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.util.{Failure, Success, Try}
 
 object Wrappers {
 
-  def Try_#[T](fileName: LogFile = LogFile.SERVICE, message: String = "ERROR")(f: => T) : Try[T] = {
+  def Try_#[T](fileName: String = LogFile.SERVICE, message: String = "ERROR")(f: => T) : Try[T] = {
     try {
       Success(f)
     }

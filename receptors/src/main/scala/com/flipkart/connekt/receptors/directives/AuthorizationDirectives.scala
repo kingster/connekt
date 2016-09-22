@@ -23,6 +23,9 @@ trait AuthorizationDirectives {
 
   def authorize(user: AppUser, tags: String*): Directive0 = {
 
+    //if api-key is set, api-user
+    //else user, with transient token
+
     ServiceFactory.getAuthorisationService.isAuthorized(user.userId, tags: _*) match {
       case Success(authorize) if authorize =>
         BasicDirectives.pass

@@ -1,0 +1,2 @@
+  - name: Execute Global Template again, just to be sure.
+    command: bash /tmp/script.sh

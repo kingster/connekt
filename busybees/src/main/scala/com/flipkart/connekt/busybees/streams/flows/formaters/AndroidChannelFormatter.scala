@@ -52,7 +52,6 @@ abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionC
         .put("messageId", message.id)
         .put("contextId", message.contextId.orEmpty)
 
-      val dryRun = message.meta.get("x-perf-test").map(v => v.trim.equalsIgnoreCase("true"))
       val ttl = message.expiryTs.map(expiry => (expiry - System.currentTimeMillis) / 1000).getOrElse(6.hour.toSeconds)
 
       if (devicesInfo.nonEmpty && ttl > 0) {
@@ -71,7 +70,7 @@ abstract class AndroidChannelFormatter(parallelism: Int)(implicit ec: ExecutionC
     }
   }
 
-  def createPayload(message:ConnektRequest,
+  abstract def createPayload(message:ConnektRequest,
                   devices:Seq[DeviceDetails],
                   appDataWithId:Any):List[GCMPayloadEnvelope]
 }

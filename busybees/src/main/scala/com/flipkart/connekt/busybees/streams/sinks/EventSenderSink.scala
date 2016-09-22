@@ -30,7 +30,7 @@ class EventSenderSink extends GraphStage[SinkShape[fkint.mp.connekt.PNCallbackEv
 
       override def onPush(): Unit = {
         val event = grab(in)
-        ConnektLogger(LogFile.PROCESSORS).debug(s"EventSenderSink on push for: ${event.messageId}")
+//        ConnektLogger(LogFile.PROCESSORS).debug(s"EventSenderSink on push for: ${event.messageId}")
         BigfootService.ingest(event) match {
           case Success(true) =>
             ConnektLogger(LogFile.PROCESSORS).info(s"EventSenderSink ${event.messageId} | SUCCESS")

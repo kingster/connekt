@@ -1,0 +1,2 @@
+  - include: tasks/global-template-rerun.yaml
+  - include: tasks/ulimits.yaml

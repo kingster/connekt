@@ -15,10 +15,11 @@ package com.flipkart.connekt.firefly.sinks.specter
 import akka.stream.scaladsl.Sink
 import com.flipkart.connekt.commons.entities.SubscriptionEvent
 import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
+import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.BigfootService
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-class SpecterSink {
+class SpecterSink extends Instrumented {
   def sink = {
     Sink.foreach[SubscriptionEvent](e => {
       BigfootService.ingest((e.payload match {
@@ -26,6 +27,7 @@ class SpecterSink {
         case _ => e.payload.getJson
       }).getObj[PNCallbackEvent].toBigfootFormat
       )
+      meter(s"firefly.specter.rate").mark()
     })
   }
 }

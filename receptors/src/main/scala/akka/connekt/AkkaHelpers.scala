@@ -10,14 +10,14 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.commons.tests.utils
+package akka.connekt
 
-import com.flipkart.connekt.commons.tests.ConnektUTSpec
-import com.flipkart.connekt.commons.utils.LdapService
+import akka.stream.ActorMaterializer
 
-class LdapServiceTest extends ConnektUTSpec {
+object AkkaHelpers {
 
-  "authenticate" should "return [boolean] ldap authentication valid or not" in {
-    LdapService.authenticate("123", "123") should not be true
+  implicit class ActorMaterializerFunctions(val mat: ActorMaterializer) {
+    def getSystem = mat.system
+
   }
 }
