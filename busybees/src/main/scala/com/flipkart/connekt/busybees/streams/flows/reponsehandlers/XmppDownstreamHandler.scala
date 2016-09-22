@@ -27,7 +27,7 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
-class XmppDownstreamHandler (implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[XmppDownstreamResponse], GCMRequestTracker)](96) with Instrumented {
+class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[XmppDownstreamResponse], GCMRequestTracker)](96) with Instrumented {
 
   val badRegistrationError = "BAD_REGISTRATION"
   val invalidJson = "INVALID_JSON"
@@ -43,10 +43,10 @@ class XmppDownstreamHandler (implicit m: Materializer, ec: ExecutionContext) ext
 
     val eventTS = System.currentTimeMillis()
 
-    val responseStatus = xmppResponse match {
+    val (responseStatus, responseMessage) = xmppResponse match {
       case Success(response) =>
         ConnektLogger(LogFile.PROCESSORS).info(s"XmppDownstreamHandler received xmpp response for: $messageId")
-        GCMResponseStatus.Received
+        GCMResponseStatus.Received -> null
 
       case Failure(e: XmppNackException) =>
         val status = if (e.response.error.equalsIgnoreCase(badRegistrationError)) {
@@ -62,11 +62,11 @@ class XmppDownstreamHandler (implicit m: Materializer, ec: ExecutionContext) ext
           else
             GCMResponseStatus.Error
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.response.errorDescription}")
-        status
+        status -> e.response.errorDescription
 
       case Failure(e: Exception) =>
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.getMessage}")
-        GCMResponseStatus.Error
+        GCMResponseStatus.Error -> e.getMessage
     }
     ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId,
       Option(requestTracker.contextId),
@@ -74,7 +74,7 @@ class XmppDownstreamHandler (implicit m: Materializer, ec: ExecutionContext) ext
       Option(MobilePlatform.ANDROID.toString),
       requestTracker.appName,
       responseStatus)
-    val events = List(PNCallbackEvent(messageId, requestTracker.clientId, deviceId, responseStatus, MobilePlatform.ANDROID, appName, requestTracker.contextId, messageId, eventTS))
+    val events = List(PNCallbackEvent(messageId, requestTracker.clientId, deviceId, responseStatus, MobilePlatform.ANDROID, appName, requestTracker.contextId, responseMessage, eventTS))
     events.persist
     events
   })(m.executionContext)

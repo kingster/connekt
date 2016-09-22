@@ -41,7 +41,7 @@ import com.typesafe.config.Config
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Promise
 
-object AndroidProtocols extends Enumeration {
+private object AndroidProtocols extends Enumeration {
   val http, xmpp = Value
 }
 
