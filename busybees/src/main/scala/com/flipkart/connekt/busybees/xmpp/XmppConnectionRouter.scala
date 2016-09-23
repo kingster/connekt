@@ -13,14 +13,13 @@
 package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor._
-import akka.routing.{ActorRefRoutee, Router, RoundRobinRoutingLogic}
-import com.flipkart.connekt.busybees.models.GCMRequestTracker
+import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, XmppRequestAvailable, FreeConnectionAvailable, Shutdown, StartShuttingDown}
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, FreeConnectionAvailable, Shutdown, XmppRequestAvailable}
 import com.flipkart.connekt.commons.entities.GoogleCredential
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.iomodels.GcmXmppRequest
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.services.ConnektConfig
+
 import scala.collection.mutable
 
 class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {

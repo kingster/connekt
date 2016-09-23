@@ -15,10 +15,9 @@ package com.flipkart.connekt.busybees.xmpp
 import akka.actor.ActorSystem
 import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
-import com.flipkart.connekt.commons.iomodels.{GcmXmppRequest, XmppAck, XmppNack}
+import com.flipkart.connekt.commons.iomodels.{GcmXmppRequest, XmppNack}
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.typesafe.config.Config
-import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 
 private [busybees] object XmppConnectionHelper {
@@ -43,7 +42,7 @@ private [busybees] object XmppConnectionHelper {
 }
 
 case class XmppOutStreamRequest(request:GcmXmppRequest,tracker: GCMRequestTracker){
-  def this(tuple2: (GcmXmppRequest, GCMRequestTracker)){
+  def this(tuple2: (GcmXmppRequest, GCMRequestTracker) ){
     this(tuple2._1, tuple2._2)
   }
 }

@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.busybees.xmpp
 
-import org.jivesoftware.smack.packet.{Stanza, ExtensionElement}
+import org.jivesoftware.smack.packet.{ExtensionElement, Stanza}
 
 class GcmXmppPacketExtension (val json:String) extends Stanza with ExtensionElement {
 

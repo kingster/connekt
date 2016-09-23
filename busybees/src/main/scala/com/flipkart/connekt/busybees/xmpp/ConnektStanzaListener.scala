@@ -14,13 +14,13 @@ package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor.ActorRef
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
+import com.flipkart.connekt.commons.utils.StringUtils._
 import org.jivesoftware.smack.StanzaListener
 import org.jivesoftware.smack.packet.Stanza
 
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 class ConnektStanzaListener(connectionActor:ActorRef, dispatcher:GcmXmppDispatcher) extends StanzaListener() {
 

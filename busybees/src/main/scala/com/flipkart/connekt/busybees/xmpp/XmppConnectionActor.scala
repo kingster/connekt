@@ -16,26 +16,26 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.net.ssl.SSLSocketFactory
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper._
 import com.flipkart.connekt.commons.entities.GoogleCredential
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.utils.StringUtils._
 import com.google.common.cache._
+import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.filter.StanzaFilter
 import org.jivesoftware.smack.packet.Stanza
-import org.jivesoftware.smack.provider.{ProviderManager, ExtensionElementProvider}
+import org.jivesoftware.smack.provider.{ExtensionElementProvider, ProviderManager}
 import org.jivesoftware.smack.roster.Roster
-import org.jivesoftware.smack.{XMPPConnection, ConnectionConfiguration}
-import org.jivesoftware.smack.tcp.{XMPPTCPConnectionConfiguration, XMPPTCPConnection}
+import org.jivesoftware.smack.tcp.{XMPPTCPConnection, XMPPTCPConnectionConfiguration}
 import org.xmlpull.v1.XmlPullParser
-import com.flipkart.connekt.commons.utils.StringUtils._
-import collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success}
 
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor with Instrumented {
