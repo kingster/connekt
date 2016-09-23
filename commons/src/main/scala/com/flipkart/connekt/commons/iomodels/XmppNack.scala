@@ -14,11 +14,10 @@ package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-case class XmppNack(
-                        @JsonProperty("message_id")@JsonProperty(required = false) messageId: String,
-                        @JsonProperty(required = false) from: String,
-                        @JsonProperty(required = false) error: String,
-                        @JsonProperty("error_description")@JsonProperty(required = false) errorDescription: String) extends XmppDownstreamResponse {
+case class XmppNack(@JsonProperty("message_id") @JsonProperty(required = false) messageId: String,
+                    @JsonProperty(required = false) from: String,
+                    @JsonProperty(required = false) error: String,
+                    @JsonProperty("error_description") @JsonProperty(required = false) errorDescription: String) extends XmppDownstreamResponse {
   override def responseType(): String = "nack"
 }
 

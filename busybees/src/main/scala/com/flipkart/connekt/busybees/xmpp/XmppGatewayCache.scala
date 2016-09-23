@@ -35,7 +35,7 @@ import scala.util.Try
 
 class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSystem) {
 
-  var connectionAvailable = 0
+  var connectionAvailable = 0 // What is the need for this counter?
   val xmppRequestRouters:mutable.Map[String, ActorRef] = mutable.Map[String, ActorRef]()
   val requestBuffer:collection.mutable.Map[String,mutable.Queue[XmppOutStreamRequest]] = collection.mutable.Map()
   val connectionFreeCount:collection.mutable.Map[String,AtomicInteger] = collection.mutable.Map()
@@ -45,18 +45,18 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
   private def initBuffer(appId:String, credential:GoogleCredential) = {
     //TODO will be changed with zookeeper
     val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(1)
-    val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter], parent, credential, appId))
+    val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter],connectionPoolSize, parent, credential, appId))
     xmppRequestRouters.put(appId, xmppRequestRouter)
     requestBuffer.put(appId,new mutable.Queue[XmppOutStreamRequest]())
     connectionFreeCount.put(appId,new AtomicInteger(connectionPoolSize))
-    connectionAvailable = connectionAvailable + connectionPoolSize
+    connectionAvailable += connectionPoolSize
   }
 
   def sendRequests() = {
     requestBuffer.foreach{ case (appId, requests) =>
-      val freeCount:AtomicInteger = connectionFreeCount(appId)
+      val freeCount = connectionFreeCount(appId)
       while ( requests.nonEmpty && freeCount.get > 0 ) {
-        connectionAvailable = connectionAvailable - 1
+        connectionAvailable -= 1
         freeCount.decrementAndGet()
         xmppRequestRouters(appId) ! requests.dequeue()
       }
@@ -76,7 +76,7 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
   }
 
   def incrementConnectionFreeCount(appId:String) = {
-    connectionAvailable = connectionAvailable + 1
+    connectionAvailable += 1
     connectionFreeCount(appId).incrementAndGet()
   }
 
@@ -113,17 +113,17 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
         ConnektLogger(LogFile.CLIENTS).error("Timeout for gracefully shutting down xmpp actors. Forcing")
         xmppRequestRouters.foreach {
           case (appId, xmppRouter) =>
-            actorSystem stop xmppRouter
+            actorSystem.stop(xmppRouter)
         }
     }
   }
 
-  def reset:Unit = {
+  def reset():Unit = {
     connectionAvailable = 0
     xmppRequestRouters.clear
     requestBuffer.clear
     connectionFreeCount.clear
-    responsesDownStream.clear
+    responsesDownStream.clear()
     responsesUpStream.clear
   }
 }

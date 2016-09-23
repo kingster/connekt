@@ -18,15 +18,12 @@ import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
 import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, FreeConnectionAvailable, Shutdown, XmppRequestAvailable}
 import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
-import com.flipkart.connekt.commons.services.ConnektConfig
 
 import scala.collection.mutable
 
-class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
-  val requests:mutable.Queue[XmppOutStreamRequest] = collection.mutable.Queue[XmppOutStreamRequest]()
+class XmppConnectionRouter (connectionPoolSize:Int, dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
 
-  //TODO will be changed with zookeeper
-  val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(10)
+  val requests:mutable.Queue[XmppOutStreamRequest] = collection.mutable.Queue[XmppOutStreamRequest]()
   val freeXmppActors = collection.mutable.LinkedHashSet[ActorRef]()
 
   override def postStop = {
@@ -53,7 +50,6 @@ class XmppConnectionRouter (dispatcher: GcmXmppDispatcher, googleCredential: Goo
       val newRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId))
       context.watch(newRoutee)
       router = router.addRoutee(newRoutee)
-
 
     case FreeConnectionAvailable =>
       if ( requests.nonEmpty )
