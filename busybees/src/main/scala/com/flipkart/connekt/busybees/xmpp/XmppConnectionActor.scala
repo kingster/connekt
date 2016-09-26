@@ -33,6 +33,7 @@ import org.jivesoftware.smack.packet.Stanza
 import org.jivesoftware.smack.provider.{ExtensionElementProvider, ProviderManager}
 import org.jivesoftware.smack.roster.Roster
 import org.jivesoftware.smack.tcp.{XMPPTCPConnection, XMPPTCPConnectionConfiguration}
+import org.jivesoftware.smack.util.stringencoder.java7.{Java7Base64Encoder, Java7Base64UrlSafeEncoder}
 import org.xmlpull.v1.XmlPullParser
 
 import scala.collection.JavaConverters._
@@ -41,6 +42,8 @@ import scala.util.{Failure, Success}
 class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor with Instrumented {
 
   val maxPendingAckCount = ConnektConfig.getInt("gcm.xmpp.maxcount").getOrElse(4)
+  org.jivesoftware.smack.util.stringencoder.Base64.setEncoder(Java7Base64Encoder.getInstance())
+  org.jivesoftware.smack.util.stringencoder.Base64UrlSafeEncoder.setEncoder(Java7Base64UrlSafeEncoder.getInstance())
 
   private val removalListener = new RemovalListener[String, (GCMRequestTracker,Long)]() {
     def onRemoval(removal: RemovalNotification[String, (GCMRequestTracker,Long)]) {
@@ -72,8 +75,6 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     archivedConnections.foreach(conn => {conn.disconnect(); conn.instantShutdown()})
     messageDataCache.asMap().asScala.foreach(entry => ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor:PostStop:Never received GCM acknowledgement for tracker id ${entry._1}"))
   }
-
-
 
   import context._
 
@@ -357,3 +358,4 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     }
   }
 }
+
