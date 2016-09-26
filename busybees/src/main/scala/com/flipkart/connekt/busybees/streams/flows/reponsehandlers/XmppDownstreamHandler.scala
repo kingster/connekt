@@ -30,6 +30,7 @@ import scala.util.{Failure, Success, Try}
 class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[XmppDownstreamResponse], GCMRequestTracker)](96) with Instrumented {
 
   val badRegistrationError = "BAD_REGISTRATION"
+  val deviceUnregistered = "DEVICE_UNREGISTERED"
   val invalidJson = "INVALID_JSON"
   val rateExceededError = "DEVICE_MESSAGE_RATE_EXCEEDED"
 
@@ -49,21 +50,21 @@ class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) exte
         GCMResponseStatus.Received -> null
 
       case Failure(e: XmppNackException) =>
-        val status = if (e.response.error.equalsIgnoreCase(badRegistrationError)) {
-          DeviceDetailsService.get(appName, deviceId).foreach {
-            _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
-              ConnektLogger(LogFile.PROCESSORS).info(s"XmppDownstreamHandler token invalid  deleting details of device: ${requestTracker.deviceId}.")
-              DeviceDetailsService.delete(appName, deviceId)
-            })
-          }
-          GCMResponseStatus.InvalidDevice
-          } else if (e.response.error.equalsIgnoreCase(invalidJson))
-            GCMResponseStatus.InvalidJsonError
-          else
-            GCMResponseStatus.Error
-        ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.response.errorDescription}")
-        status -> e.response.errorDescription
-
+        e.response.error.toUpperCase match {
+          case badDevice if badDevice.equals(badRegistrationError) || badDevice.equals(deviceUnregistered) =>
+            DeviceDetailsService.get(appName, deviceId).foreach {
+              _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
+                ConnektLogger(LogFile.PROCESSORS).info(s"XmppDownstreamHandler token invalid  deleting details of device: ${requestTracker.deviceId}.")
+                DeviceDetailsService.delete(appName, deviceId)
+              })
+            }
+            GCMResponseStatus.InvalidDevice -> e.response.errorDescription
+          case `invalidJson` =>
+            GCMResponseStatus.InvalidJsonError -> e.response.errorDescription
+          case _ =>
+            ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.response.errorDescription}")
+            GCMResponseStatus.Error -> e.response.errorDescription
+        }
       case Failure(e) =>
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.getMessage}")
         GCMResponseStatus.Error -> e.getMessage
