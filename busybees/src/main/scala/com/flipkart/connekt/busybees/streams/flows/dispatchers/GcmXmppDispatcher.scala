@@ -104,7 +104,7 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
     val inhandler = new InHandler {
       override def onPush(): Unit = {
         val requestPair:(GcmXmppRequest,GCMRequestTracker) = grab(in)
-        xmppState.addIncomingRequest(XmppOutStreamRequest(requestPair._1, requestPair._2)) //todo: Use secondary constructor here
+        xmppState.addIncomingRequest(new XmppOutStreamRequest(requestPair))
 
         //exhaust buffer as long as connections available
         xmppState.sendRequests()

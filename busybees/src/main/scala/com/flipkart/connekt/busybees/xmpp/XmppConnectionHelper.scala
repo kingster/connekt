@@ -41,10 +41,8 @@ private [busybees] object XmppConnectionHelper {
   lazy val xmppPort: Int = ConnektConfig.get("fcm.ccs.fcmPort").getOrElse("5235").toInt
 }
 
-case class XmppOutStreamRequest(request:GcmXmppRequest,tracker: GCMRequestTracker){
-  def this(tuple2: (GcmXmppRequest, GCMRequestTracker) ){
-    this(tuple2._1, tuple2._2)
-  }
+case class XmppOutStreamRequest(request:GcmXmppRequest,tracker: GCMRequestTracker) {
+  def this(tuple2: (GcmXmppRequest, GCMRequestTracker)) = this(tuple2._1, tuple2._2)
 }
 
 class XmppNeverAckException(message: String) extends Exception(message)
