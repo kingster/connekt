@@ -1,2 +1,0 @@
-- name: Copy Param file
-  copy: src=params.py dest=/var/lib/ambari-agent/cache/common-services/HBASE/0.96.0.2.0/package/scripts/params.py owner=root group=root mode=0644

@@ -1,3 +1,0 @@
-# This is a reference file only.
-
-Use /home/kinshuk.bairagi/users.txt for instance creation on iaas-infra-0001.nm.flipkart.com.

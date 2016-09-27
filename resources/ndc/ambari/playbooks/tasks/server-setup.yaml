@@ -1,2 +1,0 @@
-  - name: execute ambari server setup templates
-    command: /usr/share/fdp-infra-hdp-scripts/setup-ambari-server.sh

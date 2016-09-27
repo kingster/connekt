@@ -1,4 +1,0 @@
-- name: update connekt reposervice
-  shell: /usr/bin/reposervice --host repo-svc-app-0001.nm.flipkart.com --port 8080 env --name fk-connekt-app --appkey connekt | sudo tee /etc/apt/sources.list.d/fk-connekt-app.list
-- name: update apt
-  command: sudo /usr/bin/apt-get update warn=no

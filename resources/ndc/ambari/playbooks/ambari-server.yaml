@@ -1,6 +1,0 @@
-- hosts: ambari-server
-  sudo: yes
-  tasks:
-  - include: common-play.yaml
-  - include: tasks/server-setup.yaml
-  - include: handlers/server-start.yaml

@@ -1,4 +1,0 @@
-  - name: copy ulimit pam.d configuration
-    copy: src=files/common-session dest=/etc/pam.d/common-session owner=root group=root mode=0644
-  - name: copy ulimit limis.conf configuration
-    copy: src=files/limits.conf dest=/etc/security/limits.conf owner=root group=root mode=0644
