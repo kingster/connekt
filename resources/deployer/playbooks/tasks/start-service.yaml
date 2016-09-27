@@ -1,6 +1,0 @@
-- name: Set Enviroment to {{env}}
-  command: sudo /etc/init.d/fk-pf-connekt set-env {{env}} warn=no
-- name: Re-Start Service {{app}}
-  command: sudo /etc/init.d/fk-pf-connekt restart {{app}} warn=no
-- name: Wait 15 Seconds
-  command: sleep 15

@@ -1,7 +1,0 @@
-- name: Verify Receptors are up
-  command: curl -sL -w "%{http_code}\\n" "http://localhost:28000/elb-healthcheck" -o /dev/null warn=no
-  register: curl_result
-
-- assert:
-    that:
-      - "'200' in curl_result.stdout"
