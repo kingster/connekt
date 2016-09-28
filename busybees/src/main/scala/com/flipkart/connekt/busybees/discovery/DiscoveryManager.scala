@@ -54,8 +54,10 @@ sealed class DiscoveryManager {
   }
 
   def shutdown(): Unit = {
-    pathCacheZookeeper.removeAndClose()
-    curatorClient.close()
+    if (pathCacheZookeeper != null)
+      pathCacheZookeeper.removeAndClose()
+    if (curatorClient != null)
+      curatorClient.close()
   }
 
   def getInstances: List[String] = {

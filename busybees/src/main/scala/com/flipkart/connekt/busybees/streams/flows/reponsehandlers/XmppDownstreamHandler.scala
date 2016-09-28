@@ -69,7 +69,7 @@ class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) exte
             GCMResponseStatus.InvalidJsonError -> nack.response.errorDescription
           case _ =>
             ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${nack.response.errorDescription}")
-            GCMResponseStatus.Error -> nack.response.error + "-" + nack.response.errorDescription
+            GCMResponseStatus.Error -> (nack.response.error + "-" + nack.response.errorDescription)
         }
       case Failure(e) =>
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.getMessage}")
