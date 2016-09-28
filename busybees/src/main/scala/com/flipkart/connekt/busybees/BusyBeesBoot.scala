@@ -19,6 +19,7 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.flipkart.connekt.busybees.streams.flows.StageSupervision
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.HttpDispatcher
 import com.flipkart.connekt.busybees.streams.topologies.PushTopology
+import com.flipkart.connekt.busybees.discovery.{DiscoveryManager, PathCacheZookeeper, ServiceHostsDiscovery}
 import com.flipkart.connekt.commons.connections.ConnectionProvider
 import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
@@ -28,6 +29,9 @@ import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsServic
 import com.flipkart.connekt.commons.sync.SyncManager
 import com.flipkart.connekt.commons.utils.ConfigUtils
 import com.typesafe.config.ConfigFactory
+import org.apache.curator.RetryPolicy
+import org.apache.curator.framework.CuratorFrameworkFactory
+import org.apache.curator.retry.ExponentialBackoffRetry
 
 object BusyBeesBoot extends BaseApp {
 
@@ -96,6 +100,10 @@ object BusyBeesBoot extends BaseApp {
       pushTopology = new PushTopology(kafkaConnConf)
       pushTopology.run
 
+      // Starting xmpp zookeeper lookup
+      DiscoveryManager.instance.init(ConnektConfig.getConfig("discovery").get)
+      DiscoveryManager.instance.start()
+
       ConnektLogger(LogFile.SERVICE).info("Started `Busybees` app")
     }
   }
@@ -103,6 +111,7 @@ object BusyBeesBoot extends BaseApp {
   def terminate() = {
     ConnektLogger(LogFile.SERVICE).info("BusyBees shutting down")
     if (initialized.get()) {
+      DiscoveryManager.instance.shutdown()
       DaoFactory.shutdownHTableDaoFactory()
       Option(pushTopology).foreach(_.shutdown())
 

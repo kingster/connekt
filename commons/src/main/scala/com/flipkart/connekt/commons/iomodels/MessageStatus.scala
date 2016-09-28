@@ -20,6 +20,7 @@ object MessageStatus {
     val InvalidJsonError = Value("gcm_invalid_json_error")
     val AuthError = Value("gcm_auth_error")
     val Received = Value("gcm_received")
+    val Delivered = Value("gcm_delivered")
     val Error = Value("gcm_error")
     val InternalError = Value("gcm_internal_error")
     val InvalidDevice = Value("gcm_invalid_device")

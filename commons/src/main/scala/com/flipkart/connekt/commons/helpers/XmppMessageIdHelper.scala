@@ -12,32 +12,29 @@
  */
 package com.flipkart.connekt.commons.helpers
 
-import com.flipkart.connekt.commons.iomodels.{PNRequestInfo, ConnektRequest}
-import com.flipkart.connekt.commons.utils.StringUtils
+import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.annotation.{JsonInclude, JsonProperty}
+import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNRequestInfo}
+import com.flipkart.connekt.commons.utils.CompressionUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
 
-object XmppMessageIdHelper {
-  val deviceIdText = "DEVICE_ID"
-  val messageIdText = "MESSAGE_ID"
-  val clientIdText = "CLIENT_ID"
-  val contextIdText = "CONTEXT_ID"
-  val appIdText = "APP_ID"
-  def generateMessageId(message: ConnektRequest, deviceId:String):String =
-    message.id + ":" + deviceId + ":" + message.clientId + ":" + message.channelInfo.asInstanceOf[PNRequestInfo].appName + ":" + message.contextId.orEmpty
+sealed case class XmppMessageId(@JsonProperty("dId") deviceId: String, @JsonProperty("mId") messageId: String, @JsonProperty("cId") clientId: String, @JsonInclude(Include.NON_NULL) @JsonProperty("ctx") contextId: Option[String], @JsonProperty("aN") appName: String)
 
-  def parseMessageId(messageStr:String):Map[String,String] = {
-    if (StringUtils.isNullOrEmpty(messageStr)) Map (deviceIdText -> org.apache.commons.lang.StringUtils.EMPTY,
-      messageIdText -> org.apache.commons.lang.StringUtils.EMPTY,
-      clientIdText -> org.apache.commons.lang.StringUtils.EMPTY,
-      contextIdText -> org.apache.commons.lang.StringUtils.EMPTY)
-    else {
-      val splitString = messageStr.split(':')
-      val context = if ( splitString.length >= 5) splitString(4) else org.apache.commons.lang.StringUtils.EMPTY
-      Map (deviceIdText -> splitString(1),
-        messageIdText -> splitString(0),
-        clientIdText -> splitString(2),
-        appIdText -> splitString(3),
-        contextIdText -> context)
-    }
+object XmppMessageIdHelper {
+
+  def generateMessageId(message: ConnektRequest, deviceId: String): String = {
+    val xmppMessageId = XmppMessageId(
+      deviceId = deviceId,
+      messageId = message.id,
+      clientId = message.clientId,
+      contextId = message.contextId,
+      appName = message.channelInfo.asInstanceOf[PNRequestInfo].appName
+    )
+    CompressionUtils.deflate(xmppMessageId.getJson).get
   }
+
+  def parseMessageId(messageStr: String): Option[XmppMessageId] = {
+    CompressionUtils.inflate(messageStr).toOption.map(_.getObj[XmppMessageId])
+  }
+
 }

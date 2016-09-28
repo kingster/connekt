@@ -16,51 +16,70 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.pattern.ask
+import akka.util.Timeout
+import com.flipkart.connekt.busybees.discovery.DiscoveryManager
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{FreeConnectionCount, ReSize}
 import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels._
 import com.flipkart.connekt.commons.services.ConnektConfig
+import com.flipkart.connekt.commons.sync.SyncType.SyncType
+import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncType}
 
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
-import scala.util.Try
-
+import scala.util.{Failure, Success, Try}
 /**
  * Note:
  * Works closely with GcmXmppDispatcher to maintain state
  * Since GraphStageLogic is synchronised, we don't need any synchronisation
  */
 
-class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSystem) {
+class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSystem)  extends SyncDelegate {
 
-  var connectionAvailable = 0 // What is the need for this counter?
+  SyncManager.get().addObserver(this, List(SyncType.DISCOVERY_CHANGE))
+
   val xmppRequestRouters:mutable.Map[String, ActorRef] = mutable.Map[String, ActorRef]()
   val requestBuffer:collection.mutable.Map[String,mutable.Queue[XmppOutStreamRequest]] = collection.mutable.Map()
   val connectionFreeCount:collection.mutable.Map[String,AtomicInteger] = collection.mutable.Map()
   val responsesDownStream:ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)] = new ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)]()
   val responsesUpStream:mutable.Queue[(ActorRef,XmppUpstreamResponse)] = collection.mutable.Queue[(ActorRef,XmppUpstreamResponse)]()
+  val maxXmppConnections =  ConnektConfig.getInt("gcm.xmpp.maxConnections").getOrElse(50)
+
+  /**
+    * This is used by GateWayCache to back-pressure input ports
+    * @return Int
+    */
+  def totalConnectionAvailable:Int = {
+    connectionFreeCount.values.map(_.get()).sum
+  }
+
+  private def getPoolSize(clusterSize: Int): Int = {
+    if( clusterSize > 0 )
+      math.min(maxXmppConnections, maxXmppConnections / clusterSize)
+    else
+      maxXmppConnections
+  }
 
   private def initBuffer(appId:String, credential:GoogleCredential) = {
-    //TODO will be changed with zookeeper
-    val connectionPoolSize = ConnektConfig.getInt("gcm.xmpp." + appId + ".count").getOrElse(1)
-    val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter],connectionPoolSize, parent, credential, appId))
+    val currentClusterSize = DiscoveryManager.instance.getInstances.size
+    val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter], getPoolSize(currentClusterSize), parent, credential, appId))
     xmppRequestRouters.put(appId, xmppRequestRouter)
     requestBuffer.put(appId,new mutable.Queue[XmppOutStreamRequest]())
-    connectionFreeCount.put(appId,new AtomicInteger(connectionPoolSize))
-    connectionAvailable += connectionPoolSize
+    connectionFreeCount.put(appId,new AtomicInteger(maxXmppConnections))
   }
 
   def sendRequests() = {
     requestBuffer.foreach{ case (appId, requests) =>
       val freeCount = connectionFreeCount(appId)
-      while ( requests.nonEmpty && freeCount.get > 0 ) {
-        connectionAvailable -= 1
+      while ( requests.nonEmpty && freeCount.get > 0 ) { //needs fix here.
         freeCount.decrementAndGet()
         xmppRequestRouters(appId) ! requests.dequeue()
       }
-      ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count $connectionAvailable")
+      ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count $totalConnectionAvailable")
     }
   }
 
@@ -71,12 +90,11 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
         requestBuffer(request.tracker.appName)
       })
     requests.enqueue(request)
-    ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count $connectionAvailable")
+    ConnektLogger(LogFile.CLIENTS).trace(s"in gateway cache request size ${requests.size}, connect count $totalConnectionAvailable")
     requestBuffer.put(request.tracker.appName, requests)
   }
 
   def incrementConnectionFreeCount(appId:String) = {
-    connectionAvailable += 1
     connectionFreeCount(appId).incrementAndGet()
   }
 
@@ -105,9 +123,9 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
     try {
       val futures: mutable.Map[String, Future[Boolean]] = xmppRequestRouters.map {
         case (appId, xmppRouter) =>
-          appId -> gracefulStop(xmppRouter, 10 second, com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.Shutdown)
+          appId -> gracefulStop(xmppRouter, 10.second, com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.Shutdown)
       }
-      Await.result(Future.sequence(futures.values), 15 second)
+      Await.result(Future.sequence(futures.values), 15.second)
     } catch {
       case e:Throwable =>
         ConnektLogger(LogFile.CLIENTS).error("Timeout for gracefully shutting down xmpp actors. Forcing")
@@ -119,11 +137,35 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
   }
 
   def reset():Unit = {
-    connectionAvailable = 0
     xmppRequestRouters.clear
     requestBuffer.clear
     connectionFreeCount.clear
     responsesDownStream.clear()
     responsesUpStream.clear
+  }
+
+  override def onUpdate(_type: SyncType, args: List[AnyRef]): Any = {
+    implicit val duration: Timeout = 5.seconds
+
+    _type match {
+      case SyncType.DISCOVERY_CHANGE =>
+        ConnektLogger(LogFile.SERVICE).error(s"Will Re-balance Router Size Now. New Length ${args.length}, Data : $args")
+        if(args.nonEmpty ) {
+          xmppRequestRouters.foreach {
+            case (appId, xmppRouter) =>
+              xmppRouter ! ReSize(getPoolSize(args.length))
+              val count = xmppRequestRouters(appId) ? FreeConnectionCount
+              count.onComplete {
+                case Success(value: Int) =>
+                  ConnektLogger(LogFile.SERVICE).info(s"Update connectionFreeCount from Router on ReBalance for $appId to $value")
+                  connectionFreeCount(appId).set(value)
+                case Failure(e) =>
+                  ConnektLogger(LogFile.SERVICE).error(s"Failed to Get connectionFreeCount from Router on ReBalance", e)
+              }(actorSystem.dispatcher)
+          }
+        }
+      case _ =>
+    }
+
   }
 }

@@ -58,17 +58,17 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     override def postStop(): Unit = {
-      ConnektLogger(LogFile.CLIENTS).trace("XmppDispatcher:in posstop")
+      ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher: IN postStop")
     }
 
     override def preStart(): Unit = {
       getMoreCallback = getAsyncCallback[String] {
         appId => {
-          ConnektLogger(LogFile.CLIENTS).trace("Received pull request:" + appId)
+          ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher: Received pull request:" + appId)
           xmppState.incrementConnectionFreeCount(appId)
           if ( !hasBeenPulled(in) ) {
             pull(in)
-            ConnektLogger(LogFile.CLIENTS).trace("Pulled in:" + appId)
+            ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher: Pulled in:" + appId)
           }
         }
       }
@@ -110,24 +110,24 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
         xmppState.sendRequests()
 
         //pull more if connections available
-        if ( xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 )
+        if ( xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.totalConnectionAvailable > 0 )
           pull(in)
       }
 
       override def onUpstreamFinish(): Unit = {
         //TODO NEED ALERT HERE
         //("INPUT STREAM IS CLOSED")
-        ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:upstream finished:shutting down")
+        ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher: upstream finished:shutting down")
         xmppState.prepareShutdown
 
-        ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:upstream finished:downstreamcount:" + xmppState.responsesDownStream.size())
+        ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher :upstream finished:downstreamcount:" + xmppState.responsesDownStream.size())
         emitMultiple[(Try[XmppDownstreamResponse], GCMRequestTracker)](outDownstream, xmppState.responsesDownStream.iterator.asScala, () => {
-          ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:emitted all:" + xmppState.responsesDownStream.size())
+          ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher :emitted all:" + xmppState.responsesDownStream.size())
         })
 
         xmppState.reset
         completeStage()
-        ConnektLogger(LogFile.CLIENTS).trace("Xmpp Dispatcher:shutdown complete")
+        ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher :shutdown complete")
       }
     }
     setHandler(in, inhandler)
@@ -137,8 +137,10 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
         if ( !xmppState.responsesDownStream.isEmpty ) {
           push(outDownstream, xmppState.dequeueDownstream)
         }
-        if ( xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 && !hasBeenPulled(in))
+        if ( xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.totalConnectionAvailable > 0 && !hasBeenPulled(in))
           pull(in)
+        else if (!hasBeenPulled(in))
+          ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher : Backpressure Applied upstreamUphandler")
       }
     }
     setHandler(outDownstream, downstreamOutHandler)
@@ -150,8 +152,10 @@ class GcmXmppDispatcher(implicit actorSystem:ActorSystem) extends GraphStage[Fan
           upstreamActor ! upstreamResponse
           push(outUpstream, upstreamResponse)
         }
-        if (xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.connectionAvailable > 0 && !hasBeenPulled(in))
+        if (xmppState.responsesUpStream.size < maxPendingUpstreamCount && xmppState.totalConnectionAvailable > 0 && !hasBeenPulled(in))
           pull(in)
+        else if (!hasBeenPulled(in))
+          ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher : Backpressure Applied upstreamUphandler")
       }
     }
     setHandler(outUpstream, upstreamUphandler)

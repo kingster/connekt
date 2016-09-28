@@ -22,7 +22,6 @@ import akka.stream.{ActorMaterializer, SinkShape}
 import com.flipkart.connekt.commons.entities.{HTTPEventSink, Subscription, SubscriptionEvent}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
-import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.firefly.dispatcher.HttpDispatcher
 
 import scala.collection._

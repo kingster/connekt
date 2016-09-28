@@ -77,6 +77,10 @@ libraryDependencies ++= Seq(
   "com.roundeights" %% "hasher" % "1.2.0",
   "com.couchbase.client" % "java-client" % "2.1.3",
   "io.reactivex" %% "rxscala" % "0.26.0",
+  "org.apache.curator" % "curator-x-discovery" % "2.10.0" excludeAll(
+    ExclusionRule(organization = "com.google.guava"),
+    ExclusionRule(organization = "org.slf4j")
+    ),
   "org.apache.curator" % "curator-recipes" % "2.10.0" excludeAll(
     ExclusionRule(organization = "com.google.guava"),
     ExclusionRule(organization = "log4j"),

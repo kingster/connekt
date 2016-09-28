@@ -31,7 +31,7 @@ class ConnektStanzaListener(connectionActor:ActorRef, dispatcher:GcmXmppDispatch
 
     Try (packetExtension.json.getObj[XmppResponse]) match {
       case Success(downStreamMsg:XmppDownstreamResponse) =>
-        ConnektLogger(LogFile.CLIENTS).debug("De Serialised to downstreamobject:" + downStreamMsg)
+        ConnektLogger(LogFile.CLIENTS).debug("De Serialised to downstream:" + downStreamMsg)
         connectionActor ! downStreamMsg
       case Success(upstream:XmppUpstreamResponse) =>
         ConnektLogger(LogFile.CLIENTS).debug("De Serialised to upstream:" + upstream)

@@ -15,13 +15,15 @@ package com.flipkart.connekt.busybees.xmpp
 import akka.actor._
 import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, FreeConnectionAvailable, Shutdown, XmppRequestAvailable}
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, FreeConnectionAvailable, FreeConnectionCount, ReSize, Shutdown, XmppRequestAvailable}
 import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.collection.mutable
 
-class XmppConnectionRouter (connectionPoolSize:Int, dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
+
+
+class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
 
   val requests:mutable.Queue[XmppOutStreamRequest] = collection.mutable.Queue[XmppOutStreamRequest]()
   val freeXmppActors = collection.mutable.LinkedHashSet[ActorRef]()
@@ -32,24 +34,43 @@ class XmppConnectionRouter (connectionPoolSize:Int, dispatcher: GcmXmppDispatche
 
   var router:Router = {
     val routees = Vector.fill(connectionPoolSize) {
-      val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId)
-        .withMailbox("akka.actor.xmpp-connection-priority-mailbox"))
-      context.watch(aRoutee)
-      freeXmppActors.add(aRoutee)
-      ActorRefRoutee(aRoutee)
+      createRoutee()
     }
     Router(RoundRobinRoutingLogic(), routees)
+  }
+
+  private def createRoutee():ActorRefRoutee = {
+    ConnektLogger(LogFile.CLIENTS).trace(s"Creating XmppConnectionActor for $appId")
+    val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId)
+      .withMailbox("akka.actor.xmpp-connection-priority-mailbox"))
+    context.watch(aRoutee)
+    freeXmppActors.add(aRoutee)
+    ActorRefRoutee(aRoutee)
   }
 
   import context._
 
   def receive = {
     case Terminated(a) =>
-      ConnektLogger(LogFile.CLIENTS).trace(s"Worker terminated $a")
+      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter: XmppConnectionActor Terminated $a")
+      freeXmppActors.remove(a)
       router = router.removeRoutee(a)
-      val newRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId))
-      context.watch(newRoutee)
-      router = router.addRoutee(newRoutee)
+      if(router.routees.size < connectionPoolSize)
+        createRoutee()
+
+    case ReSize(count) =>
+      ConnektLogger(LogFile.CLIENTS).info(s"Will Resize XMPP Actor to $count for $appId")
+      connectionPoolSize = count
+      val currentCount = router.routees.size
+      if (count < currentCount) {
+        //Destroy few...
+        ConnektLogger(LogFile.CLIENTS).debug(s"Resize XMPP Actor : Reduce")
+        router.routees.slice(count+1 , currentCount).foreach(_.send(Shutdown, self))
+      } else {
+        //create some new
+        ConnektLogger(LogFile.CLIENTS).debug(s"Resize XMPP Actor : Increase")
+        for(i <- currentCount+1 to count) createRoutee()
+      }
 
     case FreeConnectionAvailable =>
       if ( requests.nonEmpty )
@@ -59,6 +80,9 @@ class XmppConnectionRouter (connectionPoolSize:Int, dispatcher: GcmXmppDispatche
           dispatcher.getMoreCallback.invoke(appId)
       }
       ConnektLogger(LogFile.CLIENTS).trace(s"FreeConnectionAvailable:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+
+    case FreeConnectionCount =>
+      sender ! math.min(connectionPoolSize, freeXmppActors.size) //TODO: Do something better.
 
     case ConnectionBusy =>
       if ( freeXmppActors.nonEmpty )

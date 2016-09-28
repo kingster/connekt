@@ -13,10 +13,10 @@
 package com.flipkart.connekt.commons.iomodels
 
 import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonProperty}
-import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.services.DeviceDetailsService
+import com.flipkart.connekt.commons.entities.MobilePlatform
 import com.flipkart.connekt.commons.helpers.XmppMessageIdHelper
-
+import com.flipkart.connekt.commons.iomodels.MessageStatus.GCMResponseStatus
+import com.flipkart.connekt.commons.utils.StringUtils._
 @JsonIgnoreProperties(ignoreUnknown = true)
 case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = true) messageId: String,
                           @JsonProperty(required = true) from: String,
@@ -24,17 +24,18 @@ case class XmppReceipt(   @JsonProperty("message_id")@JsonProperty(required = tr
                           @JsonProperty(required = true) data: XmppReceiptData) extends XmppUpstreamResponse(messageId, from, category) {
 
   override def getPnCallbackEvent(): Option[PNCallbackEvent] = {
-    val parsedMessageIdMap:Map[String,String] = XmppMessageIdHelper.parseMessageId(data.originalMessageId)
-    Some(PNCallbackEvent(messageId = parsedMessageIdMap.get(XmppMessageIdHelper.messageIdText).get,
-      clientId = parsedMessageIdMap.get(XmppMessageIdHelper.clientIdText).get,
-      deviceId = parsedMessageIdMap.get(XmppMessageIdHelper.deviceIdText).get,
-      eventType = "receipt",
-      platform = "android",
-      appName = parsedMessageIdMap.get(XmppMessageIdHelper.appIdText).get,
-      contextId = parsedMessageIdMap.get(XmppMessageIdHelper.contextIdText).get,
-      cargo = null,
-      timestamp = System.currentTimeMillis
-    ))
+    XmppMessageIdHelper.parseMessageId(data.originalMessageId).map { xmppMessageId =>
+      PNCallbackEvent(messageId = xmppMessageId.messageId,
+        clientId = xmppMessageId.clientId,
+        deviceId = xmppMessageId.deviceId,
+        eventType = GCMResponseStatus.Delivered,
+        platform = MobilePlatform.ANDROID,
+        appName = xmppMessageId.appName,
+        contextId = xmppMessageId.contextId.orEmpty,
+        cargo = null,
+        timestamp = System.currentTimeMillis
+      )
+    }
   }
 }
 

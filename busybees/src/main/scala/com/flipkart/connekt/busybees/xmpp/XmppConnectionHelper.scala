@@ -29,8 +29,10 @@ private [busybees] object XmppConnectionHelper {
   case object Shutdown
   case object StartShuttingDown
   case object XmppRequestAvailable
+  case object FreeConnectionCount
   case class ConnectionClosed(connection: XMPPTCPConnection)
   case class XmppAckExpired(tracker: GCMRequestTracker)
+  case class ReSize(count:Int)
 
   val GCM_NAMESPACE:String = "google:mobile:data"
   val GCM_ELEMENT_NAME:String = "gcm"
@@ -56,6 +58,8 @@ class XmppConnectionPriorityMailbox(settings: ActorSystem.Settings, config: Conf
     case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.ReConnect => 1
     case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.Shutdown => 1
     case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.StartShuttingDown => 1
+    case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.ReSize => 1
+    case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.FreeConnectionCount => 1
     case com.flipkart.connekt.commons.iomodels.XmppUpstreamData => 2
     case com.flipkart.connekt.commons.iomodels.XmppReceipt =>3
     case com.flipkart.connekt.commons.iomodels.XmppAck => 4

@@ -12,7 +12,7 @@
  */
 package com.flipkart.connekt.receptors.routes.push
 
-import akka.actor.ActorSystem
+import akka.connekt.AkkaHelpers._
 import akka.http.scaladsl.model.StatusCodes
 import akka.stream.ActorMaterializer
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -26,7 +26,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
-import akka.connekt.AkkaHelpers._
+
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

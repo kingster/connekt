@@ -111,7 +111,7 @@ class SyncManager(zkQuorum: String) {
 
   private var broadcasting: Int = 0
 
-  private def postNotification(id: SyncType, args: List[AnyRef]) {
+  private [connekt] def postNotification(id: SyncType, args: List[AnyRef]) {
     broadcasting += 1
     if (observers.get(id).isDefined) {
       for (obj <- observers(id)) {

@@ -92,7 +92,7 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
       self ! StartShuttingDown
 
     case other:Any =>
-      ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $other in init state s")
+      ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor received $other in init state")
   }
 
   //message processing as long as pending ack is less than max
