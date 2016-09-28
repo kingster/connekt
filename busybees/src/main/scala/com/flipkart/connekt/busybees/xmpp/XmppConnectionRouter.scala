@@ -56,7 +56,7 @@ class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispa
       freeXmppActors.remove(a)
       router = router.removeRoutee(a)
       if(router.routees.size < connectionPoolSize)
-        createRoutee()
+        router.addRoutee(createRoutee())
 
     case ReSize(count) =>
       ConnektLogger(LogFile.CLIENTS).info(s"Will Resize XMPP Actor to $count for $appId")
@@ -69,7 +69,7 @@ class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispa
       } else {
         //create some new
         ConnektLogger(LogFile.CLIENTS).debug(s"Resize XMPP Actor : Increase")
-        for(i <- currentCount+1 to count) createRoutee()
+        for(i <- currentCount+1 to count) router.addRoutee(createRoutee())
       }
 
     case FreeConnectionAvailable =>
