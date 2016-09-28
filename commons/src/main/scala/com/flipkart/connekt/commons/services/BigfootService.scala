@@ -20,6 +20,7 @@ import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.utils._
 import com.flipkart.metrics.Timed
 import com.flipkart.phantom.client.exceptions.PhantomClientException
+import com.flipkart.seraph.schema.BaseSchema
 import com.flipkart.specter.ingestion.IngestionMetadata
 import com.flipkart.specter.ingestion.entities.Entity
 import com.flipkart.specter.ingestion.events.Event
@@ -60,7 +61,7 @@ object BigfootService extends Instrumented {
     }
   }
 
-  @Timed("ingest")
+  @Timed("eventIngest")
   def ingest(obj: EventBaseSchema): Try[Boolean] = {
     val eventId = StringUtils.generateRandomStr(25)
     val event = new Event(eventId, System.currentTimeMillis(), obj)
@@ -69,11 +70,21 @@ object BigfootService extends Instrumented {
     ingest(new SpecterRequest(event, ingestionMetadata))
   }
 
-  @Timed("ingest")
+  @Timed("entityIngest")
   def ingest(obj: EntityBaseSchema): Try[Boolean] = {
     val entity = new Entity(obj.id, System.currentTimeMillis(), obj)
     val ingestionMetadata: IngestionMetadata = new IngestionMetadata()
     ingestionMetadata.setRequestId(obj.id)
     ingest(new SpecterRequest(entity, ingestionMetadata))
+  }
+
+  def ingest(obj: BaseSchema): Try[Boolean] = {
+    obj match {
+      case event: EventBaseSchema => ingest(event)
+      case entity: EntityBaseSchema => ingest(entity)
+      case _ =>
+        ConnektLogger(LogFile.SERVICE).warn(s"Unable to ingest as $obj is neither EventBaseSchema nor EntityBaseSchema")
+        Success(false)
+    }
   }
 }
