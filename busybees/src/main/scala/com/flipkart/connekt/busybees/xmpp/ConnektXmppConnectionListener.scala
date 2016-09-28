@@ -13,7 +13,7 @@
 package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor.ActorRef
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionClosed, ReConnect}
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.ConnectionClosed
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.{ConnectionListener, XMPPConnection}
