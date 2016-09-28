@@ -55,8 +55,8 @@ class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) exte
         }
         GCMResponseStatus.Received -> response.messageId
 
-      case Failure(e: XmppNackException) =>
-        e.response.error.toUpperCase match {
+      case Failure(nack: XmppNackException) =>
+        nack.response.error.toUpperCase match {
           case badDevice if badDevice.equals(badRegistrationError) || badDevice.equals(deviceUnregistered) =>
             DeviceDetailsService.get(appName, deviceId).foreach {
               _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
@@ -64,12 +64,12 @@ class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) exte
                 DeviceDetailsService.delete(appName, deviceId)
               })
             }
-            GCMResponseStatus.InvalidDevice -> e.response.errorDescription
+            GCMResponseStatus.InvalidDevice -> nack.response.errorDescription
           case `invalidJson` =>
-            GCMResponseStatus.InvalidJsonError -> e.response.errorDescription
+            GCMResponseStatus.InvalidJsonError -> nack.response.errorDescription
           case _ =>
-            ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.response.errorDescription}")
-            GCMResponseStatus.Error -> e.response.errorDescription
+            ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${nack.response.errorDescription}")
+            GCMResponseStatus.Error -> nack.response.error + "-" + nack.response.errorDescription
         }
       case Failure(e) =>
         ConnektLogger(LogFile.PROCESSORS).error(s"XmppDownstreamHandler: failed message: $messageId, reason: ${e.getMessage}")
