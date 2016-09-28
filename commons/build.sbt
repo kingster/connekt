@@ -79,7 +79,9 @@ libraryDependencies ++= Seq(
   "io.reactivex" %% "rxscala" % "0.26.0",
   "org.apache.curator" % "curator-x-discovery" % "2.10.0" excludeAll(
     ExclusionRule(organization = "com.google.guava"),
-    ExclusionRule(organization = "org.slf4j")
+    ExclusionRule(organization = "org.slf4j"),
+    ExclusionRule(organization = "log4j"),
+    ExclusionRule(organization = "io.netty")
     ),
   "org.apache.curator" % "curator-recipes" % "2.10.0" excludeAll(
     ExclusionRule(organization = "com.google.guava"),
@@ -108,7 +110,7 @@ libraryDependencies ++= Seq(
     ExclusionRule("log4j"),
     ExclusionRule(organization = "com.codahale.metrics"),
     ExclusionRule("org.apache.curator"),
-      ExclusionRule(organization = "org.mockito", name = "mockito-all"),
+    ExclusionRule(organization = "org.mockito", name = "mockito-all"),
     ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core")
     )
 )
@@ -119,7 +121,9 @@ test in assembly := {}
 parallelExecution in Test := false
 
 assemblyExcludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
-  cp filter {_.data.getName == "bcprov-jdk15on-1.54.jar"}
+  cp filter {
+    _.data.getName == "bcprov-jdk15on-1.54.jar"
+  }
 }
 
 assemblyMergeStrategy in assembly := AppBuild.mergeStrategy
