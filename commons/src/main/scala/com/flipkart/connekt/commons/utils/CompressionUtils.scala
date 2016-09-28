@@ -21,19 +21,19 @@ import com.flipkart.connekt.commons.serializers.KryoSerializer
 import org.apache.commons.io.IOUtils
 
 import scala.util.Try
-
+import com.flipkart.connekt.commons.core.Wrappers._
 /**
   * Created by kinshuk.bairagi on 27/07/16.
   */
 object CompressionUtils {
 
-  def inflate(deflatedTxt: String): Try[String] = Try {
+  def inflate(deflatedTxt: String): Try[String] = Try_ {
     val bytes = Base64.getUrlDecoder.decode(deflatedTxt)
     val zipInputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
     IOUtils.toString(zipInputStream)
   }
 
-  def deflate(txt: String): Try[String] = Try {
+  def deflate(txt: String): Try[String] = Try_ {
     val arrOutputStream = new ByteArrayOutputStream()
     val zipOutputStream = new GZIPOutputStream(arrOutputStream)
     zipOutputStream.write(txt.getBytes)
