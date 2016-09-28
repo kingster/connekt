@@ -16,15 +16,15 @@ import akka.stream.Materializer
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.xmpp.XmppNackException
 import com.flipkart.connekt.commons.entities.MobilePlatform
-import com.flipkart.connekt.commons.factories.{ServiceFactory, LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.iomodels.{XmppDownstreamResponse, PNCallbackEvent}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
+import com.flipkart.connekt.commons.iomodels.{PNCallbackEvent, XmppAck, XmppDownstreamResponse}
 import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.helpers.CallbackRecorder._
 import com.flipkart.connekt.commons.iomodels.MessageStatus.GCMResponseStatus
 import com.flipkart.connekt.commons.metrics.Instrumented
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) extends PNProviderResponseHandler[(Try[XmppDownstreamResponse], GCMRequestTracker)](96) with Instrumented {
@@ -45,9 +45,15 @@ class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) exte
     val eventTS = System.currentTimeMillis()
 
     val (responseStatus, responseMessage) = xmppResponse match {
-      case Success(response) =>
+      case Success(response:XmppAck) =>
         ConnektLogger(LogFile.PROCESSORS).info(s"XmppDownstreamHandler received xmpp response for: $messageId")
-        GCMResponseStatus.Received -> null
+        if(response.updatedTokenId != null){
+          DeviceDetailsService.get(appName, deviceId).foreach(_.foreach(d => {
+            ConnektLogger(LogFile.PROCESSORS).info(s"XmppDownstreamHandler device token update notified on. $messageId of device: $deviceId")
+            DeviceDetailsService.update(d.deviceId, d.copy(token = response.updatedTokenId))
+          }))
+        }
+        GCMResponseStatus.Received -> response.messageId
 
       case Failure(e: XmppNackException) =>
         e.response.error.toUpperCase match {

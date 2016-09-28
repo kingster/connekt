@@ -19,7 +19,8 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 
 case class XmppAck(
               @JsonProperty("message_id") messageId: String,
-              @JsonProperty(required = false) from: String) extends XmppDownstreamResponse {
+              @JsonProperty(required = false) from: String,
+              @JsonProperty("registration_id") updatedTokenId: String) extends XmppDownstreamResponse {
   override def responseType(): String = "ack"
 }
 

@@ -293,12 +293,12 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     }
   }
 
-  private def processNack(parent:ActorRef, ack:XmppNack, continue:Boolean = true) = {
-    val (xmppRequestTracker,sentTime) = messageDataCache.getIfPresent(ack.messageId)
+  private def processNack(parent:ActorRef, nack:XmppNack, continue:Boolean = true) = {
+    val (xmppRequestTracker,sentTime) = messageDataCache.getIfPresent(nack.messageId)
     if ( xmppRequestTracker != null ) {
-      messageDataCache.invalidate(ack.messageId)
+      messageDataCache.invalidate(nack.messageId)
       pendingAckCount.decrementAndGet()
-      dispatcher.enqueueDownstream(Failure(new XmppNackException(ack)) -> xmppRequestTracker)
+      dispatcher.enqueueDownstream(Failure(new XmppNackException(nack)) -> xmppRequestTracker)
       registry.timer(getMetricName(appId)).update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
 
       if ( pendingAckCount.get() < maxPendingAckCount && continue ) {
