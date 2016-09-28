@@ -22,7 +22,6 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection
 
 private [busybees] object XmppConnectionHelper {
 
-  case object ConnectionDraining
   case object FreeConnectionAvailable
   case object ConnectionBusy
   case object Shutdown
@@ -53,7 +52,7 @@ class XmppNackException(val response: XmppNack) extends Exception(response.error
 
 class XmppConnectionPriorityMailbox(settings: ActorSystem.Settings, config: Config) extends UnboundedPriorityMailbox(
   PriorityGenerator {
-    case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.ConnectionDraining => 0
+    case com.flipkart.connekt.commons.iomodels.XmppControl => 0
     case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.Shutdown => 1
     case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.StartShuttingDown => 1
     case com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.ReSize => 1

@@ -115,8 +115,8 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     case upstreamMsg:XmppUpstreamData =>
       processUpstreamMessage(upstreamMsg)
 
-    case ConnectionDraining =>
-      processConnectionDraining()
+    case control: XmppControl if control.controlType.equalsIgnoreCase("CONNECTION_DRAINING") =>
+        processConnectionDraining()
 
     case connClosed:ConnectionClosed =>
       processConnectionClosed(connClosed)
@@ -148,8 +148,8 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     case upstreamMsg:XmppUpstreamData =>
       processUpstreamMessage(upstreamMsg)
 
-    case ConnectionDraining =>
-      processConnectionDraining()
+    case control: XmppControl if control.controlType.equalsIgnoreCase("CONNECTION_DRAINING") =>
+    processConnectionDraining()
 
     case connClosed:ConnectionClosed =>
       processConnectionClosed(connClosed)
@@ -178,8 +178,8 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
       processNack(parent,nack,false)
       shutdownIfPossible()
 
-    case ConnectionDraining =>
-      processConnectionDraining(false)
+    case control: XmppControl if control.controlType.equalsIgnoreCase("CONNECTION_DRAINING") =>
+    processConnectionDraining(false)
       shutdownIfPossible()
 
     case connClosed:ConnectionClosed =>
