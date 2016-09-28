@@ -34,7 +34,6 @@ class ConnektXmppConnectionListener(conn:XMPPTCPConnection, actorRef: ActorRef) 
 
   override def connectionClosedOnError(e: Exception): Unit = {
     ConnektLogger(LogFile.CLIENTS).error(s"XMPPConnectionListener -> connectionClosedOnError: ${conn.getStreamId} ${e.getMessage} s", e)
-    actorRef ! ReConnect
   }
 
   override def reconnectionSuccessful(): Unit = {
@@ -47,6 +46,6 @@ class ConnektXmppConnectionListener(conn:XMPPTCPConnection, actorRef: ActorRef) 
 
   override def reconnectionFailed(e: Exception): Unit = {
     ConnektLogger(LogFile.CLIENTS).error(s"XMPPConnectionListener -> reConnectionFailure: ${conn.getStreamId} ${e.getMessage} s", e)
-    actorRef ! ReConnect
+    actorRef ! ConnectionClosed(conn)
   }
 }

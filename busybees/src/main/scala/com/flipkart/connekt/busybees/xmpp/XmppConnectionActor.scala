@@ -27,7 +27,7 @@ import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.ConnektConfig
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.google.common.cache._
-import org.jivesoftware.smack.ConnectionConfiguration
+import org.jivesoftware.smack.{ConnectionConfiguration, ReconnectionManager}
 import org.jivesoftware.smack.filter.StanzaFilter
 import org.jivesoftware.smack.packet.Stanza
 import org.jivesoftware.smack.provider.{ExtensionElementProvider, ProviderManager}
@@ -245,6 +245,8 @@ class XmppConnectionActor(dispatcher: GcmXmppDispatcher, googleCredential: Googl
     }
     val stanzaListener = new ConnektStanzaListener(self, dispatcher)
     connection.addAsyncStanzaListener(stanzaListener, stanzaFilter)
+
+    ReconnectionManager.getInstanceFor(connection).enableAutomaticReconnection()
 
     try {
       connection.connect()
