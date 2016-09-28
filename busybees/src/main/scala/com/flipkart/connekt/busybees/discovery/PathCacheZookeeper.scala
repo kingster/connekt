@@ -12,21 +12,6 @@
  */
 package com.flipkart.connekt.busybees.discovery
 
-/*
- *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
- *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
- *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
- *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
- *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
- *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
- *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
- *        ``˚¬ ⌐              ˚˚⌐´
- *
- *      Copyright © 2016 Flipkart.com
- */
-
-import java.net.InetAddress
-
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncType}
 import com.flipkart.utils.NetworkUtils
@@ -36,9 +21,6 @@ import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildr
 import org.apache.curator.utils.CloseableUtils
 
 class PathCacheZookeeper(curatorClient: CuratorFramework, serviceHostsDiscovery: ServiceHostsDiscovery, servicesRootPath: String, serviceName: String) {
-
-  //if (curatorClient.getState == CuratorFrameworkState.STOPPED)
-  curatorClient.start()
 
   val cache: PathChildrenCache = new PathChildrenCache(curatorClient, servicesRootPath + "/" + serviceName, true)
   cache.start()

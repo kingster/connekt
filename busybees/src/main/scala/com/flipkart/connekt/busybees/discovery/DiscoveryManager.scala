@@ -13,9 +13,10 @@
 package com.flipkart.connekt.busybees.discovery
 
 import com.typesafe.config.Config
-import org.apache.curator.framework.CuratorFrameworkFactory
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.client.ConnectStringParser
+
 import collection.JavaConversions._
 
 object DiscoveryManager {
@@ -24,6 +25,7 @@ object DiscoveryManager {
 
 sealed class DiscoveryManager {
 
+  private var curatorClient: CuratorFramework = _
   private var pathCacheZookeeper: PathCacheZookeeper = _
   private var serviceHostsDiscovery : ServiceHostsDiscovery = _
   private final val serviceName =  "busybees"
@@ -41,7 +43,8 @@ sealed class DiscoveryManager {
       zkParser.getServerAddresses.toList.map(add =>  s"${add.getHostName}:${add.getPort}").mkString(",")  -> zkParser.getChrootPath
     }
 
-    val curatorClient = CuratorFrameworkFactory.newClient(zkHosts, zookeeperSessionTimeoutInMillis, zookeeperConnectionTimeoutInMillis, retryPolicy)
+    curatorClient = CuratorFrameworkFactory.newClient(zkHosts, zookeeperSessionTimeoutInMillis, zookeeperConnectionTimeoutInMillis, retryPolicy)
+    curatorClient.start()
     serviceHostsDiscovery = new ServiceHostsDiscovery(zkPath, curatorClient)
     pathCacheZookeeper = new PathCacheZookeeper(curatorClient, serviceHostsDiscovery, zkPath,serviceName)
   }
@@ -52,6 +55,7 @@ sealed class DiscoveryManager {
 
   def shutdown(): Unit = {
     pathCacheZookeeper.removeAndClose()
+    curatorClient.close()
   }
 
   def getInstances: List[String] = {
