@@ -47,7 +47,9 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
   val connectionFreeCount:collection.mutable.Map[String,AtomicInteger] = collection.mutable.Map()
   val responsesDownStream:ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)] = new ConcurrentLinkedQueue[(Try[XmppDownstreamResponse], GCMRequestTracker)]()
   val responsesUpStream:mutable.Queue[(ActorRef,XmppUpstreamResponse)] = collection.mutable.Queue[(ActorRef,XmppUpstreamResponse)]()
-  val maxXmppConnections =  ConnektConfig.getInt("gcm.xmpp.maxConnections").getOrElse(50)
+
+  val defaultXMPPConnectionCount =  ConnektConfig.getInt("gcm.xmpp.maxConnections").getOrElse(30)
+  final val MAX_GOOGLE_ALLOWED_CONNECTIONS = 100 //10000
 
   /**
     * This is used by GateWayCache to back-pressure input ports
@@ -59,17 +61,18 @@ class XmppGatewayCache(parent:GcmXmppDispatcher)(implicit actorSystem:ActorSyste
 
   private def getPoolSize(clusterSize: Int): Int = {
     if( clusterSize > 0 )
-      math.min(maxXmppConnections, maxXmppConnections / clusterSize)
+      math.min(defaultXMPPConnectionCount, MAX_GOOGLE_ALLOWED_CONNECTIONS / clusterSize)
     else
-      maxXmppConnections
+      defaultXMPPConnectionCount
   }
 
   private def initBuffer(appId:String, credential:GoogleCredential) = {
     val currentClusterSize = DiscoveryManager.instance.getInstances.size
-    val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter], getPoolSize(currentClusterSize), parent, credential, appId))
+    val poolSize = getPoolSize(currentClusterSize)
+    val xmppRequestRouter:ActorRef = actorSystem.actorOf(Props(classOf[XmppConnectionRouter],poolSize , parent, credential, appId))
     xmppRequestRouters.put(appId, xmppRequestRouter)
     requestBuffer.put(appId,new mutable.Queue[XmppOutStreamRequest]())
-    connectionFreeCount.put(appId,new AtomicInteger(maxXmppConnections))
+    connectionFreeCount.put(appId,new AtomicInteger(poolSize))
   }
 
   def sendRequests() = {
