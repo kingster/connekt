@@ -17,5 +17,5 @@ import com.flipkart.seraph.schema.BaseSchema
 trait BigfootSupport[T <: BaseSchema] {
 
   def toBigfootFormat: T
-  
+
 }
