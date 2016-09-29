@@ -6,7 +6,7 @@
   },
   "connections": {
     "couchbase": {
-      "clusterIpList": "ce-sandbox-cb-0001.nm.flipkart.com"
+      "clusterIpList": "127.0.0.1"
     },
     "hbase": {
       "hbase": {
@@ -19,7 +19,7 @@
           "property": {
             "clientPort": "2181"
           },
-          "quorum": "ce-sandbox-hbase-0001.nm.flipkart.com"
+          "quorum": "127.0.0.1"
         }
       },
       "zookeeper": {
@@ -46,7 +46,7 @@
           "id": "ckt"
         },
         "zookeeper": {
-          "connect": "ce-sandbox-kafka-0001.nm.flipkart.com:2181",
+          "connect": "127.0.0.1:2181",
           "session": {
             "timeout": {
               "ms": "25000"
@@ -66,7 +66,7 @@
       "producerConnProps": {
         "metadata": {
           "broker": {
-            "list": "ce-sandbox-kafka-0001.nm.flipkart.com:6667"
+            "list": "127.0.0.1:6667"
           }
         },
         "request": {
@@ -78,7 +78,7 @@
           "class": "kafka.serializer.StringEncoder"
         },
         "zookeeper": {
-          "connect": "ce-sandbox-kafka-0001.nm.flipkart.com:2181"
+          "connect": "127.0.0.1:2181"
         }
       },
       "topic": {
@@ -87,7 +87,7 @@
     },
     "mysql": {
       "database": "connekt",
-      "host": "ce-sandbox-mysql-0001.nm.flipkart.com",
+      "host": "127.0.0.1",
       "password": "connekt",
       "poolProps": {
         "initialSize": "3",
@@ -99,7 +99,7 @@
     "scheduler": {
       "worker": {
         "zookeeper": {
-          "host": "ce-sandbox-kafka-0001.nm.flipkart.com:2181"
+          "host": "127.0.0.1:2181"
         }
       }
     },
@@ -120,7 +120,7 @@
   "discovery": {
     "curator": {
       "zk": {
-        "connect": "ce-sandbox-kafka-0001.nm.flipkart.com:2181/services"
+        "connect": "127.0.0.1:2181/services"
       }
     }
   },
@@ -206,7 +206,7 @@
     "cluster": {
       "name": "sandbox"
     },
-    "zookeeper": "10.34.93.207:2181,10.33.253.246:2181,10.33.241.39:2181,10.33.133.219:2181,10.34.10.139:2181"
+    "zookeeper": "127.0.0.1:2181,127.0.0.1:2181"
   },
   "topology": {
     "push": {
