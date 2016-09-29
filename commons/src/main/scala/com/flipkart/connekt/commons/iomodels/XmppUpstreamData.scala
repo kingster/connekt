@@ -34,7 +34,7 @@ case class XmppUpstreamData(
     val appName = Option(data.get("appName")).map(_.asText()).getOrElse("NA")
     val deviceId: Option[String] = Option(data.get("deviceId")).map(_.asText()).orElse(DeviceDetailsService.getByTokenId(from, appName).get.map(_.deviceId))
     if (eventType != null && deviceId.nonEmpty) {
-      Some(PNCallbackEvent(messageId = data.get("messageId").asText(),
+      Some(PNCallbackEvent(messageId = data.get("messageId").asText(messageId),
         clientId = category.split('.').last,
         deviceId = deviceId.get,
         eventType = eventType.asText(),
