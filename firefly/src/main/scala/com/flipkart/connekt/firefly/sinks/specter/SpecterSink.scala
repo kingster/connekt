@@ -14,20 +14,27 @@ package com.flipkart.connekt.firefly.sinks.specter
 
 import akka.stream.scaladsl.Sink
 import com.flipkart.connekt.commons.entities.SubscriptionEvent
-import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
+import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
+import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.BigfootService
 import com.flipkart.connekt.commons.utils.StringUtils._
+import com.flipkart.seraph.schema.BaseSchema
 
 class SpecterSink extends Instrumented {
   def sink = {
     Sink.foreach[SubscriptionEvent](e => {
-      BigfootService.ingest((e.payload match {
+      val callbackEvent = (e.payload match {
         case str: String => str
         case _ => e.payload.getJson
-      }).getObj[PNCallbackEvent].toBigfootFormat
-      )
-      meter(s"firefly.specter.rate").mark()
+      }).getObj[CallbackEvent]
+
+      callbackEvent match {
+        case bfSupported: BigfootSupport[_] =>
+          BigfootService.ingest(bfSupported.toBigfootFormat)
+          meter(s"firefly.specter.bf.ingested").mark()
+        case _ => meter(s"firefly.specter.bf.skipped").mark()
+      }
     })
   }
 }
