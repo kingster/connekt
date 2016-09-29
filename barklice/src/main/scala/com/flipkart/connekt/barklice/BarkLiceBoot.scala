@@ -19,8 +19,7 @@ import com.flipkart.connekt.commons.core.BaseApp
 import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.services.ConnektConfig
-import com.flipkart.connekt.commons.utils.{StringUtils, ConfigUtils}
-import com.flipkart.utils.NetworkUtils
+import com.flipkart.connekt.commons.utils.{NetworkUtils, StringUtils, ConfigUtils}
 import flipkart.cp.convert.ha.worker.Bootstrap
 
 object BarkLiceBoot extends BaseApp {
@@ -31,12 +30,13 @@ object BarkLiceBoot extends BaseApp {
     if (!initialized.getAndSet(true)) {
       ConnektLogger(LogFile.SERVICE).info("BarkLiceBoot initializing.")
 
-      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-barklice.xml")
+      val loggerConfigFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-barklice.xml")
 
-      ConnektLogger(LogFile.SERVICE).info(s"BarkLiceBoot logging using: $configFile")
-      ConnektLogger.init(configFile)
+      ConnektLogger(LogFile.SERVICE).info(s"BarkLiceBoot logging using: $loggerConfigFile")
+      ConnektLogger.init(loggerConfigFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-barklice"))
+      val applicationConfigFile = ConfigUtils.getSystemProperty("barklice.appConfigurationFile").getOrElse("barklice-config.json")
+      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-barklice"))(applicationConfigFile)
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 

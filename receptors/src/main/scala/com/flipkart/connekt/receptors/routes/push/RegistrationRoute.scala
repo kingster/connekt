@@ -33,22 +33,6 @@ import scala.util.{Failure, Success}
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
-  @deprecated("delete after callback gets live", "bigbang")
-  lazy val isVaradhiRelayEnabled = ConnektConfig.getBoolean("flags.varadhi.enabled").get
-
-  @deprecated("delete after callback gets live", "bigbang")
-  lazy val varadhiUri = s"http://${ConnektConfig.getString("connections.varadhi.host").get}/topics/${ConnektConfig.getString("connections.varadhi.topic").get}/messages"
-
-  @deprecated("delete after callback gets live", "bigbang")
-  lazy val client = new HttpClient(
-    name = "varadhi-relay-client",
-    ttlInMillis = ConnektConfig.getInt("http.apache.ttlInMillis").getOrElse(60000).toLong,
-    maxConnections = ConnektConfig.getInt("http.apache.maxConnections").getOrElse(50),
-    processQueueSize = ConnektConfig.getInt("http.apache.processQueueSize").getOrElse(50),
-    connectionTimeoutInMillis = ConnektConfig.getInt("http.apache.connectionTimeoutInMillis").getOrElse(30000).toInt,
-    socketTimeoutInMillis = ConnektConfig.getInt("http.apache.socketTimeoutInMillis").getOrElse(60000).toInt
-  )
-
   val route =
     authenticate {
       user =>
@@ -68,24 +52,6 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                             case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(Unit))
                             case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(Unit))
                           }, Failure(_)).get
-
-                          /* temporary workaround to enable relay of registration */
-                          if(isVaradhiRelayEnabled) {
-                            Future {
-                              val request = new HttpPost(varadhiUri)
-                              request.setHeader("X_EVENT_TYPE", "REGISTRATION")
-                              request.setHeader("X_RESTBUS_MESSAGE_ID", newDeviceDetails.deviceId)
-                              request.setEntity(new StringEntity(newDeviceDetails.copy(token = null).getJson))
-
-                              client.doExecute(request) match {
-                                case Success(r) =>
-                                  ConnektLogger(LogFile.SERVICE).info(s"DeviceDetails relayed for ${newDeviceDetails.deviceId}: ${r.getStatusLine.getStatusCode} ${r.getEntity.getContent.getString.stripNewLines}")
-                                case Failure(t) =>
-                                  ConnektLogger(LogFile.SERVICE).error(s"DeviceDetails relay failure for ${newDeviceDetails.deviceId}", t)
-                              }
-                            }(executor = ExecutionContext.global)
-                          }
-                          /* , shall be removed like it never existed */
 
                           result match {
                             case Right(x) =>

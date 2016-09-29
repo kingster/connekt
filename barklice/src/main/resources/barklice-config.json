@@ -1,0 +1,138 @@
+{
+  "connections": {
+    "couchbase": {
+      "clusterIpList": "ce-sandbox-cb-0001.nm.flipkart.com"
+    },
+    "hbase": {
+      "hbase": {
+        "client": {
+          "write": {
+            "buffer": "512"
+          }
+        },
+        "zookeeper": {
+          "property": {
+            "clientPort": "2181"
+          },
+          "quorum": "ce-sandbox-hbase-0001.nm.flipkart.com"
+        }
+      },
+      "zookeeper": {
+        "znode": {
+          "parent": "/hbase-unsecure"
+        }
+      }
+    },
+    "kafka": {
+      "consumerConnProps": {
+        "group": {
+          "id": "ckt"
+        },
+        "zookeeper": {
+          "connect": "ce-sandbox-kafka-0001.nm.flipkart.com:2181",
+          "session": {
+            "timeout": {
+              "ms": 25000
+            }
+          }
+        }
+      },
+      "producerConnProps": {
+        "metadata": {
+          "broker": {
+            "list": "ce-sandbox-kafka-0001.nm.flipkart.com:6667"
+          }
+        },
+        "serializer": {
+          "class": "kafka.serializer.StringEncoder"
+        },
+        "zookeeper": {
+          "connect": "ce-sandbox-kafka-0001.nm.flipkart.com:2181"
+        }
+      },
+      "topic": {
+        "partitionFactor": 10
+      }
+    },
+    "mysql": {
+      "database": "connekt",
+      "host": "ce-sandbox-mysql-0001.nm.flipkart.com",
+      "password": "connekt",
+      "username": "ckt_sandbox_rw"
+    },
+    "scheduler": {
+      "worker": {
+        "zookeeper": {
+          "host": "ce-sandbox-kafka-0001.nm.flipkart.com:2181"
+        }
+      }
+    },
+    "specter": {
+      "lib": {
+        "path": "/opt/newsclub/lib-native"
+      },
+      "socket": "/var/run/flipkart/specter/socket/specter.sock"
+    },
+    "varadhi": {
+      "host": "10.85.50.9",
+      "topic": "nm.connekt.registration.entity.relay.bay"
+    }
+  },
+  "discovery": {
+    "curator": {
+      "zk": {
+        "connect": "ce-sandbox-kafka-0001.nm.flipkart.com:2181/services"
+      }
+    }
+  },
+  "gcm": {
+    "xmpp": {
+      "maxConnections": 5
+    }
+  },
+  "scheduler": {
+    "hbase": {
+      "checkpoint": {
+        "columnFamily": "d"
+      },
+      "store": {
+        "columnFamily": "d"
+      }
+    },
+    "priority": {
+      "lo": {
+        "partitions": 40,
+        "time": {
+          "bucket": 300
+        }
+      }
+    }
+  },
+  "sync": {
+    "cluster": {
+      "name": "sandbox"
+    },
+    "zookeeper": "10.34.93.207:2181,10.33.253.246:2181,10.33.241.39:2181,10.33.133.219:2181,10.34.10.139:2181"
+  },
+  "tables": {
+    "hbase": {
+      "scheduler": {
+        "checkpointer": "connekt-schedule-checkpoints",
+        "store": "connekt-scheduled-requests"
+      }
+    }
+  },
+  "topology": {
+    "push": {
+      "androidFormatter": {
+        "parallelism": 1028
+      },
+      "iosFormatter": {
+        "parallelism": 15
+      },
+      "windowsFormatter": {
+        "parallelism": 15
+      }
+    }
+  }
+}

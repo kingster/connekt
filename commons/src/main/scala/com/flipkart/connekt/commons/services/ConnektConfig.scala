@@ -12,21 +12,31 @@
  */
 package com.flipkart.connekt.commons.services
 
-import com.flipkart.utils.config.KloudConfig
-import com.typesafe.config.Config
+import com.flipkart.concord.config.TConfig
+import com.typesafe.config.{Config, ConfigFactory}
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
 
 object ConnektConfig {
 
-  var instance: KloudConfig = null
+  lazy val logger = LoggerFactory.getLogger(getClass)
+  var instance: TConfig = null
 
-  def apply(configHost: String = "10.47.0.101", configPort: Int = 80)(bucketIdMap: Seq[String]) = {
+  def apply(configHost: String, configPort: Int)(bucketIds: Seq[String])(configFile: String = null) = {
     this.synchronized {
       if (null == instance) {
-        instance = new KloudConfig(configHost, configPort)(bucketIdMap)
-        instance.init()
+        try {
+          val configLoaderClass = Class.forName("com.flipkart.connekt.util.config.KloudConfig")
+          instance = configLoaderClass.getConstructor(classOf[Seq[String]]).newInstance(bucketIds).asInstanceOf[TConfig]
+          configLoaderClass.getMethod("init").invoke(instance)
+        } catch {
+          case e: Exception =>
+            logger.error("Failed to init KloudConfig, fallback to user-defined conf file usage.", e)
+            val config = ConfigFactory.parseResources(configFile)
+            instance.applyConfig(config)
+        }
       }
     }
     instance

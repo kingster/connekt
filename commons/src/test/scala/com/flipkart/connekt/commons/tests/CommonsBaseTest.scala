@@ -49,7 +49,8 @@ class CommonsBaseTest extends ConnektUTSpec {
   private def bootstrapReceptors() = {
 
     ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
-    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka", "fk-connekt-firefly"))
+    val applicationConfigFile = ConfigUtils.getSystemProperty("receptors.appConfigurationFile").getOrElse("receptors-config.yaml")
+    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka", "fk-connekt-firefly"))(applicationConfigFile)
     SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
     DaoFactory.setUpConnectionProvider(new MockConnectionProvider())
