@@ -46,7 +46,7 @@ Getting Started
 To run the project locally ``sbt compile`` followed by ``sbt run `` and follow the instructions. For running receptors you will need to run ``sbt "run receptors"``.
 
 #### Promoting
-In order to promote your changes and build the package, refer to the jenkins job at [Connekt Promote](http://usercrm-automation-qa-0001.nm.flipkart.com:8080/view/Promotion%20Jobs/job/promote_connekt/) to trigger build
+In order to promote your changes and build the package, refer to the jenkins job at [Connekt Promote](https://jenkins-master-cp.nm.flipkart.com/view/Connekt/job/promote_connekt/) to trigger build
 
 #### Deployment
 Refer to the [deployment guide](https://github.com/Flipkart/connekt-toolbox/blob/master/resources/deployer/README.md) for more details.
