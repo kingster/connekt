@@ -22,9 +22,7 @@ import org.apache.commons.io.IOUtils
 
 import scala.util.Try
 import com.flipkart.connekt.commons.core.Wrappers._
-/**
-  * Created by kinshuk.bairagi on 27/07/16.
-  */
+
 object CompressionUtils {
 
   def inflate(deflatedTxt: String): Try[String] = Try_ {

@@ -12,19 +12,6 @@
  */
 package com.flipkart.connekt.busybees.discovery
 
-/*
- *         -╥⌐⌐⌐⌐            -⌐⌐⌐⌐-
- *      ≡╢░░░░⌐\░░░φ     ╓╝░░░░⌐░░░░╪╕
- *     ╣╬░░`    `░░░╢┘ φ▒╣╬╝╜     ░░╢╣Q
- *    ║╣╬░⌐        ` ╤▒▒▒Å`        ║╢╬╣
- *    ╚╣╬░⌐        ╔▒▒▒▒`«╕        ╢╢╣▒
- *     ╫╬░░╖    .░ ╙╨╨  ╣╣╬░φ    ╓φ░╢╢Å
- *      ╙╢░░░░⌐"░░░╜     ╙Å░░░░⌐░░░░╝`
- *        ``˚¬ ⌐              ˚˚⌐´
- *
- *      Copyright © 2016 Flipkart.com
- */
-
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.CloseableUtils
