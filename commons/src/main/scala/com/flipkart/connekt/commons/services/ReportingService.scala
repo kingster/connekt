@@ -35,7 +35,12 @@ class ReportingService(reportManagerDao: StatsReportingDao) extends TService wit
 
     val executor = new ScheduledThreadPoolExecutor(1)
     executor.scheduleAtFixedRate(statsUpdateTask, 1, 60, TimeUnit.SECONDS)
+    sys.addShutdownHook{
+      ConnektLogger(LogFile.SERVICE).info(s"Shutting ReportingService")
+      statsUpdateTask.run()
+    }
     ConnektLogger(LogFile.SERVICE).info(s"Initialized ReportingService")
+
   }
 
   def statsUpdateTask = new Runnable {
