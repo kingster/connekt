@@ -29,16 +29,17 @@ abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) exte
   private val hTableName = tableName
   implicit lazy val hTableMutator: BufferedMutator = hTableFactory.getBufferedMutator(hTableName)
 
-  override def close() = {
-    Option(hTableMutator).foreach(_.close())
-  }
-
-  val executor = new ScheduledThreadPoolExecutor(1)
-  executor.scheduleAtFixedRate(new Runnable {
+  private val executor = new ScheduledThreadPoolExecutor(1)
+  private val flusher = executor.scheduleAtFixedRate(new Runnable {
     override def run(): Unit = Try_ {
       Option(hTableMutator).foreach(_.flush())
     }
   }, 60, 60, TimeUnit.SECONDS)
+
+  override def close() = {
+    flusher.cancel(true)
+    Option(hTableMutator).foreach(_.close())
+  }
 
   protected def channelRequestInfoMap(channelRequestInfo: ChannelRequestInfo): Map[String, Array[Byte]]
 
