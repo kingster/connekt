@@ -17,7 +17,7 @@ API Docs
 ---------------------
 
 - You can find sample requests on our API [sample doc's](https://docs.google.com/document/d/1SgIZHrXTTSmuvL-fyr7hLV7Dzwg_npgu4OHtUanztYk/edit#).
-- Swagger-UI Available at [connekt-swagger](http://fk-connekt-sandbox-0001.nm.flipkart.com:9991/), just browse to [api-definition](https://github.com/Flipkart/connekt/blob/streams/schema/swagger-api.yaml) and copy paste the raw-url and hit explore!
+- Swagger-UI Available at [connekt-swagger](http://fk-connekt-sandbox-0001.nm.flipkart.com:9991/), just browse to [api-definition](https://github.com/Flipkart/connekt-toolbox/blob/HEAD/schema/swagger-api.yaml) and copy paste the raw-url and hit explore!
 
 Getting Started
 ---------------------
@@ -49,7 +49,7 @@ To run the project locally ``sbt compile`` followed by ``sbt run `` and follow t
 In order to promote your changes and build the package, refer to the jenkins job at [Connekt Promote](https://jenkins-master-cp.nm.flipkart.com/view/Connekt/job/promote_connekt/) to trigger build
 
 #### Deployment
-Refer to the [deployment guide](https://github.com/Flipkart/connekt-toolbox/blob/master/resources/deployer/README.md) for more details.
+Refer to the [deployment guide](https://github.com/Flipkart/connekt-toolbox/blob/HEAD/resources/deployer/README.md) for more details.
 
 ### Toolbox
 Utitilies & Scripts at [toolbox-repo](https://github.com/Flipkart/connekt-toolbox) 
