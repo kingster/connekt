@@ -31,7 +31,6 @@ class ServiceHostsDiscovery(zkPath: String, client: CuratorFramework) {
     .serializer(serializer)
     .build()
 
-  val providers: Map[String, ServiceProvider[InstanceDetails]] = Map()
   try {
     serviceDiscovery.start()
   } catch {
@@ -50,7 +49,6 @@ class ServiceHostsDiscovery(zkPath: String, client: CuratorFramework) {
 
   def close() {
     CloseableUtils.closeQuietly(serviceDiscovery)
-    providers.values.foreach(CloseableUtils.closeQuietly(_))
     CloseableUtils.closeQuietly(client)
   }
 
