@@ -110,8 +110,10 @@ class PushTopology(kafkaConsumerConfig: Config) extends ConnektTopology[PNCallba
       val render = b.add(new RenderFlow().flow)
       val androidFilter = b.add(Flow[ConnektRequest].filter(m => MobilePlatform.ANDROID.toString.equalsIgnoreCase(m.channelInfo.asInstanceOf[PNRequestInfo].platform.toLowerCase)))
 
-      val xmppOrHttpPartition = b.add(new Partition[ConnektRequest](2, { _ =>
-        chooseProtocol match {
+      val xmppOrHttpPartition = b.add(new Partition[ConnektRequest](2, { request =>
+        val pnInfo = request.channelInfo.asInstanceOf[PNRequestInfo]
+        val protocol = if (pnInfo.deviceIds.size > 2) AndroidProtocols.http  else chooseProtocol
+        protocol match {
           case AndroidProtocols.http => 0
           case AndroidProtocols.xmpp => 1
         }
