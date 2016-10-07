@@ -13,12 +13,12 @@
 package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor.ActorRef
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.ConnectionClosed
+import com.flipkart.connekt.busybees.xmpp.Internal.ConnectionClosed
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.{ConnectionListener, XMPPConnection}
 
-class ConnektXmppConnectionListener(conn:XMPPTCPConnection, actorRef: ActorRef) extends ConnectionListener {
+private [xmpp] class ConnektXmppConnectionListener(conn:XMPPTCPConnection, actorRef: ActorRef) extends ConnectionListener {
   override def connected(connection: XMPPConnection): Unit = {
     ConnektLogger(LogFile.CLIENTS).debug(s"XMPPConnectionListener -> connected: ${conn.getStreamId} s")
   }

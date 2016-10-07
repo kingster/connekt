@@ -12,23 +12,27 @@
  */
 package com.flipkart.connekt.commons.utils
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.Base64
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.flipkart.connekt.commons.serializers.KryoSerializer
+import com.flipkart.connekt.commons.core.Wrappers._
 import org.apache.commons.io.IOUtils
 
 import scala.util.Try
-import com.flipkart.connekt.commons.core.Wrappers._
+import scala.util.control.NoStackTrace
 
 object CompressionUtils {
 
   def inflate(deflatedTxt: String): Try[String] = Try_ {
     val bytes = Base64.getUrlDecoder.decode(deflatedTxt)
-    val zipInputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
-    IOUtils.toString(zipInputStream)
+    try {
+      val zipInputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
+      IOUtils.toString(zipInputStream)
+    } catch {
+      case ex:java.util.zip.ZipException =>
+        throw new RuntimeException(ex.getMessage) with NoStackTrace
+    }
   }
 
   def deflate(txt: String): Try[String] = Try_ {

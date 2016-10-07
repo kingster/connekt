@@ -32,9 +32,10 @@ case class XmppUpstreamData(
   override def getPnCallbackEvent(): Option[PNCallbackEvent] = Try_ {
     val eventType: JsonNode = data.get("eventType")
     val appName = Option(data.get("appName")).map(_.asText()).getOrElse("NA")
-    val deviceId: Option[String] = Option(data.get("deviceId")).map(_.asText()).orElse(DeviceDetailsService.getByTokenId(from, appName).get.map(_.deviceId))
+    val deviceId = Option(data.get("deviceId")).map(_.asText()).orElse(DeviceDetailsService.getByTokenId(from, appName).get.map(_.deviceId))
     if (eventType != null && deviceId.nonEmpty) {
-      Some(PNCallbackEvent(messageId = data.get("messageId").asText(messageId),
+      Some(PNCallbackEvent(
+        messageId =  Option(data.get("messageId")).map(_.asText(messageId)).getOrElse(messageId),
         clientId = category.split('.').last,
         deviceId = deviceId.get,
         eventType = eventType.asText(),
@@ -42,7 +43,7 @@ case class XmppUpstreamData(
         appName = appName,
         contextId = Option(data.get("contextId")).map(_.asText()).orEmpty,
         cargo = Option(data.get("cargo")).map(_.asText()).orNull,
-        timestamp = Option(data.get("timestamp").asText()).map(_.toLong).getOrElse(System.currentTimeMillis)
+        timestamp = Option(data.get("timestamp")).map(_.asText().toLong).getOrElse(System.currentTimeMillis)
       ))
     } else {
       ConnektLogger(LogFile.PROCESSORS).warn("Dropped XmppUpstreamData : " + data)

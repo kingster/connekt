@@ -14,6 +14,6 @@ package com.flipkart.connekt.commons.iomodels
 
 import com.flipkart.connekt.commons.entities.GoogleCredential
 
-case class GcmXmppRequest (
+case class FCMXmppRequest(
   pnPayload:GCMXmppPNPayload,
   credential:GoogleCredential)

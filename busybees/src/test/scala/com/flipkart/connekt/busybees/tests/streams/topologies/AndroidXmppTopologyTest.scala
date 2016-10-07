@@ -16,20 +16,22 @@ package com.flipkart.connekt.busybees.tests.streams.topologies
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.{Condition, ReentrantLock}
 
-import akka.NotUsed
 import akka.stream._
-import akka.stream.scaladsl.{Merge, GraphDSL, Sink, Source}
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.{GcmXmppDispatcher, GCMXmppDispatcherPrepare}
-import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidXmppChannelFormatter}
-import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{XmppUpstreamHandler, XmppDownstreamHandler}
+import akka.stream.scaladsl.GraphDSL.Implicits._
+import akka.stream.scaladsl.{GraphDSL, Merge, Sink, Source}
+import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
+import com.flipkart.connekt.busybees.discovery.DiscoveryManager
+import com.flipkart.connekt.busybees.streams.flows.dispatchers.{GCMXmppDispatcherPrepare, GcmXmppDispatcher}
+import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidXmppChannelFormatter
+import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.{XmppDownstreamHandler, XmppUpstreamHandler}
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.entities.DeviceDetails
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.iomodels.{PNCallbackEvent, ConnektRequest}
-import com.flipkart.connekt.commons.services.{DeviceDetailsService, KeyChainManager}
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
+import com.flipkart.connekt.commons.iomodels.{ConnektRequest, PNCallbackEvent}
+import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService, KeyChainManager}
 import com.flipkart.connekt.commons.utils.StringUtils._
-import akka.stream.scaladsl.GraphDSL.Implicits._
-import akka.stream.stage.{OutHandler, GraphStageLogic, GraphStage}
+import org.scalatest.Ignore
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -95,12 +97,17 @@ class XmppMessageSource(lock:ReentrantLock, conditionLock: Condition)  extends G
   }
 }
 
+@Ignore
 class AndroidXmppTopologyTest extends TopologyUTSpec {
 
 
   "AndroidXmppTopology Test" should "run" in {
 
     val credentials = KeyChainManager.getGoogleCredential("ConnektSampleApp").get
+
+    // Starting xmpp zookeeper lookup
+    DiscoveryManager.instance.init(ConnektConfig.getConfig("discovery").get)
+    DiscoveryManager.instance.start()
 
     DeviceDetailsService.add(
       DeviceDetails(

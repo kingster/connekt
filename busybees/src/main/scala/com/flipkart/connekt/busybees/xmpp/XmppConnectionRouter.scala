@@ -13,19 +13,18 @@
 package com.flipkart.connekt.busybees.xmpp
 
 import akka.actor._
+import akka.event.LoggingReceive
 import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
-import com.flipkart.connekt.busybees.streams.flows.dispatchers.GcmXmppDispatcher
-import com.flipkart.connekt.busybees.xmpp.XmppConnectionHelper.{ConnectionBusy, FreeConnectionAvailable, FreeConnectionCount, ReSize, Shutdown, XmppRequestAvailable}
+import com.flipkart.connekt.busybees.xmpp.Internal.{ConnectionBusy, FreeConnectionAvailable, ReSize, XmppRequestAvailable}
+import com.flipkart.connekt.busybees.xmpp.XmppConnectionActor.{SendXmppOutStreamRequest, Shutdown}
 import com.flipkart.connekt.commons.entities.GoogleCredential
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 import scala.collection.mutable
 
+class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: GoogleCredential, appId:String,stageLogicRef :ActorRef) extends Actor with ActorLogging {
 
-
-class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispatcher, googleCredential: GoogleCredential, appId:String) extends Actor {
-
-  val requests:mutable.Queue[XmppOutStreamRequest] = collection.mutable.Queue[XmppOutStreamRequest]()
+  val requests:mutable.Queue[SendXmppOutStreamRequest] = collection.mutable.Queue[SendXmppOutStreamRequest]()
   val freeXmppActors = collection.mutable.LinkedHashSet[ActorRef]()
 
   override def postStop = {
@@ -41,7 +40,7 @@ class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispa
 
   private def createRoutee():ActorRefRoutee = {
     ConnektLogger(LogFile.CLIENTS).trace(s"Creating XmppConnectionActor for $appId")
-    val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor], dispatcher, googleCredential, appId)
+    val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor],  googleCredential, appId, stageLogicRef)
       .withMailbox("akka.actor.xmpp-connection-priority-mailbox"))
     context.watch(aRoutee)
     freeXmppActors.add(aRoutee)
@@ -50,7 +49,7 @@ class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispa
 
   import context._
 
-  def receive = {
+  def receive = LoggingReceive {
     case Terminated(a) =>
       ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter: XmppConnectionActor Terminated $a")
       freeXmppActors.remove(a)
@@ -76,20 +75,18 @@ class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispa
       if ( requests.nonEmpty )
         sender ! requests.dequeue()
       else {
-        if ( freeXmppActors.add(sender) )
-          dispatcher.getMoreCallback.invoke(appId)
+        freeXmppActors.add(sender)
+        stageLogicRef ! FreeConnectionAvailable // TODO ?? APPID?
       }
       ConnektLogger(LogFile.CLIENTS).trace(s"FreeConnectionAvailable:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
-    case FreeConnectionCount =>
-      sender ! math.min(connectionPoolSize, freeXmppActors.size) //TODO: Do something better.
-
     case ConnectionBusy =>
-      if ( freeXmppActors.nonEmpty )
-        dispatcher.getMoreCallback.invoke(appId)
+      if ( freeXmppActors.nonEmpty ){
+        stageLogicRef ! FreeConnectionAvailable
+      }
       ConnektLogger(LogFile.CLIENTS).trace(s"ConnectionBusy:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
-    case xmppRequest:XmppOutStreamRequest =>
+    case xmppRequest:SendXmppOutStreamRequest =>
       freeXmppActors.headOption match {
         case Some(worker:ActorRef) =>
           freeXmppActors.remove(worker)
@@ -102,10 +99,10 @@ class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispa
       }
       ConnektLogger(LogFile.CLIENTS).trace(s"xmppRequest:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
-    case Shutdown =>
+    case s:Shutdown =>
       ConnektLogger(LogFile.CLIENTS).info(s"Shutdown received size ${requests.size} and free worker size ${freeXmppActors.size}")
-      router.routees.foreach(_.send(Shutdown, self))
       become(shuttingDown)
+      router.routees.foreach(_.send(s, self))
   }
 
   def shuttingDown:Actor.Receive = {
@@ -118,3 +115,4 @@ class XmppConnectionRouter (var connectionPoolSize:Int, dispatcher: GcmXmppDispa
       }
   }
 }
+

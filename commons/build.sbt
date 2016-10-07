@@ -92,7 +92,7 @@ libraryDependencies ++= Seq(
   "com.flipkart.specter" % "specter-client" % "1.4.0-SNAPSHOT",
   "joda-time" % "joda-time" % "2.3",
   "com.flipkart" %% "util-config" % "0.0.1" excludeAll ExclusionRule("com.google.guava", "guava"),
-  "com.flipkart" %% "espion" % "1.0.1",
+  "com.flipkart" %% "espion" % "1.0.3",
   "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT",
   "commons-validator" % "commons-validator" % "1.5.0" excludeAll ExclusionRule("commons-beanutils", "commons-beanutils"),
   "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
