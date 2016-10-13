@@ -78,13 +78,13 @@ class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: Google
         freeXmppActors.add(sender)
         stageLogicRef ! FreeConnectionAvailable // TODO ?? APPID?
       }
-      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter FreeConnectionAvailable:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter FreeConnectionAvailable:Queued Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
     case ConnectionBusy =>
       if ( freeXmppActors.nonEmpty ){
         stageLogicRef ! FreeConnectionAvailable
       }
-      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter ConnectionBusy:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter ConnectionBusy:Queued Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
     case xmppRequest:SendXmppOutStreamRequest =>
       freeXmppActors.headOption match {
@@ -97,7 +97,7 @@ class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: Google
           requests.enqueue(xmppRequest)
           router.routees.foreach(_.send(XmppRequestAvailable, self))
       }
-      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter:Queued Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
     case s:Shutdown =>
       ConnektLogger(LogFile.CLIENTS).info(s"XmppConnectionRouter: Shutdown received size ${requests.size} and free worker size ${freeXmppActors.size}")
@@ -107,10 +107,10 @@ class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: Google
 
   def shuttingDown:Actor.Receive = {
     case Terminated(a) =>
-      ConnektLogger(LogFile.CLIENTS).info(s"XmppConnectionRouter: ShuttingDown:Worker terminated $a")
+      ConnektLogger(LogFile.CLIENTS).info(s"XmppConnectionRouter: ShuttingDown - Worker terminated $a")
       router = router.removeRoutee(a)
       if ( router.routees.isEmpty ) {
-        ConnektLogger(LogFile.CLIENTS).info("XmppConnectionRouter: ShuttingDown:All Worker terminated")
+        ConnektLogger(LogFile.CLIENTS).info("XmppConnectionRouter: ShuttingDown - All Worker terminated")
         context.stop(self)
       }
   }
