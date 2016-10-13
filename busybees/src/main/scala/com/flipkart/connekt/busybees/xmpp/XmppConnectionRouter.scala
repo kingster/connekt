@@ -39,7 +39,7 @@ class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: Google
   }
 
   private def createRoutee():ActorRefRoutee = {
-    ConnektLogger(LogFile.CLIENTS).trace(s"Creating XmppConnectionActor for $appId")
+    ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter: Creating XmppConnectionActor for $appId")
     val aRoutee = context.actorOf(Props(classOf[XmppConnectionActor],  googleCredential, appId, stageLogicRef)
       .withMailbox("akka.actor.xmpp-connection-priority-mailbox"))
     context.watch(aRoutee)
@@ -58,16 +58,16 @@ class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: Google
         router = router.addRoutee(createRoutee())
 
     case ReSize(count) =>
-      ConnektLogger(LogFile.CLIENTS).info(s"Will Resize XMPP Actor to $count for $appId")
+      ConnektLogger(LogFile.CLIENTS).info(s"XmppConnectionRouter: Will Resize XMPP Actor to $count for $appId")
       connectionPoolSize = count
       val currentCount = router.routees.size
       if (count < currentCount) {
         //Destroy few...
-        ConnektLogger(LogFile.CLIENTS).debug(s"Resize XMPP Actor : Reduce")
+        ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionRouter: Resize XMPP Actor : Reduce")
         router.routees.slice(count+1 , currentCount).foreach(_.send(Shutdown, self))
       } else {
         //create some new
-        ConnektLogger(LogFile.CLIENTS).debug(s"Resize XMPP Actor : Increase")
+        ConnektLogger(LogFile.CLIENTS).debug(s"XmppConnectionRouter: Resize XMPP Actor : Increase")
         for(i <- currentCount+1 to count) router = router.addRoutee(createRoutee())
       }
 
@@ -78,13 +78,13 @@ class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: Google
         freeXmppActors.add(sender)
         stageLogicRef ! FreeConnectionAvailable // TODO ?? APPID?
       }
-      ConnektLogger(LogFile.CLIENTS).trace(s"FreeConnectionAvailable:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter FreeConnectionAvailable:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
     case ConnectionBusy =>
       if ( freeXmppActors.nonEmpty ){
         stageLogicRef ! FreeConnectionAvailable
       }
-      ConnektLogger(LogFile.CLIENTS).trace(s"ConnectionBusy:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter ConnectionBusy:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
     case xmppRequest:SendXmppOutStreamRequest =>
       freeXmppActors.headOption match {
@@ -97,20 +97,20 @@ class XmppConnectionRouter (var connectionPoolSize:Int, googleCredential: Google
           requests.enqueue(xmppRequest)
           router.routees.foreach(_.send(XmppRequestAvailable, self))
       }
-      ConnektLogger(LogFile.CLIENTS).trace(s"xmppRequest:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
+      ConnektLogger(LogFile.CLIENTS).trace(s"XmppConnectionRouter:Request size ${requests.size} and free worker size ${freeXmppActors.size}")
 
     case s:Shutdown =>
-      ConnektLogger(LogFile.CLIENTS).info(s"Shutdown received size ${requests.size} and free worker size ${freeXmppActors.size}")
+      ConnektLogger(LogFile.CLIENTS).info(s"XmppConnectionRouter: Shutdown received size ${requests.size} and free worker size ${freeXmppActors.size}")
       become(shuttingDown)
       router.routees.foreach(_.send(s, self))
   }
 
   def shuttingDown:Actor.Receive = {
     case Terminated(a) =>
-      ConnektLogger(LogFile.CLIENTS).info(s"ShuttingDown:Worker terminated $a")
+      ConnektLogger(LogFile.CLIENTS).info(s"XmppConnectionRouter: ShuttingDown:Worker terminated $a")
       router = router.removeRoutee(a)
       if ( router.routees.isEmpty ) {
-        ConnektLogger(LogFile.CLIENTS).info("ShuttingDown:All Worker terminated")
+        ConnektLogger(LogFile.CLIENTS).info("XmppConnectionRouter: ShuttingDown:All Worker terminated")
         context.stop(self)
       }
   }
