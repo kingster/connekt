@@ -13,6 +13,7 @@
 package com.flipkart.connekt.busybees.xmpp
 
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{ActorRef, ActorSystem, Terminated, _}
 import akka.stream.FanOutShape2
@@ -35,9 +36,13 @@ private[busybees] class XMPPStageLogic(val shape: FanOutShape2[(FCMXmppRequest, 
   private def outDownstream = shape.out0
   private def outUpstream = shape.out1
 
+  implicit val executionContext = actorSystem.dispatcher
+
   type DownStreamResponse = (Try[XmppDownstreamResponse], GCMRequestTracker)
 
   private val maxStageBufferCount = ConnektConfig.get("fcm.xmpp.stageBuffer").getOrElse("10").toInt
+
+  private val inFlightRequestCount = new AtomicInteger(0)
 
   private val downstreamBuffer: ConcurrentLinkedQueue[DownStreamResponse] = new ConcurrentLinkedQueue[DownStreamResponse]()
   /**
@@ -86,13 +91,21 @@ private[busybees] class XMPPStageLogic(val shape: FanOutShape2[(FCMXmppRequest, 
     override def onPush(): Unit = {
       val requestPair: (FCMXmppRequest, GCMRequestTracker) = grab(shape.in)
       ConnektLogger(LogFile.CLIENTS).trace(s"XMPPStageLogic: IN InHandler $requestPair")
-      xmppGateway(new XmppOutStreamRequest(requestPair)).onComplete {
+      inFlightRequestCount.incrementAndGet()
+      xmppGateway(new XmppOutStreamRequest(requestPair)).andThen {
+        case _ => inFlightRequestCount.decrementAndGet()
+      }.onComplete {
         case Success(response) => self.ref ! Tuple2(Success(response), requestPair._2)
         case Failure(ex) => self.ref ! Tuple2(Failure(ex), requestPair._2)
-      }(actorSystem.dispatcher)
+      }
 
-      //pull more if connections available
-      if (downstreamBuffer.size < maxStageBufferCount)
+      /**
+        * Why bound with inFlightRequestCount ?
+        * When the application starts up or say the there is issue with XMPP Connections and there are nothing in buffer
+        * this pull(in) will cause to trigger unbounded input port pull and fill up the buffer of XMPPRouter RequestQueue
+        * finally causing OOM, or in any-case loosing the message. Hence back-pressuring in that case.
+        */
+      if ((downstreamBuffer.size + inFlightRequestCount.get()) < maxStageBufferCount)
         pull(shape.in)
     }
 

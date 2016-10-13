@@ -79,7 +79,7 @@ class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Co
     lazy val streamsMap = scala.collection.mutable.Map[String, KafkaStream[Array[Byte], Array[Byte]]]()
 
     lazy val consumerStream: Option[KafkaStream[Array[Byte], Array[Byte]]] = streamsMap.get(topic).orElse({
-      val s = kafkaConsumerPool.borrowObject().createMessageStreams(Map[String, Int](topic -> 1)).get(topic).get.headOption
+      val s = kafkaConsumerPool.borrowObject().createMessageStreams(Map[String, Int](topic -> 1))(topic).headOption
       s.foreach(streamsMap += topic -> _)
       s
     })
@@ -102,7 +102,7 @@ class KafkaConsumerHelper(val consumerFactoryConf: Config, globalContextConf: Co
         val ownerPath = s"${topicDirs.consumerOwnerDir}/$partitionId"
         val owner = ZkUtils.readDataMaybeNull(zkClient, ownerPath)._1.getOrElse("No owner")
         val checkPoint = ZkUtils.readDataMaybeNull(zkClient, zkPath)._1.map(_.toLong).getOrElse(0L)
-        partitionId -> (checkPoint, owner)
+        partitionId -> Tuple2(checkPoint, owner)
       })
     }).toMap
   }
