@@ -103,9 +103,9 @@ private[busybees] class XMPPStageLogic(val shape: FanOutShape2[(FCMXmppRequest, 
       ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher :upstream finished:downstreamcount:" + downstreamBuffer.size())
       emitMultiple[DownStreamResponse](outDownstream, downstreamBuffer.iterator.asScala, () => {
         ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher :emitted all:" + downstreamBuffer.size())
+        completeStage() //Mark stage as completed when the emit current buffer completes.
       })
 
-      completeStage()
       ConnektLogger(LogFile.CLIENTS).trace("GcmXmppDispatcher :shutdown complete")
     }
   })
