@@ -16,6 +16,8 @@ import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.BasicDirectives
 
+import scala.util.Try
+
 trait HeaderDirectives {
 
   def sniffHeaders: Directive1[Seq[HttpHeader]] = BasicDirectives.extract[Seq[HttpHeader]](_.request.headers)
@@ -26,7 +28,7 @@ trait HeaderDirectives {
 
   def isTestRequest: Directive1[Boolean] = {
     Directives.optionalHeaderValueByName("x-perf-test").map { header ⇒
-      header.getOrElse("false").trim.equalsIgnoreCase("true")
+      header.exists(h => Try(h.toBoolean).getOrElse(false))
     }
   }
 }
