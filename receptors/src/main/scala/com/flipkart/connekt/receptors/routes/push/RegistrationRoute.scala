@@ -19,17 +19,13 @@ import com.flipkart.connekt.commons.entities.DeviceDetails
 import com.flipkart.connekt.commons.entities.MobilePlatform.MobilePlatform
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.iomodels.{GenericResponse, Response}
-import com.flipkart.connekt.commons.services.{ConnektConfig, DeviceDetailsService}
+import com.flipkart.connekt.commons.services.DeviceDetailsService
 import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.receptors.directives.MPlatformSegment
 import com.flipkart.connekt.receptors.routes.BaseJsonHandler
 import com.flipkart.connekt.receptors.wire.ResponseUtils._
-import com.flipkart.utils.http.HttpClient
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.StringEntity
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler {
 
@@ -47,17 +43,22 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                         entity(as[DeviceDetails]) { d =>
                           val newDeviceDetails = d.copy(appName = appName, osName = platform.toString, deviceId = deviceId, active = true)
                           newDeviceDetails.validate()
+                          isTestRequest { tR =>
+                            if (!tR) {
+                              val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Unit, Unit]]({
+                                case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(Unit))
+                                case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(Unit))
+                              }, Failure(_)).get
 
-                          val result = DeviceDetailsService.get(appName, deviceId).transform[Either[Unit, Unit]]({
-                            case Some(deviceDetail) => DeviceDetailsService.update(deviceId, newDeviceDetails).map(u => Left(Unit))
-                            case None => DeviceDetailsService.add(newDeviceDetails).map(c => Right(Unit))
-                          }, Failure(_)).get
-
-                          result match {
-                            case Right(x) =>
-                              complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
-                            case Left(x) =>
-                              complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                              result match {
+                                case Right(x) =>
+                                  complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                                case Left(x) =>
+                                  complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                              }
+                            } else {
+                              complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails skipped for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                            }
                           }
                         }
                       }
