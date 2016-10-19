@@ -57,7 +57,7 @@ class RegistrationRoute(implicit am: ActorMaterializer) extends BaseJsonHandler 
                                   complete(GenericResponse(StatusCodes.OK.intValue, null, Response(s"DeviceDetails updated for ${newDeviceDetails.deviceId}", newDeviceDetails)))
                               }
                             } else {
-                              complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails created for ${newDeviceDetails.deviceId}", newDeviceDetails)))
+                              complete(GenericResponse(StatusCodes.Created.intValue, null, Response(s"DeviceDetails skipped for ${newDeviceDetails.deviceId}", newDeviceDetails)))
                             }
                           }
                         }
