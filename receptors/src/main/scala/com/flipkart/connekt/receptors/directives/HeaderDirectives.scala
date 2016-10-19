@@ -28,7 +28,7 @@ trait HeaderDirectives {
 
   def isTestRequest: Directive1[Boolean] = {
     Directives.optionalHeaderValueByName("x-perf-test").map { header ⇒
-      header.exists(h => Try(h.toBoolean).getOrElse(false))
+      header.exists(h => Try(h.trim.toBoolean).getOrElse(false))
     }
   }
 }
