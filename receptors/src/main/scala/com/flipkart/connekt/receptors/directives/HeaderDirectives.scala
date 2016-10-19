@@ -16,12 +16,17 @@ import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.BasicDirectives
 
-trait HeaderDirectives  {
+trait HeaderDirectives {
 
   def sniffHeaders: Directive1[Seq[HttpHeader]] = BasicDirectives.extract[Seq[HttpHeader]](_.request.headers)
 
   def sniffXHeaders = BasicDirectives.extract[Seq[HttpHeader]](_.request.headers.filter(_.lowercaseName().startsWith("x-")))
 
-  def getXHeaders = sniffXHeaders.map(httpHeaders =>  httpHeaders.map(h => h.lowercaseName() -> h.value()).toMap.filterKeys(!List("x-api-key").contains(_)))
+  def getXHeaders = sniffXHeaders.map(httpHeaders => httpHeaders.map(h => h.lowercaseName() -> h.value()).toMap.filterKeys(!List("x-api-key").contains(_)))
 
+  def isTestRequest: Directive1[Boolean] = {
+    Directives.optionalHeaderValueByName("x-perf-test").map { header ⇒
+      header.getOrElse("false").trim.equalsIgnoreCase("true")
+    }
+  }
 }
