@@ -37,21 +37,20 @@ abstract class CallbackDao(tableName: String, hTableFactory: THTableFactory) ext
   }
 
   override def asyncSaveCallbackEvents(events: List[CallbackEvent]): List[String] = {
-    try {
-      val rowKeys = events.map(e => {
+    val rowKeys = events.map(e => {
+      val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
+      try {
         val channelEventProps = channelEventPropsMap(e)
         val rawData = Map[String, ColumnData](columnFamily -> channelEventProps)
-        val rowKey = s"${e.contactId.sha256.hash.hex}:${e.messageId}:${e.eventId}"
         asyncAddRow(rowKey, rawData)
-        e.messageId
-      })
-      ConnektLogger(LogFile.DAO).info(s"Events details async-persisted with rowkeys ${rowKeys.mkString(",")}")
-      rowKeys
-    } catch {
-      case e: IOException =>
-        ConnektLogger(LogFile.DAO).error(s"Events details async-persistence failed for ${events.getJson} ${e.getMessage}", e)
-        throw new IOException("Events details async-persistence failed for %s".format(events.getJson), e)
-    }
+      } catch {
+        case e: IOException =>
+          ConnektLogger(LogFile.DAO).error(s"Events details async-persistence failed for ${e.getJson} ${e.getMessage}", e)
+      }
+      rowKey
+    })
+    ConnektLogger(LogFile.DAO).info(s"Events details async-persisted with rowkeys ${rowKeys.mkString(",")}")
+    rowKeys
   }
 
   override def saveCallbackEvents(events: List[CallbackEvent]): List[String] = {
