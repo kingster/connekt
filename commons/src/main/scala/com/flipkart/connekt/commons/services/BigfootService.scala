@@ -12,79 +12,64 @@
  */
 package com.flipkart.connekt.commons.services
 
+import com.flipkart.concord.publisher.{RequestType, TPublishRequest, TPublishRequestMetadata, TPublisher}
 import com.flipkart.connekt.commons.dao.DaoFactory
-import com.flipkart.connekt.commons.entities.bigfoot.{EntityBaseSchema, EventBaseSchema}
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
-import com.flipkart.connekt.commons.utils.StringUtils._
 import com.flipkart.connekt.commons.utils._
 import com.flipkart.metrics.Timed
-import com.flipkart.phantom.client.exceptions.PhantomClientException
-import com.flipkart.seraph.schema.BaseSchema
-import com.flipkart.specter.ingestion.IngestionMetadata
-import com.flipkart.specter.ingestion.entities.Entity
-import com.flipkart.specter.ingestion.events.Event
-import com.flipkart.specter.{SpecterClient, SpecterRequest}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Try, Failure, Success}
 
 object BigfootService extends Instrumented {
 
+  lazy val phantomSocketPath: String = ConnektConfig.getString("connections.specter.socket").get
+  lazy val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(false)
+
+  lazy val phantomPublisher: TPublisher[String] = {
+    if(ingestionEnabled) {
+      try {
+        val configLoaderClass = Class.forName("com.flipkart.connekt.util.mapper.PhantomSocketPublisher")
+        configLoaderClass.getConstructor(classOf[String], classOf[String]).newInstance(phantomSocketPath, "publishToBigFoot").asInstanceOf[TPublisher[String]]
+      } catch {
+        case e: Exception =>
+          ConnektLogger(LogFile.SERVICE).error("Unable to initialize PhantomPublisher", e)
+          null
+      }
+    } else null
+  }
+
   val socketClient = DaoFactory.phantomClientSocket
 
-  val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(false)
-  private def ingest(request: SpecterRequest): Try[Boolean] = {
-    if (ingestionEnabled) {
-      try {
-        SpecterClient.sendToSpecter(socketClient, request).getResponse match {
-          case "SUCCESS" =>
-            Success(true)
-          case commandResponse: String =>
-            ConnektLogger(LogFile.SERVICE).error(s"UnSuccessful Ingestion, FAILED_TO_INGEST : $commandResponse")
-            Failure(new Exception(s"Unsuccessful specter response: $commandResponse"))
-        }
-      } catch {
-        case e: PhantomClientException =>
-          ConnektLogger(LogFile.SERVICE).error(s"Specter connection Error, FAILED_TO_INGEST [${request.getObject.getJson}]", e)
-          Failure(e)
-        case ie: InterruptedException =>
-          ConnektLogger(LogFile.SERVICE).error(s"Interrupt Exception , FAILED_TO_INGEST [${request.getObject.getJson}]", ie)
-          Failure(ie)
-        case e: Throwable =>
-          ConnektLogger(LogFile.SERVICE).error(s"Unknown ERROR, FAILED_TO_INGEST [${request.getObject.getJson}]", e)
-          Failure(e)
+  private def ingestAll(request: TPublishRequest, requestMetadata: TPublishRequestMetadata): Try[Boolean] = {
+    if(ingestionEnabled) {
+      phantomPublisher.publish(request, requestMetadata).response match {
+        case Success(m) if m.equalsIgnoreCase("SUCCESS") => Success(true)
+        case Success(m) =>
+          ConnektLogger(LogFile.SERVICE).error(s"Phantom ingestion failed. CommandResponse: $m")
+          Failure(new Throwable(s"Phantom ingestion failed. CommandResponse: $m"))
+        case Failure(t) => Failure(t)
       }
     } else {
-      // Ingestion disabled.
-      ConnektLogger(LogFile.SERVICE).warn(s"BF_SKIP_INGEST ${request.getObject.getJson}")
       Success(true)
     }
   }
 
-  @Timed("eventIngest")
-  def ingest(obj: EventBaseSchema): Try[Boolean] = {
-    val eventId = StringUtils.generateRandomStr(25)
-    val event = new Event(eventId, System.currentTimeMillis(), obj)
-    val ingestionMetadata: IngestionMetadata = new IngestionMetadata()
-    ingestionMetadata.setRequestId(eventId)
-    ingest(new SpecterRequest(event, ingestionMetadata))
-  }
+  @Timed("ingestEntity")
+  def ingestEntity(entityId: String, request: TPublishRequest, entityNamespace: String) = ingestAll(request, new TPublishRequestMetadata {
+    override def requestType: RequestType.Value = RequestType.Entity
 
-  @Timed("entityIngest")
-  def ingest(obj: EntityBaseSchema): Try[Boolean] = {
-    val entity = new Entity(obj.id, System.currentTimeMillis(), obj)
-    val ingestionMetadata: IngestionMetadata = new IngestionMetadata()
-    ingestionMetadata.setRequestId(obj.id)
-    ingest(new SpecterRequest(entity, ingestionMetadata))
-  }
+    override def id: String = entityId
 
-  def ingest(obj: BaseSchema): Try[Boolean] = {
-    obj match {
-      case event: EventBaseSchema => ingest(event)
-      case entity: EntityBaseSchema => ingest(entity)
-      case _ =>
-        ConnektLogger(LogFile.SERVICE).warn(s"Unable to ingest as $obj is neither EventBaseSchema nor EntityBaseSchema")
-        Success(false)
-    }
-  }
+    override def namespace(): Option[String] = Some(entityNamespace)
+  })
+
+  @Timed("ingestEvent")
+  def ingestEvent(request: TPublishRequest, eventNamespace: String) = ingestAll(request, new TPublishRequestMetadata {
+    override def requestType: RequestType.Value = RequestType.Event
+
+    override def id: String = StringUtils.generateRandomStr(25)
+
+    override def namespace(): Option[String] = Some(eventNamespace)
+  })
 }

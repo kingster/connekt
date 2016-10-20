@@ -31,7 +31,7 @@ class BigFootServiceTest extends CommonsBaseTest {
     val deviceDetails = DeviceDetails(deviceId, userId, token, "osName", "osVersion",
       "appName", "appVersion", "brand", "model", "state",
       DateTimeFormat.forPattern("YYYY-MM-dd HH:mm:ss").print(System.currentTimeMillis()))
-    BigfootService.ingest(deviceDetails).get shouldEqual true
+    BigfootService.ingestEntity(deviceId, deviceDetails, "fkint/mp/connekt/DeviceDetails").get shouldEqual true
   }
 
 }

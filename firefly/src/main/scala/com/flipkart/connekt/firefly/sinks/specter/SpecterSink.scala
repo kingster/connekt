@@ -14,12 +14,11 @@ package com.flipkart.connekt.firefly.sinks.specter
 
 import akka.stream.scaladsl.Sink
 import com.flipkart.connekt.commons.entities.SubscriptionEvent
-import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
+import com.flipkart.connekt.commons.entities.bigfoot.PublishSupport
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.BigfootService
 import com.flipkart.connekt.commons.utils.StringUtils._
-import com.flipkart.seraph.schema.BaseSchema
 
 class SpecterSink extends Instrumented {
   def sink = {
@@ -30,8 +29,8 @@ class SpecterSink extends Instrumented {
       }).getObj[CallbackEvent]
 
       callbackEvent match {
-        case bfSupported: BigfootSupport[_] =>
-          BigfootService.ingest(bfSupported.toBigfootFormat)
+        case bfSupported: PublishSupport =>
+          BigfootService.ingestEvent(bfSupported.toPublishFormat, callbackEvent.namespace)
           meter(s"firefly.specter.bf.ingested").mark()
         case _ => meter(s"firefly.specter.bf.skipped").mark()
       }

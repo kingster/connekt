@@ -13,12 +13,10 @@
 package com.flipkart.connekt.busybees.streams.flows.reponsehandlers
 
 import com.flipkart.connekt.busybees.streams.flows.MapAsyncFlowStage
-import com.flipkart.connekt.commons.iomodels.{EmailCallbackEvent, PNCallbackEvent}
+import com.flipkart.connekt.commons.iomodels.PNCallbackEvent
 
 trait ProviderResponseHandler
 
 abstract class PNProviderResponseErrorHandler[I, O1](parallelism:Int = 128) extends  MapAsyncFlowStage[I, Either[O1, PNCallbackEvent]](parallelism) with ProviderResponseHandler
 
 abstract class PNProviderResponseHandler[I](parallelism:Int = 128) extends MapAsyncFlowStage[I, PNCallbackEvent](parallelism) with ProviderResponseHandler
-
-abstract class EmailProviderResponseHandler[I](parallelism:Int = 128) extends MapAsyncFlowStage[I, EmailCallbackEvent](parallelism) with ProviderResponseHandler

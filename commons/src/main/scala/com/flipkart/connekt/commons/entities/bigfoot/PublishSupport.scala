@@ -12,10 +12,11 @@
  */
 package com.flipkart.connekt.commons.entities.bigfoot
 
-import com.flipkart.seraph.schema.BaseSchema
+import com.flipkart.concord.publisher.TPublishRequest
 
-trait BigfootSupport[T <: BaseSchema] {
+trait PublishSupport {
 
-  def toBigfootFormat: T
+  def namespace: String
 
+  def toPublishFormat: TPublishRequest
 }

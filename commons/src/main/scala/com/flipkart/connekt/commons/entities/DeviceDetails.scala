@@ -13,7 +13,8 @@
 package com.flipkart.connekt.commons.entities
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.flipkart.connekt.commons.entities.bigfoot.BigfootSupport
+import com.flipkart.concord.publisher.TPublishRequest
+import com.flipkart.connekt.commons.entities.bigfoot.PublishSupport
 import com.flipkart.connekt.commons.iomodels.CallbackEvent
 import com.flipkart.connekt.commons.utils.DateTimeUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
@@ -33,9 +34,9 @@ case class DeviceDetails(deviceId: String,
                          model: String,
                          state: String = "",
                          @JsonProperty(required = false) keys: Map[String, String] = Map.empty,
-                         active: Boolean = true) extends BigfootSupport[fkint.mp.connekt.DeviceDetails] {
+                         active: Boolean = true) extends PublishSupport {
 
-  def toBigfootFormat: fkint.mp.connekt.DeviceDetails = {
+  override def toPublishFormat: fkint.mp.connekt.DeviceDetails = {
     fkint.mp.connekt.DeviceDetails(
       deviceId = deviceId, userId = userId, token = token.sha256.hash.hex, osName = osName, osVersion = osVersion,
       appName = appName, appVersion = appVersion, brand = brand, model = model, state = state,
@@ -54,6 +55,8 @@ case class DeviceDetails(deviceId: String,
     require(userId != deviceId, "`userId` cannot be equal to `deviceId`")
     require(appName.isDefined, "device detail's `appName` cannot be null/empty")
   }
+
+  override def namespace: String = "fkint/mp/connekt/DeviceDetails"
 }
 
 sealed case class DeviceCallbackEvent(deviceId: String, userId: String, osName: String, osVersion: String,
@@ -65,4 +68,12 @@ sealed case class DeviceCallbackEvent(deviceId: String, userId: String, osName: 
   override def messageId: String = throw new RuntimeException(s"`messageId` undefined for DeviceCallbackEvent")
 
   override def eventId: String = throw new RuntimeException(s"`eventId` undefined for DeviceCallbackEvent")
+
+  override def namespace: String = "fkint/mp/connekt/DeviceDetails"
+
+  override def toPublishFormat: TPublishRequest = fkint.mp.connekt.DeviceDetails(
+    deviceId = deviceId, userId = userId, token = null, osName = osName, osVersion = osVersion,
+    appName = appName, appVersion = appVersion, brand = brand, model = model, state = state,
+    ts = DateTimeUtils.getStandardFormatted(), active = active
+  )
 }
