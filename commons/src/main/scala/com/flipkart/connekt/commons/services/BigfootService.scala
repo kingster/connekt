@@ -41,7 +41,7 @@ object BigfootService extends Instrumented {
 
   val socketClient = DaoFactory.phantomClientSocket
 
-  private def ingestAll(request: TPublishRequest, requestMetadata: TPublishRequestMetadata): Try[Boolean] = {
+  private def ingest(request: TPublishRequest, requestMetadata: TPublishRequestMetadata): Try[Boolean] = {
     if(ingestionEnabled) {
       phantomPublisher.publish(request, requestMetadata).response match {
         case Success(m) if m.equalsIgnoreCase("SUCCESS") => Success(true)
@@ -56,7 +56,7 @@ object BigfootService extends Instrumented {
   }
 
   @Timed("ingestEntity")
-  def ingestEntity(entityId: String, request: TPublishRequest, entityNamespace: String) = ingestAll(request, new TPublishRequestMetadata {
+  def ingestEntity(entityId: String, request: TPublishRequest, entityNamespace: String) = ingest(request, new TPublishRequestMetadata {
     override def requestType: RequestType.Value = RequestType.Entity
 
     override def id: String = entityId
@@ -65,7 +65,7 @@ object BigfootService extends Instrumented {
   })
 
   @Timed("ingestEvent")
-  def ingestEvent(request: TPublishRequest, eventNamespace: String) = ingestAll(request, new TPublishRequestMetadata {
+  def ingestEvent(request: TPublishRequest, eventNamespace: String) = ingest(request, new TPublishRequestMetadata {
     override def requestType: RequestType.Value = RequestType.Event
 
     override def id: String = StringUtils.generateRandomStr(25)
