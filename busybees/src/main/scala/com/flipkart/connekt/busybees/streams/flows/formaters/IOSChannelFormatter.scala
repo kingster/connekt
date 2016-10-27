@@ -12,6 +12,7 @@
  */
 package com.flipkart.connekt.busybees.streams.flows.formaters
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.busybees.streams.errors.ConnektPNStageException
 import com.flipkart.connekt.busybees.streams.flows.NIOFlow
 import com.flipkart.connekt.commons.entities.MobilePlatform
@@ -47,9 +48,11 @@ class IOSChannelFormatter(parallelism: Int)(implicit ec: ExecutionContextExecuto
       val ttlInMillis = message.expiryTs.getOrElse(System.currentTimeMillis() + 6.hours.toMillis)
       val apnsEnvelopes = listOfTokenDeviceId.map(td => {
         val data = message.channelData.asInstanceOf[PNRequestData].data
-        val requestData = stencilService.materialize(iosStencil.find(s => s.component.equals("data")).orNull, data).asInstanceOf[String]
+        val requestData = stencilService.materialize(iosStencil.find(s => s.component.equals("data")).orNull, data).asInstanceOf[String].getObj[ObjectNode]
+          .put("messageId", message.id)
+          .put("contextId", message.contextId.orEmpty)
         val apnsTopic = pnInfo.topic.getOrElse(stencilService.materialize(iosStencil.find(s => s.component.equals("topic")).orNull, data).asInstanceOf[String])
-        val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData)
+        val apnsPayload = iOSPNPayload(td._1, apnsTopic, ttlInMillis, requestData.toString)
         APSPayloadEnvelope(message.id, td._2, pnInfo.appName, message.contextId.orEmpty, message.clientId, apnsPayload, message.meta)
       })
 
