@@ -53,7 +53,7 @@ class XmppDownstreamHandler(implicit m: Materializer, ec: ExecutionContext) exte
             DeviceDetailsService.update(d.deviceId, d.copy(token = response.updatedTokenId))
           }))
         }
-        GCMResponseStatus.Received -> response.messageId
+        GCMResponseStatus.Received_XMPP -> response.messageId
 
       case Failure(nack: XmppNackException) =>
         nack.response.error.toUpperCase match {

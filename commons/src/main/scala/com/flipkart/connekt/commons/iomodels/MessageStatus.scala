@@ -19,7 +19,8 @@ object MessageStatus {
 
     val InvalidJsonError = Value("gcm_invalid_json_error")
     val AuthError = Value("gcm_auth_error")
-    val Received = Value("gcm_received")
+    val Received_HTTP = Value("gcm_received_http")
+    val Received_XMPP = Value("gcm_received_xmpp")
     val Delivered = Value("gcm_delivered")
     val Error = Value("gcm_error")
     val InternalError = Value("gcm_internal_error")
