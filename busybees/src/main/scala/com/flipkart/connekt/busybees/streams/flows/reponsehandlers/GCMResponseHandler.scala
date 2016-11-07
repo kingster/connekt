@@ -65,8 +65,8 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                         ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler device token update notified on. $messageId of device: $rDeviceId")
                         DeviceDetailsService.update(d.deviceId, d.copy(token = s.get("registration_id").asText.trim))
                       }))
-                    ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString), requestTracker.appName, GCMResponseStatus.Received)
-                    events += PNCallbackEvent(messageId, requestTracker.clientId, rDeviceId, GCMResponseStatus.Received, MobilePlatform.ANDROID, appName, requestTracker.contextId, s.get("message_id").asText(), eventTS)
+                    ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString), requestTracker.appName, GCMResponseStatus.Received_HTTP)
+                    events += PNCallbackEvent(messageId, requestTracker.clientId, rDeviceId, GCMResponseStatus.Received_HTTP, MobilePlatform.ANDROID, appName, requestTracker.contextId, s.get("message_id").asText(), eventTS)
                   case f if f.has("error") && List("InvalidRegistration", "NotRegistered").contains(f.get("error").asText.trim) =>
                     DeviceDetailsService.get(appName, rDeviceId).foreach {
                       _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
