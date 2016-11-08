@@ -39,7 +39,7 @@ object BigfootService extends Instrumented {
     } else null
   }
 
-  private def ingest(request: TPublishRequest, requestMetadata: TPublishRequestMetadata): Try[Boolean] = {
+  private def ingest(request: TPublishRequest, requestMetadata: TPublishRequestMetadata): Try[Boolean] = Try {
     if(ingestionEnabled) {
       phantomPublisher.publish(request, requestMetadata).response match {
         case Success(m) if m.equalsIgnoreCase("SUCCESS") => Success(true)
@@ -51,7 +51,7 @@ object BigfootService extends Instrumented {
     } else {
       Success(true)
     }
-  }
+  }.flatten
 
   @Timed("ingestEntity")
   def ingestEntity(entityId: String, request: TPublishRequest, entityNamespace: String) = ingest(request, new TPublishRequestMetadata {
