@@ -14,7 +14,7 @@ package com.flipkart.connekt.commons.iomodels
 
 import com.flipkart.connekt.commons.utils.DateTimeUtils
 import com.flipkart.connekt.commons.utils.StringUtils._
-import org.apache.commons.lang3.RandomStringUtils
+import org.apache.commons.lang.RandomStringUtils
 
 case class PNCallbackEvent(messageId: String,
                            clientId: String,

@@ -73,9 +73,6 @@ object BusyBeesBoot extends BaseApp {
 
       DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
 
-      val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
-      DaoFactory.initSpecterSocket(specterConfig)
-
       ServiceFactory.initStorageService(DaoFactory.getKeyChainDao)
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.consumerConnProps").getOrElse(ConfigFactory.empty())

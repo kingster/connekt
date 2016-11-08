@@ -30,8 +30,6 @@ object DaoFactory {
   var couchBaseCluster: com.couchbase.client.java.Cluster = null
   var couchbaseBuckets: Map[String, Bucket] = null
 
-  var phantomClientSocket: PhantomClientSocket = null
-
   def setUpConnectionProvider(provider: TConnectionProvider): Unit = {
     this.connectionProvider = provider
   }
@@ -91,12 +89,6 @@ object DaoFactory {
 
   def initReportingDao(bucket: Bucket): Unit = {
     daoMap += DaoType.STATS_REPORTING -> StatsReportingDao(bucket)
-  }
-
-  def initSpecterSocket(specterConfig: Config): PhantomClientSocket = {
-    System.setProperty("org.newsclub.net.unix.library.path", specterConfig.getString("lib.path"))
-    phantomClientSocket = PhantomSocketFactory.getInstance(specterConfig.getString("socket"))
-    phantomClientSocket
   }
 
   def getDeviceDetailsDao: DeviceDetailsDao = daoMap(DaoType.DEVICE_DETAILS).asInstanceOf[DeviceDetailsDao]

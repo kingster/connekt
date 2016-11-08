@@ -13,24 +13,24 @@
 package com.flipkart.connekt.commons.services
 
 import com.flipkart.concord.publisher.{RequestType, TPublishRequest, TPublishRequestMetadata, TPublisher}
-import com.flipkart.connekt.commons.dao.DaoFactory
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.utils._
 import com.flipkart.metrics.Timed
 
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object BigfootService extends Instrumented {
 
   lazy val phantomSocketPath: String = ConnektConfig.getString("connections.specter.socket").get
   lazy val ingestionEnabled = ConnektConfig.getBoolean("flags.bf.enabled").getOrElse(false)
+  lazy val jUnixSocketLibPath = ConnektConfig.getString("connections.specter.lib.path").get
 
   lazy val phantomPublisher: TPublisher[String] = {
     if(ingestionEnabled) {
       try {
-        val configLoaderClass = Class.forName("com.flipkart.connekt.util.mapper.PhantomSocketPublisher")
-        configLoaderClass.getConstructor(classOf[String], classOf[String]).newInstance(phantomSocketPath, "publishToBigFoot").asInstanceOf[TPublisher[String]]
+        val configLoaderClass = Class.forName("com.flipkart.connekt.util.publisher.PhantomSocketPublisher")
+        configLoaderClass.getConstructor(classOf[String], classOf[String], classOf[String]).newInstance(jUnixSocketLibPath, phantomSocketPath, "publishToBigFoot").asInstanceOf[TPublisher[String]]
       } catch {
         case e: Exception =>
           ConnektLogger(LogFile.SERVICE).error("Unable to initialize PhantomPublisher", e)
@@ -38,8 +38,6 @@ object BigfootService extends Instrumented {
       }
     } else null
   }
-
-  val socketClient = DaoFactory.phantomClientSocket
 
   private def ingest(request: TPublishRequest, requestMetadata: TPublishRequestMetadata): Try[Boolean] = {
     if(ingestionEnabled) {

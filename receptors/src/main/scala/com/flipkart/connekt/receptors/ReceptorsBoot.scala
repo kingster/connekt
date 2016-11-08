@@ -58,9 +58,6 @@ object ReceptorsBoot extends BaseApp {
 
       DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
 
-      val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
-      DaoFactory.initSpecterSocket(specterConfig)
-
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())
       val kafkaProducerHelper = KafkaProducerHelper.init(kafkaConnConf, kafkaProducerPoolConf)
