@@ -50,7 +50,7 @@ object FireflyBoot extends BaseApp {
       ConnektLogger.init(loggerConfigFile)
 
       val applicationConfigFile = ConfigUtils.getSystemProperty("firefly.appConfigurationFile").getOrElse("firefly-config.json")
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly", "fk-connekt-firefly-akka"))(applicationConfigFile)
+      ConnektConfig(configServiceHost, configServicePort, apiVersion)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment) , "fk-connekt-firefly", "fk-connekt-firefly-akka"))(applicationConfigFile)
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 

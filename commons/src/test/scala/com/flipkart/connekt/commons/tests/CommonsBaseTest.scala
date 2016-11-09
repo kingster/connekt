@@ -50,7 +50,7 @@ class CommonsBaseTest extends ConnektUTSpec {
 
     ConnektLogger(LogFile.SERVICE).info(s"Test config initializing, configServiceHost: $configServiceHost:$configServicePort")
     val applicationConfigFile = ConfigUtils.getSystemProperty("receptors.appConfigurationFile").getOrElse("receptors-config.yaml")
-    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka", "fk-connekt-firefly"))(applicationConfigFile)
+    ConnektConfig(configServiceHost, configServicePort, apiVersion)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka", "fk-connekt-firefly"))(applicationConfigFile)
     SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
     DaoFactory.setUpConnectionProvider(new MockConnectionProvider())
@@ -66,9 +66,6 @@ class CommonsBaseTest extends ConnektUTSpec {
     DaoFactory.initCouchbaseCluster(couchbaseCf)
 
     DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
-
-    val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
-    DaoFactory.initSpecterSocket(specterConfig)
 
     ServiceFactory.initPNMessageService(DaoFactory.getPNRequestDao, DaoFactory.getUserConfigurationDao, getKafkaProducerHelper, getKafkaConsumerConf,null)
     ServiceFactory.initCallbackService(null, DaoFactory.getPNCallbackDao, DaoFactory.getPNRequestDao, null,getKafkaProducerHelper)

@@ -37,7 +37,7 @@ class HbaseDaoTest extends ConnektUTSpec with HbaseDao {
   def getHBaseConnHelper = {
 
     val applicationConfigFile = ConfigUtils.getSystemProperty("receptors.appConfigurationFile").getOrElse("receptors-config.yaml")
-    ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-nm", "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka"))(applicationConfigFile)
+    ConnektConfig(configServiceHost, configServicePort, apiVersion)(Seq("fk-connekt-root", "fk-connekt-nm", "fk-connekt-receptors", "fk-connekt-busybees", "fk-connekt-busybees-akka"))(applicationConfigFile)
     val hConfProps = new Properties()
     hConfProps.setProperty("hbase.zookeeper.quorum", "fk-connekt-hbase-jn-firestorm-397125,fk-connekt-hbase-jn-firestorm-397126,fk-connekt-hbase-jn-firestorm-397127")
     hConfProps.setProperty("hbase.zookeeper.property.clientPort", "2181")

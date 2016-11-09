@@ -36,7 +36,7 @@ object BarkLiceBoot extends BaseApp {
       ConnektLogger.init(loggerConfigFile)
 
       val applicationConfigFile = ConfigUtils.getSystemProperty("barklice.appConfigurationFile").getOrElse("barklice-config.json")
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-barklice"))(applicationConfigFile)
+      ConnektConfig(configServiceHost, configServicePort, apiVersion)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment), "fk-connekt-barklice"))(applicationConfigFile)
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 

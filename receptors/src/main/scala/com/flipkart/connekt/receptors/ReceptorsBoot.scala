@@ -41,7 +41,7 @@ object ReceptorsBoot extends BaseApp {
       ConnektLogger.init(loggerConfigFile)
 
       val applicationConfigFile = ConfigUtils.getSystemProperty("receptors.appConfigurationFile").getOrElse("receptors-config.json")
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors", "fk-connekt-barklice", "fk-connekt-receptors-akka"))(applicationConfigFile)
+      ConnektConfig(configServiceHost, configServicePort, apiVersion)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors", "fk-connekt-barklice", "fk-connekt-receptors-akka"))(applicationConfigFile)
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 

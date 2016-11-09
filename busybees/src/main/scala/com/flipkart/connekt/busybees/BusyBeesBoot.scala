@@ -56,7 +56,7 @@ object BusyBeesBoot extends BaseApp {
       ConnektLogger.init(loggerConfigFile)
 
       val applicationConfigFile = ConfigUtils.getSystemProperty("busybees.appConfigurationFile").getOrElse("busybees-config.json")
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-busybees", "fk-connekt-busybees-akka-nm"))(applicationConfigFile)
+      ConnektConfig(configServiceHost, configServicePort, apiVersion)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-busybees", "fk-connekt-busybees-akka-nm"))(applicationConfigFile)
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 

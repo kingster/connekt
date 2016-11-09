@@ -24,12 +24,12 @@ object ConnektConfig {
   lazy val logger = LoggerFactory.getLogger(getClass)
   var instance: TConfig = null
 
-  def apply(configHost: String, configPort: Int)(bucketIds: Seq[String])(configFile: String = null) = {
+  def apply(configHost: String, configPort: Int, apiVersion: Int)(bucketIds: Seq[String])(configFile: String = null) = {
     this.synchronized {
       if (null == instance) {
         try {
           val configLoaderClass = Class.forName("com.flipkart.connekt.util.config.KloudConfig")
-          instance = configLoaderClass.getConstructor(classOf[Seq[String]]).newInstance(bucketIds).asInstanceOf[TConfig]
+          instance = configLoaderClass.getConstructor(classOf[Seq[String]], classOf[Option[String]], classOf[Option[Int]], classOf[Option[Int]]).newInstance(bucketIds, Option(configHost), Option(configPort), Option(apiVersion)).asInstanceOf[TConfig]
           configLoaderClass.getMethod("init").invoke(instance)
         } catch {
           case e: Exception =>
