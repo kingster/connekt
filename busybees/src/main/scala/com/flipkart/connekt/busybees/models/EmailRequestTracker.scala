@@ -10,19 +10,6 @@
  *
  *      Copyright © 2016 Flipkart.com
  */
-package com.flipkart.connekt.commons.iomodels
+package com.flipkart.connekt.busybees.models
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "type"
-)
-@JsonSubTypes(Array(
-  new Type(value = classOf[PNRequestInfo], name = "PN"),
-  new Type(value = classOf[EmailRequestInfo], name = "EMAIL"),
-  new Type(value = classOf[CardsRequestInfo], name = "CARD")
-))
-abstract class ChannelRequestInfo
+case class EmailRequestTracker(messageId: String, clientId: String, to: Set[String], cc:Set[String], appName: String, contextId: String, meta: Map[String, Any]) extends RequestTracker

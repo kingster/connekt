@@ -12,17 +12,12 @@
  */
 package com.flipkart.connekt.commons.iomodels
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+import com.fasterxml.jackson.annotation.JsonProperty
 
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "type"
-)
-@JsonSubTypes(Array(
-  new Type(value = classOf[PNRequestInfo], name = "PN"),
-  new Type(value = classOf[EmailRequestInfo], name = "EMAIL"),
-  new Type(value = classOf[CardsRequestInfo], name = "CARD")
-))
-abstract class ChannelRequestInfo
+case class EmailRequestInfo(@JsonProperty(required = false) appName: String,
+                            @JsonProperty(required = true) to: Set[EmailAddress] = Set.empty[EmailAddress],
+                            @JsonProperty(required = false) cc: Set[EmailAddress] = Set.empty[EmailAddress],
+                            @JsonProperty(required = false) bcc: Set[EmailAddress] = Set.empty[EmailAddress]
+                           ) extends ChannelRequestInfo
+
+case class EmailAddress(name: String, address: String)

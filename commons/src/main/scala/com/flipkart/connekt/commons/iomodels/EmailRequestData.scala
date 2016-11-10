@@ -12,4 +12,4 @@
  */
 package com.flipkart.connekt.commons.iomodels
 
-case class EmailRequestData(subject: String, body: String) extends ChannelRequestData
+case class EmailRequestData(subject: String, html: String, text:String) extends ChannelRequestData
