@@ -15,7 +15,6 @@ package com.flipkart.connekt.commons.services
 import com.flipkart.concord.config.TConfig
 import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.LoggerFactory
-
 import scala.collection.JavaConverters._
 
 
