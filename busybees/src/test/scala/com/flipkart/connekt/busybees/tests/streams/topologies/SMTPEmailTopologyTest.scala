@@ -17,7 +17,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.flipkart.connekt.busybees.models.GCMRequestTracker
 import com.flipkart.connekt.busybees.streams.flows.RenderFlow
 import com.flipkart.connekt.busybees.streams.flows.dispatchers.{GCMDispatcherPrepare, SMTPDispatcher}
-import com.flipkart.connekt.busybees.streams.flows.formaters.AndroidChannelFormatter
+import com.flipkart.connekt.busybees.streams.flows.formaters.{AndroidChannelFormatter, EmailChannelFormatter}
 import com.flipkart.connekt.busybees.streams.flows.reponsehandlers.GCMResponseHandler
 import com.flipkart.connekt.busybees.tests.streams.TopologyUTSpec
 import com.flipkart.connekt.commons.iomodels.ConnektRequest
@@ -29,47 +29,40 @@ import scala.concurrent.duration._
 
 class SMTPEmailTopologyTest extends TopologyUTSpec {
 
-  "AndroidTopology Test" should "run" in {
+  "SMTPEmailTopology Test" should "run" in {
 
     val credentials = KeyChainManager.getSimpleCredential("Flipkart-SMTP").get
 
-    lazy implicit val poolClientFlow = Http().cachedHostConnectionPoolHttps[GCMRequestTracker]("fcm.googleapis.com", 443)
+    println("Credentials = " + credentials)
 
     val cRequest = s"""
-                     |{ "id" : "123456789",
-                     |	"channel": "EMAIL",
-                     |	"sla": "H",
-                     |	"channelData": {
-                     |		"type": "EMAIL",
-                     |		"data": {
-                     |			"message": "Hello Kinshuk. GoodLuck!",
-                     |			"title": "Kinshuk GCM Push Test",
-                     |			"id": "${System.currentTimeMillis()}",
-                     |			"triggerSound": true,
-                     |			"notificationType": "Text"
-                     |		}
-                     |	},
-                     |	"channelInfo" : {
-                     |	    "type" : "EMAIL",
-                     |	    "ackRequired": true,
-                     |    	"delayWhileIdle": true,
-                     |     "platform" :  "android",
-                     |     "appName" : "RetailApp",
-                     |     "deviceIds" : ["81adb899c58c9c8275e2b1ffa2d03861"]
-                     |	},
-                     |  "clientId" : "123456",
-                     |	"meta": {}
-                     |}
+                      |{ "id" : "123456789",
+                      |	"channel": "EMAIL",
+                      |	"sla": "H",
+                      |	"channelData": {
+                      |		"type": "EMAIL",
+                      |		"subject": "Hello Kinshuk. GoodLuck!",
+                      |		"text": "Text",
+                      |    "html" : "<b>html</b>"
+                      |
+                      |	},
+                      |	"channelInfo" : {
+                      |	    "type" : "EMAIL",
+                      |     "appName" : "FKProd",
+                      |     "to" : [{ "name": "Kinshuk", "address": "kinshuk1989@gmail.com" }]
+                      |	},
+                      |  "clientId" : "123456",
+                      |	"meta": {}
+                      |}
                    """.stripMargin.getObj[ConnektRequest]
 
 
     val result = Source.single(cRequest)
       .via(new RenderFlow().flow)
-      .via(new AndroidChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
-      .via(new GCMDispatcherPrepare().flow)
-      .via(new SMTPDispatcher().flow)
-      .via(new GCMResponseHandler().flow)
-      .runWith(Sink.head)
+      .via(new EmailChannelFormatter(64)(system.dispatchers.lookup("akka.actor.io-dispatcher")).flow)
+      .via(new SMTPDispatcher("10.33.102.104",credentials,10).flow)
+      //      .via(new GCMResponseHandler().flow)
+      .runWith(Sink.ignore)
 
     val response = Await.result(result, 80.seconds)
 
