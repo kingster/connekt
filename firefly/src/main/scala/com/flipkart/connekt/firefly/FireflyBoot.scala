@@ -56,6 +56,9 @@ object FireflyBoot extends BaseApp {
 
       DaoFactory.setUpConnectionProvider(new ConnectionProvider)
 
+      val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
+      DaoFactory.initSpecterSocket(specterConfig)
+
       val mysqlConf = ConnektConfig.getConfig("connections.mysql").getOrElse(ConfigFactory.empty())
       DaoFactory.initMysqlTableDaoFactory(mysqlConf)
 

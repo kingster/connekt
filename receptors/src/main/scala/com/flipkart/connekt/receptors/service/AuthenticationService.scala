@@ -21,6 +21,7 @@ import com.flipkart.connekt.commons.entities.AppUser
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile, ServiceFactory}
 import com.flipkart.connekt.commons.metrics.Instrumented
 import com.flipkart.connekt.commons.services.{ConnektConfig, UserInfoService}
+import com.flipkart.connekt.commons.utils.StringUtils
 import com.flipkart.metrics.Timed
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -36,7 +37,7 @@ object AuthenticationService extends Instrumented {
 
   private lazy final val googlePublicCertsUri = ConnektConfig.getString("auth.google.publicCertsUri").getOrElse("https://www.googleapis.com/oauth2/v1/certs")
   private lazy final val GOOGLE_OAUTH_CLIENT_ID = ConnektConfig.getString("auth.google.clientId").get
-  private lazy final val ALLOWED_DOMAINS = ConnektConfig.getList[String]("auth.google.allowedDomains").toList
+  private lazy final val ALLOWED_DOMAINS = ConnektConfig.getList[String]("auth.google.allowedDomains")
   private lazy val verifier = new GoogleIdTokenVerifier.Builder(GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance)
     .setAudience(util.Arrays.asList(GOOGLE_OAUTH_CLIENT_ID))
     .setIssuer("accounts.google.com")
@@ -45,10 +46,12 @@ object AuthenticationService extends Instrumented {
 
   @Timed("authenticateKey")
   def authenticateKey(apiKey: String): Option[AppUser] = {
-    userService.getUserByKey(apiKey) match {
-      case Success(Some(user)) => Option(user)
-      case _ => getTransientUser(apiKey).getOrElse(None)
-    }
+    if (!StringUtils.isNullOrEmpty(apiKey)) {
+      userService.getUserByKey(apiKey) match {
+        case Success(Some(user)) => Option(user)
+        case _ => getTransientUser(apiKey).getOrElse(None)
+      }
+    } else None
   }
 
   @Timed("authenticateGoogleOAuth")

@@ -13,6 +13,7 @@
 package com.flipkart.connekt.commons.dao
 
 import java.io.IOException
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.flipkart.connekt.commons.dao.HbaseDao._
@@ -21,13 +22,22 @@ import com.flipkart.connekt.commons.iomodels.{ChannelRequestData, ChannelRequest
 import com.flipkart.connekt.commons.serializers.KryoSerializer
 import com.flipkart.connekt.commons.utils.StringUtils
 import org.apache.hadoop.hbase.client.BufferedMutator
+import com.flipkart.connekt.commons.core.Wrappers._
 
 abstract class RequestDao(tableName: String, hTableFactory: THTableFactory) extends TRequestDao with HbaseDao {
   private val hTableConnFactory = hTableFactory
   private val hTableName = tableName
   implicit lazy val hTableMutator: BufferedMutator = hTableFactory.getBufferedMutator(hTableName)
 
+  private val executor = new ScheduledThreadPoolExecutor(1)
+  private val flusher = executor.scheduleAtFixedRate(new Runnable {
+    override def run(): Unit = Try_ {
+      Option(hTableMutator).foreach(_.flush())
+    }
+  }, 60, 60, TimeUnit.SECONDS)
+
   override def close() = {
+    flusher.cancel(true)
     Option(hTableMutator).foreach(_.close())
   }
 
