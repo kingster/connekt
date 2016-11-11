@@ -16,7 +16,7 @@ import com.flipkart.connekt.busybees.BusyBeesBoot
 import com.flipkart.connekt.firefly.FireflyBoot
 import com.flipkart.connekt.receptors.ReceptorsBoot
 import com.flipkart.connekt.barklice.BarkLiceBoot
-import com.flipkart.utils.NetworkUtils
+import com.flipkart.connekt.commons.utils.NetworkUtils
 
 object Boot extends App {
 

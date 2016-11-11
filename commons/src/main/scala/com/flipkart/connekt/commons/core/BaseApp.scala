@@ -18,11 +18,11 @@ import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 
 trait BaseApp {
 
-  lazy val (configServiceHost, configServicePort): (String, Int) = {
+  lazy val (configServiceHost, configServicePort, apiVersion): (String, Int, Int) = {
     try {
       val prop = new Properties()
       prop.load(getClass.getClassLoader.getResourceAsStream("config.properties"))
-      (prop.getProperty("config.host"), new Integer(prop.getProperty("config.port")))
+      (prop.getProperty("config.host"), new Integer(prop.getProperty("config.port")), new Integer(prop.getProperty("config.apiVersion")))
     } catch {
       case e: Exception =>
         ConnektLogger(LogFile.SERVICE).error("Config.Prop Load Failed", e)

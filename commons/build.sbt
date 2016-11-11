@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+  "com.flipkart.connekt" %% "concord" % "0.2.0",
+  "com.flipkart.connekt" %% "connekt-concord" % "0.2.0" excludeAll ExclusionRule(organization = "com.google.guava", name = "guava"),
   /* Logging Dependencies.Since we want to use log4j2 */
   "com.lmax" % "disruptor" % "3.3.4",
   "org.apache.logging.log4j" % "log4j-api" % "2.5",
@@ -89,10 +91,8 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "org.slf4j"),
     ExclusionRule(organization = "io.netty")
     ),
-  "com.flipkart.specter" % "specter-client" % "1.4.0-SNAPSHOT",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1" excludeAll ExclusionRule("com.google.guava", "guava"),
-  "com.flipkart" %% "espion" % "1.0.3",
+  "com.flipkart" %% "espion" % "1.0.1",
   "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT",
   "commons-validator" % "commons-validator" % "1.5.0" excludeAll ExclusionRule("commons-beanutils", "commons-beanutils"),
   "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
@@ -121,9 +121,7 @@ test in assembly := {}
 parallelExecution in Test := false
 
 assemblyExcludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
-  cp filter {
-    _.data.getName == "bcprov-jdk15on-1.54.jar"
-  }
+  cp filter {_.data.getName == "bcprov-jdk15on-1.54.jar"}
 }
 
 assemblyMergeStrategy in assembly := AppBuild.mergeStrategy

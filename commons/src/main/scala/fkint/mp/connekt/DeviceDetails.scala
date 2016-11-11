@@ -12,14 +12,13 @@
  */
 package fkint.mp.connekt
 
-import com.flipkart.connekt.commons.entities.bigfoot.EntityBaseSchema
+import com.flipkart.concord.publisher.TPublishRequest
 
 case class DeviceDetails(deviceId: String, userId: String, token: String, osName: String, osVersion: String,
                          appName: String, appVersion: String, brand: String, model: String, state: String = "",
-                         ts: String, active: Boolean = true) extends EntityBaseSchema {
-  override def getSchemaVersion: String = "1.0"
+                         ts: String, active: Boolean = true) extends TPublishRequest {
 
-  override def validate(): Unit = {}
+  override def validate(): Boolean = true
 
-  override def id: String = deviceId
+  override def schemaVersion(): String = "1.0"
 }
