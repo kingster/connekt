@@ -1,0 +1,237 @@
+{
+  "auth": {
+    "google": {
+      "publicCertsUri": "https://www.googleapis.com/oauth2/v1/certs"
+    }
+  },
+  "connections": {
+    "couchbase": {
+      "clusterIpList": "127.0.0.1"
+    },
+    "hbase": {
+      "hbase": {
+        "client": {
+          "write": {
+            "buffer": "512"
+          }
+        },
+        "zookeeper": {
+          "property": {
+            "clientPort": "2181"
+          },
+          "quorum": "127.0.0.1"
+        }
+      },
+      "zookeeper": {
+        "znode": {
+          "parent": "/hbase-unsecure"
+        }
+      }
+    },
+    "kafka": {
+      "consumerConnProps": {
+        "auto": {
+          "commit": {
+            "interval": {
+              "ms": "500"
+            }
+          }
+        },
+        "consumer": {
+          "timeout": {
+            "ms": "1000"
+          }
+        },
+        "group": {
+          "id": "ckt"
+        },
+        "zookeeper": {
+          "connect": "127.0.0.1:2181",
+          "session": {
+            "timeout": {
+              "ms": "25000"
+            }
+          },
+          "sync": {
+            "time": {
+              "ms": "2000"
+            }
+          }
+        }
+      },
+      "consumerPool": {
+        "maxActive": 100,
+        "maxIdle": 20
+      },
+      "producerConnProps": {
+        "metadata": {
+          "broker": {
+            "list": "127.0.0.1:6667"
+          }
+        },
+        "producer": {
+          "type": "async"
+        },
+        "request": {
+          "required": {
+            "acks": "0"
+          }
+        },
+        "serializer": {
+          "class": "kafka.serializer.StringEncoder"
+        },
+        "zookeeper": {
+          "connect": "127.0.0.1:2181"
+        }
+      },
+      "producerPool": {
+        "maxActive": 300,
+        "maxIdle": 20
+      },
+      "topic": {
+        "partitionFactor": 10
+      }
+    },
+    "mysql": {
+      "database": "connekt",
+      "host": "127.0.0.1",
+      "password": "connekt",
+      "poolProps": {
+        "initialSize": "3",
+        "maxActive": "20",
+        "maxIdle": "3"
+      },
+      "username": "ckt_sandbox_rw"
+    },
+    "scheduler": {
+      "worker": {
+        "zookeeper": {
+          "host": "127.0.0.1:2181"
+        }
+      }
+    },
+    "specter": {
+      "lib": {
+        "path": "/opt/newsclub/lib-native"
+      },
+      "socket": "/var/run/flipkart/specter/socket/specter.sock"
+    }
+  },
+  "core": {
+    "pn": {
+      "seen": {
+        "events": ["read", "dismissed", "received", "pull_received", "expired"]
+      }
+    }
+  },
+  "discovery": {
+    "curator": {
+      "baseSleepInMilliSecs": "10000",
+      "maxRetryCount": "5",
+      "zk": {
+        "connect": "127.0.0.1:2181/services",
+        "connectionTimeoutInMillis": "60000",
+        "sessionTimeoutInMillis": "10000"
+      }
+    }
+  },
+  "flags": {
+    "bf": {
+      "enabled": false
+    }
+  },
+  "gcm": {
+    "xmpp": {
+      "maxConnections": 5
+    }
+  },
+  "react": {
+    "akka": {
+      "actor": {
+        "default-dispatcher": {
+          "executor": "thread-pool-executor",
+          "fork-join-executor": {
+            "parallelism-factor": 8,
+            "parallelism-max": 64,
+            "parallelism-min": 32
+          },
+          "thread-pool-executor": {
+            "core-pool-size-factor": 8,
+            "core-pool-size-max": 64,
+            "core-pool-size-min": 32
+          },
+          "throughput": 100,
+          "type": "Dispatcher"
+        }
+      },
+      "daemonic": "off",
+      "http": {
+        "client": {
+          "connecting-timeout": "10s",
+          "idle-timeout": "60 s"
+        },
+        "host-connection-pool": {
+          "client": {
+            "connecting-timeout": "10s",
+            "idle-timeout": "60s"
+          },
+          "idle-timeout": "infinite",
+          "max-connections": 1024,
+          "max-open-requests": 8192,
+          "max-retries": 0,
+          "pipelining-limit": 8
+        }
+      },
+      "jvm-exit-on-fatal-error": "on",
+      "log-config-on-start": "off",
+      "log-dead-letters": 20,
+      "log-dead-letters-during-shutdown": "on",
+      "logger-startup-timeout": "30s",
+      "loggers": ["akka.event.slf4j.Slf4jLogger"],
+      "loglevel": "INFO",
+      "stdout-loglevel": "INFO",
+      "stream": {
+        "blocking-io-dispatcher": "akka.stream.default-blocking-io-dispatcher",
+        "default-blocking-io-dispatcher": {
+          "executor": "thread-pool-executor",
+          "thread-pool-executor": {
+            "core-pool-size-factor": 16,
+            "core-pool-size-max": 64,
+            "core-pool-size-min": 16
+          },
+          "throughput": 100,
+          "type": "Dispatcher"
+        },
+        "materializer": {
+          "auto-fusing": "on",
+          "dispatcher": "",
+          "initial-input-buffer-size": 4,
+          "max-input-buffer-size": 16,
+          "output-burst-limit": 1000
+        }
+      }
+    }
+  },
+  "sync": {
+    "cluster": {
+      "name": "sandbox"
+    },
+    "zookeeper": "127.0.0.1:2181,127.0.0.1:2181"
+  },
+  "topology": {
+    "push": {
+      "androidFormatter": {
+        "parallelism": 512
+      },
+      "iosFormatter": {
+        "parallelism": 256
+      },
+      "openwebFormatter": {
+        "parallelism": 64
+      },
+      "windowsFormatter": {
+        "parallelism": 196
+      }
+    }
+  }
+}

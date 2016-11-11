@@ -43,7 +43,7 @@ object DeviceDetailsService extends Instrumented {
     if (deviceDetails.userId != null)
       DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
     ServiceFactory.getCallbackService.enqueueCallbackEvents(List(deviceDetails.toCallbackEvent)).get
-    BigfootService.ingest(deviceDetails.toBigfootFormat).get
+    BigfootService.ingestEntity(deviceDetails.deviceId, deviceDetails.toPublishFormat, deviceDetails.namespace).get
   }
 
   /**
@@ -64,7 +64,7 @@ object DeviceDetailsService extends Instrumented {
           if (deviceDetails.userId != null)
             DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(deviceDetails.appName, deviceDetails.userId))
           ServiceFactory.getCallbackService.enqueueCallbackEvents(List(deviceDetails.toCallbackEvent)).get
-          BigfootService.ingest(deviceDetails.toBigfootFormat).get
+          BigfootService.ingestEntity(deviceId, deviceDetails.toPublishFormat, deviceDetails.namespace).get
         }
       case None =>
         Failure(new Throwable(s"No Device Detail found for id: [$deviceId] to update."))
@@ -91,7 +91,7 @@ object DeviceDetailsService extends Instrumented {
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.token))
           DistributedCacheManager.getCache(DistributedCacheType.DeviceDetails).remove(cacheKey(device.appName, device.deviceId))
           ServiceFactory.getCallbackService.enqueueCallbackEvents(List(device.copy(active = false).toCallbackEvent)).get
-          BigfootService.ingest(device.copy(active = false).toBigfootFormat)
+          BigfootService.ingestEntity(deviceId, device.copy(active = false).toPublishFormat, device.namespace)
         }
       case None =>
         Failure(new Throwable(s"No Device Detail found for app: [$appName] id: [$deviceId] to delete."))

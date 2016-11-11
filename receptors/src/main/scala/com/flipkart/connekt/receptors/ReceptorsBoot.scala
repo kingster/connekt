@@ -35,12 +35,13 @@ object ReceptorsBoot extends BaseApp {
 
       ConnektLogger(LogFile.SERVICE).info("Receptors initializing.")
 
-      val configFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-receptors.xml")
+      val loggerConfigFile = ConfigUtils.getSystemProperty("log4j.configurationFile").getOrElse("log4j2-receptors.xml")
 
-      ConnektLogger(LogFile.SERVICE).info(s"Receptors Logging using $configFile")
-      ConnektLogger.init(configFile)
+      ConnektLogger(LogFile.SERVICE).info(s"Receptors Logging using $loggerConfigFile")
+      ConnektLogger.init(loggerConfigFile)
 
-      ConnektConfig(configServiceHost, configServicePort)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors", "fk-connekt-barklice", "fk-connekt-receptors-akka"))
+      val applicationConfigFile = ConfigUtils.getSystemProperty("receptors.appConfigurationFile").getOrElse("receptors-config.json")
+      ConnektConfig(configServiceHost, configServicePort, apiVersion)(Seq("fk-connekt-root", "fk-connekt-".concat(ConfigUtils.getConfEnvironment),"fk-connekt-receptors", "fk-connekt-barklice", "fk-connekt-receptors-akka"))(applicationConfigFile)
 
       SyncManager.create(ConnektConfig.getString("sync.zookeeper").get)
 
@@ -56,9 +57,6 @@ object ReceptorsBoot extends BaseApp {
       DaoFactory.initCouchbaseCluster(couchbaseCf)
 
       DaoFactory.initReportingDao(DaoFactory.getCouchbaseBucket("StatsReporting"))
-
-      val specterConfig = ConnektConfig.getConfig("connections.specter").getOrElse(ConfigFactory.empty())
-      DaoFactory.initSpecterSocket(specterConfig)
 
       val kafkaConnConf = ConnektConfig.getConfig("connections.kafka.producerConnProps").getOrElse(ConfigFactory.empty())
       val kafkaProducerPoolConf = ConnektConfig.getConfig("connections.kafka.producerPool").getOrElse(ConfigFactory.empty())

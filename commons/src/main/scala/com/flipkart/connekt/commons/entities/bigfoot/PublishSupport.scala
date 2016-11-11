@@ -12,6 +12,11 @@
  */
 package com.flipkart.connekt.commons.entities.bigfoot
 
-import com.flipkart.seraph.schema.BaseSchema
+import com.flipkart.concord.publisher.TPublishRequest
 
-abstract class EventBaseSchema extends BaseSchema
+trait PublishSupport {
+
+  def namespace: String
+
+  def toPublishFormat: TPublishRequest
+}

@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+  "com.flipkart.connekt" %% "concord" % "0.2.0",
+  "com.flipkart.connekt" %% "connekt-concord" % "0.2.0" excludeAll ExclusionRule(organization = "com.google.guava", name = "guava"),
   /* Logging Dependencies.Since we want to use log4j2 */
   "com.lmax" % "disruptor" % "3.3.4",
   "org.apache.logging.log4j" % "log4j-api" % "2.5",
@@ -83,9 +85,7 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "org.slf4j"),
     ExclusionRule(organization = "io.netty")
     ),
-  "com.flipkart.specter" % "specter-client" % "1.4.0-SNAPSHOT",
   "joda-time" % "joda-time" % "2.3",
-  "com.flipkart" %% "util-config" % "0.0.1" excludeAll ExclusionRule("com.google.guava", "guava"),
   "com.flipkart" %% "espion" % "1.0.1",
   "com.flipkart" %% "util-http" % "0.0.1-SNAPSHOT",
   "commons-validator" % "commons-validator" % "1.5.0" excludeAll ExclusionRule("commons-beanutils", "commons-beanutils"),
@@ -104,7 +104,7 @@ libraryDependencies ++= Seq(
     ExclusionRule("log4j"),
     ExclusionRule(organization = "com.codahale.metrics"),
     ExclusionRule("org.apache.curator"),
-      ExclusionRule(organization = "org.mockito", name = "mockito-all"),
+    ExclusionRule(organization = "org.mockito", name = "mockito-all"),
     ExclusionRule(organization = "org.hamcrest", name = "hamcrest-core")
     )
 )

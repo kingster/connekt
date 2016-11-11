@@ -12,10 +12,10 @@
  */
 package fkint.mp.connekt
 
-import com.flipkart.connekt.commons.entities.bigfoot.EventBaseSchema
+import com.flipkart.concord.publisher.TPublishRequest
 
-case class PNCallbackEvent(messageId: String, appName: String, contextId: String, eventType: String, cargo: String, deviceId: String, platform: String, timestamp: String) extends EventBaseSchema {
-  override def validate(): Unit = {}
+case class PNCallbackEvent(messageId: String, appName: String, contextId: String, eventType: String, cargo: String, deviceId: String, platform: String, timestamp: String) extends TPublishRequest {
+  override def validate(): Boolean = true
 
-  override def getSchemaVersion: String = "1.0"
+  override def schemaVersion(): String = "1.0"
 }
