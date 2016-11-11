@@ -14,11 +14,11 @@ package com.flipkart.connekt.busybees.discovery
 
 import java.io.{Closeable, IOException}
 
-import com.flipkart.utils.NetworkUtils
+import com.flipkart.connekt.commons.utils.NetworkUtils
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.CloseableUtils
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer
-import org.apache.curator.x.discovery.{ServiceDiscoveryBuilder, ServiceInstance, UriSpec}
+import org.apache.curator.x.discovery.{ServiceDiscoveryBuilder, ServiceInstance}
 
 protected class ConnektInstance(zkPath: String, client: CuratorFramework, serviceName: String, id: String) extends Closeable {
 

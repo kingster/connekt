@@ -14,7 +14,7 @@ package com.flipkart.connekt.busybees.discovery
 
 import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.sync.{SyncManager, SyncType}
-import com.flipkart.utils.NetworkUtils
+import com.flipkart.connekt.commons.utils.NetworkUtils
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}

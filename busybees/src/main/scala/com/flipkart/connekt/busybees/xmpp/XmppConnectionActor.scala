@@ -55,7 +55,7 @@ private[xmpp] class XmppConnectionActor(googleCredential: GoogleCredential, appI
         val messageData: SendXmppOutStreamRequest = removal.getValue._1
         ConnektLogger(LogFile.CLIENTS).error(s"XmppConnectionActor RemoveListener:Cache timed out with tracker id ${removal.getKey}")
         messageData.responsePromise.failure(new XmppNeverAckException(removal.getKey))
-        timer(s"$appId.lost").update(System.currentTimeMillis() - removal.getValue._2, TimeUnit.MILLISECONDS)
+        registry.timer(s"$appId.lost").update(System.currentTimeMillis() - removal.getValue._2, TimeUnit.MILLISECONDS)
         pendingAckCount.decrementAndGet()
       }
     }
@@ -279,7 +279,7 @@ private[xmpp] class XmppConnectionActor(googleCredential: GoogleCredential, appI
       messageDataCache.invalidate(ack.messageId)
       pendingAckCount.decrementAndGet()
       outStreamRequest.responsePromise.success(ack)
-      timer(s"$appId.ack").update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
+      registry.timer(s"$appId.ack").update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -289,7 +289,7 @@ private[xmpp] class XmppConnectionActor(googleCredential: GoogleCredential, appI
       messageDataCache.invalidate(nack.messageId)
       pendingAckCount.decrementAndGet()
       outStreamRequest.responsePromise.failure(new XmppNackException(nack))
-      timer(s"$appId.nack").update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
+      registry.timer(s"$appId.nack").update(System.currentTimeMillis() - sentTime, TimeUnit.MILLISECONDS)
     }
   }
 
