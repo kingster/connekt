@@ -83,12 +83,6 @@ class GCMResponseHandler(implicit m: Materializer, ec: ExecutionContext) extends
                     events += PNCallbackEvent(messageId, requestTracker.clientId, rDeviceId, GCMResponseStatus.InternalError, MobilePlatform.ANDROID, appName, requestTracker.contextId, ie.toString, eventTS)
                   case e: JsonNode =>
                     ConnektLogger(LogFile.PROCESSORS).error(s"GCMResponseHandler unknown for message: $messageId, device: $rDeviceId", e)
-                    DeviceDetailsService.get(appName, rDeviceId).foreach {
-                      _.foreach(device => if (device.osName == MobilePlatform.ANDROID.toString) {
-                        ConnektLogger(LogFile.PROCESSORS).info(s"GCMResponseHandler device token invalid / not_found, deleting details of device: $rDeviceId.")
-                        DeviceDetailsService.delete(appName, device.deviceId)
-                      })
-                    }
                     ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(MobilePlatform.ANDROID.toString), requestTracker.appName, GCMResponseStatus.Error)
                     events += PNCallbackEvent(messageId, requestTracker.clientId, rDeviceId, GCMResponseStatus.Error, MobilePlatform.ANDROID, appName, requestTracker.contextId, e.toString, eventTS)
                 }

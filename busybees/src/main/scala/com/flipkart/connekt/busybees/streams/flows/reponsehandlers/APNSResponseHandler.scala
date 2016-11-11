@@ -64,13 +64,6 @@ class APNSResponseHandler(implicit m: Materializer, ec: ExecutionContext) extend
               events += PNCallbackEvent(requestTracker.messageId, requestTracker.clientId, requestTracker.deviceId, APNSResponseStatus.TokenExpired, MobilePlatform.IOS.toString, requestTracker.appName, requestTracker.contextId, s"TokenExpiredAt: ${pushNotificationResponse.getTokenInvalidationTimestamp}")
             } else {
               ConnektLogger(LogFile.PROCESSORS).error(s"APNSResponseHandler notification rejected by the apns gateway: ${pushNotificationResponse.getRejectionReason} for: ${requestTracker.messageId} and device: ${requestTracker.deviceId}")
-              DeviceDetailsService.get(requestTracker.appName, requestTracker.deviceId).foreach {
-                _.foreach(device => if (device.osName == MobilePlatform.IOS.toString) {
-                  ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher token invalid  deleting details of device: ${requestTracker.deviceId}.")
-                  ConnektLogger(LogFile.PROCESSORS).info(s"APNSDispatcher token invalid  deleting details of device: ${requestTracker.deviceId}.")
-                  DeviceDetailsService.delete(requestTracker.appName, device.deviceId)
-                })
-              }
               ServiceFactory.getReportingService.recordPushStatsDelta(requestTracker.clientId, Option(requestTracker.contextId), requestTracker.meta.get("stencilId").map(_.toString), Option(requestTracker.appName), MobilePlatform.IOS, APNSResponseStatus.Rejected)
               events += PNCallbackEvent(requestTracker.messageId, requestTracker.clientId, requestTracker.deviceId, APNSResponseStatus.Rejected, MobilePlatform.IOS.toString, requestTracker.appName, requestTracker.contextId, pushNotificationResponse.getRejectionReason)
             }
