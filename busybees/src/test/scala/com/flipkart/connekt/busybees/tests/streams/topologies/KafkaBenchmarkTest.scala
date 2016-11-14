@@ -73,8 +73,8 @@ class KafkaBenchmarkTest extends TopologyUTSpec with Instrumented {
 
     /*val rKafka = new ReactiveKafka()
     val publisher = rKafka.consume(ConsumerProperties(
-      brokerList = "10.84.174.216:9092",
-      zooKeeperHost = "10.84.174.225:2181,10.84.174.222:2181/bro/kafka-nm-qa",
+      brokerList = "127.0.0.1:9092",
+      zooKeeperHost = "127.0.0.1:2181/bro/kafka-nm-qa",
       topic = "push_connekt_insomnia_d346b56a260f1a",
       groupId = "ckt",
       decoder = new MessageDecoder[ConnektRequest]()

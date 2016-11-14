@@ -92,7 +92,7 @@ class CouchbaseConnectionTest extends ConnektUTSpec {
   }
 
   private def createClusterConn() = {
-    cluster =  CouchbaseCluster.create("10.32.113.29", "10.33.125.53")
+    cluster =  CouchbaseCluster.create("127.0.0.1", "127.0.0.1")
 //    cluster =  new CouchbaseMockCluster
   }
 }

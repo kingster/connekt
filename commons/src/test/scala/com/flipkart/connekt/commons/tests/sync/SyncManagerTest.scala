@@ -12,18 +12,17 @@
  */
 package com.flipkart.connekt.commons.tests.sync
 
-import java.util.concurrent.{TimeUnit, CountDownLatch}
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-import com.flipkart.connekt.commons.factories.{LogFile, ConnektLogger}
-import com.flipkart.connekt.commons.sync.SyncType
+import com.flipkart.connekt.commons.factories.{ConnektLogger, LogFile}
 import com.flipkart.connekt.commons.sync.SyncType.SyncType
-import com.flipkart.connekt.commons.sync.{SyncMessage, SyncManager, SyncType, SyncDelegate}
+import com.flipkart.connekt.commons.sync.{SyncDelegate, SyncManager, SyncMessage, SyncType}
 import com.flipkart.connekt.commons.tests.ConnektUTSpec
 
 class SyncManagerTest extends ConnektUTSpec with SyncDelegate {
 
   "Sync operation" should "sync" in {
-    SyncManager.create("usercrm-zookeeper-qa-0001.nm.flipkart.com:2181")
+    SyncManager.create("127.0.0.1:2181")
     //Subscribe to the NF
     SyncManager.get().addObserver(this, List(SyncType.TEMPLATE_CHANGE))
     SyncManager.get().publish(SyncMessage(SyncType.TEMPLATE_CHANGE, List("Hello via Curator", "Hello via Zookeeper" + System.currentTimeMillis())))
