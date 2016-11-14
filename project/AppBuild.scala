@@ -1,5 +1,3 @@
-import com.aol.sbt.sonar.SonarRunnerPlugin
-import com.aol.sbt.sonar.SonarRunnerPlugin.autoImport._
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import de.heikoseeberger.sbtheader.{AutomateHeaderPlugin, HeaderPattern}
 import sbt.Keys._
@@ -108,11 +106,9 @@ object AppBuild extends Build  {
 
   lazy val root =
     Project("root", file("."))
-      .enablePlugins(SonarRunnerPlugin)
       .settings(_commonSettings ++ Seq(
         generateLibsTask,
-        publishArtifact := false,
-        sonarRunnerOptions := Seq("-e")
+        publishArtifact := false
       ): _*)
       .enablePlugins(AutomateHeaderPlugin)
       .dependsOn(receptors, busybees, commons, barklice, firefly)
